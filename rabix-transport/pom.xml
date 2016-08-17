@@ -12,27 +12,53 @@
 
   <name>rabix-transport</name>
 
+  <properties>
+    <activemq.version>5.13.2</activemq.version>
+    <rabbitmq.version>3.6.1</rabbitmq.version>
+  </properties>
+
   <dependencies>
+
+    <!-- Sub-modules -->
     <dependency>
       <groupId>org.rabix</groupId>
       <artifactId>rabix-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- 3rd party dependencies -->
     <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-core</artifactId>
-      <version>5.7.0</version>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-pool</artifactId>
-      <version>5.13.2</version>
+      <version>${activemq.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
-      <version>3.6.1</version>
+      <version>${rabbitmq.version}</version>
     </dependency>
+
   </dependencies>
 
 </project>

@@ -13,25 +13,47 @@
   <name>rabix-ftp</name>
 
   <properties>
-    <commons-net.version>2.0</commons-net.version>
-    <ftpserver-core.version>1.0.0</ftpserver-core.version>
+    <ftpserver.version>1.0.0</ftpserver.version>
   </properties>
 
   <dependencies>
+
+    <!-- Sub-modules -->
     <dependency>
       <groupId>org.rabix</groupId>
       <artifactId>rabix-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- 3rd party dependencies -->
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+    </dependency>
     <dependency>
       <groupId>commons-net</groupId>
       <artifactId>commons-net</artifactId>
-      <version>${commons-net.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.ftpserver</groupId>
+      <artifactId>ftplet-api</artifactId>
+      <version>${ftpserver.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.ftpserver</groupId>
       <artifactId>ftpserver-core</artifactId>
-      <version>${ftpserver-core.version}</version>
+      <version>${ftpserver.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -39,6 +61,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+
   </dependencies>
 
 </project>
