@@ -129,23 +129,23 @@
     <javax-inject.version>1</javax-inject.version>
     <javax-servlet.version>3.1.0</javax-servlet.version>
     <javax-ws-rs.version>2.0.1</javax-ws-rs.version>
-    <slf4j.version>1.7.7</slf4j.version>
-    <logback.version>1.1.2</logback.version>
-    <jersey.version>2.19</jersey.version>
-    <jackson2.version>2.5.1</jackson2.version>
-    <jetty.version>9.2.6.v20141205</jetty.version>
+    <slf4j.version>1.7.21</slf4j.version>
+    <logback.version>1.1.7</logback.version>
+    <jersey.version>2.23.2</jersey.version>
+    <jackson2.version>2.8.1</jackson2.version>
+    <jetty.version>9.2.18.v20160721</jetty.version>
     <rhino.version>1.7.7.1</rhino.version>
     <commons-cli.version>1.3.1</commons-cli.version>
-    <commons-codec.version>1.9</commons-codec.version>
-    <commons-collections.version>3.2.1</commons-collections.version>
+    <commons-codec.version>1.10</commons-codec.version>
+    <commons-collections.version>3.2.2</commons-collections.version>
     <commons-configuration.version>1.10</commons-configuration.version>
     <commons-daemon.version>1.0.15</commons-daemon.version>
-    <commons-io.version>1.3.2</commons-io.version>
-    <commons-lang3.version>3.0</commons-lang3.version>
-    <commons-net.version>2.0</commons-net.version>
+    <commons-io.version>2.5</commons-io.version>
+    <commons-lang3.version>3.4</commons-lang3.version>
+    <commons-net.version>3.5</commons-net.version>
     <snakeyaml.version>1.17</snakeyaml.version>
-    <jersey2-guice.version>0.5</jersey2-guice.version>
-    <testng.version>6.9.8</testng.version>
+    <jersey2-guice.version>0.10</jersey2-guice.version>
+    <testng.version>6.9.10</testng.version>
   </properties>
 
   <!-- The following dependency should be the same everywhere. -->
