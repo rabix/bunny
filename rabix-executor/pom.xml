@@ -1,92 +1,65 @@
-<?xml version="1.0"?>
-<project
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.rabix</groupId>
-		<artifactId>rabix</artifactId>
-		<version>0.6.1-SNAPSHOT</version>
-	</parent>
-	<artifactId>rabix-executor</artifactId>
-	<name>rabix-executor</name>
-	<url>https://github.com/rabix/bunny</url>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-	<licenses>
-  		<license>
-    		<name>The Apache License, Version 2.0</name>
-    		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-  		</license>
-	</licenses>
-	
-	<developers>
-	    <developer>
-	      	<name>Janko Simonovic</name>
-	      	<email>simonovic86@gmail.com</email>
-	      	<organization>Seven Bridges Genomics</organization>
-	      	<organizationUrl>http://www.sevenbridges.com</organizationUrl>
-	    </developer>
-	    <developer>
-	      	<name>Sinisa Ivkovic</name>
-	      	<email>sinisa.ivkovic@gmail.com</email>
-	      	<organization>Seven Bridges Genomics</organization>
-	    	<organizationUrl>http://www.sevenbridges.com</organizationUrl>
-		</developer>
-	</developers>
-	
-	<scm>
-  		<connection>scm:git:git://github.com/rabix/bunny.git</connection>
-  		<developerConnection>scm:git:ssh://github.com:rabix/bunny.git</developerConnection>
-  		<url>http://github.com/rabix/bunny/tree/master</url>
-	</scm>
-	
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<docker-client.version>3.5.12</docker-client.version>
-	</properties>
-	
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	<dependencies>
-		<dependency>
-			<groupId>org.rabix</groupId>
-			<artifactId>rabix-bindings</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
-			<artifactId>rabix-ftp</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
-			<artifactId>rabix-transport</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.spotify</groupId>
-			<artifactId>docker-client</artifactId>
-			<version>${docker-client.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-core</artifactId>
-			<version>5.7.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-pool</artifactId>
-			<version>5.13.2</version>
-		</dependency>
-	</dependencies>
+  <parent>
+    <groupId>org.rabix</groupId>
+    <artifactId>rabix</artifactId>
+    <version>0.6.1-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>rabix-executor</artifactId>
+
+  <name>rabix-executor</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <docker-client.version>3.5.12</docker-client.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.rabix</groupId>
+      <artifactId>rabix-bindings</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.rabix</groupId>
+      <artifactId>rabix-ftp</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.rabix</groupId>
+      <artifactId>rabix-transport</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.spotify</groupId>
+      <artifactId>docker-client</artifactId>
+      <version>${docker-client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-core</artifactId>
+      <version>5.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-pool</artifactId>
+      <version>5.13.2</version>
+    </dependency>
+  </dependencies>
 </project>
