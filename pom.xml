@@ -82,6 +82,12 @@
     <!-- tag name format, can be overridden by the project to provide different tags. -->
     <release.tag-name-format>@{project.artifactId}-v@{project.version}</release.tag-name-format>
 
+    <!-- Controls all the checkers run when building the project.             -->
+    <!-- Can be activated with -Dcheck.skip-all=true on the command line. -->
+    <check.skip-all>false</check.skip-all>
+    <!-- Can be activated with -Dcheck.fail-all=true on the command line. -->
+    <check.fail-all>false</check.fail-all>
+
     <!--
       Plugin versions, ordered like http://maven.apache.org/plugins/
     -->
@@ -103,6 +109,15 @@
     <plugin.dependency.version>2.10</plugin.dependency.version>
     <plugin.release.version>2.5.3</plugin.release.version>
     <plugin.scm.version>1.9.5</plugin.scm.version>
+
+    <!-- https://github.com/ning/maven-dependency-versions-check-plugin/releases -->
+    <plugin.dependency-versions-check.version>2.0.2</plugin.dependency-versions-check.version>
+
+    <!-- https://github.com/HubSpot/dependency-management-maven-plugin/releases -->
+    <plugin.dependency-management.version>0.7</plugin.dependency-management.version>
+
+    <!-- https://github.com/basepom/duplicate-finder-maven-plugin/releases -->
+    <plugin.duplicate-finder.version>1.2.1</plugin.duplicate-finder.version>
 
     <!--
       Dependency versions that should be the same everywhere.
@@ -516,14 +531,9 @@
           <artifactId>maven-dependency-plugin</artifactId>
           <version>${plugin.dependency.version}</version>
           <configuration>
-            <skip>false</skip>
-            <failOnWarning>false</failOnWarning>
+            <skip>${check.skip-all}</skip>
+            <failOnWarning>${check.fail-all}</failOnWarning>
             <ignoreNonCompile>true</ignoreNonCompile>
-            <ignoredDependencies>
-              <ignoredDependency>com.google.code.findbugs:jsr305</ignoredDependency>
-              <ignoredDependency>com.google.code.findbugs:annotations</ignoredDependency>
-              <ignoredDependency>net.jcip:jcip-annotations</ignoredDependency>
-            </ignoredDependencies>
           </configuration>
         </plugin>
 
@@ -549,6 +559,103 @@
           <version>${plugin.scm.version}</version>
           <configuration>
             <connectionType>developerConnection</connectionType>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>com.ning.maven.plugins</groupId>
+          <artifactId>maven-dependency-versions-check-plugin</artifactId>
+          <version>${plugin.dependency-versions-check.version}</version>
+          <configuration>
+            <skip>${check.skip-all}</skip>
+            <failBuildInCaseOfConflict>${check.fail-all}</failBuildInCaseOfConflict>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>com.hubspot.maven.plugins</groupId>
+          <artifactId>dependency-management-maven-plugin</artifactId>
+          <version>${plugin.dependency-management.version}</version>
+          <configuration>
+            <skip>${check.skip-all}</skip>
+            <fail>${check.fail-all}</fail>
+            <requireManagement>
+              <dependencies>false</dependencies>
+              <plugins>false</plugins>
+              <allowVersions>false</allowVersions>
+              <allowExclusions>false</allowExclusions>
+            </requireManagement>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.basepom.maven</groupId>
+          <artifactId>duplicate-finder-maven-plugin</artifactId>
+          <version>${plugin.duplicate-finder.version}</version>
+          <configuration>
+            <skip>${check.skip-all}</skip>
+            <failBuildInCaseOfConflict>${check.fail-all}</failBuildInCaseOfConflict>
+            <exceptions>
+              <!-- Well done, Apache... -->
+              <exception>
+                <conflictingDependencies>
+                  <dependency>
+                    <groupId>commons-beanutils</groupId>
+                    <artifactId>commons-beanutils</artifactId>
+                  </dependency>
+                  <dependency>
+                    <groupId>commons-beanutils</groupId>
+                    <artifactId>commons-beanutils-core</artifactId>
+                  </dependency>
+                  <dependency>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
+                  </dependency>
+                </conflictingDependencies>
+                <classes>
+                  <class>org.apache.commons.collections.ArrayStack</class>
+                  <class>org.apache.commons.collections.Buffer</class>
+                  <class>org.apache.commons.collections.BufferUnderflowException</class>
+                  <class>org.apache.commons.collections.FastHashMap</class>
+                </classes>
+              </exception>
+              <exception>
+                <conflictingDependencies>
+                  <dependency>
+                    <groupId>commons-beanutils</groupId>
+                    <artifactId>commons-beanutils</artifactId>
+                  </dependency>
+                  <dependency>
+                    <groupId>commons-beanutils</groupId>
+                    <artifactId>commons-beanutils-core</artifactId>
+                  </dependency>
+                </conflictingDependencies>
+                <packages>
+                  <package>org.apache.commons.beanutils</package>
+                </packages>
+              </exception>
+            </exceptions>
+            <!-- Ruby is hopeless -->
+            <ignoredDependencies>
+              <dependency>
+                <groupId>org.jruby</groupId>
+                <artifactId>jruby-complete</artifactId>
+              </dependency>
+            </ignoredDependencies>
+            <ignoredResourcePatterns>
+              <ignoredResourcePattern>.*\.html</ignoredResourcePattern>
+              <ignoredResourcePattern>about_files/.*</ignoredResourcePattern>
+              <ignoredResourcePattern>plugin\.properties</ignoredResourcePattern>
+              <ignoredResourcePattern>plugin\.xml</ignoredResourcePattern>
+              <ignoredResourcePattern>.*\.java</ignoredResourcePattern>
+              <!-- the log4j config should not be ignored but they are a constant -->
+              <!-- source of annoyance. If you use log4j.properties from the classpath -->
+              <!-- then you are in trouble anyway -->
+              <ignoredResourcePattern>log4j\.xml</ignoredResourcePattern>
+              <ignoredResourcePattern>log4j\.properties</ignoredResourcePattern>
+              <ignoredResourcePattern>logback\.xml</ignoredResourcePattern>
+              <ignoredResourcePattern>logback\.properties</ignoredResourcePattern>
+            </ignoredResourcePatterns>
           </configuration>
         </plugin>
 
@@ -612,6 +719,48 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>com.ning.maven.plugins</groupId>
+        <artifactId>maven-dependency-versions-check-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.hubspot.maven.plugins</groupId>
+        <artifactId>dependency-management-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>analyze</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.basepom.maven</groupId>
+        <artifactId>duplicate-finder-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
     </plugins>
