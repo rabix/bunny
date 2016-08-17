@@ -12,10 +12,6 @@
 
   <name>rabix-transport</name>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.rabix</groupId>
@@ -38,4 +34,5 @@
       <version>3.6.1</version>
     </dependency>
   </dependencies>
+
 </project>
