@@ -80,7 +80,7 @@
     <!-- the upstream repository. Default is no. -->
     <release.push-changes>false</release.push-changes>
     <!-- tag name format, can be overridden by the project to provide different tags. -->
-    <release.tag-name-format>@{project.artifactId}-v@{project.version}</release.tag-name-format>
+    <release.tag-name-format>@{project.artifactId}-@{project.version}</release.tag-name-format>
 
     <!-- Controls all the checkers run when building the project.             -->
     <!-- Can be activated with -Dcheck.skip-all=true on the command line. -->
