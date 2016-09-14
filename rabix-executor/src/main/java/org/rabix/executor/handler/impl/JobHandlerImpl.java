@@ -237,14 +237,16 @@ public class JobHandlerImpl implements JobHandler {
   public Job postprocess(boolean isTerminal) throws ExecutorException {
     logger.debug("postprocess(id={})", job.getId());
     try {
+      Bindings bindings = BindingsFactory.create(job);
+      
       Map<String, Object> results = localMemoizationService.tryToFindResults(job);
       if (results != null) {
+        job = bindings.mapOutputFilePaths(job, outputFileMapper);
         job = Job.cloneWithOutputs(job, results);
         return job;
       }
       containerHandler.dumpContainerLogs(new File(workingDir, ERROR_LOG));
 
-      Bindings bindings = BindingsFactory.create(job);
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
         return job;
