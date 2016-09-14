@@ -63,6 +63,7 @@ private final static Logger logger = LoggerFactory.getLogger(BasicMemoizationSer
       }
       
       switch (bindings.getProtocolType()) {
+      case SB:
       case DRAFT2:
         File resultFile = new File(workingDir, "cwl.output.json");
         if (resultFile.exists()) {
