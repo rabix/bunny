@@ -6,27 +6,4 @@ services:
 
 script:
   - mvn clean install package
-  - pwd
-  - ls -ltra
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -e -X
-  - pwd
-  - cd rabix-backend-local
-  - pwd
-  - ls -ltra
-  - cd target
-  - ls -ltra
-  - cd testbacklog
-  - ls -ltra
-  - cd ..
-  - cd ..
-  - cd ..
-  - cd rabix-integration-testing
-  - ls -ltra
-  - pwd
-  - cd ..
-  - cd rabix-backend-local
-  - pwd
-  - ls -ltra
-  - cd target
-  - cd testbacklog
-  - ls -ltra

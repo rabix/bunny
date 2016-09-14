@@ -55,13 +55,13 @@ public class TestRunner {
       logger.error("Problem with provided test directory: Test directory is empty.");
     }
     logger.info("Extracting jar file");
-    executeCommand("sudo tar -zxvf " + System.getProperty("user.dir")
-        + "/rabix-backend-local/target/rabix-backend-local-0.0.1-SNAPSHOT-id3.tar.gz");
+    command("tar -zxvf " + System.getProperty("user.dir")
+        + "/rabix-backend-local/target/rabix-backend-local-0.6.1-SNAPSHOT-id3.tar.gz", workingdir);
     
-    executeCommand("cp -a " + System.getProperty("user.dir") + "/rabix-integration-testing/testbacklog .");
+    command("cp -a " + System.getProperty("user.dir") + "/rabix-integration-testing/testbacklog .", workingdir);
 
     for (File child : directoryListing) {
-      if (!child.toString().endsWith(".test.yaml"))
+      if (!child.getPath().endsWith(".test.yaml"))
         continue;
       try {
         String currentTest = readFile(child.getAbsolutePath(), Charset.defaultCharset());
@@ -80,7 +80,7 @@ public class TestRunner {
           logger.info("  expected: " + mapTest.get("expected"));
           String cmd = cmdPrefix + " " + mapTest.get("app") + " " + mapTest.get("inputs") + " > result.yaml";
           logger.info("->Running cmd: " + cmd);
-          executeCommand(cmd);
+          command(cmd, workingdir);
 
           File resultFile = new File(resultPath);
 
@@ -160,39 +160,24 @@ public class TestRunner {
     return false;
   }
 
-  public static ArrayList<String> command(final String cmdline, final String directory) {
+  public static void command(final String cmdline, final String directory) throws RabixTestException {
     try {
       Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).redirectErrorStream(true)
           .directory(new File(directory)).start();
 
-      ArrayList<String> output = new ArrayList<String>();
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
       String line = null;
       while ((line = br.readLine()) != null)
-        output.add(line);
+        logger.info(line);
 
-      if (0 != process.waitFor()) {
-        return null;
+      int exitCode = process.waitFor();
+      if (0 != exitCode) {
+        throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
       }
 
-      return output;
-
     } catch (Exception e) {
-      logger.error("Error while creating command. ", e);
-      System.exit(-1);
-    }
-    return null;
-  }
-
-  
-static void executeCommand(String cmdline) throws RabixTestException {
-    ArrayList<String> output = command(cmdline, workingdir);
-    if (null == output) {
-      logger.error("COMMAND FAILED: " + cmdline + "\n");
-    }
-
-    for (String line : output) {
-      logger.info(line);
+      logger.error("Error while executing command. ", e);
+      throw new RabixTestException("Error while executing command: " + e.getMessage());
     }
   }
 
