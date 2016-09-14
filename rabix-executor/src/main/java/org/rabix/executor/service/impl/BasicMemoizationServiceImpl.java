@@ -38,7 +38,7 @@ private final static Logger logger = LoggerFactory.getLogger(BasicMemoizationSer
   public Map<String, Object> tryToFindResults(Job job) {
     try {
       Bindings bindings = BindingsFactory.create(job);
-      File workingDir = new File(memoizationDirectory, storageConfig.getWorkingDirWithoutRoot(job).getAbsolutePath());
+      File workingDir = new File(memoizationDirectory, storageConfig.getWorkingDirWithoutRoot(job).getPath());
       
       if (!workingDir.exists()) {
         return null;
