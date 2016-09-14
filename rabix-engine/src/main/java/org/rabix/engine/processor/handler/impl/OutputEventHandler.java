@@ -85,7 +85,10 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           Object value = CloneHelper.deepCopy(outputVariable.getValue());
           outputs.put(outputVariable.getPortId(), value);
         }
-        eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs));
+        if(sourceJob.isRoot() && sourceJob.isContainer()) {
+          // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
+          eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs));
+        }
         return;
       }
     }
