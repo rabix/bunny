@@ -67,6 +67,8 @@ private final static Logger logger = LoggerFactory.getLogger(BasicMemoizationSer
       case DRAFT2:
         File resultFile = new File(workingDir, "cwl.output.json");
         if (resultFile.exists()) {
+          FileUtils.copyFile(resultFile, new File(storageConfig.getWorkingDir(job), "cwl.output.json"));
+          
           Map<String, Object> inputs = JSONHelper.readMap(oldJobJsonNode.get("inputs"));
           Job newJob = Job.cloneWithInputs(job, inputs);
           return bindings.postprocess(newJob, workingDir).getOutputs();
