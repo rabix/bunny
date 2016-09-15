@@ -246,7 +246,10 @@ public class JobHandlerImpl implements JobHandler {
         Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);
         Set<File> files = new HashSet<>();
         for (FileValue fileValue : fileValues) {
-          files.add(new File(fileValue.getPath()));
+          File file = new File(fileValue.getPath());
+          if (file.exists()) {
+            files.add(new File(fileValue.getPath()));
+          }
         }
         uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
         job = bindings.mapOutputFilePaths(job, outputFileMapper);
