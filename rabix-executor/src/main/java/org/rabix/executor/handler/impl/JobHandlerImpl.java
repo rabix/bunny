@@ -242,7 +242,13 @@ public class JobHandlerImpl implements JobHandler {
       Map<String, Object> results = localMemoizationService.tryToFindResults(job);
       if (results != null) {
         job = Job.cloneWithOutputs(job, results);
-        uploadOutputFiles(job, bindings);
+        
+        Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);
+        Set<File> files = new HashSet<>();
+        for (FileValue fileValue : fileValues) {
+          files.add(new File(fileValue.getPath()));
+        }
+        uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
         job = bindings.mapOutputFilePaths(job, outputFileMapper);
         return job;
       }
