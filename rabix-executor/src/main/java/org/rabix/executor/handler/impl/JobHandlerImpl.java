@@ -237,14 +237,23 @@ public class JobHandlerImpl implements JobHandler {
   public Job postprocess(boolean isTerminal) throws ExecutorException {
     logger.debug("postprocess(id={})", job.getId());
     try {
+      Bindings bindings = BindingsFactory.create(job);
+      
       Map<String, Object> results = localMemoizationService.tryToFindResults(job);
       if (results != null) {
         job = Job.cloneWithOutputs(job, results);
+        
+        Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);
+        Set<File> files = new HashSet<>();
+        for (FileValue fileValue : fileValues) {
+          files.add(new File(fileValue.getPath()));
+        }
+        uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
+        job = bindings.mapOutputFilePaths(job, outputFileMapper);
         return job;
       }
       containerHandler.dumpContainerLogs(new File(workingDir, ERROR_LOG));
 
-      Bindings bindings = BindingsFactory.create(job);
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
         return job;

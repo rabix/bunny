@@ -38,11 +38,15 @@ private final static Logger logger = LoggerFactory.getLogger(BasicMemoizationSer
   public Map<String, Object> tryToFindResults(Job job) {
     try {
       Bindings bindings = BindingsFactory.create(job);
-      File workingDir = new File(memoizationDirectory, storageConfig.getWorkingDirWithoutRoot(job).getAbsolutePath());
+      File workingDir = new File(memoizationDirectory, storageConfig.getWorkingDirWithoutRoot(job).getPath());
+      
+      logger.info("Trying to find cached results in the directory {}", workingDir);
       
       if (!workingDir.exists()) {
+        logger.info("Cache directory doesn't exist. Directory {}", workingDir);
         return null;
       }
+      logger.info("Cache directory exists. Directory {}", workingDir);
       
       String serializedApp = JSONHelper.writeSortedWithoutIdentation(JSONHelper.readJsonNode(bindings.loadApp(job.getApp())));
       String newHash = ChecksumHelper.checksum(serializedApp, HashAlgorithm.SHA1);
@@ -59,9 +63,12 @@ private final static Logger logger = LoggerFactory.getLogger(BasicMemoizationSer
       }
       
       switch (bindings.getProtocolType()) {
+      case SB:
       case DRAFT2:
         File resultFile = new File(workingDir, "cwl.output.json");
         if (resultFile.exists()) {
+          FileUtils.copyFile(resultFile, new File(storageConfig.getWorkingDir(job), "cwl.output.json"));
+          
           Map<String, Object> inputs = JSONHelper.readMap(oldJobJsonNode.get("inputs"));
           Job newJob = Job.cloneWithInputs(job, inputs);
           return bindings.postprocess(newJob, workingDir).getOutputs();

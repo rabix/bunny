@@ -54,9 +54,6 @@ public class DefaultStorageConfiguration implements StorageConfiguration {
 
     for (String id : idArray) {
       workingDir = new File(workingDir, sanitize(id));
-      if (!workingDir.exists()) {
-        workingDir.mkdirs();
-      }
     }
     return workingDir;
   }
