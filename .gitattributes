@@ -1,0 +1,2 @@
+*.bam filter=lfs diff=lfs merge=lfs -text
+~/code/BUNNY/bunny/rabix-integration-testing/testbacklog/merged-normal.bam filter=lfs diff=lfs merge=lfs -text

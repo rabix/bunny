@@ -51,4 +51,13 @@ vcs.xml
 # sbteclipse plugin
 .target
 
+# TestRunner specific
+result.yaml
+
 target
+
+# TestRunner specific
+result.yaml
+
+# For local debugging
+rabix-integration-testing/src/main/java/org/rabix/tests/TestRunnerLocal.java
