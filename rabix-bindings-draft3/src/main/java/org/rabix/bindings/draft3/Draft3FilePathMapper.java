@@ -9,13 +9,13 @@ import org.rabix.bindings.draft3.helper.Draft3JobHelper;
 import org.rabix.bindings.draft3.processor.Draft3PortProcessor;
 import org.rabix.bindings.draft3.processor.Draft3PortProcessorException;
 import org.rabix.bindings.draft3.processor.callback.Draft3FilePathMapProcessorCallback;
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 
 public class Draft3FilePathMapper implements ProtocolFilePathMapper {
 
   @Override
-  public Job mapInputFilePaths(final Job job, final FileMapper fileMapper) throws BindingException {
+  public Job mapInputFilePaths(final Job job, final FilePathMapper fileMapper) throws BindingException {
     Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
     
     Draft3PortProcessor draft2PortProcessor = new Draft3PortProcessor(draft2Job);
@@ -29,7 +29,7 @@ public class Draft3FilePathMapper implements ProtocolFilePathMapper {
   }
 
   @Override
-  public Job mapOutputFilePaths(final Job job, final FileMapper fileMapper) throws BindingException {
+  public Job mapOutputFilePaths(final Job job, final FilePathMapper fileMapper) throws BindingException {
     Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
     
     Draft3PortProcessor draft2PortProcessor = new Draft3PortProcessor(draft2Job);

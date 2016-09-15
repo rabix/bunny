@@ -74,7 +74,7 @@ public class Draft3FileValueProcessorCallback implements Draft3PortProcessorCall
                 }
                 secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
               }
-              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null, null));
+              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null));
             }
             fileValue = FileValue.cloneWithSecondaryFiles(fileValue, secondaryFileValues);
           }

@@ -1,11 +1,11 @@
-package org.rabix.bindings.filemapper;
+package org.rabix.bindings.mapper;
 
 import java.util.Map;
 
 /**
  * Maps file path from one format to another 
  */
-public interface FileMapper {
+public interface FilePathMapper {
 
   /**
    * Map file path

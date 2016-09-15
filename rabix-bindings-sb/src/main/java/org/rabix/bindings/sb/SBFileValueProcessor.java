@@ -5,13 +5,14 @@ import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolFileValueProcessor;
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.helper.SBJobHelper;
 import org.rabix.bindings.sb.processor.SBPortProcessorException;
 import org.rabix.bindings.sb.processor.callback.SBPortProcessorHelper;
+import org.rabix.bindings.transformer.FileTransformer;
 
 public class SBFileValueProcessor implements ProtocolFileValueProcessor {
 
@@ -25,7 +26,7 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
   }
   
   @Override
-  public Set<FileValue> getInputFiles(Job job, FileMapper fileMapper) throws BindingException {
+  public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     try {
       return new SBPortProcessorHelper(sbJob).getInputFiles(job.getInputs(), fileMapper, job.getConfig());
@@ -49,11 +50,11 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
   }
 
   @Override
-  public Job updateInputFiles(Job job, Set<FileValue> inputFiles) throws BindingException {
+  public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
     SBJob draft2Job = SBJobHelper.getSBJob(job);
     Map<String, Object> inputs;
     try {
-      inputs = new SBPortProcessorHelper(draft2Job).updateInputFiles(job.getInputs(), inputFiles);
+      inputs = new SBPortProcessorHelper(draft2Job).updateInputFiles(job.getInputs(), fileTransformer);
       return Job.cloneWithInputs(job, inputs);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
@@ -61,11 +62,11 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
   }
 
   @Override
-  public Job updateOutputFiles(Job job, Set<FileValue> outputFiles) throws BindingException {
+  public Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
     SBJob draft2Job = SBJobHelper.getSBJob(job);
     Map<String, Object> outputs;
     try {
-      outputs = new SBPortProcessorHelper(draft2Job).updateOutputFiles(job.getOutputs(), outputFiles);
+      outputs = new SBPortProcessorHelper(draft2Job).updateOutputFiles(job.getOutputs(), fileTransformer);
       return Job.cloneWithOutputs(job, outputs);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);

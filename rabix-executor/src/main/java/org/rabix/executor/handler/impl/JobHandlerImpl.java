@@ -16,8 +16,8 @@ import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
-import org.rabix.bindings.filemapper.FileMapper;
-import org.rabix.bindings.filemapper.FileMappingException;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
@@ -74,8 +74,8 @@ public class JobHandlerImpl implements JobHandler {
   private final UploadService uploadService;
   private final DownloadService downloadService;
   
-  private final FileMapper inputFileMapper;
-  private final FileMapper outputFileMapper;
+  private final FilePathMapper inputFileMapper;
+  private final FilePathMapper outputFileMapper;
 
   private Job job;
   private EngineStub<?, ?, ?> engineStub;
@@ -100,7 +100,7 @@ public class JobHandlerImpl implements JobHandler {
       DockerClientLockDecorator dockerClient, ExecutorStatusCallback statusCallback,
       BasicMemoizationService localMemoizationService, FilePermissionService filePermissionService, 
       UploadService uploadService, DownloadService downloadService,
-      @InputFileMapper FileMapper inputFileMapper, @OutputFileMapper FileMapper outputFileMapper) {
+      @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper) {
     this.job = job;
     this.engineStub = engineStub;
     this.storageConfiguration = storageConfig;
@@ -237,14 +237,23 @@ public class JobHandlerImpl implements JobHandler {
   public Job postprocess(boolean isTerminal) throws ExecutorException {
     logger.debug("postprocess(id={})", job.getId());
     try {
+      Bindings bindings = BindingsFactory.create(job);
+      
       Map<String, Object> results = localMemoizationService.tryToFindResults(job);
       if (results != null) {
         job = Job.cloneWithOutputs(job, results);
+        
+        Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);
+        Set<File> files = new HashSet<>();
+        for (FileValue fileValue : fileValues) {
+          files.add(new File(fileValue.getPath()));
+        }
+        uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
+        job = bindings.mapOutputFilePaths(job, outputFileMapper);
         return job;
       }
       containerHandler.dumpContainerLogs(new File(workingDir, ERROR_LOG));
 
-      Bindings bindings = BindingsFactory.create(job);
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
         return job;
@@ -297,13 +306,13 @@ public class JobHandlerImpl implements JobHandler {
     File cmdFile = new File(workingDir, COMMAND_LOG);
     if (cmdFile.exists()) {
       String cmdFilePath = cmdFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null));
+      fileValues.add(new FileValue(null, cmdFilePath, null, null, null));
     }
     
     File jobErrFile = new File(workingDir, ERROR_LOG);
     if (jobErrFile.exists()) {
       String jobErrFilePath = jobErrFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null));
+      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null));
     }
     
     Set<File> files = new HashSet<>();

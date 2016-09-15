@@ -15,13 +15,14 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
+import org.rabix.bindings.transformer.FileTransformer;
 
 public class SBBindings implements Bindings {
 
@@ -94,7 +95,7 @@ public class SBBindings implements Bindings {
   }
 
   @Override
-  public Set<FileValue> getInputFiles(Job job, FileMapper fileMapper) throws BindingException {
+  public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     return fileValueProcessor.getInputFiles(job, fileMapper);
   }
   
@@ -114,13 +115,13 @@ public class SBBindings implements Bindings {
   }
   
   @Override
-  public Job updateInputFiles(Job job, Set<FileValue> inputFiles) throws BindingException {
-    return fileValueProcessor.updateInputFiles(job, inputFiles);
+  public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
+    return fileValueProcessor.updateInputFiles(job, fileTransformer);
   }
 
   @Override
-  public Job updateOutputFiles(Job job, Set<FileValue> outputFiles) throws BindingException {
-    return fileValueProcessor.updateOutputFiles(job, outputFiles);
+  public Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
+    return fileValueProcessor.updateOutputFiles(job, fileTransformer);
   }
   
   @Override
@@ -130,24 +131,24 @@ public class SBBindings implements Bindings {
     File jobFile = new File(workingDir, SBProcessor.JOB_FILE);
     if (jobFile.exists()) {
       String jobFilePath = jobFile.getAbsolutePath();
-      files.add(new FileValue(null, jobFilePath, null, null, null, null));
+      files.add(new FileValue(null, jobFilePath, null, null, null));
     }
     
     File resultFile = new File(workingDir, SBProcessor.RESULT_FILENAME);
     if (resultFile.exists()) {
       String resultFilePath = resultFile.getAbsolutePath();
-      files.add(new FileValue(null, resultFilePath, null, null, null, null));
+      files.add(new FileValue(null, resultFilePath, null, null, null));
     }
     return files;
   }
   
   @Override
-  public Job mapInputFilePaths(Job job, FileMapper fileMapper) throws BindingException {
+  public Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
     return filePathMapper.mapInputFilePaths(job, fileMapper);
   }
 
   @Override
-  public Job mapOutputFilePaths(Job job, FileMapper fileMapper) throws BindingException {
+  public Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
     return filePathMapper.mapOutputFilePaths(job, fileMapper);
   }
 

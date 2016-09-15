@@ -8,16 +8,16 @@ import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.draft3.processor.Draft3PortProcessorCallback;
 import org.rabix.bindings.draft3.processor.Draft3PortProcessorException;
 import org.rabix.bindings.draft3.processor.Draft3PortProcessorResult;
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.helper.CloneHelper;
 
 public class Draft3FilePathMapProcessorCallback implements Draft3PortProcessorCallback {
 
-  private final FileMapper filePathMapper;
+  private final FilePathMapper filePathMapper;
   private final Map<String, Object> config;
 
-  public Draft3FilePathMapProcessorCallback(FileMapper filePathMapper, Map<String, Object> config) {
+  public Draft3FilePathMapProcessorCallback(FilePathMapper filePathMapper, Map<String, Object> config) {
     this.config = config;
     this.filePathMapper = filePathMapper;
   }

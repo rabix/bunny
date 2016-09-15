@@ -7,32 +7,30 @@ public class FileValue {
 
   private final Long size;
   private final String path;
-  private final String relocatedPath;
   
   private final String checksum;
   private final List<FileValue> secondaryFiles;
   private final Map<String, Object> properties;
   
-  public FileValue(Long size, String path, String relocatedPath, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties) {
+  public FileValue(Long size, String path, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties) {
     super();
     this.size = size;
     this.path = path;
-    this.relocatedPath = relocatedPath;
     this.checksum = checksum;
     this.secondaryFiles = secondaryFiles;
     this.properties = properties;
   }
   
-  public static FileValue cloneWithRelocatedPath(FileValue fileValue, String relocatedPath) {
-    return new FileValue(fileValue.size, fileValue.path, relocatedPath, fileValue.checksum, fileValue.secondaryFiles, fileValue.properties);
+  public static FileValue cloneWithPath(FileValue fileValue, String path) {
+    return new FileValue(fileValue.size, path, fileValue.checksum, fileValue.secondaryFiles, fileValue.properties);
   }
   
   public static FileValue cloneWithProperties(FileValue fileValue, Map<String, Object> properties) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.relocatedPath, fileValue.checksum, fileValue.secondaryFiles, properties);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.checksum, fileValue.secondaryFiles, properties);
   }
   
   public static FileValue cloneWithSecondaryFiles(FileValue fileValue, List<FileValue> secondaryFiles) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.relocatedPath, fileValue.checksum, secondaryFiles, fileValue.properties);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.checksum, secondaryFiles, fileValue.properties);
   }
 
   public Long getSize() {
@@ -43,10 +41,6 @@ public class FileValue {
     return path;
   }
   
-  public String getRelocatedPath() {
-    return relocatedPath;
-  }
-
   public String getChecksum() {
     return checksum;
   }

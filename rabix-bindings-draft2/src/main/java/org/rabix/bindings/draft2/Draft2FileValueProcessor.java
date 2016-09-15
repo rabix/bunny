@@ -9,9 +9,10 @@ import org.rabix.bindings.draft2.bean.Draft2Job;
 import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.processor.Draft2PortProcessorException;
 import org.rabix.bindings.draft2.processor.callback.Draft2PortProcessorHelper;
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.transformer.FileTransformer;
 
 public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
 
@@ -25,7 +26,7 @@ public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
   }
   
   @Override
-  public Set<FileValue> getInputFiles(Job job, FileMapper fileMapper) throws BindingException {
+  public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     try {
       return new Draft2PortProcessorHelper(draft2Job).getInputFiles(job.getInputs(), fileMapper, job.getConfig());
@@ -49,11 +50,11 @@ public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
   }
 
   @Override
-  public Job updateInputFiles(Job job, Set<FileValue> inputFiles) throws BindingException {
+  public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     Map<String, Object> inputs;
     try {
-      inputs = new Draft2PortProcessorHelper(draft2Job).updateInputFiles(job.getInputs(), inputFiles);
+      inputs = new Draft2PortProcessorHelper(draft2Job).updateInputFiles(job.getInputs(), fileTransformer);
       return Job.cloneWithInputs(job, inputs);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
@@ -61,11 +62,11 @@ public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
   }
 
   @Override
-  public Job updateOutputFiles(Job job, Set<FileValue> outputFiles) throws BindingException {
+  public Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     Map<String, Object> outputs;
     try {
-      outputs = new Draft2PortProcessorHelper(draft2Job).updateOutputFiles(job.getOutputs(), outputFiles);
+      outputs = new Draft2PortProcessorHelper(draft2Job).updateOutputFiles(job.getOutputs(), fileTransformer);
       return Job.cloneWithOutputs(job, outputs);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);

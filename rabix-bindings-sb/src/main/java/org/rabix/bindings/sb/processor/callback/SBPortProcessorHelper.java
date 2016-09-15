@@ -4,11 +4,12 @@ import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.processor.SBPortProcessor;
 import org.rabix.bindings.sb.processor.SBPortProcessorException;
+import org.rabix.bindings.transformer.FileTransformer;
 
 public class SBPortProcessorHelper {
 
@@ -20,7 +21,7 @@ public class SBPortProcessorHelper {
     this.portProcessor = new SBPortProcessor(sbJob);
   }
 
-  public Set<FileValue> getInputFiles(Map<String, Object> inputs, FileMapper fileMapper, Map<String, Object> config) throws SBPortProcessorException {
+  public Set<FileValue> getInputFiles(Map<String, Object> inputs, FilePathMapper fileMapper, Map<String, Object> config) throws SBPortProcessorException {
     if (fileMapper != null) {
       SBFilePathMapProcessorCallback fileMapperCallback = new SBFilePathMapProcessorCallback(fileMapper, config);
       inputs = portProcessor.processInputs(inputs, fileMapperCallback);
@@ -75,17 +76,17 @@ public class SBPortProcessorHelper {
     return callback.getFlattenedFileData();
   }
   
-  public Map<String, Object> updateInputFiles(Map<String, Object> inputs, Set<FileValue> fileValues) throws SBPortProcessorException {
+  public Map<String, Object> updateInputFiles(Map<String, Object> inputs, FileTransformer fileTransformer) throws SBPortProcessorException {
     try {
-      return portProcessor.processInputs(inputs, new SBFileValueUpdateProcessorCallback(fileValues));
+      return portProcessor.processInputs(inputs, new SBFileValueUpdateProcessorCallback(fileTransformer));
     } catch (SBPortProcessorException e) {
       throw new SBPortProcessorException("Failed to set input file size", e);
     }
   }
   
-  public Map<String, Object> updateOutputFiles(Map<String, Object> outputs, Set<FileValue> fileValues) throws SBPortProcessorException {
+  public Map<String, Object> updateOutputFiles(Map<String, Object> outputs, FileTransformer fileTransformer) throws SBPortProcessorException {
     try {
-      return portProcessor.processOutputs(outputs, new SBFileValueUpdateProcessorCallback(fileValues));
+      return portProcessor.processOutputs(outputs, new SBFileValueUpdateProcessorCallback(fileTransformer));
     } catch (SBPortProcessorException e) {
       throw new SBPortProcessorException("Failed to set input file size", e);
     }

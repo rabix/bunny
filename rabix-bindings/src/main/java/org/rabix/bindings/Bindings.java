@@ -4,13 +4,14 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
+import org.rabix.bindings.transformer.FileTransformer;
 
 public interface Bindings {
 
@@ -32,7 +33,7 @@ public interface Bindings {
 
   Set<FileValue> getInputFiles(Job job) throws BindingException;
   
-  Set<FileValue> getInputFiles(Job job, FileMapper fileMapper) throws BindingException;
+  Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException;
   
   Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException;
 
@@ -40,15 +41,15 @@ public interface Bindings {
   
   Set<FileValue> getFlattenedOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException;
   
-  Job updateInputFiles(Job job, Set<FileValue> inputFiles) throws BindingException;
+  Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
   
-  Job updateOutputFiles(Job job, Set<FileValue> outputFiles) throws BindingException;
+  Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
   
   Set<FileValue> getProtocolFiles(File workingDir) throws BindingException;
   
-  Job mapInputFilePaths(Job job, FileMapper fileMapper) throws BindingException;
+  Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException;
 
-  Job mapOutputFilePaths(Job job, FileMapper fileMapper) throws BindingException;
+  Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException;
 
   List<Requirement> getRequirements(Job job) throws BindingException;
 

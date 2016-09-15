@@ -4,15 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import org.rabix.bindings.filemapper.FileMapper;
-import org.rabix.bindings.filemapper.FileMappingException;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.executor.config.StorageConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class FTPToLocalPathMapper implements FileMapper {
+public class FTPToLocalPathMapper implements FilePathMapper {
 
   private final static Logger logger = LoggerFactory.getLogger(FTPToLocalPathMapper.class);
   

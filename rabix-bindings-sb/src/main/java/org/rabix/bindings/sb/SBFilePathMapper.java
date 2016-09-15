@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolFilePathMapper;
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.helper.SBJobHelper;
@@ -15,7 +15,7 @@ import org.rabix.bindings.sb.processor.callback.SBFilePathMapProcessorCallback;
 public class SBFilePathMapper implements ProtocolFilePathMapper {
 
   @Override
-  public Job mapInputFilePaths(final Job job, final FileMapper fileMapper) throws BindingException {
+  public Job mapInputFilePaths(final Job job, final FilePathMapper fileMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     
     SBPortProcessor sbPortProcessor = new SBPortProcessor(sbJob);
@@ -29,7 +29,7 @@ public class SBFilePathMapper implements ProtocolFilePathMapper {
   }
 
   @Override
-  public Job mapOutputFilePaths(final Job job, final FileMapper fileMapper) throws BindingException {
+  public Job mapOutputFilePaths(final Job job, final FilePathMapper fileMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     
     SBPortProcessor sbPortProcessor = new SBPortProcessor(sbJob);

@@ -17,8 +17,8 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.filemapper.FileMapper;
 import org.rabix.bindings.helper.URIHelper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
@@ -152,8 +152,8 @@ public class BackendCommandLine {
               bind(ExecutorStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);;
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
               
-              bind(FileMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
-              bind(FileMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
+              bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
+              bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
             }
           });
 

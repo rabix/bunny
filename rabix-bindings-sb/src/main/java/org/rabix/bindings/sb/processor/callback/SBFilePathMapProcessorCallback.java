@@ -3,7 +3,7 @@ package org.rabix.bindings.sb.processor.callback;
 import java.util.List;
 import java.util.Map;
 
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.sb.helper.SBFileValueHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
@@ -14,10 +14,10 @@ import org.rabix.common.helper.CloneHelper;
 
 public class SBFilePathMapProcessorCallback implements SBPortProcessorCallback {
 
-  private final FileMapper filePathMapper;
+  private final FilePathMapper filePathMapper;
   private final Map<String, Object> config;
 
-  public SBFilePathMapProcessorCallback(FileMapper filePathMapper, Map<String, Object> config) {
+  public SBFilePathMapProcessorCallback(FilePathMapper filePathMapper, Map<String, Object> config) {
     this.config = config;
     this.filePathMapper = filePathMapper;
   }

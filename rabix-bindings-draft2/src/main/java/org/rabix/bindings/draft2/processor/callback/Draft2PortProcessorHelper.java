@@ -7,8 +7,9 @@ import java.util.Set;
 import org.rabix.bindings.draft2.bean.Draft2Job;
 import org.rabix.bindings.draft2.processor.Draft2PortProcessor;
 import org.rabix.bindings.draft2.processor.Draft2PortProcessorException;
-import org.rabix.bindings.filemapper.FileMapper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
+import org.rabix.bindings.transformer.FileTransformer;
 
 public class Draft2PortProcessorHelper {
 
@@ -20,7 +21,7 @@ public class Draft2PortProcessorHelper {
     this.portProcessor = new Draft2PortProcessor(draft2Job);
   }
 
-  public Set<FileValue> getInputFiles(Map<String, Object> inputs, FileMapper fileMapper, Map<String, Object> config) throws Draft2PortProcessorException {
+  public Set<FileValue> getInputFiles(Map<String, Object> inputs, FilePathMapper fileMapper, Map<String, Object> config) throws Draft2PortProcessorException {
     if (fileMapper != null) {
       Draft2FilePathMapProcessorCallback fileMapperCallback = new Draft2FilePathMapProcessorCallback(fileMapper, config);
       inputs = portProcessor.processInputs(inputs, fileMapperCallback);
@@ -114,17 +115,17 @@ public class Draft2PortProcessorHelper {
     }
   }
   
-  public Map<String, Object> updateInputFiles(Map<String, Object> inputs, Set<FileValue> fileValues) throws Draft2PortProcessorException {
+  public Map<String, Object> updateInputFiles(Map<String, Object> inputs, FileTransformer fileTransformer) throws Draft2PortProcessorException {
     try {
-      return portProcessor.processInputs(inputs, new Draft2FileValueUpdateProcessorCallback(fileValues));
+      return portProcessor.processInputs(inputs, new Draft2FileValueUpdateProcessorCallback(fileTransformer));
     } catch (Draft2PortProcessorException e) {
       throw new Draft2PortProcessorException("Failed to set input file size", e);
     }
   }
   
-  public Map<String, Object> updateOutputFiles(Map<String, Object> outputs, Set<FileValue> fileValues) throws Draft2PortProcessorException {
+  public Map<String, Object> updateOutputFiles(Map<String, Object> outputs, FileTransformer fileTransformer) throws Draft2PortProcessorException {
     try {
-      return portProcessor.processOutputs(outputs, new Draft2FileValueUpdateProcessorCallback(fileValues));
+      return portProcessor.processOutputs(outputs, new Draft2FileValueUpdateProcessorCallback(fileTransformer));
     } catch (Draft2PortProcessorException e) {
       throw new Draft2PortProcessorException("Failed to set input file size", e);
     }

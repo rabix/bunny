@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import org.rabix.bindings.filemapper.FileMapper;
-import org.rabix.bindings.filemapper.FileMappingException;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.executor.config.StorageConfiguration;
 
 import com.google.inject.Inject;
 
-public class LocalPathMapper implements FileMapper {
+public class LocalPathMapper implements FilePathMapper {
 
   private final StorageConfiguration storageConfig;
   

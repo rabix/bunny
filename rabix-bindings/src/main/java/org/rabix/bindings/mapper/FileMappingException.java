@@ -1,4 +1,4 @@
-package org.rabix.bindings.filemapper;
+package org.rabix.bindings.mapper;
 
 public class FileMappingException extends Exception {
   

@@ -181,21 +181,17 @@ public class SBFileValueHelper extends SBBeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, null, checksum, secondaryFiles, properties);
+    return new FileValue(size, path, checksum, secondaryFiles, properties);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
     Map<String, Object> raw = new HashMap<>();
     
     setFileType(raw);
-    if (fileValue.getRelocatedPath() != null) {
-      setPath(fileValue.getRelocatedPath(), raw);  
-    } else {
-      setPath(fileValue.getPath(), raw);
-    }
+    setPath(fileValue.getPath(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
-    
+
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {
       setMetadata(properties.get(SBBindingHelper.KEY_SBG_METADATA), raw);

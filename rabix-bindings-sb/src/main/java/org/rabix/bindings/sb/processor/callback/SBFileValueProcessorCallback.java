@@ -74,7 +74,7 @@ public class SBFileValueProcessorCallback implements SBPortProcessorCallback {
                 }
                 secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
               }
-              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null, null));
+              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null));
             }
             fileValue = FileValue.cloneWithSecondaryFiles(fileValue, secondaryFileValues);
           }
