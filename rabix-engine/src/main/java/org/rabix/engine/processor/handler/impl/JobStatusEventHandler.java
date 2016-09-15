@@ -98,8 +98,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     case COMPLETED:
       if (jobRecord.isRoot()) {
         try {
+          if(!jobRecord.isContainer()) {
+            // if root is CommandLineTool create OutputUpdateEvents
+            for (PortCounter portCounter : jobRecord.getOutputCounters()) {
+              Object output = event.getResult().get(portCounter.getPort());
+              eventProcessor.send(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1));
+            }
+          }
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
-          
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, event.getResult());
           engineStatusCallback.onJobRootCompleted(rootJob);
         } catch (Exception e) {
@@ -115,7 +121,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       break;
     case FAILED:
       eventProcessor.addToQueue(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
-      
       if (jobRecord.isRoot()) {
         try {
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, null);
