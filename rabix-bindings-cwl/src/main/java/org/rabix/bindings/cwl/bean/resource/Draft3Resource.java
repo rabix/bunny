@@ -1,15 +1,15 @@
-package org.rabix.bindings.draft3.bean.resource;
+package org.rabix.bindings.cwl.bean.resource;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3CreateFileRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3DockerResource;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3EnvVarRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3InlineJavascriptRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ResourceRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3SchemaDefRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ShellCommandRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3CreateFileRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3DockerResource;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3EnvVarRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3InlineJavascriptRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3ResourceRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3SchemaDefRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3ShellCommandRequirement;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;

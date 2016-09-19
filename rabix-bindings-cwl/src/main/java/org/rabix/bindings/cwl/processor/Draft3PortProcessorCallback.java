@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.processor;
+package org.rabix.bindings.cwl.processor;
 
 import org.rabix.bindings.model.ApplicationPort;
 

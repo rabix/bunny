@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.bean;
+package org.rabix.bindings.cwl.bean;
 
 import java.util.ArrayList;
 import java.util.List;

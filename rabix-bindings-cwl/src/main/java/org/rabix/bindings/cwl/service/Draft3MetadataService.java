@@ -1,10 +1,10 @@
-package org.rabix.bindings.draft3.service;
+package org.rabix.bindings.cwl.service;
 
 import java.util.Map;
 
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.bean.Draft3OutputPort;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.Draft3OutputPort;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionException;
 
 public interface Draft3MetadataService {
 

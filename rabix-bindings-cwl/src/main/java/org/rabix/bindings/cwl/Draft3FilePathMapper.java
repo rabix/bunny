@@ -1,14 +1,14 @@
-package org.rabix.bindings.draft3;
+package org.rabix.bindings.cwl;
 
 import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolFilePathMapper;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.helper.Draft3JobHelper;
-import org.rabix.bindings.draft3.processor.Draft3PortProcessor;
-import org.rabix.bindings.draft3.processor.Draft3PortProcessorException;
-import org.rabix.bindings.draft3.processor.callback.Draft3FilePathMapProcessorCallback;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.helper.Draft3JobHelper;
+import org.rabix.bindings.cwl.processor.Draft3PortProcessor;
+import org.rabix.bindings.cwl.processor.Draft3PortProcessorException;
+import org.rabix.bindings.cwl.processor.callback.Draft3FilePathMapProcessorCallback;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 

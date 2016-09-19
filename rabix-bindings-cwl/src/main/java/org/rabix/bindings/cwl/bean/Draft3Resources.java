@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.bean;
+package org.rabix.bindings.cwl.bean;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;

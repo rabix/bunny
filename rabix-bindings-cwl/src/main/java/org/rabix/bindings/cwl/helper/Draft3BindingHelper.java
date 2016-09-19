@@ -1,10 +1,10 @@
-package org.rabix.bindings.draft3.helper;
+package org.rabix.bindings.cwl.helper;
 
 import java.util.Map;
 
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionException;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionResolver;
 
 public class Draft3BindingHelper extends Draft3BeanHelper {
 

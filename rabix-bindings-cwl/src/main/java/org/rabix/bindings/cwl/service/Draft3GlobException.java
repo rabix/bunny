@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.service;
+package org.rabix.bindings.cwl.service;
 
 public class Draft3GlobException extends Exception {
 

@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.bean.resource;
+package org.rabix.bindings.cwl.bean.resource;
 
 public enum Draft3ResourceType {
 

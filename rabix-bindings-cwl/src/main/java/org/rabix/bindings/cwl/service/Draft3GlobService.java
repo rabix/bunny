@@ -1,9 +1,9 @@
-package org.rabix.bindings.draft3.service;
+package org.rabix.bindings.cwl.service;
 
 import java.io.File;
 import java.util.Set;
 
-import org.rabix.bindings.draft3.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.Draft3Job;
 
 public interface Draft3GlobService {
 

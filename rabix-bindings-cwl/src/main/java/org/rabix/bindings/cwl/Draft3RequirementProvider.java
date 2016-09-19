@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3;
+package org.rabix.bindings.cwl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,19 +8,19 @@ import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolRequirementProvider;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.bean.Draft3JobApp;
-import org.rabix.bindings.draft3.bean.resource.Draft3Resource;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3CreateFileRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3DockerResource;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3EnvVarRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3EnvVarRequirement.EnvironmentDef;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ResourceRequirement;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
-import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
-import org.rabix.bindings.draft3.helper.Draft3JobHelper;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.Draft3JobApp;
+import org.rabix.bindings.cwl.bean.resource.Draft3Resource;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3CreateFileRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3DockerResource;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3EnvVarRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3EnvVarRequirement.EnvironmentDef;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3ResourceRequirement;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionException;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionResolver;
+import org.rabix.bindings.cwl.helper.Draft3FileValueHelper;
+import org.rabix.bindings.cwl.helper.Draft3JobHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;

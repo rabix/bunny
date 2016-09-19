@@ -1,6 +1,6 @@
-package org.rabix.bindings.draft3.bean;
+package org.rabix.bindings.cwl.bean;
 
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
 
 import com.fasterxml.jackson.annotation.JsonCreator;

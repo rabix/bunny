@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.processor;
+package org.rabix.bindings.cwl.processor;
 
 public class Draft3PortProcessorResult {
 

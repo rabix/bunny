@@ -1,10 +1,10 @@
-package org.rabix.bindings.draft3.helper;
+package org.rabix.bindings.cwl.helper;
 
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.draft3.Draft3JobProcessor;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.bean.Draft3JobApp;
-import org.rabix.bindings.draft3.resolver.Draft3DocumentResolver;
+import org.rabix.bindings.cwl.Draft3JobProcessor;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.Draft3JobApp;
+import org.rabix.bindings.cwl.resolver.Draft3DocumentResolver;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;

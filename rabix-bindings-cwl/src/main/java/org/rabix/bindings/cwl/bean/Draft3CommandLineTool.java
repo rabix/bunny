@@ -1,12 +1,12 @@
-package org.rabix.bindings.draft3.bean;
+package org.rabix.bindings.cwl.bean;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionException;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionResolver;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

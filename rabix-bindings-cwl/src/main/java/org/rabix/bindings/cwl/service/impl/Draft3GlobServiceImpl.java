@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.service.impl;
+package org.rabix.bindings.cwl.service.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,11 +15,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
-import org.rabix.bindings.draft3.service.Draft3GlobException;
-import org.rabix.bindings.draft3.service.Draft3GlobService;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionException;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionResolver;
+import org.rabix.bindings.cwl.service.Draft3GlobException;
+import org.rabix.bindings.cwl.service.Draft3GlobService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

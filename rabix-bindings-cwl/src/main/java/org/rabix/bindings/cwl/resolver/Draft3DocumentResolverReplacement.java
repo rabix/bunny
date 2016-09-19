@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.resolver;
+package org.rabix.bindings.cwl.resolver;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

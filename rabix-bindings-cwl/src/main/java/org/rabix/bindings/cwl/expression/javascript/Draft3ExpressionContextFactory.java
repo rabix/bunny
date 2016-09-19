@@ -1,10 +1,10 @@
-package org.rabix.bindings.draft3.expression.javascript;
+package org.rabix.bindings.cwl.expression.javascript;
 
 import org.mozilla.javascript.Callable;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Scriptable;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionTimeoutException;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionTimeoutException;
 
 public class Draft3ExpressionContextFactory extends ContextFactory {
 

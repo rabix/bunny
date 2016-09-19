@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.expression;
+package org.rabix.bindings.cwl.expression;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,10 +10,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3InlineJavascriptRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ResourceRequirement;
-import org.rabix.bindings.draft3.expression.javascript.Draft3ExpressionJavascriptResolver;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3InlineJavascriptRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3ResourceRequirement;
+import org.rabix.bindings.cwl.expression.javascript.Draft3ExpressionJavascriptResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

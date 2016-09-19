@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.service.impl;
+package org.rabix.bindings.cwl.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,14 +7,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.bean.Draft3OutputPort;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
-import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
-import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
-import org.rabix.bindings.draft3.service.Draft3MetadataService;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.Draft3OutputPort;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionException;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionResolver;
+import org.rabix.bindings.cwl.helper.Draft3BindingHelper;
+import org.rabix.bindings.cwl.helper.Draft3FileValueHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.service.Draft3MetadataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

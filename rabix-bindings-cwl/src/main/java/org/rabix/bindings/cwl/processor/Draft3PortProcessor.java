@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.processor;
+package org.rabix.bindings.cwl.processor;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.rabix.bindings.draft3.bean.Draft3InputPort;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.bean.Draft3OutputPort;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.bean.Draft3InputPort;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.Draft3OutputPort;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

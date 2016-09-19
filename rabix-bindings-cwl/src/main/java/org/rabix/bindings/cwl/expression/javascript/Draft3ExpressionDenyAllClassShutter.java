@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.expression.javascript;
+package org.rabix.bindings.cwl.expression.javascript;
 
 import org.mozilla.javascript.ClassShutter;
 

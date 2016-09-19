@@ -1,11 +1,11 @@
-package org.rabix.bindings.draft3.bean;
+package org.rabix.bindings.cwl.bean;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.helper.Draft3BindingHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3;
+package org.rabix.bindings.cwl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.rabix.bindings.draft3.bean.Draft3DataLink;
-import org.rabix.bindings.draft3.bean.Draft3InputPort;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.bean.Draft3JobApp;
-import org.rabix.bindings.draft3.bean.Draft3OutputPort;
-import org.rabix.bindings.draft3.bean.Draft3Step;
-import org.rabix.bindings.draft3.bean.Draft3Workflow;
-import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.bean.Draft3DataLink;
+import org.rabix.bindings.cwl.bean.Draft3InputPort;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.Draft3JobApp;
+import org.rabix.bindings.cwl.bean.Draft3OutputPort;
+import org.rabix.bindings.cwl.bean.Draft3Step;
+import org.rabix.bindings.cwl.bean.Draft3Workflow;
+import org.rabix.bindings.cwl.helper.Draft3BindingHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.common.helper.InternalSchemaHelper;

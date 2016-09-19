@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.helper;
+package org.rabix.bindings.cwl.helper;
 
 import java.util.ArrayList;
 import java.util.HashMap;

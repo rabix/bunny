@@ -1,9 +1,9 @@
-package org.rabix.bindings.draft3.bean.resource.requirement;
+package org.rabix.bindings.cwl.bean.resource.requirement;
 
 import java.util.List;
 
-import org.rabix.bindings.draft3.bean.resource.Draft3Resource;
-import org.rabix.bindings.draft3.bean.resource.Draft3ResourceType;
+import org.rabix.bindings.cwl.bean.resource.Draft3Resource;
+import org.rabix.bindings.cwl.bean.resource.Draft3ResourceType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

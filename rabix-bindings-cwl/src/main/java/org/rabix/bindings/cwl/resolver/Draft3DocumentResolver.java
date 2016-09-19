@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.resolver;
+package org.rabix.bindings.cwl.resolver;
 
 import java.io.BufferedReader;
 import java.io.File;

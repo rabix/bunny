@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.helper;
+package org.rabix.bindings.cwl.helper;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -1,9 +1,9 @@
-package org.rabix.bindings.draft3.bean;
+package org.rabix.bindings.cwl.bean;
 
 import java.util.Map;
 
-import org.rabix.bindings.draft3.Draft3JobProcessor;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.Draft3JobProcessor;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
 import org.rabix.common.json.BeanPropertyView;
 import org.rabix.common.json.processor.BeanProcessorClass;
 

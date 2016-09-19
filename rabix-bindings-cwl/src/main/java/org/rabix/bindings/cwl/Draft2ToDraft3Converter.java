@@ -1,6 +1,6 @@
-package org.rabix.bindings.draft3;
+package org.rabix.bindings.cwl;
 
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
 
 public class Draft2ToDraft3Converter {
 

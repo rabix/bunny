@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.processor.callback;
+package org.rabix.bindings.cwl.processor.callback;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,12 +10,12 @@ import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.draft3.bean.Draft3InputPort;
-import org.rabix.bindings.draft3.bean.Draft3InputPort.StageInput;
-import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
-import org.rabix.bindings.draft3.processor.Draft3PortProcessorCallback;
-import org.rabix.bindings.draft3.processor.Draft3PortProcessorResult;
+import org.rabix.bindings.cwl.bean.Draft3InputPort;
+import org.rabix.bindings.cwl.bean.Draft3InputPort.StageInput;
+import org.rabix.bindings.cwl.helper.Draft3FileValueHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.processor.Draft3PortProcessorCallback;
+import org.rabix.bindings.cwl.processor.Draft3PortProcessorResult;
 import org.rabix.bindings.model.ApplicationPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

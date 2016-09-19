@@ -1,16 +1,16 @@
-package org.rabix.bindings.draft3;
+package org.rabix.bindings.cwl;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolTranslator;
-import org.rabix.bindings.draft3.bean.Draft3DataLink;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.bean.Draft3Step;
-import org.rabix.bindings.draft3.bean.Draft3Workflow;
-import org.rabix.bindings.draft3.helper.Draft3JobHelper;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.bean.Draft3DataLink;
+import org.rabix.bindings.cwl.bean.Draft3Job;
+import org.rabix.bindings.cwl.bean.Draft3Step;
+import org.rabix.bindings.cwl.bean.Draft3Workflow;
+import org.rabix.bindings.cwl.helper.Draft3JobHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
 import org.rabix.bindings.helper.DAGValidationHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.Job;

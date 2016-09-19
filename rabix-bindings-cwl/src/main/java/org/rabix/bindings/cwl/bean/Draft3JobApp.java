@@ -1,19 +1,19 @@
-package org.rabix.bindings.draft3.bean;
+package org.rabix.bindings.cwl.bean;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.rabix.bindings.draft3.bean.resource.Draft3Resource;
-import org.rabix.bindings.draft3.bean.resource.Draft3ResourceType;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3CreateFileRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3DockerResource;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3EnvVarRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3InlineJavascriptRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ResourceRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3SchemaDefRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ShellCommandRequirement;
+import org.rabix.bindings.cwl.bean.resource.Draft3Resource;
+import org.rabix.bindings.cwl.bean.resource.Draft3ResourceType;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3CreateFileRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3DockerResource;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3EnvVarRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3InlineJavascriptRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3ResourceRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3SchemaDefRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.Draft3ShellCommandRequirement;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.json.BeanSerializer;

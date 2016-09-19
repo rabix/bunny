@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3;
+package org.rabix.bindings.cwl;
 
 public class Draft3Exception extends Exception {
 

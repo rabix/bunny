@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3.expression.javascript;
+package org.rabix.bindings.cwl.expression.javascript;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -10,7 +10,7 @@ import org.mozilla.javascript.NativeJSON;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
+import org.rabix.bindings.cwl.expression.Draft3ExpressionException;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 

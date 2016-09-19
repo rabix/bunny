@@ -1,4 +1,4 @@
-package org.rabix.bindings.draft3;
+package org.rabix.bindings.cwl;
 
 import java.io.File;
 import java.util.HashSet;
@@ -15,7 +15,7 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.draft3.bean.Draft3JobApp;
+import org.rabix.bindings.cwl.bean.Draft3JobApp;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.FileValue;

@@ -1,14 +1,14 @@
-package org.rabix.bindings.draft3.processor.callback;
+package org.rabix.bindings.cwl.processor.callback;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
-import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
-import org.rabix.bindings.draft3.processor.Draft3PortProcessorCallback;
-import org.rabix.bindings.draft3.processor.Draft3PortProcessorResult;
+import org.rabix.bindings.cwl.helper.Draft3FileValueHelper;
+import org.rabix.bindings.cwl.helper.Draft3SchemaHelper;
+import org.rabix.bindings.cwl.processor.Draft3PortProcessorCallback;
+import org.rabix.bindings.cwl.processor.Draft3PortProcessorResult;
 import org.rabix.bindings.model.ApplicationPort;
 
 class Draft3FilePathFlattenProcessorCallback implements Draft3PortProcessorCallback {
