@@ -19,7 +19,9 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
   private static final String KEY_SIZE = "size";
   private static final String KEY_FORMAT = "format";
   private static final String KEY_CHECKSUM = "checksum";
-
+  private static final String KEY_METADATA = "metadata";
+  private static final String KEY_SECONDARY_FILES = "secondaryFiles";
+  
   private static final String KEY_LISTING = "listing";
   
   public static void setDirectoryType(Object raw) {
@@ -91,6 +93,22 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     setValue(KEY_LOCATION, location, raw);
   }
   
+  public static void setMetadata(Object metadata, Object raw) {
+    setValue(KEY_METADATA, metadata, raw);
+  }
+  
+  public static Map<String, Object> getMetadata(Object raw) {
+    return getValue(KEY_METADATA, raw);
+  }
+  
+  public static void setSecondaryFiles(List<?> secondaryFiles, Object raw) {
+    setValue(KEY_SECONDARY_FILES, secondaryFiles, raw);
+  }
+
+  public static List<Map<String, Object>> getSecondaryFiles(Object raw) {
+    return getValue(KEY_SECONDARY_FILES, raw);
+  }
+  
   /**
    * Creates {@link DirectoryValue} from Directory object
    * TODO: discuss checksum
@@ -134,6 +152,46 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
       }
     }
     return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties);
+  }
+
+  public static Map<String, Object> createDirectoryRaw(DirectoryValue fileValue) {
+    Map<String, Object> raw = new HashMap<>();
+    
+    setDirectoryType(raw);
+    setPath(fileValue.getPath(), raw);
+    setSize(fileValue.getSize(), raw);
+    
+    Map<String, Object> properties = fileValue.getProperties();
+    if (properties != null) {
+      setMetadata(properties.get(CWLBindingHelper.KEY_SBG_METADATA), raw);
+    }
+    
+    List<FileValue> secondaryFileValues = fileValue.getSecondaryFiles();
+    if (secondaryFileValues != null) {
+      List<Map<String, Object>> secondaryFilesRaw = new ArrayList<>();
+      for (FileValue secondaryFileValue : secondaryFileValues) {
+        if (CWLSchemaHelper.isFileFromValue(secondaryFileValue)) {
+          secondaryFilesRaw.add(CWLFileValueHelper.createFileRaw(secondaryFileValue));
+        } else {
+          secondaryFilesRaw.add(createDirectoryRaw((DirectoryValue) secondaryFileValue));
+        }
+      }
+      setSecondaryFiles(secondaryFilesRaw, raw);
+    }
+    
+    List<FileValue> listingFiles = fileValue.getListing();
+    if (listingFiles != null) {
+      List<Object> listingRaw = new ArrayList<>();
+      for (FileValue listingFile : listingFiles) {
+        if (CWLSchemaHelper.isFileFromValue(listingFile)) {
+          listingRaw.add(CWLFileValueHelper.createFileRaw(listingFile));
+        } else {
+          listingRaw.add(createDirectoryRaw((DirectoryValue) listingFile));
+        }
+      }
+      setListing(listingRaw, raw);
+    }
+    return raw;
   }
   
   

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorCallback;
@@ -24,21 +25,24 @@ public class CWLFileValueFlattenProcessorCallback implements CWLPortProcessorCal
 
   @Override
   public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    // it's a File
-    if (CWLSchemaHelper.isFileFromValue(value) && !skip(port.getId())) {
-      fileValues.add(CWLFileValueHelper.createFileValue(value));
+    if ((CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) && !skip(port.getId())) {
+      if (CWLSchemaHelper.isFileFromValue(value)) {
+        fileValues.add(CWLFileValueHelper.createFileValue(value));
+      } else {
+        fileValues.add(CWLDirectoryValueHelper.createDirectoryValue(value));
+      }
       
       List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {
         for (Map<String, Object> secondaryFileValue : secondaryFiles) {
-          fileValues.add(CWLFileValueHelper.createFileValue(secondaryFileValue));
+          if (CWLSchemaHelper.isFileFromValue(value)) {
+            fileValues.add(CWLFileValueHelper.createFileValue(secondaryFileValue));
+          } else {
+            fileValues.add(CWLDirectoryValueHelper.createDirectoryValue(secondaryFileValue));
+          }
         }
       }
       return new CWLPortProcessorResult(value, true);
-    }
-    // it's a Directory
-    if (CWLSchemaHelper.isDirectoryFromValue(value) && !skip(port.getId())) {
-      
     }
     return new CWLPortProcessorResult(value, false);
   }

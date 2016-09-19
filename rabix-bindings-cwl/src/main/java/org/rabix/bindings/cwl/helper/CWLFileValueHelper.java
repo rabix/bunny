@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
@@ -193,7 +194,14 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     List<Map<String, Object>> secondaryFileValues = CWLFileValueHelper.getSecondaryFiles(value);
     if (secondaryFileValues != null) {
       for (Map<String, Object> secondaryFileValue : secondaryFileValues) {
-        secondaryFiles.add(createFileValue(secondaryFileValue));
+        if (CWLSchemaHelper.isFileFromValue(secondaryFileValue)) {
+          secondaryFiles.add(createFileValue(secondaryFileValue));
+          continue;
+        }
+        if (CWLSchemaHelper.isDirectoryFromValue(secondaryFileValue)) {
+          secondaryFiles.add(CWLDirectoryValueHelper.createDirectoryValue(secondaryFileValue));
+          continue;
+        }
       }
     }
     return new FileValue(size, path, location, checksum, secondaryFiles, properties);
@@ -216,7 +224,11 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     if (secondaryFileValues != null) {
       List<Map<String, Object>> secondaryFilesRaw = new ArrayList<>();
       for (FileValue secondaryFileValue : secondaryFileValues) {
-        secondaryFilesRaw.add(createFileRaw(secondaryFileValue));
+        if (secondaryFileValue instanceof DirectoryValue) {
+          secondaryFilesRaw.add(CWLDirectoryValueHelper.createDirectoryRaw((DirectoryValue) secondaryFileValue));
+        } else {
+          secondaryFilesRaw.add(createFileRaw(secondaryFileValue));
+        }
       }
       setSecondaryFiles(secondaryFilesRaw, raw);
     }

@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorCallback;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorResult;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.CloneHelper;
@@ -23,17 +25,27 @@ public class CWLFileValueUpdateProcessorCallback implements CWLPortProcessorCall
 
   @Override
   public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (CWLSchemaHelper.isFileFromValue(value)) {
+    if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       Object clonedValue = CloneHelper.deepCopy(value);
 
-      FileValue fileValue = fileTransformer.transform(CWLFileValueHelper.createFileValue(clonedValue));
-      clonedValue = CWLFileValueHelper.createFileRaw(fileValue);
+      FileValue fileValue = null;
+      if (CWLSchemaHelper.isFileFromValue(value)) {
+        fileValue = fileTransformer.transform(CWLFileValueHelper.createFileValue(clonedValue));
+        clonedValue = CWLFileValueHelper.createFileRaw(fileValue);
+      } else {
+        fileValue = fileTransformer.transform(CWLDirectoryValueHelper.createDirectoryValue(clonedValue));
+        clonedValue = CWLDirectoryValueHelper.createDirectoryRaw((DirectoryValue) fileValue);
+      }
 
       if (fileValue.getSecondaryFiles() != null) {
         List<Map<String, Object>> secondaryFiles = new ArrayList<>();
 
         for (FileValue secondaryFileValue : fileValue.getSecondaryFiles()) {
-          secondaryFiles.add(CWLFileValueHelper.createFileRaw(secondaryFileValue));
+          if (CWLSchemaHelper.isFileFromValue(value)) {
+            secondaryFiles.add(CWLFileValueHelper.createFileRaw(secondaryFileValue));
+          } else {
+            secondaryFiles.add(CWLDirectoryValueHelper.createDirectoryRaw((DirectoryValue) secondaryFileValue));
+          }
         }
         CWLFileValueHelper.setSecondaryFiles(secondaryFiles, clonedValue);
       }

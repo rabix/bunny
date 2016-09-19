@@ -13,11 +13,9 @@ import org.rabix.bindings.transformer.FileTransformer;
 
 public class CWLPortProcessorHelper {
 
-  private final CWLJob cwlJob;
   private final CWLPortProcessor portProcessor;
 
   public CWLPortProcessorHelper(CWLJob cwlJob) {
-    this.cwlJob = cwlJob;
     this.portProcessor = new CWLPortProcessor(cwlJob);
   }
   
@@ -27,7 +25,7 @@ public class CWLPortProcessorHelper {
       inputs = portProcessor.processInputs(inputs, fileMapperCallback);
     }
     
-    CWLFileValueProcessorCallback callback = new CWLFileValueProcessorCallback(cwlJob, null, true);
+    CWLFileValueProcessorCallback callback = new CWLFileValueProcessorCallback(null);
     try {
       portProcessor.processInputs(inputs, callback);
     } catch (CWLPortProcessorException e) {
@@ -37,7 +35,7 @@ public class CWLPortProcessorHelper {
   }
   
   public Set<FileValue> getOutputFiles(Map<String, Object> outputs, Set<String> visiblePorts) throws CWLPortProcessorException {
-    CWLFileValueProcessorCallback callback = new CWLFileValueProcessorCallback(cwlJob, visiblePorts, false);
+    CWLFileValueProcessorCallback callback = new CWLFileValueProcessorCallback(visiblePorts);
     try {
       portProcessor.processOutputs(outputs, callback);
     } catch (CWLPortProcessorException e) {
