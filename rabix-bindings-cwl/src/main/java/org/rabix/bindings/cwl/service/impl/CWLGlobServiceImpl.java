@@ -68,6 +68,13 @@ public class CWLGlobServiceImpl implements CWLGlobService {
             return FileVisitResult.CONTINUE;
           }
           @Override
+          public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            if (matcher.matches(dir.getFileName())) {
+              files.add(dir.toFile());
+            }
+            return super.preVisitDirectory(dir, attrs);
+          }
+          @Override
           public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
             return FileVisitResult.CONTINUE;
           }

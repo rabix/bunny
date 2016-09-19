@@ -27,6 +27,7 @@ public class CWLSchemaHelper extends CWLBeanHelper {
   public static final String KEY_JOB_TYPE = "class";
   
   public static final String TYPE_JOB_FILE = "File";
+  public static final String TYPE_JOB_DIRECTORY = "Directory";
   public static final String TYPE_JOB_EXPRESSION = "Expression";
   public static final String TYPE_JOB_ARRAY = "array";
   public static final String TYPE_JOB_RECORD = "record";

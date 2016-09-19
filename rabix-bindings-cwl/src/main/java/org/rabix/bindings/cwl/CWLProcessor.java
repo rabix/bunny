@@ -21,6 +21,7 @@ import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.expression.javascript.CWLExpressionJavascriptResolver;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
+import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
 
 public class CWLProcessor implements ProtocolProcessor {
 
-  public final static int DEFAULT_SUCCESS_CODE = 0;
+public final static int DEFAULT_SUCCESS_CODE = 0;
   
   public final static String JOB_FILE = "job.json";
   public final static String RESULT_FILENAME = "cwl.output.json";
@@ -229,56 +230,76 @@ public class CWLProcessor implements ProtocolProcessor {
       return null;
     }
 
-    Set<File> paths = globService.glob(job, workingDir, glob);
-    if (paths == null) {
+    Set<File> files = globService.glob(job, workingDir, glob);
+    if (files == null) {
       logger.info("Glob service didn't find any files.");
       return null;
     }
-    logger.debug("Glob service returned result {}", paths);
+    logger.debug("Glob service returned result {}", files);
 
     final List<Map<String, Object>> result = new ArrayList<>();
-    for (File path : paths) {
+    for (File file : files) {
       try {
-        logger.info("Processing {}.", path);
-        File file = path;
-        Map<String, Object> fileData = new HashMap<>();
-        CWLFileValueHelper.setFileType(fileData);
-        if (hashAlgorithm != null) {
-          CWLFileValueHelper.setChecksum(file, fileData, hashAlgorithm);
-        }
-        CWLFileValueHelper.setSize(file.length(), fileData);
-        CWLFileValueHelper.setName(file.getName(), fileData);
-        CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
-
-        List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputBinding);
-        if (secondaryFiles != null) {
-          CWLFileValueHelper.setSecondaryFiles(secondaryFiles, fileData);
-        }
-        Object metadata = CWLBindingHelper.getMetadata(outputBinding);
-        metadata = metadataService.evaluateMetadataExpressions(job, fileData, metadata);
-        logger.info("Metadata expressions evaluated. Metadata is {}.", metadata);
-        if (metadata != null) {
-          CWLFileValueHelper.setMetadata(metadata, fileData);
-        }
-        metadata = metadataService.processMetadata(job, fileData, outputPort, outputBinding);
-        if (metadata != null) {
-          logger.info("Metadata for {} resolved. Metadata is {}", outputPort.getId(), metadata);
-          CWLFileValueHelper.setMetadata(metadata, fileData);
-        } else {
-          logger.info("Metadata for {} output is empty.", outputPort.getId());
-        }
-        result.add(fileData);
-
-        boolean loadContents = CWLBindingHelper.loadContents(outputBinding);
-        if (loadContents) {
-          CWLFileValueHelper.setContents(fileData);
-        }
+        result.add(formFileValue(file, job, outputBinding, outputPort, hashAlgorithm));
       } catch (Exception e) {
         logger.error("Failed to extract outputs", e);
         throw new CWLGlobException("Failed to extract outputs.", e);
       }
     }
     return result;
+  }
+  
+  public Map<String, Object> formFileValue(File file, CWLJob job, Object outputBinding, CWLOutputPort outputPort, HashAlgorithm hashAlgorithm) throws CWLExpressionException, IOException {
+    if (file.isDirectory()) {
+      logger.info("Processing directory {}.", file);
+      
+      Map<String, Object> directory = new HashMap<>();
+      CWLDirectoryValueHelper.setDirectoryType(directory);
+      CWLDirectoryValueHelper.setSize(file.length(), directory);
+      CWLDirectoryValueHelper.setName(file.getName(), directory);
+      CWLDirectoryValueHelper.setPath(file.getAbsolutePath(), directory);
+      
+      File[] list = file.listFiles();
+      
+      List<Object> listing = new ArrayList<>();
+      for (File subfile : list) {
+        listing.add(formFileValue(subfile, job, outputBinding, outputPort, hashAlgorithm));
+      }
+      CWLDirectoryValueHelper.setListing(listing, directory);
+      return directory;
+    }
+
+    Map<String, Object> fileData = new HashMap<>();
+    CWLFileValueHelper.setFileType(fileData);
+    if (hashAlgorithm != null) {
+      CWLFileValueHelper.setChecksum(file, fileData, hashAlgorithm);
+    }
+    CWLFileValueHelper.setSize(file.length(), fileData);
+    CWLFileValueHelper.setName(file.getName(), fileData);
+    CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
+
+    List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputBinding);
+    if (secondaryFiles != null) {
+      CWLFileValueHelper.setSecondaryFiles(secondaryFiles, fileData);
+    }
+    Object metadata = CWLBindingHelper.getMetadata(outputBinding);
+    metadata = metadataService.evaluateMetadataExpressions(job, fileData, metadata);
+    logger.info("Metadata expressions evaluated. Metadata is {}.", metadata);
+    if (metadata != null) {
+      CWLFileValueHelper.setMetadata(metadata, fileData);
+    }
+    metadata = metadataService.processMetadata(job, fileData, outputPort, outputBinding);
+    if (metadata != null) {
+      logger.info("Metadata for {} resolved. Metadata is {}", outputPort.getId(), metadata);
+      CWLFileValueHelper.setMetadata(metadata, fileData);
+    } else {
+      logger.info("Metadata for {} output is empty.", outputPort.getId());
+    }
+    boolean loadContents = CWLBindingHelper.loadContents(outputBinding);
+    if (loadContents) {
+      CWLFileValueHelper.setContents(fileData);
+    }
+    return fileData;
   }
 
   /**
