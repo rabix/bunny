@@ -142,6 +142,7 @@ public class JobServiceImpl implements JobService {
       DAGNode node = bindings.translateToDAG(job);
       
       job = Job.cloneWithStatus(job, JobStatus.RUNNING);
+      job = Job.cloneWithConfig(job, config);
       jobDB.add(job);
 
       InitEvent initEvent = new InitEvent(job.getConfig(), job.getRootId(), node, job.getInputs());

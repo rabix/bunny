@@ -175,7 +175,13 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         Set<String> immediateReadyNodeIds = findImmediateReadyNodes(containerNode);
         for (String readyNodeId : immediateReadyNodeIds) {
           JobRecord childJobRecord = jobRecordService.find(readyNodeId, contextId);
-          ready(childJobRecord, contextId);
+          if(childJobRecord.isContainer() || childJobRecord.isScatterWrapper()) {
+        	ready(childJobRecord, contextId);  
+          }
+          else {
+            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), contextId, JobState.READY, null);
+            eventProcessor.send(jobStatusEvent);
+          }
         }
       } else {
         for (LinkRecord link : containerLinks) {
