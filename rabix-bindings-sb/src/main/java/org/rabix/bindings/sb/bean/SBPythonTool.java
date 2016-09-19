@@ -3,7 +3,7 @@ package org.rabix.bindings.sb.bean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class SBWagnerPythonTool extends SBJobApp {
+public class SBPythonTool extends SBJobApp {
 
   @JsonProperty("function")
   private Object function;
@@ -15,13 +15,12 @@ public class SBWagnerPythonTool extends SBJobApp {
   @Override
   @JsonIgnore
   public SBJobAppType getType() {
-    return SBJobAppType.WAGNER_PYTHON_TOOL;
+    return SBJobAppType.PYTHON_TOOL;
   }
 
   @Override
   public String toString() {
-    return "SBWagnerPythonTool [function=" + function + ", id=" + id + ", getInputs()=" + getInputs()
-        + ", getOutputs()=" + getOutputs() + "]";
+    return "SBPythonTool [function=" + function + ", id=" + id + ", getInputs()=" + getInputs() + ", getOutputs()=" + getOutputs() + "]";
   }
 
 }

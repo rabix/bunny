@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	@Type(value = SBCommandLineTool.class, name = "CommandLineTool"),
 	@Type(value = SBExpressionTool.class, name = "ExpressionTool"),
     @Type(value = SBWorkflow.class, name = "Workflow"),
-    @Type(value = SBWagnerPythonTool.class, name = "WagnerPythonTool")})
+    @Type(value = SBPythonTool.class, name = "PythonTool")})
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class SBJobApp implements Application {
