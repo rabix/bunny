@@ -10,6 +10,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
 
   private static final String KEY_NAME = "name";
   private static final String KEY_PATH = "path";
+  private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";
   private static final String KEY_FORMAT = "format";
   private static final String KEY_CHECKSUM = "checksum";
@@ -75,6 +76,14 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
+  }
+  
+  public static String getLocation(Object raw) {
+    return getValue(KEY_LOCATION, raw);
+  }
+
+  public static void setLocation(String location, Object raw) {
+    setValue(KEY_LOCATION, location, raw);
   }
   
   

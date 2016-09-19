@@ -5,13 +5,13 @@ import java.util.Map;
 
 public class FileValue {
 
-  private final Long size;
-  private final String path;
-  private final String location;
+  protected final Long size;
+  protected final String path;
+  protected final String location;
   
-  private final String checksum;
-  private final List<FileValue> secondaryFiles;
-  private final Map<String, Object> properties;
+  protected final String checksum;
+  protected final List<FileValue> secondaryFiles;
+  protected final Map<String, Object> properties;
   
   public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties) {
     super();
