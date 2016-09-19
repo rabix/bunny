@@ -24,6 +24,7 @@ public class CWLFileValueFlattenProcessorCallback implements CWLPortProcessorCal
 
   @Override
   public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
+    // it's a File
     if (CWLSchemaHelper.isFileFromValue(value) && !skip(port.getId())) {
       fileValues.add(CWLFileValueHelper.createFileValue(value));
       
@@ -34,6 +35,10 @@ public class CWLFileValueFlattenProcessorCallback implements CWLPortProcessorCal
         }
       }
       return new CWLPortProcessorResult(value, true);
+    }
+    // it's a Directory
+    if (CWLSchemaHelper.isDirectoryFromValue(value) && !skip(port.getId())) {
+      
     }
     return new CWLPortProcessorResult(value, false);
   }

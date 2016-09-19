@@ -1,8 +1,13 @@
 package org.rabix.bindings.cwl.helper;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.rabix.bindings.model.DirectoryValue;
+import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
@@ -84,6 +89,51 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
 
   public static void setLocation(String location, Object raw) {
     setValue(KEY_LOCATION, location, raw);
+  }
+  
+  /**
+   * Creates {@link DirectoryValue} from Directory object
+   * TODO: discuss checksum
+   * 
+   * @param value   Directory object
+   * @return        DirectoryValue object
+   */
+  public static DirectoryValue createDirectoryValue(Object value) {
+    String path = CWLFileValueHelper.getPath(value);
+    String location = CWLFileValueHelper.getLocation(value);
+    Long size = CWLFileValueHelper.getSize(value);
+    
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(CWLBindingHelper.KEY_SBG_METADATA, CWLFileValueHelper.getMetadata(value));
+
+    List<FileValue> secondaryFiles = new ArrayList<>();
+    List<Map<String, Object>> secondaryFileValues = CWLFileValueHelper.getSecondaryFiles(value);
+    if (secondaryFileValues != null) {
+      for (Map<String, Object> secondaryFileValue : secondaryFileValues) {
+        if (CWLSchemaHelper.isFileFromValue(secondaryFileValue)) {
+          secondaryFiles.add(CWLFileValueHelper.createFileValue(secondaryFileValue));
+          continue;
+        }
+        if (CWLSchemaHelper.isDirectoryFromValue(secondaryFileValue)) {
+          secondaryFiles.add(createDirectoryValue(secondaryFileValue));
+          continue;
+        }
+      }
+    }
+    
+    List<Object> listing = getListing(value);
+    List<FileValue> listingFileValues = new ArrayList<>();
+    for (Object listingObj : listing) {
+      if (CWLSchemaHelper.isFileFromValue(listingObj)) {
+        listingFileValues.add(CWLFileValueHelper.createFileValue(listingObj));
+        continue;
+      }
+      if (CWLSchemaHelper.isDirectoryFromValue(listingObj)) {
+        listingFileValues.add(createDirectoryValue(listingObj));
+        continue;
+      }
+    }
+    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties);
   }
   
   

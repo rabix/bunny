@@ -200,6 +200,21 @@ public class CWLSchemaHelper extends CWLBeanHelper {
     }
     return false;
   }
+  
+  public static boolean isDirectoryFromValue(Object valueObj) {
+    if (valueObj == null) {
+      return false;
+    }
+    if (valueObj instanceof Map<?, ?>) {
+      Map<?, ?> valueMap = (Map<?, ?>) valueObj;
+      Object type = valueMap.get(KEY_JOB_TYPE);
+
+      if (type != null && type.equals(TYPE_JOB_DIRECTORY)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   public static Map<?, ?> getField(String field, Object schema) {
     Object fields = getFields(schema);
