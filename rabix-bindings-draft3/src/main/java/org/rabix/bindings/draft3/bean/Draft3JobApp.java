@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	@Type(value = Draft3CommandLineTool.class, name = "CommandLineTool"),
 	@Type(value = Draft3ExpressionTool.class, name = "ExpressionTool"),
     @Type(value = Draft3Workflow.class, name = "Workflow"),
-    @Type(value = Draft3WagnerPythonTool.class, name = "WagnerPythonTool")})
+    @Type(value = Draft3PythonTool.class, name = "PythonTool")})
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Draft3JobApp implements Application {

@@ -4,7 +4,7 @@
 		"y": 2
 	},
 	"app": {
-		"class": "WagnerPythonTool",
+		"class": "PythonTool",
 		"function": "wagner.apps:sum",
 		"inputs": [{
 			"id": "x",

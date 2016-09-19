@@ -3,7 +3,7 @@ package org.rabix.bindings.cwl.bean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class CWLWagnerPythonTool extends CWLJobApp {
+public class CWLPythonTool extends CWLJobApp {
 
   @JsonProperty("function")
   private Object function;
@@ -15,12 +15,12 @@ public class CWLWagnerPythonTool extends CWLJobApp {
   @Override
   @JsonIgnore
   public CWLJobAppType getType() {
-    return CWLJobAppType.WAGNER_PYTHON_TOOL;
+    return CWLJobAppType.PYTHON_TOOL;
   }
 
   @Override
   public String toString() {
-    return "CWLWagnerPythonTool [function=" + function + ", id=" + id + ", getInputs()=" + getInputs()
+    return "CWLPythonTool [function=" + function + ", id=" + id + ", getInputs()=" + getInputs()
         + ", getOutputs()=" + getOutputs() + "]";
   }
 
