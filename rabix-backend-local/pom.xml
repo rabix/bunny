@@ -104,6 +104,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
+			<artifactId>rabix-bindings-cwl</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.rabix</groupId>
 			<artifactId>rabix-engine-rest</artifactId>
 			<version>${project.version}</version>
 		</dependency>
