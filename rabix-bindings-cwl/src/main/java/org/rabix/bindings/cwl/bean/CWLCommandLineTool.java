@@ -45,12 +45,12 @@ public class CWLCommandLineTool extends CWLJobApp {
   
   public String getStdin(CWLJob job) throws CWLExpressionException {
     String evaluatedStdin = CWLExpressionResolver.resolve(stdin, job, null);
-    return evaluatedStdin != null ? evaluatedStdin.toString() : "";
+    return evaluatedStdin != null ? evaluatedStdin.toString() : null;
   }
 
   public String getStdout(CWLJob job) throws CWLExpressionException {
     String evaluatedStdout = CWLExpressionResolver.resolve(stdout, job, null);
-    return evaluatedStdout != null ? evaluatedStdout.toString() : "";
+    return evaluatedStdout != null ? evaluatedStdout.toString() : null;
   }
 
   public String getStderr(CWLJob job) throws CWLExpressionException {
