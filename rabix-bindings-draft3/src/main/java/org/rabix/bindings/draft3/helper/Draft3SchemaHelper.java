@@ -68,6 +68,13 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
   }
   
   public static Object getInputBinding(Object raw) {
+    if(raw instanceof List) {
+      for(Object elem: (List<?>) raw) {
+        if(elem != null && elem instanceof Map) {
+          return getValue(KEY_INPUT_BINDING_ADAPTER, elem);
+        }
+      }
+    }
     return getValue(KEY_INPUT_BINDING_ADAPTER, raw);
   }
   
