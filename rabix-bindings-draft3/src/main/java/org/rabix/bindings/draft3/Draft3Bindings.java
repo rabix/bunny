@@ -137,13 +137,13 @@ public class Draft3Bindings implements Bindings {
     File jobFile = new File(workingDir, Draft3Processor.JOB_FILE);
     if (jobFile.exists()) {
       String jobFilePath = jobFile.getAbsolutePath();
-      files.add(new FileValue(null, jobFilePath, null, null, null));
+      files.add(new FileValue(null, jobFilePath, null, null, null, null));
     }
     
     File resultFile = new File(workingDir, Draft3Processor.RESULT_FILENAME);
     if (resultFile.exists()) {
       String resultFilePath = resultFile.getAbsolutePath();
-      files.add(new FileValue(null, resultFilePath, null, null, null));
+      files.add(new FileValue(null, resultFilePath, null, null, null, null));
     }
     return files;
   }

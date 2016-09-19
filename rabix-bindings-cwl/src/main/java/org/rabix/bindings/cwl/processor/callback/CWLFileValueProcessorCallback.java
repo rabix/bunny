@@ -74,7 +74,7 @@ public class CWLFileValueProcessorCallback implements CWLPortProcessorCallback {
                 }
                 secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
               }
-              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null));
+              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null, null));
             }
             fileValue = FileValue.cloneWithSecondaryFiles(fileValue, secondaryFileValues);
           }

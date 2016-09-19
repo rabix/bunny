@@ -19,6 +19,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
 
   private static final String KEY_NAME = "name";
   private static final String KEY_PATH = "path";
+  private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";
   private static final String KEY_FORMAT = "format";
   private static final String KEY_CHECKSUM = "checksum";
@@ -93,6 +94,14 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
+  }
+  
+  public static String getLocation(Object raw) {
+    return getValue(KEY_LOCATION, raw);
+  }
+
+  public static void setLocation(String location, Object raw) {
+    setValue(KEY_LOCATION, location, raw);
   }
   
   public static void setOriginalPath(String path, Object raw) {
@@ -173,6 +182,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
   
   public static FileValue createFileValue(Object value) {
     String path = Draft3FileValueHelper.getPath(value);
+    String location = Draft3FileValueHelper.getLocation(value);
     String checksum = Draft3FileValueHelper.getChecksum(value);
     Long size = Draft3FileValueHelper.getSize(value);
     
@@ -186,7 +196,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, checksum, secondaryFiles, properties);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {

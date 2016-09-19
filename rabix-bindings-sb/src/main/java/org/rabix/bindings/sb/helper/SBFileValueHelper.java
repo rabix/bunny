@@ -19,6 +19,7 @@ public class SBFileValueHelper extends SBBeanHelper {
 
   private static final String KEY_NAME = "name";
   private static final String KEY_PATH = "path";
+  private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";
   private static final String KEY_CHECKSUM = "checksum";
   private static final String KEY_METADATA = "metadata";
@@ -88,6 +89,14 @@ public class SBFileValueHelper extends SBBeanHelper {
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
+  }
+  
+  public static String getLocation(Object raw) {
+    return getValue(KEY_LOCATION, raw);
+  }
+
+  public static void setLocation(String location, Object raw) {
+    setValue(KEY_LOCATION, location, raw);
   }
   
   public static void setOriginalPath(String path, Object raw) {
@@ -168,6 +177,7 @@ public class SBFileValueHelper extends SBBeanHelper {
   
   public static FileValue createFileValue(Object value) {
     String path = SBFileValueHelper.getPath(value);
+    String location = SBFileValueHelper.getLocation(value);
     String checksum = SBFileValueHelper.getChecksum(value);
     Long size = SBFileValueHelper.getSize(value);
     
@@ -181,7 +191,7 @@ public class SBFileValueHelper extends SBBeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, checksum, secondaryFiles, properties);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
