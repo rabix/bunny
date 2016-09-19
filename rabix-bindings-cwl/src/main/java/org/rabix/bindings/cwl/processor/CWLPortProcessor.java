@@ -48,17 +48,16 @@ public class CWLPortProcessor {
       Object value = entry.getValue();
 
       ApplicationPort port = job.getApp().getPort(CWLSchemaHelper.normalizeId(id), clazz);
-      if (port == null) {
-        throw new CWLPortProcessorException("Port with ID=" + CWLSchemaHelper.normalizeId(id) + " doesn't exist.");
-      }
-      Object mappedValue = null;
-      try {
-        mappedValue = processValue(value, port, port.getSchema(), CWLSchemaHelper.normalizeId(id), portProcessor);
-      } catch (Exception e) {
-        throw new CWLPortProcessorException("Failed to process value " + value, e);
-      }
-      if (mappedValue != null) {
-        mappedValues.put(entry.getKey(), mappedValue);
+      if (port != null) {
+        Object mappedValue = null;
+        try {
+          mappedValue = processValue(value, port, port.getSchema(), CWLSchemaHelper.normalizeId(id), portProcessor);
+        } catch (Exception e) {
+          throw new CWLPortProcessorException("Failed to process value " + value, e);
+        }
+        if (mappedValue != null) {
+          mappedValues.put(entry.getKey(), mappedValue);
+        }
       }
     }
     return mappedValues;

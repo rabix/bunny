@@ -48,17 +48,16 @@ public class Draft3PortProcessor {
       Object value = entry.getValue();
 
       ApplicationPort port = job.getApp().getPort(Draft3SchemaHelper.normalizeId(id), clazz);
-      if (port == null) {
-        throw new Draft3PortProcessorException("Port with ID=" + Draft3SchemaHelper.normalizeId(id) + " doesn't exist.");
-      }
-      Object mappedValue = null;
-      try {
-        mappedValue = processValue(value, port, port.getSchema(), Draft3SchemaHelper.normalizeId(id), portProcessor);
-      } catch (Exception e) {
-        throw new Draft3PortProcessorException("Failed to process value " + value, e);
-      }
-      if (mappedValue != null) {
-        mappedValues.put(entry.getKey(), mappedValue);
+      if (port != null) {
+        Object mappedValue = null;
+        try {
+          mappedValue = processValue(value, port, port.getSchema(), Draft3SchemaHelper.normalizeId(id), portProcessor);
+        } catch (Exception e) {
+          throw new Draft3PortProcessorException("Failed to process value " + value, e);
+        }
+        if (mappedValue != null) {
+          mappedValues.put(entry.getKey(), mappedValue);
+        }
       }
     }
     return mappedValues;
