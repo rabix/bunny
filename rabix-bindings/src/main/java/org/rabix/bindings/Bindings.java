@@ -123,27 +123,6 @@ public interface Bindings {
   Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException;
 
   /**
-   * Gets a set of output {@link FileValue} objects flattened with their secondary files
-   *
-   * @param job         Job object
-   * @return            FileValue objects
-   * @throws BindingException
-   */
-  @Deprecated
-  Set<FileValue> getFlattenedInputFiles(Job job) throws BindingException;
-  
-  /**
-   * Gets a set of {@link FileValue} objects flattened with their secondary files
-   *
-   * @param job                 Job object
-   * @param onlyVisiblePorts    Returns only visible ports. Visible ports are global or terminal ports.
-   * @return                    FileValue objects
-   * @throws BindingException
-   */
-  @Deprecated
-  Set<FileValue> getFlattenedOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException;
-  
-  /**
    * Updates input files
    *
    * @param job             Job object
@@ -239,7 +218,7 @@ public interface Bindings {
   /**
    * Gets protocol type
    *
-   * @return ProtocolType enum
+   * @return ProtocolType value
    */
   ProtocolType getProtocolType();
 
