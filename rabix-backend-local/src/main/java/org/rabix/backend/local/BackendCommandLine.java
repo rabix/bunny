@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -15,13 +14,16 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
+import org.rabix.bindings.BindingException;
+import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.bindings.model.Resources;
+import org.rabix.bindings.model.*;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.VerboseLogger;
@@ -78,12 +80,19 @@ public class BackendCommandLine {
     final Options posixOptions = createOptions();
 
     CommandLine commandLine;
+    List<String> commandLineArray = Arrays.asList(commandLineArguments);
+    String[] inputArguments = null;
+    if (commandLineArray.contains("--")) {
+      commandLineArguments = commandLineArray.subList(0,commandLineArray.indexOf("--")).toArray(new String[0]);
+      inputArguments = commandLineArray.subList(commandLineArray.indexOf("--") + 1, commandLineArray.size()).toArray(new String[0]);
+    }
+
     try {
       commandLine = commandLineParser.parse(posixOptions, commandLineArguments);
       if (commandLine.hasOption("h")) {
         printUsageAndExit(posixOptions);
       }
-      if (!checkCommandLine(commandLine)) {
+      if (!checkCommandLine(commandLine, inputArguments != null && inputArguments.length > 0)) {
         printUsageAndExit(posixOptions);
       }
 
@@ -94,11 +103,14 @@ public class BackendCommandLine {
         printUsageAndExit(posixOptions);
       }
 
-      String inputsPath = commandLine.getArgList().get(1);
-      File inputsFile = new File(inputsPath);
-      if (!inputsFile.exists()) {
-        System.out.println(String.format("Inputs file %s does not exist.", inputsFile.getCanonicalPath()));
-        printUsageAndExit(posixOptions);
+      File inputsFile = null;
+      if (commandLine.getArgList().size() > 1) {
+        String inputsPath = commandLine.getArgList().get(1);
+        inputsFile = new File(inputsPath);
+        if (!inputsFile.exists()) {
+          System.out.println(String.format("Inputs file %s does not exist.", inputsFile.getCanonicalPath()));
+          printUsageAndExit(posixOptions);
+        }
       }
 
       File configDir = getConfigDir(commandLine, posixOptions);
@@ -158,15 +170,79 @@ public class BackendCommandLine {
           });
 
       String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
-      String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
-      Map<String, Object> inputs = JSONHelper.readMap(JSONHelper.transformToJSON(inputsText));
-      
+
+      Map<String, Object> inputs;
+      if (inputsFile != null) {
+        String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
+        inputs = JSONHelper.readMap(JSONHelper.transformToJSON(inputsText));
+      } else {
+        inputs = new HashMap<>();
+      }
+
+      // Load app from JSON
+        Application application;
+        try{
+            Bindings bindings = BindingsFactory.create(appUrl);
+            application = bindings.loadAppObject(appUrl);
+        }
+        catch (BindingException e1) {
+            application = null;
+        }
+        if (application==null) {
+            System.out.println("Error reading the app file");
+            System.exit(10);
+        }
+
+      if (inputArguments != null) {
+        Options inputOptions = new Options();
+
+        // Create inputOptions for parser
+        for (ApplicationPort schemaInput : application.getInputs()) {
+          boolean hasArg = !schemaInput.getDataType().isType(DataType.Type.BOOLEAN);
+          inputOptions.addOption(null, schemaInput.getId().replaceFirst("^#", ""), hasArg, schemaInput.getDescription());
+        }
+
+        // Parse input values and update inputs map with them
+        try {
+          CommandLine commandLineInputs = commandLineParser.parse(inputOptions, inputArguments);
+
+          if (commandLineInputs.getArgList().size() > 0) {
+            printAppUsageAndExit(inputOptions);
+          }
+
+          for (ApplicationPort schemaInput : application.getInputs()) {
+            String id = schemaInput.getId().replaceFirst("^#", "");
+
+            if (!commandLineInputs.hasOption(id))
+              continue;
+
+            inputs.put(id, createInputValue(commandLineInputs.getOptionValues(id), schemaInput.getDataType()));
+          }
+        } catch (ParseException e) {
+          printAppUsageAndExit(inputOptions);
+        }
+      }
+
+      // Check for required inputs
+
+      List<String> missingRequiredFields = new ArrayList<>();
+      for (ApplicationPort schemaInput : application.getInputs()) {
+        String id = schemaInput.getId().replaceFirst("^#", "");
+        if (schemaInput.isRequired() && ! inputs.containsKey(id)) {
+          missingRequiredFields.add(id);
+        }
+      }
+      if (!missingRequiredFields.isEmpty()) {
+        System.out.println("Required inputs missing: " + StringUtils.join(missingRequiredFields, ", "));
+        System.exit(10);
+      }
+
       Configuration configuration = configModule.provideConfig();
       Boolean conformance = configuration.getString(FileConfiguration.RABIX_CONFORMANCE) != null;    
       
       Resources resources = null;
       Map<String, Object> contextConfig = null;
-      
+
       if(conformance) {
         BindingsFactory.setProtocol(configuration.getString(FileConfiguration.RABIX_CONFORMANCE));
         resources = extractResources(inputs, BindingsFactory.protocol);
@@ -262,12 +338,12 @@ public class BackendCommandLine {
   /**
    * Check for missing options
    */
-  private static boolean checkCommandLine(CommandLine commandLine) {
-    if (commandLine.getArgList().size() != 2) {
-      System.out.println("Invalid number of arguments\n");
-      return false;
+  private static boolean checkCommandLine(CommandLine commandLine, boolean hasInputArguments) {
+    if (commandLine.getArgList().size() == 2 || (hasInputArguments && commandLine.getArgList().size() == 1)) {
+      return true;
     }
-    return true;
+    System.out.println("Invalid number of arguments\n");
+    return false;
   }
 
   /**
@@ -275,6 +351,12 @@ public class BackendCommandLine {
    */
   private static void printUsageAndExit(Options options) {
     new HelpFormatter().printHelp("rabix <tool> <job> [OPTION]...", options);
+    System.exit(10);
+  }
+  private static void printAppUsageAndExit(Options options) {
+    HelpFormatter h = new HelpFormatter();
+    h.setSyntaxPrefix("");
+    h.printHelp("You have invalid inputs for the tool you provided. Valid inputs are: ", options);
     System.exit(10);
   }
 
@@ -320,6 +402,32 @@ public class BackendCommandLine {
       return null;
     default:
       return null;
+    }
+  }
+
+  private static Object createInputValue(String[] value, DataType inputType) {
+    if (value.length > 1 || inputType.isArray()) {
+      if (inputType.isFile()) {
+        List<Map<String, Object>> ret = new ArrayList<>();
+        for (String s : value) {
+          Map<String, Object> entry = new HashMap<>();
+          entry.put("class", "File");
+          entry.put("path", s);
+          ret.add(entry);
+        }
+        return ret;
+      } else {
+        return Arrays.asList(value);
+      }
+    }
+
+    if (inputType.isFile()) {
+      Map<String, Object> ret = new HashMap<>();
+      ret.put("class", "File");
+      ret.put("path", value[0]);
+      return ret;
+    } else {
+      return value[0];
     }
   }
 

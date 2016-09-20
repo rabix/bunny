@@ -32,16 +32,24 @@ public abstract class ApplicationPort {
   
   @JsonProperty("linkMerge")
   protected String linkMerge;
-  
+
+  @JsonProperty("description")
+  protected String description;
+
   protected Map<String, Object> raw = new HashMap<>();
 
+  @JsonIgnore
+  protected DataType dataType;
+
   @JsonCreator
-  public ApplicationPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema, @JsonProperty("scatter") Boolean scatter, @JsonProperty("linkMerge") String linkMerge) {
+  public ApplicationPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema,
+                         @JsonProperty("scatter") Boolean scatter, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("description") String description) {
     this.id = id;
     this.schema = schema;
     this.scatter = scatter;
     this.linkMerge = linkMerge;
     this.defaultValue = defaultValue;
+    this.description = description;
   }
 
   @JsonAnySetter
@@ -56,6 +64,12 @@ public abstract class ApplicationPort {
 
   @JsonIgnore
   public abstract boolean isList();
+
+  @JsonIgnore
+  protected void readDataType() {
+    dataType = new DataType(DataType.Type.ANY);
+  }
+
   
   public void setId(String id) {
     this.id = id;
@@ -92,5 +106,22 @@ public abstract class ApplicationPort {
   public void setLinkMerge(String linkMerge) {
     this.linkMerge = linkMerge;
   }
-  
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public DataType getDataType() {
+    if (dataType==null)
+      readDataType();
+    return dataType;
+  }
+
+  public boolean isRequired() {
+    return false;
+  }
 }

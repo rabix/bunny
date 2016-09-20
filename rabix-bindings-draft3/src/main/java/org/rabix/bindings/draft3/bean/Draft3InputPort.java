@@ -47,8 +47,10 @@ public class Draft3InputPort extends ApplicationPort {
 
   @JsonCreator
   public Draft3InputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema, 
-      @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("streamable") Boolean streamable, @JsonProperty("format") Object format, @JsonProperty("scatter") Boolean scatter, @JsonProperty("sbg:stageInput") String stageInput, @JsonProperty("linkMerge") String linkMerge) {
-    super(id, defaultValue, schema, scatter, linkMerge);
+      @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("streamable") Boolean streamable, @JsonProperty("format") Object format,
+                         @JsonProperty("scatter") Boolean scatter, @JsonProperty("sbg:stageInput") String stageInput, @JsonProperty("linkMerge") String linkMerge,
+                         @JsonProperty("description") String description) {
+    super(id, defaultValue, schema, scatter, linkMerge, description);
     this.format = format;
     this.streamable = streamable;
     this.stageInput = stageInput;
@@ -82,4 +84,13 @@ public class Draft3InputPort extends ApplicationPort {
     return "Draft3InputPort [inputBinding=" + inputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter=" + getScatter() + "]";
   }
 
+  @Override
+  protected void readDataType() {
+    dataType = Draft3SchemaHelper.readDataType(schema);
+  }
+
+  @Override
+  public boolean isRequired() {
+    return Draft3SchemaHelper.isRequired(schema);
+  }
 }
