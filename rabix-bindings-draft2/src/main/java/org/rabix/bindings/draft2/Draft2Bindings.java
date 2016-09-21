@@ -105,16 +105,6 @@ public class Draft2Bindings implements Bindings {
   }
   
   @Override
-  public Set<FileValue> getFlattenedInputFiles(Job job) throws BindingException {
-    return fileValueProcessor.getFlattenedInputFiles(job);
-  }
-
-  @Override
-  public Set<FileValue> getFlattenedOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    return fileValueProcessor.getFlattenedOutputFiles(job, onlyVisiblePorts);
-  }
-  
-  @Override
   public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
     return fileValueProcessor.updateInputFiles(job, fileTransformer);
   }
@@ -131,13 +121,13 @@ public class Draft2Bindings implements Bindings {
     File jobFile = new File(workingDir, Draft2Processor.JOB_FILE);
     if (jobFile.exists()) {
       String jobFilePath = jobFile.getAbsolutePath();
-      files.add(new FileValue(null, jobFilePath, null, null, null));
+      files.add(new FileValue(null, jobFilePath, null, null, null, null));
     }
     
     File resultFile = new File(workingDir, Draft2Processor.RESULT_FILENAME);
     if (resultFile.exists()) {
       String resultFilePath = resultFile.getAbsolutePath();
-      files.add(new FileValue(null, resultFilePath, null, null, null));
+      files.add(new FileValue(null, resultFilePath, null, null, null, null));
     }
     return files;
   }

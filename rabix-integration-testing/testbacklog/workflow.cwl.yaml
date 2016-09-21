@@ -1,0 +1,203 @@
+{
+  "sbg:revisionNotes": "1st wf save. 0-1",
+  "sbg:createdOn": 1471350980,
+  "hints": [],
+  "sbg:project": "markoAdmin/jess",
+  "steps": [
+    {
+      "outputs": [
+        {
+          "id": "#greptool.outfile"
+        }
+      ],
+      "inputs": [
+        {
+          "default": "CTSD",
+          "id": "#greptool.stringPattern"
+        },
+        {
+          "source": [
+            "#fileToGrep"
+          ],
+          "id": "#greptool.fileToGrep"
+        }
+      ],
+      "sbg:y": 128,
+      "id": "#greptool",
+      "sbg:x": 526,
+      "run": {
+        "sbg:revisionNotes": "1st cmd save. 0-1",
+        "sbg:createdOn": 1471350770,
+        "temporaryFailCodes": [],
+        "hints": [
+          {
+            "value": 1,
+            "class": "sbg:CPURequirement"
+          },
+          {
+            "value": 1024,
+            "class": "sbg:MemRequirement"
+          }
+
+        ],
+        "inputs": [
+          {
+            "inputBinding": {
+              "position": 1,
+              "sbg:cmdInclude": true,
+              "separate": true
+            },
+            "id": "#stringPattern",
+            "type": [
+              "string"
+            ]
+          },
+          {
+            "sbg:fileTypes": "TXT",
+            "inputBinding": {
+              "position": 2,
+              "sbg:cmdInclude": true,
+              "separate": true
+            },
+            "id": "#fileToGrep",
+            "type": [
+              "File"
+            ]
+          }
+        ],
+        "sbg:project": "markoAdmin/jess",
+        "successCodes": [
+          0,
+          1
+        ],
+        "sbg:revision": 1,
+        "sbg:modifiedBy": "markoAdmin",
+        "sbg:createdBy": "markoAdmin",
+        "arguments": [],
+        "class": "CommandLineTool",
+        "stdout": "out.txt",
+        "label": "greptool",
+        "sbg:latestRevision": 1,
+        "outputs": [
+          {
+            "type": [
+              "null",
+              "File"
+            ],
+            "id": "#outfile",
+            "outputBinding": {
+              "glob": "out.txt"
+            }
+          }
+        ],
+        "baseCommand": [
+          "grep"
+        ],
+        "requirements": [],
+        "sbg:id": "markoAdmin/jess/greptool/1",
+        "sbg:image_url": null,
+        "sbg:job": {
+          "allocatedResources": {
+            "mem": 1024,
+            "cpu": 1
+          },
+          "inputs": {
+            "fileToGrep": {
+              "secondaryFiles": [],
+              "path": "/path/to/fileToGrep.ext",
+              "size": 0,
+              "class": "File"
+            },
+            "stringPattern": "stringPattern-string-value"
+          }
+        },
+        "sbg:cmdPreview": "grep  stringPattern-string-value  /path/to/fileToGrep.ext > out.txt",
+        "sbg:contributors": [
+          "markoAdmin"
+        ],
+        "stdin": "",
+        "description": "",
+        "sbg:validationErrors": [],
+        "sbg:modifiedOn": 1471350865,
+        "id": "https://api.sbgenomics.com/v2/apps/markoAdmin/jess/greptool/1/raw/",
+        "sbg:sbgMaintained": false,
+        "sbg:revisionsInfo": [
+          {
+            "sbg:revision": 0,
+            "sbg:modifiedBy": "markoAdmin",
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1471350770
+          },
+          {
+            "sbg:revision": 1,
+            "sbg:modifiedBy": "markoAdmin",
+            "sbg:revisionNotes": "1st cmd save. 0-1",
+            "sbg:modifiedOn": 1471350865
+          }
+        ]
+      }
+    }
+  ],
+  "sbg:latestRevision": 1,
+  "sbg:revision": 1,
+  "sbg:modifiedBy": "markoAdmin",
+  "sbg:createdBy": "markoAdmin",
+  "inputs": [
+    {
+      "type": [
+        "File"
+      ],
+      "label": "fileToGrep",
+      "sbg:fileTypes": "TXT",
+      "sbg:y": 146,
+      "id": "#fileToGrep",
+      "sbg:x": 94
+    }
+  ],
+  "class": "Workflow",
+  "sbg:canvas_x": 0,
+  "label": "workflow_grep",
+  "sbg:canvas_y": 0,
+  "outputs": [
+    {
+      "type": [
+        "null",
+        "File"
+      ],
+      "sbg:includeInPorts": true,
+      "sbg:y": 166,
+      "source": [
+        "#greptool.outfile"
+      ],
+      "id": "#outfile",
+      "sbg:x": 1047,
+      "label": "outfile"
+    }
+  ],
+  "requirements": [],
+  "id": "https://api.sbgenomics.com/v2/apps/markoAdmin/jess/workflow-grep/1/raw/",
+  "sbg:image_url": "https://brood.sbgenomics.com/static/markoAdmin/jess/workflow-grep/1.png",
+  "sbg:contributors": [
+    "markoAdmin"
+  ],
+  "description": "",
+  "sbg:canvas_zoom": 1,
+  "sbg:validationErrors": [],
+  "sbg:modifiedOn": 1471351028,
+  "sbg:id": "markoAdmin/jess/workflow-grep/1",
+  "sbg:sbgMaintained": false,
+  "sbg:revisionsInfo": [
+    {
+      "sbg:revision": 0,
+      "sbg:modifiedBy": "markoAdmin",
+      "sbg:revisionNotes": null,
+      "sbg:modifiedOn": 1471350980
+    },
+    {
+      "sbg:revision": 1,
+      "sbg:modifiedBy": "markoAdmin",
+      "sbg:revisionNotes": "1st wf save. 0-1",
+      "sbg:modifiedOn": 1471351028
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 package org.rabix.engine.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.rabix.engine.model.JobRecord;
 
@@ -18,17 +18,17 @@ public class JobRecordService {
     FAILED
   }
 
-  private Map<String, List<JobRecord>> jobRecordsPerContext = new HashMap<String, List<JobRecord>>();
+  private ConcurrentMap<String, List<JobRecord>> jobRecordsPerContext = new ConcurrentHashMap<String, List<JobRecord>>();
 
   public static String generateUniqueId() {
     return UUID.randomUUID().toString();
   }
   
-  public synchronized void create(JobRecord jobRecord) {
+  public void create(JobRecord jobRecord) {
     getJobRecords(jobRecord.getRootId()).add(jobRecord);
   }
 
-  public synchronized void update(JobRecord jobRecord) {
+  public void update(JobRecord jobRecord) {
     for (JobRecord jr : getJobRecords(jobRecord.getRootId())) {
       if (jr.getId().equals(jobRecord.getId())) {
         jr.setState(jobRecord.getState());
@@ -43,11 +43,11 @@ public class JobRecordService {
     }
   }
   
-  public synchronized List<JobRecord> find(String contextId) {
+  public List<JobRecord> find(String contextId) {
     return getJobRecords(contextId);
   }
   
-  public synchronized List<JobRecord> findReady(String contextId) {
+  public List<JobRecord> findReady(String contextId) {
     List<JobRecord> result = new ArrayList<>();
     
     for (JobRecord jr : getJobRecords(contextId)) {
@@ -58,7 +58,7 @@ public class JobRecordService {
     return result;
   }
   
-  public synchronized List<JobRecord> findByParent(String parentId, String contextId) {
+  public List<JobRecord> findByParent(String parentId, String contextId) {
     List<JobRecord> result = new ArrayList<>();
 
     for (JobRecord jr : getJobRecords(contextId)) {
@@ -69,7 +69,7 @@ public class JobRecordService {
     return result;
   }
   
-  public synchronized JobRecord find(String id, String contextId) {
+  public JobRecord find(String id, String contextId) {
     for (JobRecord jr : getJobRecords(contextId)) {
       if (jr.getId().equals(id) && jr.getRootId().equals(contextId)) {
         return jr;
@@ -78,7 +78,7 @@ public class JobRecordService {
     return null;
   }
   
-  public synchronized JobRecord findRoot(String contextId) {
+  public JobRecord findRoot(String contextId) {
     for (JobRecord jr : getJobRecords(contextId)) {
       if (jr.isMaster() && jr.getRootId().equals(contextId)) {
         return jr;
@@ -87,7 +87,7 @@ public class JobRecordService {
     return null;
   }
   
-  private synchronized List<JobRecord> getJobRecords(String contextId) {
+  private List<JobRecord> getJobRecords(String contextId) {
     List<JobRecord> jobRecordList = jobRecordsPerContext.get(contextId);
     if (jobRecordList == null) {
       jobRecordList = new ArrayList<>();

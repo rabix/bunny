@@ -1,0 +1,7 @@
+{
+    "infile": {
+        "path": "inputs/sampleFile.txt",
+        "class": "File",
+    },
+    "pattern": "inf"
+}

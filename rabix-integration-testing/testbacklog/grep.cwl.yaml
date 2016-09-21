@@ -1,0 +1,85 @@
+{
+    "id": "users-boysha-code-cwl-bbx-templates-grep-cwl-yaml-json",
+    "class": "CommandLineTool",
+    "label": "grep",
+    "description": "",
+    "requirements": [],
+    "inputs": [
+        {
+            "type": [
+                "File"
+            ],
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "separate": true,
+                "position": 2
+            },
+            "id": "#infile",
+            "description": "File to grep",
+            "label": "Input file",
+            "sbg:stageInput": null
+        },
+        {
+            "type": [
+                "string"
+            ],
+            "inputBinding": {
+                "sbg:cmdInclude": true,
+                "separate": true,
+                "position": 1
+            },
+            "id": "#pattern",
+            "label": "Pattern to match"
+        }
+    ],
+    "outputs": [
+        {
+            "type": [
+                "null",
+                "File"
+            ],
+            "outputBinding": {
+                "glob": "out.txt",
+                "sbg:metadata": {}
+            },
+            "id": "#outfile"
+        }
+    ],
+    "hints": [
+        {
+            "class": "sbg:CPURequirement",
+            "value": 1
+        },
+        {
+            "class": "sbg:MemRequirement",
+            "value": 1024
+        }
+    ],
+    "baseCommand": [
+        "grep"
+    ],
+    "stdin": "",
+    "stdout": "out.txt",
+    "successCodes": [
+        0,
+        1
+    ],
+    "temporaryFailCodes": [],
+    "arguments": [],
+    "ct:path": "/home/markov/git/rabix-0.3.0-alpha/boysha_grep.cwl.yaml",
+    "sbg:job": {
+        "inputs": {
+            "infile": {
+                "path": "/path/to/infile.ext",
+                "class": "File",
+                "size": 0,
+                "secondaryFiles": []
+            },
+            "pattern": "pattern-to-match"
+        },
+        "allocatedResources": {
+            "cpu": 1,
+            "mem": 1024
+        }
+    }
+}

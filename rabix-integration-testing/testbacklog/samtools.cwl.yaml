@@ -1,0 +1,122 @@
+{
+  "sbg:modifiedBy": "markovTest",
+  "sbg:createdOn": 1468408484,
+  "temporaryFailCodes": [],
+  "hints": [
+    {
+      "value": 1,
+      "class": "sbg:CPURequirement"
+    },
+    {
+      "value": 1000,
+      "class": "sbg:MemRequirement"
+    },
+    {
+      "dockerImageId": "",
+      "class": "DockerRequirement",
+      "dockerPull": "images.sbgenomics.com/markovtest/prod_3_38:v1"
+    }
+  ],
+  "inputs": [
+    {
+      "inputBinding": {
+        "position": 4,
+        "sbg:cmdInclude": true,
+        "separate": true
+      },
+      "id": "#BAM",
+      "label": "Bam files input",
+      "type": [
+        "null",
+        "File"
+      ]
+    }
+  ],
+  "sbg:project": "markovTest/prod-3-38",
+  "successCodes": [],
+  "sbg:revision": 1,
+  "baseCommand": [
+    "samtools",
+    "sort"
+  ],
+  "sbg:createdBy": "markovTest",
+  "arguments": [
+    {
+      "position": 1,
+      "prefix": "-O",
+      "separate": true,
+      "valueFrom": "bam"
+    },
+    {
+      "position": 2,
+      "prefix": "-T",
+      "separate": true,
+      "valueFrom": "tmp_"
+    },
+    {
+      "position": 3,
+      "prefix": "-o",
+      "separate": true,
+      "valueFrom": "output.bam"
+    }
+  ],
+  "class": "CommandLineTool",
+  "stdout": "",
+  "sbg:latestRevision": 1,
+  "outputs": [
+    {
+      "sbg:fileTypes": "BAM",
+      "type": [
+        "null",
+        "File"
+      ],
+      "id": "#Sorted",
+      "label": "Sorted",
+      "outputBinding": {
+        "glob": "*.bam"
+      }
+    }
+  ],
+  "sbg:revisionsInfo": [
+    {
+      "sbg:revision": 0,
+      "sbg:modifiedBy": "markovTest",
+      "sbg:revisionNotes": "Copy of markovTest/samtools-20160606/image-push/1",
+      "sbg:modifiedOn": 1468408484
+    },
+    {
+      "sbg:revision": 1,
+      "sbg:modifiedBy": "markovTest",
+      "sbg:revisionNotes": null,
+      "sbg:modifiedOn": 1468408505
+    }
+  ],
+  "requirements": [],
+  "sbg:id": "markovTest/prod-3-38/image-push/1",
+  "sbg:image_url": null,
+  "sbg:job": {
+    "allocatedResources": {
+      "mem": 1000,
+      "cpu": 1
+    },
+    "inputs": {
+      "BAM": {
+        "secondaryFiles": [],
+        "path": "/path/to/BAM.ext",
+        "size": 0,
+        "class": "File"
+      }
+    }
+  },
+  "sbg:cmdPreview": "samtools sort -O bam -T tmp_ -o output.bam",
+  "sbg:contributors": [
+    "markovTest"
+  ],
+  "stdin": "",
+  "description": "",
+  "sbg:validationErrors": [],
+  "sbg:modifiedOn": 1468408505,
+  "id": "https://api.sbgenomics.com/v2/apps/markovTest/prod-3-38/image-push/1/raw/",
+  "sbg:sbgMaintained": false,
+  "label": "image push"
+}

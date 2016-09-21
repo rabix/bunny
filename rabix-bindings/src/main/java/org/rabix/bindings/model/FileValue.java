@@ -5,32 +5,34 @@ import java.util.Map;
 
 public class FileValue {
 
-  private final Long size;
-  private final String path;
+  protected final Long size;
+  protected final String path;
+  protected final String location;
   
-  private final String checksum;
-  private final List<FileValue> secondaryFiles;
-  private final Map<String, Object> properties;
+  protected final String checksum;
+  protected final List<FileValue> secondaryFiles;
+  protected final Map<String, Object> properties;
   
-  public FileValue(Long size, String path, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties) {
+  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties) {
     super();
     this.size = size;
     this.path = path;
+    this.location = location;
     this.checksum = checksum;
     this.secondaryFiles = secondaryFiles;
     this.properties = properties;
   }
   
   public static FileValue cloneWithPath(FileValue fileValue, String path) {
-    return new FileValue(fileValue.size, path, fileValue.checksum, fileValue.secondaryFiles, fileValue.properties);
+    return new FileValue(fileValue.size, path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles, fileValue.properties);
   }
   
   public static FileValue cloneWithProperties(FileValue fileValue, Map<String, Object> properties) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.checksum, fileValue.secondaryFiles, properties);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles, properties);
   }
   
   public static FileValue cloneWithSecondaryFiles(FileValue fileValue, List<FileValue> secondaryFiles) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.checksum, secondaryFiles, fileValue.properties);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, secondaryFiles, fileValue.properties);
   }
 
   public Long getSize() {
@@ -39,6 +41,10 @@ public class FileValue {
 
   public String getPath() {
     return path;
+  }
+  
+  public String getLocation() {
+    return location;
   }
   
   public String getChecksum() {
@@ -104,7 +110,7 @@ public class FileValue {
 
   @Override
   public String toString() {
-    return "FileValue [size=" + size + ", path=" + path + ", checksum=" + checksum + ", secondaryFiles=" + secondaryFiles + ", properties=" + properties + "]";
+    return "FileValue [size=" + size + ", path=" + path + ", location=" + location + ", checksum=" + checksum + ", secondaryFiles=" + secondaryFiles + ", properties=" + properties + "]";
   }
   
 }

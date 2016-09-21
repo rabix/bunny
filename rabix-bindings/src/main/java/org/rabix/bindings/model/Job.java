@@ -100,7 +100,7 @@ public class Job {
     return new Job(job.getId(), job.parentId, rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
   
-  public static Job cloneWithContext(Job job, Map<String, Object> config) {
+  public static Job cloneWithConfig(Job job, Map<String, Object> config) {
     return new Job(job.id, job.parentId, job.rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, config, job.resources, job.visiblePorts);
   }
   

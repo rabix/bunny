@@ -45,12 +45,12 @@ public class Draft3CommandLineTool extends Draft3JobApp {
   
   public String getStdin(Draft3Job job) throws Draft3ExpressionException {
     String evaluatedStdin = Draft3ExpressionResolver.resolve(stdin, job, null);
-    return evaluatedStdin != null ? evaluatedStdin.toString() : "";
+    return evaluatedStdin != null ? evaluatedStdin.toString() : null;
   }
 
   public String getStdout(Draft3Job job) throws Draft3ExpressionException {
     String evaluatedStdout = Draft3ExpressionResolver.resolve(stdout, job, null);
-    return evaluatedStdout != null ? evaluatedStdout.toString() : "";
+    return evaluatedStdout != null ? evaluatedStdout.toString() : null;
   }
 
   public String getStderr(Draft3Job job) throws Draft3ExpressionException {

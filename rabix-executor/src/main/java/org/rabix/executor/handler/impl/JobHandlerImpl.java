@@ -174,7 +174,7 @@ public class JobHandlerImpl implements JobHandler {
     if (storageConfiguration.getBackendStore().equals(BackendStore.LOCAL)) {
       return;
     }
-    Set<FileValue> fileValues = bindings.getFlattenedInputFiles(job);
+    Set<FileValue> fileValues = flattenFiles(bindings.getInputFiles(job));
     
     Set<String> paths = new HashSet<>();
     for (FileValue fileValue : fileValues) {
@@ -303,19 +303,19 @@ public class JobHandlerImpl implements JobHandler {
     if (storageConfiguration.getBackendStore().equals(BackendStore.LOCAL)) {
       return;
     }
-    Set<FileValue> fileValues = bindings.getFlattenedOutputFiles(job, false);
+    Set<FileValue> fileValues = flattenFiles(bindings.getOutputFiles(job, false));
     fileValues.addAll(bindings.getProtocolFiles(workingDir));
     
     File cmdFile = new File(workingDir, COMMAND_LOG);
     if (cmdFile.exists()) {
       String cmdFilePath = cmdFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, cmdFilePath, null, null, null));
+      fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null));
     }
     
     File jobErrFile = new File(workingDir, ERROR_LOG);
     if (jobErrFile.exists()) {
       String jobErrFilePath = jobErrFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null));
+      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null));
     }
     
     Set<File> files = new HashSet<>();
@@ -436,5 +436,17 @@ public class JobHandlerImpl implements JobHandler {
   public EngineStub<?, ?, ?> getEngineStub() {
     return engineStub;
   }
+  
+  private Set<FileValue> flattenFiles(Set<FileValue> fileValues) {
+    Set<FileValue> flattenedFileValues = new HashSet<>();
+    for (FileValue fileValue : fileValues) {
+      flattenedFileValues.add(fileValue);
+      if (fileValue.getSecondaryFiles() != null) {
+        flattenedFileValues.addAll(fileValue.getSecondaryFiles());
+      }
+    }
+    return flattenedFileValues;
+  }
+
 
 }
