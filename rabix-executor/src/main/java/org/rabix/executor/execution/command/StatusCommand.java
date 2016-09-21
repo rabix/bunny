@@ -22,7 +22,7 @@ public class StatusCommand extends JobHandlerCommand {
 
   private final static Logger logger = LoggerFactory.getLogger(StatusCommand.class);
 
-  public final static long DEFAULT_DELAY = TimeUnit.SECONDS.toMillis(15);
+  public final static long DEFAULT_DELAY = TimeUnit.SECONDS.toMillis(1);
   
   private JobFitter jobFitter;
   
