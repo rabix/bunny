@@ -110,17 +110,6 @@ public class Draft3Bindings implements Bindings {
   }
   
   @Override
-  public Set<FileValue> getFlattenedInputFiles(Job job) throws BindingException {
-    return fileValueProcessor.getFlattenedInputFiles(job);
-  }
-
-  @Override
-  public Set<FileValue> getFlattenedOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    return fileValueProcessor.getFlattenedOutputFiles(job, onlyVisiblePorts);
-  }
-
-  
-  @Override
   public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
     return fileValueProcessor.updateInputFiles(job, fileTransformer);
   }
