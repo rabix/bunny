@@ -15,6 +15,10 @@ public class VariableRecordService {
   public void create(VariableRecord variableRecord) {
     getVariableRecords(variableRecord.getContextId()).add(variableRecord);
   }
+  
+  public void delete(String rootId) {
+    variableRecordsPerContext.remove(rootId);
+  }
 
   public void update(VariableRecord variableRecord) {
     for (VariableRecord vr : getVariableRecords(variableRecord.getContextId())) {
