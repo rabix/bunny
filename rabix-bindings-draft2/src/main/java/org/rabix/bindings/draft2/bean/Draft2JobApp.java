@@ -133,6 +133,7 @@ public abstract class Draft2JobApp implements Application {
     }
     return null;
   }
+  
   public <T extends Draft2Resource> T getHint(Draft2ResourceType type, Class<T> clazz) {
     List<T> resources = getHints(type, clazz);
     if(resources != null && !resources.isEmpty()) {

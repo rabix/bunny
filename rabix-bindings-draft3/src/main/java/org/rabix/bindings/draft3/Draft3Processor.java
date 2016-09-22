@@ -150,7 +150,7 @@ public class Draft3Processor implements ProtocolProcessor {
     Object result = null;
     if (Draft3SchemaHelper.isArrayFromSchema(schema)) {
       Draft3JobApp app = job.getApp();
-      Object itemSchema = Draft3SchemaHelper.getSchemaForArrayItem(app.getSchemaDefs(), schema);
+      Object itemSchema = Draft3SchemaHelper.getSchemaForArrayItem(null, app.getSchemaDefs(), schema);
       if (itemSchema == null) {
         return null;
       }

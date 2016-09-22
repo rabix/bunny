@@ -248,7 +248,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       commandLinePartBuilder.keyValue(keyValue);
       
       for (Object item : ((List<?>) value)) {
-        Object arrayItemSchema = CWLSchemaHelper.getSchemaForArrayItem(commandLineTool.getSchemaDefs(), schema);
+        Object arrayItemSchema = CWLSchemaHelper.getSchemaForArrayItem(item, commandLineTool.getSchemaDefs(), schema);
         Object arrayItemInputBinding = new HashMap<>();
         if (schema != null && CWLSchemaHelper.getInputBinding(schema) != null) {
           arrayItemInputBinding = (Map<String, Object>) CWLSchemaHelper.getInputBinding(schema);

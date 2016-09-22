@@ -94,8 +94,7 @@ public class CWLPortProcessor {
           logger.info("Field {} not found in schema {}", entry.getKey(), schema);
           continue;
         }
-
-        Object singleResult = processValue(entry.getValue(), port, schema, entry.getKey(), portProcessor);
+        Object singleResult = processValue(entry.getValue(), port, CWLSchemaHelper.getType(field), entry.getKey(), portProcessor);
         result.put(entry.getKey(), singleResult);
       }
       return result;
@@ -105,7 +104,7 @@ public class CWLPortProcessor {
       List<Object> result = new LinkedList<>();
 
       for (Object item : ((List<?>) value)) {
-        Object arrayItemSchema = CWLSchemaHelper.getSchemaForArrayItem(job.getApp().getSchemaDefs(), schema);
+        Object arrayItemSchema = CWLSchemaHelper.getSchemaForArrayItem(item, job.getApp().getSchemaDefs(), schema);
         Object singleResult = processValue(item, port, arrayItemSchema, key, portProcessor);
         result.add(singleResult);
       }

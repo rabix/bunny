@@ -151,7 +151,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     Object result = null;
     if (CWLSchemaHelper.isArrayFromSchema(schema)) {
       CWLJobApp app = job.getApp();
-      Object itemSchema = CWLSchemaHelper.getSchemaForArrayItem(app.getSchemaDefs(), schema);
+      Object itemSchema = CWLSchemaHelper.getSchemaForArrayItem(null, app.getSchemaDefs(), schema);
       if (itemSchema == null) {
         return null;
       }
