@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.commons.collections.buffer.CircularFifoBuffer;
+import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
@@ -18,16 +20,17 @@ public class MultiEventProcessorImpl implements EventProcessor {
 
   private final static Logger logger = LoggerFactory.getLogger(MultiEventProcessorImpl.class);
   
-  private int numberOfCores = Runtime.getRuntime().availableProcessors();
+  private int eventProcessorCount;
   
   private final ConcurrentMap<Integer, EventProcessorImpl> eventProcessors;
 
   private volatile boolean isRunning = false;
   
   @Inject
-  public MultiEventProcessorImpl(Provider<EventProcessorImpl> singleEventProcessorProvider) {
-    this.eventProcessors = new ConcurrentHashMap<>(numberOfCores);
-    for (int i = 0; i < numberOfCores; i++) {
+  public MultiEventProcessorImpl(Provider<EventProcessorImpl> singleEventProcessorProvider, Configuration configuration) {
+    this.eventProcessorCount = configuration.getInt("bunny.event_processor.count", Runtime.getRuntime().availableProcessors());
+    this.eventProcessors = new ConcurrentHashMap<>(eventProcessorCount);
+    for (int i = 0; i < eventProcessorCount; i++) {
       this.eventProcessors.put(i, singleEventProcessorProvider.get());
     }
   }
@@ -71,7 +74,7 @@ public class MultiEventProcessorImpl implements EventProcessor {
    * @return        EventProcessor instance
    */
   private EventProcessor getEventProcessor(String rootId) {
-    int index = Math.abs(rootId.hashCode() % numberOfCores);
+    int index = Math.abs(rootId.hashCode() % eventProcessorCount);
     logger.debug("Root Job {} goes to EventProcessor {}", rootId, index);
     return eventProcessors.get(index);
   }

@@ -59,7 +59,7 @@ public class JobDataServiceImpl implements JobDataService {
   @Override
   public void initialize(EngineStub<?,?,?> engineStub) {
     this.engineStub = engineStub;
-    this.starter.scheduleAtFixedRate(new JobStatusHandler(), 0, 1, TimeUnit.SECONDS);
+    this.starter.scheduleAtFixedRate(new JobStatusHandler(), 0, 100, TimeUnit.MILLISECONDS);
   }
   
   @Override

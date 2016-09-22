@@ -28,6 +28,10 @@ public class JobRecordService {
     getJobRecords(jobRecord.getRootId()).add(jobRecord);
   }
 
+  public void delete(String rootId) {
+    jobRecordsPerContext.remove(rootId);
+  }
+  
   public void update(JobRecord jobRecord) {
     for (JobRecord jr : getJobRecords(jobRecord.getRootId())) {
       if (jr.getId().equals(jobRecord.getId())) {
