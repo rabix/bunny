@@ -48,7 +48,7 @@ import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
-import org.rabix.executor.service.BasicMemoizationService;
+import org.rabix.executor.service.ResultCacheService;
 import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.status.ExecutorStatusCallback;
@@ -88,7 +88,7 @@ public class JobHandlerImpl implements JobHandler {
   private final ExecutorStatusCallback statusCallback;
   
   private final FilePermissionService filePermissionService;
-  private final BasicMemoizationService localMemoizationService;
+  private final ResultCacheService localMemoizationService;
 
   private boolean setPermissions;
 
@@ -98,7 +98,7 @@ public class JobHandlerImpl implements JobHandler {
       JobDataService jobDataService, Configuration configuration, StorageConfiguration storageConfig, 
       DockerConfigation dockerConfig, FileConfiguration fileConfiguration, 
       DockerClientLockDecorator dockerClient, ExecutorStatusCallback statusCallback,
-      BasicMemoizationService localMemoizationService, FilePermissionService filePermissionService, 
+      ResultCacheService localMemoizationService, FilePermissionService filePermissionService, 
       UploadService uploadService, DownloadService downloadService,
       @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper) {
     this.job = job;
@@ -127,7 +127,7 @@ public class JobHandlerImpl implements JobHandler {
     try {
       job = statusCallback.onJobReady(job);
       
-      Map<String, Object> results = localMemoizationService.tryToFindResults(job);
+      Map<String, Object> results = localMemoizationService.findResultsFromCachingDir(job);
       if (results != null) {
         containerHandler = new CompletedContainerHandler(job);
         containerHandler.start();
@@ -239,7 +239,7 @@ public class JobHandlerImpl implements JobHandler {
     try {
       Bindings bindings = BindingsFactory.create(job);
       
-      Map<String, Object> results = localMemoizationService.tryToFindResults(job);
+      Map<String, Object> results = localMemoizationService.findResultsFromCachingDir(job);
       if (results != null) {
         job = Job.cloneWithOutputs(job, results);
         
