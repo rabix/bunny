@@ -17,7 +17,6 @@ import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.ResultCacheService;
-import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
@@ -80,6 +79,7 @@ public class ExecutorServiceImpl implements ExecutorService {
     if (cachingEnabled) {
       Map<String, Object> result = resultCacheService.findResultsFromCache(job);
       if (result != null) {
+        logger.info("Found cache hit for Job {}", job.getName());
         Job updatedJob = Job.cloneWithStatus(job, JobStatus.COMPLETED);
         updatedJob = Job.cloneWithOutputs(job, result);
         engineStub.send(updatedJob);
