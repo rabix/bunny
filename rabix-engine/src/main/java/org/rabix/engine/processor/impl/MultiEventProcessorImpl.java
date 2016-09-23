@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.collections.buffer.CircularFifoBuffer;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
