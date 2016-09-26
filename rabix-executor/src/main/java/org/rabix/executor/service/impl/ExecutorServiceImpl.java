@@ -16,6 +16,7 @@ import org.rabix.executor.model.JobData.JobDataStatus;
 import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
+import org.rabix.executor.service.ResultCacheService;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
@@ -37,12 +38,17 @@ public class ExecutorServiceImpl implements ExecutorService {
   private FileService fileService;
   private Configuration configuration;
   private EngineStub<?,?,?> engineStub;
+  
+  private boolean cachingEnabled;
+  private ResultCacheService resultCacheService;
 
   @Inject
-  public ExecutorServiceImpl(JobDataService jobDataService, FileService fileService, Configuration configuration) {
+  public ExecutorServiceImpl(JobDataService jobDataService, FileService fileService, ResultCacheService resultCacheService, Configuration configuration) {
     this.fileService = fileService;
     this.configuration = configuration;
     this.jobDataService = jobDataService;
+    this.resultCacheService = resultCacheService;
+    this.cachingEnabled = configuration.getBoolean("cache.is_enabled", true);
   }
 
   @Override
@@ -70,6 +76,16 @@ public class ExecutorServiceImpl implements ExecutorService {
 
   @Override
   public void start(final Job job, String rootId) {
+    if (cachingEnabled) {
+      Map<String, Object> result = resultCacheService.findResultsFromCache(job);
+      if (result != null) {
+        Job updatedJob = Job.cloneWithStatus(job, JobStatus.COMPLETED);
+        updatedJob = Job.cloneWithOutputs(job, result);
+        engineStub.send(updatedJob);
+        return;
+      }
+    }
+    
     logger.debug("start(id={}, important={}, uploadOutputs={})", job.getId());
 
     final JobData jobData = new JobData(job, JobDataStatus.PENDING, "Job is queued to start.", false, false);

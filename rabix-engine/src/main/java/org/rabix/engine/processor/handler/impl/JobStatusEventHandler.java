@@ -108,6 +108,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, event.getResult());
           engineStatusCallback.onJobRootCompleted(rootJob);
+          deleteRecords(rootJob.getId());
         } catch (Exception e) {
           logger.error("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
@@ -125,6 +126,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         try {
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, null);
           engineStatusCallback.onJobRootFailed(rootJob);
+          deleteRecords(rootJob.getId());
         } catch (Exception e) {
           logger.error("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
@@ -142,6 +144,12 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     default:
       break;
     }
+  }
+  
+  private void deleteRecords(String rootId) {
+    jobRecordService.delete(rootId);
+    variableRecordService.delete(rootId);
+    linkRecordService.delete(rootId);
   }
   
   /**
