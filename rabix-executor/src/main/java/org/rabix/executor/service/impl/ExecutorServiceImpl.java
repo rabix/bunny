@@ -17,7 +17,6 @@ import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.ResultCacheService;
-import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
