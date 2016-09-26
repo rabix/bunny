@@ -96,19 +96,19 @@ public class Draft3Processor implements ProtocolProcessor {
   @Override
   @SuppressWarnings("unchecked")
   public Job postprocess(Job job, File workingDir) throws BindingException {
-    Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     try {
       Map<String, Object> outputs = null;
 
-      if (draft2Job.getApp().isExpressionTool()) {
-        Draft3ExpressionTool expressionTool = (Draft3ExpressionTool) draft2Job.getApp();
+      if (draft3Job.getApp().isExpressionTool()) {
+        Draft3ExpressionTool expressionTool = (Draft3ExpressionTool) draft3Job.getApp();
         try {
-          outputs = (Map<String, Object>) Draft3ExpressionJavascriptResolver.evaluate(draft2Job.getInputs(), null, (String) expressionTool.getScript(), null);
+          outputs = (Map<String, Object>) Draft3ExpressionJavascriptResolver.evaluate(draft3Job.getInputs(), null, (String) expressionTool.getScript(), null);
         } catch (Draft3ExpressionException e) {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(draft2Job, workingDir, null);
+        outputs = collectOutputs(draft3Job, workingDir, null);
       }
       return Job.cloneWithOutputs(job, outputs);
     } catch (Draft3GlobException | Draft3ExpressionException | IOException e) {
