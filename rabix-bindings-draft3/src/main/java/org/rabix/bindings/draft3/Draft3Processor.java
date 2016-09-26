@@ -154,7 +154,7 @@ public class Draft3Processor implements ProtocolProcessor {
       if (itemSchema == null) {
         return null;
       }
-
+      
       if (itemSchema.equals(Draft3SchemaHelper.TYPE_JOB_FILE) || Draft3SchemaHelper.isFileFromSchema(itemSchema)) {
         Object itemBinding = Draft3SchemaHelper.getOutputBinding(itemSchema);
         if (itemBinding != null) {
@@ -291,7 +291,7 @@ public class Draft3Processor implements ProtocolProcessor {
     if (secondaryFilesObj == null) {
       return null;
     }
-
+    
     List<Object> secondaryFilesList = new ArrayList<>();
     if (secondaryFilesObj instanceof List<?>) {
       secondaryFilesList.addAll((Collection<? extends Object>) secondaryFilesObj);
@@ -299,33 +299,43 @@ public class Draft3Processor implements ProtocolProcessor {
     
     List<Map<String, Object>> secondaryFileMaps = new ArrayList<>();
     for (Object suffixObj : secondaryFilesList) {
-      String suffix = Draft3ExpressionResolver.resolve(suffixObj, job, fileValue);
-      String secondaryFilePath = fileName.toString();
-
-      while (suffix.startsWith("^")) {
-        int extensionIndex = secondaryFilePath.lastIndexOf(".");
-        if (extensionIndex != -1) {
-          secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
-          suffixObj = suffix.substring(1);
-        } else {
-          break;
+      Object expr = Draft3ExpressionResolver.resolve(suffixObj, job, fileValue);
+      Map<String, Object> secondaryFileMap = new HashMap<>();
+      if(expr instanceof String) {
+        String secondaryFilePath;
+        String suffix = (String) expr;
+        if((suffix).startsWith("^") || suffix.startsWith(".")) {
+          secondaryFilePath = fileName.toString();
+          while (suffix.startsWith("^")) {
+            int extensionIndex = secondaryFilePath.lastIndexOf(".");
+            if (extensionIndex != -1) {
+              secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
+              suffixObj = suffix.substring(1);
+            } else {
+              break;
+            }
+          }
+          secondaryFilePath += ((String) suffixObj).startsWith(".") ? suffixObj : "." + suffixObj;
         }
-      }
-      secondaryFilePath += suffix.startsWith(".") ? suffixObj : "." + suffixObj;
-      File secondaryFile = new File(secondaryFilePath);
-      if (secondaryFile.exists()) {
-        Map<String, Object> secondaryFileMap = new HashMap<>();
-        Draft3FileValueHelper.setFileType(secondaryFileMap);
-        Draft3FileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
-        Draft3FileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
-        Draft3FileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-        if (hashAlgorithm != null) {
-          Draft3FileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
+        else {
+          secondaryFilePath = suffix;
         }
-        secondaryFileMaps.add(secondaryFileMap);
+        File secondaryFile = new File(secondaryFilePath);
+        if (secondaryFile.exists()) {
+          Draft3FileValueHelper.setFileType(secondaryFileMap);
+          Draft3FileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
+          Draft3FileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
+          Draft3FileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
+          if (hashAlgorithm != null) {
+            Draft3FileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
+          }
+        }
+      } else if (expr instanceof Map) {
+        secondaryFileMap = (Map<String, Object>) expr;
       }
+      secondaryFileMaps.add(secondaryFileMap);
     }
     return secondaryFileMaps;
   }
-
+  
 }
