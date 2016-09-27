@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
@@ -124,7 +125,7 @@ public class Draft3Processor implements ProtocolProcessor {
       return JSONHelper.readMap(resultStr);
     }
     
-    Map<String, Object> result = new HashMap<>();
+    Map<String, Object> result = new TreeMap<>();
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) job.getApp();
     for (Draft3OutputPort outputPort : commandLineTool.getOutputs()) {
       Object singleResult = collectOutput(job, workingDir, hashAlgorithm, outputPort.getSchema(), outputPort.getOutputBinding(), outputPort);
@@ -251,7 +252,7 @@ public class Draft3Processor implements ProtocolProcessor {
         Draft3FileValueHelper.setPath(file.getAbsolutePath(), fileData);
 
         List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputBinding);
-        if (secondaryFiles != null) {
+        if (secondaryFiles != null && !secondaryFiles.isEmpty()) {
           Draft3FileValueHelper.setSecondaryFiles(secondaryFiles, fileData);
         }
         Object metadata = Draft3BindingHelper.getMetadata(outputBinding);
@@ -333,7 +334,9 @@ public class Draft3Processor implements ProtocolProcessor {
       } else if (expr instanceof Map) {
         secondaryFileMap = (Map<String, Object>) expr;
       }
-      secondaryFileMaps.add(secondaryFileMap);
+      if(!secondaryFileMap.isEmpty()) {
+        secondaryFileMaps.add(secondaryFileMap);
+      }
     }
     return secondaryFileMaps;
   }

@@ -3,11 +3,11 @@ package org.rabix.executor.handler.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.inject.Inject;
 
@@ -48,9 +48,9 @@ import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
-import org.rabix.executor.service.ResultCacheService;
 import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
+import org.rabix.executor.service.ResultCacheService;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.slf4j.Logger;
@@ -400,7 +400,7 @@ public class JobHandlerImpl implements JobHandler {
         return outputs;
       } else {
         Map<String, Object> outputsMap = (Map<String, Object>) outputs;
-        Map<String, Object> result = new HashMap<String, Object>();
+        Map<String, Object> result = new TreeMap<String, Object>();
         for (String output : outputsMap.keySet()) {
           Object value = outputsMap.get(output);
           result.put(output, populateChecksum(value));
