@@ -12,6 +12,7 @@ import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLCreateFileRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLEnvVarRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.CWLInitialWorkDirRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLInlineJavascriptRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLSchemaDefRequirement;
@@ -132,6 +133,11 @@ public abstract class CWLJobApp implements Application {
   @JsonIgnore
   public CWLInlineJavascriptRequirement getInlineJavascriptRequirement() {
     return lookForResource(CWLResourceType.INLINE_JAVASCRIPT_REQUIREMENT, CWLInlineJavascriptRequirement.class);
+  }
+  
+  @JsonIgnore
+  public CWLInitialWorkDirRequirement getInitialWorkDirRequirement() {
+    return lookForResource(CWLResourceType.INITIAL_WORK_DIR_REQUIREMENT, CWLInitialWorkDirRequirement.class);
   }
   
   @JsonIgnore

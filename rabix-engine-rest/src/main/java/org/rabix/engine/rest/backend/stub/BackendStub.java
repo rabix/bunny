@@ -55,6 +55,7 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
         new ReceiveCallback<HeartbeatInfo>() {
           @Override
           public void handleReceive(HeartbeatInfo entity) throws TransportPluginException {
+            logger.debug("Got heartbeat info from {}", entity.getId());
             heartbeatInfo.put(entity.getId(), entity.getTimestamp());
           }
         }, new ErrorCallback() {

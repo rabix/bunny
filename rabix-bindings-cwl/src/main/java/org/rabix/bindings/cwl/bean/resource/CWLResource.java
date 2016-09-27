@@ -6,6 +6,7 @@ import java.util.Map;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLCreateFileRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLEnvVarRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.CWLInitialWorkDirRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLInlineJavascriptRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLSchemaDefRequirement;
@@ -27,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = CWLResourceRequirement.class, name = "ResourceRequirement"),
     @Type(value = CWLSchemaDefRequirement.class, name = "SchemaDefRequirement"),
     @Type(value = CWLCreateFileRequirement.class, name = "CreateFileRequirement"),
+    @Type(value = CWLInitialWorkDirRequirement.class, name = "InitialWorkDirRequirement"),
     @Type(value = CWLEnvVarRequirement.class, name = "EnvVarRequirement") })
 @JsonInclude(Include.NON_NULL)
 public class CWLResource {
