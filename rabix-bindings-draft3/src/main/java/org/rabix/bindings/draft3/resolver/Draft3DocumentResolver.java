@@ -56,6 +56,7 @@ public static Set<String> types = new HashSet<String>();
   public static final String GRAPH_KEY = "$graph";
   public static final String SCHEMA_KEY = "$schema";
   public static final String NAMESPACES_KEY = "$namespaces";
+  public static final String SCHEMADEF_KEY = "SchemaDefRequirement";
   
   public static final String RESOLVER_JSON_POINTER_KEY = "$job";
   
@@ -211,6 +212,9 @@ public static Set<String> types = new HashSet<String>();
       if(appReference) {
         getReplacements(appUrl).add(new Draft3DocumentResolverReplacement(currentNode, currentNode.get("run"), referencePath));
       }
+      else if(typeReference) {
+        getReplacements(appUrl).add(new Draft3DocumentResolverReplacement(currentNode, currentNode.get("type"), referencePath));
+      }
       else {
         getReplacements(appUrl).add(new Draft3DocumentResolverReplacement(parentNode, currentNode, referencePath));
       }
@@ -357,6 +361,18 @@ public static Set<String> types = new HashSet<String>();
       }
       return new ParentChild(parent, child);
     }
+    else if (rootNode.has("class") && rootNode.get("class").asText().equals(SCHEMADEF_KEY)) {
+      JsonNode objects = rootNode.get("types");
+      JsonNode child = null;
+      for(final JsonNode elem: objects) {
+        if(elem.get("name").asText().equals(parts[0])) {
+          child = elem;
+          break;
+        }
+      }
+      return new ParentChild(null, child);
+    }
+    
     JsonNode parent = null;
     JsonNode child = rootNode;
     for (String part : parts) {
