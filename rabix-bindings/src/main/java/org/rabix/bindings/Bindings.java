@@ -132,6 +132,8 @@ public interface Bindings {
    */
   Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
   
+  
+  Object transformInputs(Object value, Job job, Object transform) throws BindingException;
   /**
    * Updates output files
    *

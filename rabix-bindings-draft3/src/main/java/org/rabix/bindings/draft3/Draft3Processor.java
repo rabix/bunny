@@ -79,7 +79,6 @@ public class Draft3Processor implements ProtocolProcessor {
       Map<String, Object> inputs = job.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
-      inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, Draft3RuntimeHelper.convertToResources(runtime));
       return Job.cloneWithInputs(newJob, inputs);
     } catch (Draft3PortProcessorException | IOException e) {
@@ -367,6 +366,18 @@ public class Draft3Processor implements ProtocolProcessor {
   private Object setFormat(Object result, Object format, Draft3Job job) throws Draft3ExpressionException {
     Object resolved = Draft3ExpressionResolver.resolve(format, job, null);
     ((Map<String, Object>) result).put("format", resolved);
+    return result;
+  }
+
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
+    Object result = null;
+    try {
+      result = Draft3ExpressionResolver.resolve(transform, draft3Job, value);
+    } catch (Draft3ExpressionException e) {
+      throw new BindingException(e);
+    }
     return result;
   }
   

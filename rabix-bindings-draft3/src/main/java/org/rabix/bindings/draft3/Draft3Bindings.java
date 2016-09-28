@@ -177,4 +177,9 @@ public class Draft3Bindings implements Bindings {
     return protocolType;
   }
 
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    return processor.transformInputs(value, job, transform);
+  }
+
 }

@@ -139,13 +139,4 @@ public class Draft3PortProcessorHelper {
     }
   }
 
-  public Map<String, Object> stageInputFiles(Map<String, Object> inputs, File workingDir)
-      throws Draft3PortProcessorException {
-    try {
-      return portProcessor.processInputs(inputs, new Draft3StageInputProcessorCallback(workingDir));
-    } catch (Draft3PortProcessorException e) {
-      throw new Draft3PortProcessorException("Failed to stage inputs.", e);
-    }
-  }
-
 }

@@ -329,4 +329,9 @@ public class Draft2Processor implements ProtocolProcessor {
     return secondaryFileMaps;
   }
 
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    return value;
+  }
+
 }

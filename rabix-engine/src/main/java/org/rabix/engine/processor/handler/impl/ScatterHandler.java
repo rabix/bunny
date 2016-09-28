@@ -140,7 +140,7 @@ public class ScatterHandler {
        
       for (DAGLinkPort inputPort : node.getInputPorts()) {
         Object defaultValue = node.getDefaults().get(inputPort.getId());
-        VariableRecord variableN = new VariableRecord(job.getRootId(), jobNId, inputPort.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(inputPort.getId(), inputPort.getType()));
+        VariableRecord variableN = new VariableRecord(job.getRootId(), jobNId, inputPort.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(inputPort.getId(), inputPort.getType()), null);
         variableN.setNumberGlobals(getNumberOfScattered(job, numberOfScattered));
         variableRecordService.create(variableN);
 
@@ -166,7 +166,7 @@ public class ScatterHandler {
         }
       }
       for (DAGLinkPort outputPort : node.getOutputPorts()) {
-        VariableRecord variableN = new VariableRecord(job.getRootId(), jobNId, outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()));
+        VariableRecord variableN = new VariableRecord(job.getRootId(), jobNId, outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()), null);
         variableN.setNumberGlobals(getNumberOfScattered(job, numberOfScattered));
         variableRecordService.create(variableN);
         jobN.incrementPortCounter(outputPort, LinkPortType.OUTPUT);

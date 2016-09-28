@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.rabix.bindings.BindingException;
+import org.rabix.bindings.Bindings;
+import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.Job;
@@ -62,40 +65,67 @@ public class JobHelper {
 
     if (!jobRecords.isEmpty()) {
       for (JobRecord job : jobRecords) {
-        jobs.add(createJob(job, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB));
+        try {
+          jobs.add(createJob(job, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB));
+        } catch (BindingException e) {
+          logger.debug("Failed to create job", e);
+        }
+        
       }
     }
     return jobs;
   }
   
-  public static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) {
+  public static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) throws BindingException {
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId());
 
+    Map<String, Object> preprocesedInputs = new HashMap<>();
+    
     boolean autoBoxingEnabled = false;   // get from configuration
     
     StringBuilder inputsLogBuilder = new StringBuilder("\n ---- JobRecord ").append(job.getId()).append("\n");
     
     Map<String, Object> inputs = new HashMap<>();
+    
     List<VariableRecord> inputVariables = variableRecordService.find(job.getId(), LinkPortType.INPUT, job.getRootId());
+    
     for (VariableRecord inputVariable : inputVariables) {
-      Object value = CloneHelper.deepCopy(inputVariable.getValue());
-      ApplicationPort port = node.getApp().getInput(inputVariable.getPortId());
-      if (port != null && autoBoxingEnabled) {
-        if (port.isList() && !(value instanceof List)) {
-          List<Object> transformed = new ArrayList<>();
-          transformed.add(value);
-          value = transformed;
-        }
-      }
-      inputsLogBuilder.append(" ---- Input ").append(inputVariable.getPortId()).append(", value ").append(value).append("\n");
-      inputs.put(inputVariable.getPortId(), value);
+      Object value = inputVariable.getValue();
+      preprocesedInputs.put(inputVariable.getPortId(), value);
     }
-    logger.debug(inputsLogBuilder.toString());
     
     ContextRecord contextRecord = contextRecordService.find(job.getRootId());
     String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
     
     Set<String> visiblePorts = findVisiblePorts(job, jobRecordService, linkRecordService, variableRecordService);
+    Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, inputs, null, contextRecord.getConfig(), null, visiblePorts);
+    try {
+      Bindings bindings = BindingsFactory.create(encodedApp);
+      
+      for (VariableRecord inputVariable : inputVariables) {
+        Object value = CloneHelper.deepCopy(inputVariable.getValue());
+        ApplicationPort port = node.getApp().getInput(inputVariable.getPortId());
+        Object transform = inputVariable.getTransform();
+        if(transform != null) {
+          value = bindings.transformInputs(value, newJob, transform);
+        }
+        
+        if (port != null && autoBoxingEnabled) {
+          if (port.isList() && !(value instanceof List)) {
+            List<Object> transformed = new ArrayList<>();
+            transformed.add(value);
+            value = transformed;
+          }
+        }
+        inputsLogBuilder.append(" ---- Input ").append(inputVariable.getPortId()).append(", value ").append(value).append("\n");
+        inputs.put(inputVariable.getPortId(), value);
+      }
+    } catch (BindingException e) {
+      throw new BindingException("Failed to transform inputs", e);
+    }
+    
+    logger.debug(inputsLogBuilder.toString());
+    
     return new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, inputs, null, contextRecord.getConfig(), null, visiblePorts);
   }
   

@@ -74,12 +74,12 @@ public class CWLTranslator implements ProtocolTranslator {
     List<DAGLinkPort> inputPorts = new ArrayList<>();
     
     for (ApplicationPort port : job.getApp().getInputs()) {
-      DAGLinkPort linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false);
+      DAGLinkPort linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, null, null);
       inputPorts.add(linkPort);
     }
     List<DAGLinkPort> outputPorts = new ArrayList<>();
     for (ApplicationPort port : job.getApp().getOutputs()) {
-      DAGLinkPort linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.OUTPUT, LinkMerge.merge_nested, false);
+      DAGLinkPort linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.OUTPUT, LinkMerge.merge_nested, false, null, null);
       outputPorts.add(linkPort);
     }
     
@@ -120,8 +120,8 @@ public class CWLTranslator implements ProtocolTranslator {
       }
       boolean isSourceFromWorkflow = !dataLink.getSource().contains(InternalSchemaHelper.SLASH_SEPARATOR);
 
-      DAGLinkPort sourceLinkPort = new DAGLinkPort(sourcePortId, sourceNodeId, isSourceFromWorkflow ? LinkPortType.INPUT : LinkPortType.OUTPUT, LinkMerge.merge_nested, false);
-      DAGLinkPort destinationLinkPort = new DAGLinkPort(destinationPortId, destinationNodeId, LinkPortType.INPUT, dataLink.getLinkMerge(), dataLink.getScattered() != null ? dataLink.getScattered() : false);
+      DAGLinkPort sourceLinkPort = new DAGLinkPort(sourcePortId, sourceNodeId, isSourceFromWorkflow ? LinkPortType.INPUT : LinkPortType.OUTPUT, LinkMerge.merge_nested, false, null, null);
+      DAGLinkPort destinationLinkPort = new DAGLinkPort(destinationPortId, destinationNodeId, LinkPortType.INPUT, dataLink.getLinkMerge(), dataLink.getScattered() != null ? dataLink.getScattered() : false, null, null);
 
       int position = dataLink.getPosition() != null ? dataLink.getPosition() : 1;
       links.add(new DAGLink(sourceLinkPort, destinationLinkPort, dataLink.getLinkMerge(), position));

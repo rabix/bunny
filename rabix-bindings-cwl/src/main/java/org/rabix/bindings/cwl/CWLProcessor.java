@@ -349,4 +349,9 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     return secondaryFileMaps;
   }
 
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    return value;
+  }
+
 }

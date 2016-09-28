@@ -172,4 +172,9 @@ public class SBBindings implements Bindings {
     return protocolType;
   }
 
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    return value;
+  }
+
 }

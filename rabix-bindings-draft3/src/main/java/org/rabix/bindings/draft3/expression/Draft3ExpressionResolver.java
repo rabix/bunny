@@ -155,7 +155,11 @@ public class Draft3ExpressionResolver {
       parts.add(expression.substring(0, scanned[0]));
 
       if (expression.charAt(scanned[0]) == '$') {
-        Object evaluated = Draft3ExpressionJavascriptResolver.evaluate(job.getInputs(), self, expression.substring(scanned[0] + 1, scanned[1]), engineConfigs);
+        Map<String, Object> inputs = null;
+        if(job != null) {
+          inputs = job.getInputs();
+        }
+        Object evaluated = Draft3ExpressionJavascriptResolver.evaluate(inputs, self, expression.substring(scanned[0] + 1, scanned[1]), engineConfigs);
         if (scanned[0] == 0 && scanned[1] == expression.length()) {
           return evaluated;
         }
