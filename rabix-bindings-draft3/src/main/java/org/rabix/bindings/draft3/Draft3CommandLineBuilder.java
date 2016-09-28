@@ -189,7 +189,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     Object valueFrom = Draft3BindingHelper.getValueFrom(inputBinding);
     if (valueFrom != null) {
       try {
-        value = Draft3ExpressionResolver.resolve(valueFrom, job, null);
+        value = Draft3ExpressionResolver.resolve(valueFrom, job, value);
       } catch (Draft3ExpressionException e) {
         throw new BindingException(e);
       }
