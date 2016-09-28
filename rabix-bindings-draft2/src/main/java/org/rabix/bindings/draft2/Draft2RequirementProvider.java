@@ -86,7 +86,7 @@ public class Draft2RequirementProvider implements ProtocolRequirementProvider {
 
         if (Draft2SchemaHelper.isFileFromValue(content)) {
           FileValue fileValue = Draft2FileValueHelper.createFileValue(content);
-          result.add(new FileRequirement.SingleInputFileRequirement(filename, fileValue));
+          result.add(new FileRequirement.SingleInputFileRequirement(filename, fileValue, true));
         } else {
           result.add(new FileRequirement.SingleTextFileRequirement(filename, (String) content));
         }

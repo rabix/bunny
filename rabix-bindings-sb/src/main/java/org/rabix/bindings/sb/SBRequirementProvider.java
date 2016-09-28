@@ -86,7 +86,7 @@ public class SBRequirementProvider implements ProtocolRequirementProvider {
 
         if (SBSchemaHelper.isFileFromValue(content)) {
           FileValue fileValue = SBFileValueHelper.createFileValue(content);
-          result.add(new FileRequirement.SingleInputFileRequirement(filename, fileValue));
+          result.add(new FileRequirement.SingleInputFileRequirement(filename, fileValue, true));
         } else {
           result.add(new FileRequirement.SingleTextFileRequirement(filename, (String) content));
         }

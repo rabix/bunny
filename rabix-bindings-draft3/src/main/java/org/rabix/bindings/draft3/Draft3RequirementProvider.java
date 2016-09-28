@@ -89,7 +89,7 @@ public class Draft3RequirementProvider implements ProtocolRequirementProvider {
 
         if (Draft3SchemaHelper.isFileFromValue(content)) {
           FileValue fileValue = Draft3FileValueHelper.createFileValue(content);
-          result.add(new FileRequirement.SingleInputFileRequirement(filename, fileValue));
+          result.add(new FileRequirement.SingleInputFileRequirement(filename, fileValue, true));
         } else {
           result.add(new FileRequirement.SingleTextFileRequirement(filename, (String) content));
         }

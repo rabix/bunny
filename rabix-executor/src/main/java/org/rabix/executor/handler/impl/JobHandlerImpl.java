@@ -23,6 +23,7 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleFileRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleInputDirectoryRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
 import org.rabix.bindings.model.requirement.LocalContainerRequirement;
@@ -149,7 +150,7 @@ public class JobHandlerImpl implements JobHandler {
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
 
-      createFileRequirements(combinedRequirements);
+      stageFileRequirements(combinedRequirements);
 
       job = bindings.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir);
@@ -183,7 +184,7 @@ public class JobHandlerImpl implements JobHandler {
     downloadService.download(workingDir, paths, job.getConfig());
   }
   
-  private void createFileRequirements(List<Requirement> requirements) throws ExecutorException, FileMappingException {
+  private void stageFileRequirements(List<Requirement> requirements) throws ExecutorException, FileMappingException {
     try {
       FileRequirement fileRequirementResource = getRequirement(requirements, FileRequirement.class);
       if (fileRequirementResource == null) {
@@ -202,7 +203,7 @@ public class JobHandlerImpl implements JobHandler {
           FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent());
           continue;
         }
-        if (fileRequirement instanceof SingleInputFileRequirement) {
+        if (fileRequirement instanceof SingleInputFileRequirement || fileRequirement instanceof SingleInputDirectoryRequirement) {
           String path = ((SingleInputFileRequirement) fileRequirement).getContent().getPath();
           String mappedPath = inputFileMapper.map(path, job.getConfig());
           File file = new File(mappedPath);
@@ -306,13 +307,13 @@ public class JobHandlerImpl implements JobHandler {
     File cmdFile = new File(workingDir, COMMAND_LOG);
     if (cmdFile.exists()) {
       String cmdFilePath = cmdFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null));
+      fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null, cmdFile.getName()));
     }
     
     File jobErrFile = new File(workingDir, ERROR_LOG);
     if (jobErrFile.exists()) {
       String jobErrFilePath = jobErrFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null));
+      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null, jobErrFile.getName()));
     }
     
     Set<File> files = new HashSet<>();

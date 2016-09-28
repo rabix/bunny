@@ -118,6 +118,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
    */
   public static DirectoryValue createDirectoryValue(Object value) {
     String path = CWLFileValueHelper.getPath(value);
+    String name = CWLFileValueHelper.getName(value);
     String location = CWLFileValueHelper.getLocation(value);
     Long size = CWLFileValueHelper.getSize(value);
     
@@ -151,7 +152,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
         continue;
       }
     }
-    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties);
+    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties, name);
   }
 
   public static Map<String, Object> createDirectoryRaw(DirectoryValue fileValue) {
