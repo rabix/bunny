@@ -34,8 +34,7 @@ public class Draft3EmbeddedApp extends Draft3JobApp {
       outputs = Lists.transform(application.getOutputs(), new Function<ApplicationPort, Draft3OutputPort>() {
         @Override
         public Draft3OutputPort apply(ApplicationPort port) {
-          return new Draft3OutputPort(port.getId(), port.getDefaultValue(), port.getSchema(), null, port.getScatter(),
-              null, port.getLinkMerge());
+          return new Draft3OutputPort(port.getId(), port.getDefaultValue(), port.getSchema(), null, port.getScatter(), null, null, port.getLinkMerge());
         }
       });
     } catch (BindingException e1) {

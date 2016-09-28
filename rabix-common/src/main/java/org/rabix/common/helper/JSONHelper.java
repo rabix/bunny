@@ -249,5 +249,69 @@ public class JSONHelper {
     }
     return null;
   }
+  
+  /**
+   * Use Jackson for transformation
+   */
+  public static Object transformPreserveNull(JsonNode node) {
+    if (node instanceof NullNode) {
+      return null;
+    }
+    if (node instanceof MissingNode) {
+      return null;
+    }
+    if (node instanceof IntNode) {
+      return ((IntNode) node).intValue();
+    }
+    if (node instanceof BigIntegerNode) {
+      return ((BigIntegerNode) node).bigIntegerValue();
+    }
+    if (node instanceof BinaryNode) {
+      return ((BinaryNode) node).binaryValue();
+    }
+    if (node instanceof BooleanNode) {
+      return ((BooleanNode) node).booleanValue();
+    }
+    if (node instanceof DecimalNode) {
+      return ((DecimalNode) node).decimalValue();
+    }
+    if (node instanceof DoubleNode) {
+      return ((DoubleNode) node).doubleValue();
+    }
+    if (node instanceof LongNode) {
+      return ((LongNode) node).longValue();
+    }
+    if (node instanceof NumericNode) {
+      return ((NumericNode) node).numberValue();
+    }
+    if (node instanceof POJONode) {
+      return ((POJONode) node).getPojo();
+    }
+    if (node instanceof TextNode) {
+      return ((TextNode) node).textValue();
+    }
+    if (node instanceof ArrayNode) {
+      List<Object> resultList = new ArrayList<>();
+      for (JsonNode subnode : node) {
+        Object result = transform(subnode);
+        if (result != null) {
+          resultList.add(result);
+        }
+      }
+      return resultList;
+    }
+    if (node instanceof ObjectNode) {
+      Map<String, Object> resultMap = new HashMap<String, Object>();
+      Iterator<Map.Entry<String, JsonNode>> iterator = node.fields();
+
+      while (iterator.hasNext()) {
+        Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
+        Object result = transformPreserveNull(subnodeEntry.getValue());
+        resultMap.put(subnodeEntry.getKey(), result);
+      }
+      return resultMap;
+    }
+    return null;
+  }
 
 }

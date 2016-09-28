@@ -126,6 +126,32 @@ public abstract class Draft3JobApp implements Application {
     return lookForResource(Draft3ResourceType.ENV_VAR_REQUIREMENT, Draft3EnvVarRequirement.class);
   }
 
+  public <T extends Draft3Resource> T getRequirement(Draft3ResourceType type, Class<T> clazz) {
+    List<T> resources = getRequirements(type, clazz);
+    if (resources != null && !resources.isEmpty()) {
+      return resources.get(0);
+    }
+    return null;
+  }
+  
+  public <T extends Draft3Resource> T getHint(Draft3ResourceType type, Class<T> clazz) {
+    List<T> resources = getHints(type, clazz);
+    if(resources != null && !resources.isEmpty()) {
+      return resources.get(0);
+    }
+    return null;
+  }
+  
+  public <T> void setHint(Draft3Resource resource) {
+    for (Draft3Resource hint : hints) {
+      if (resource.getType().equals(hint.getType())) {
+        hints.remove(hint);
+        hints.add(resource);
+        break;
+      }
+    }
+  }
+  
   @JsonIgnore
   public Draft3CreateFileRequirement getCreateFileRequirement() {
     return lookForResource(Draft3ResourceType.CREATE_FILE_REQUIREMENT, Draft3CreateFileRequirement.class);
