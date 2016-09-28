@@ -181,12 +181,14 @@ public class BackendCommandLine {
 
       // Load app from JSON
         Application application;
+        Bindings bindings;
         try{
-            Bindings bindings = BindingsFactory.create(appUrl);
+            bindings = BindingsFactory.create(appUrl);
             application = bindings.loadAppObject(appUrl);
         }
         catch (BindingException e1) {
             application = null;
+            bindings = null;
         }
         if (application==null) {
             System.out.println("Error reading the app file");
@@ -216,7 +218,7 @@ public class BackendCommandLine {
             if (!commandLineInputs.hasOption(id))
               continue;
 
-            inputs.put(id, createInputValue(commandLineInputs.getOptionValues(id), schemaInput.getDataType()));
+            inputs.put(id, createInputValue(commandLineInputs.getOptionValues(id), schemaInput.getDataType(), bindings));
           }
         } catch (ParseException e) {
           printAppUsageAndExit(inputOptions);
@@ -405,14 +407,13 @@ public class BackendCommandLine {
     }
   }
 
-  private static Object createInputValue(String[] value, DataType inputType) {
+  private static Object createInputValue(String[] value, DataType inputType, Bindings bindings) {
     if (value.length > 1 || inputType.isArray()) {
       if (inputType.isFile()) {
         List<Map<String, Object>> ret = new ArrayList<>();
         for (String s : value) {
-          Map<String, Object> entry = new HashMap<>();
-          entry.put("class", "File");
-          entry.put("path", s);
+          FileValue fileValue = new FileValue(null, s, null, null, null, null);
+          Map<String, Object> entry = bindings.translateFile(fileValue);
           ret.add(entry);
         }
         return ret;
@@ -422,10 +423,8 @@ public class BackendCommandLine {
     }
 
     if (inputType.isFile()) {
-      Map<String, Object> ret = new HashMap<>();
-      ret.put("class", "File");
-      ret.put("path", value[0]);
-      return ret;
+      FileValue fileValue = new FileValue(null, value[0], null, null, null, null);
+      return bindings.translateFile(fileValue);
     } else {
       return value[0];
     }

@@ -115,6 +115,7 @@ public abstract class ApplicationPort {
     this.description = description;
   }
 
+  @JsonIgnore
   public DataType getDataType() {
     if (dataType==null)
       readDataType();
