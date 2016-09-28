@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.draft3.bean.Draft3Job;
+import org.rabix.bindings.draft3.bean.Draft3Runtime;
 import org.rabix.bindings.draft3.bean.resource.requirement.Draft3InlineJavascriptRequirement;
-import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ResourceRequirement;
 import org.rabix.bindings.draft3.expression.javascript.Draft3ExpressionJavascriptResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,9 +73,9 @@ public class Draft3ExpressionResolver {
         vars.put("inputs", job.getInputs());
         vars.put("self", self);
         
-        Draft3ResourceRequirement resourceRequirement = job.getApp().getResourceRequirement();
-        if (resourceRequirement != null) {
-          vars.put("runtime", resourceRequirement.build(job).toMap());
+        Draft3Runtime runtime = job.getRuntime();
+        if (runtime != null) {
+          vars.put("runtime", runtime.toMap());
         }
         return (T) paramInterpolate((String) expression, vars, true);
       }

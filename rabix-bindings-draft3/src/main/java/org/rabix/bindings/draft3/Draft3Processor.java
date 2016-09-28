@@ -18,12 +18,14 @@ import org.rabix.bindings.draft3.bean.Draft3ExpressionTool;
 import org.rabix.bindings.draft3.bean.Draft3Job;
 import org.rabix.bindings.draft3.bean.Draft3JobApp;
 import org.rabix.bindings.draft3.bean.Draft3OutputPort;
+import org.rabix.bindings.draft3.bean.Draft3Runtime;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
 import org.rabix.bindings.draft3.expression.javascript.Draft3ExpressionJavascriptResolver;
 import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
 import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
 import org.rabix.bindings.draft3.helper.Draft3JobHelper;
+import org.rabix.bindings.draft3.helper.Draft3RuntimeHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.draft3.processor.Draft3PortProcessorException;
 import org.rabix.bindings.draft3.processor.callback.Draft3PortProcessorHelper;
@@ -58,8 +60,17 @@ public class Draft3Processor implements ProtocolProcessor {
 
   @Override
   public Job preprocess(final Job job, final File workingDir) throws BindingException {
-    Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
-    Draft3PortProcessorHelper portProcessorHelper = new Draft3PortProcessorHelper(draft2Job);
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
+    Draft3Runtime runtime;
+    try {
+      runtime = Draft3RuntimeHelper.createRuntime(draft3Job);
+    } catch (Draft3ExpressionException e1) {
+      throw new BindingException(e1);
+    }
+    runtime = Draft3RuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());
+    runtime = Draft3RuntimeHelper.setTmpdir(runtime, workingDir.getAbsolutePath());
+    draft3Job.setRuntime(runtime);
+    Draft3PortProcessorHelper portProcessorHelper = new Draft3PortProcessorHelper(draft3Job);
     try {
       File jobFile = new File(workingDir, JOB_FILE);
       String serializedJob = BeanSerializer.serializePartial(Draft3JobHelper.getDraft3Job(job));
@@ -69,7 +80,8 @@ public class Draft3Processor implements ProtocolProcessor {
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-      return Job.cloneWithInputs(job, inputs);
+      Job newJob = Job.cloneWithResources(job, Draft3RuntimeHelper.convertToResources(runtime));
+      return Job.cloneWithInputs(newJob, inputs);
     } catch (Draft3PortProcessorException | IOException e) {
       throw new BindingException(e);
     }
