@@ -73,7 +73,7 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
       Map<String, Object> valueMap = (Map<String, Object>) value;
       Object entryObj = valueMap.get(KEY_DIRENT_ENTRY);
       Object entrynameObj = valueMap.get(KEY_DIRENT_ENTRYNAME);
-      Boolean writable = (Boolean) valueMap.get(KEY_DIRENT_WRITABLE);
+      boolean writable = valueMap.containsKey(KEY_DIRENT_WRITABLE)? (Boolean) valueMap.get(KEY_DIRENT_WRITABLE) : false; // it's false by default
       
       String entryname = null;
       if (entrynameObj != null) {
@@ -101,9 +101,9 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
   public static class CWLDirent {
     private final Object entry;
     private final Object entryname;
-    private final Boolean writable;
+    private final boolean writable;
     
-    public CWLDirent(Object entry, Object entryname, Boolean writable) {
+    public CWLDirent(Object entry, Object entryname, boolean writable) {
       this.entry = entry;
       this.entryname = entryname;
       this.writable = writable;
@@ -117,7 +117,7 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
       return entryname;
     }
 
-    public Boolean getWritable() {
+    public boolean isWritable() {
       return writable;
     }
 

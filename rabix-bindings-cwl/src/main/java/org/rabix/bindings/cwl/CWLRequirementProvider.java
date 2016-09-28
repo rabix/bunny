@@ -93,12 +93,12 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         Object entryname = dirent.getEntryname();
         if (CWLSchemaHelper.isFileFromValue(entry)) {
           FileValue fileValue = CWLFileValueHelper.createFileValue(listingObj);
-          result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue));
+          result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue, dirent.isWritable()));
           continue;
         }
         if (CWLSchemaHelper.isDirectoryFromValue(entry)) {
           DirectoryValue directoryValue = CWLDirectoryValueHelper.createDirectoryValue(listingObj);
-          result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue));
+          result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue, dirent.isWritable()));
           continue;
         }
         if (entry instanceof String) {
@@ -108,12 +108,12 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
       }
       if (CWLSchemaHelper.isFileFromValue(listingObj)) {
         FileValue fileValue = CWLFileValueHelper.createFileValue(listingObj);
-        result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue));
+        result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue, true));
         continue;
       }
       if (CWLSchemaHelper.isDirectoryFromValue(listingObj)) {
         DirectoryValue directoryValue = CWLDirectoryValueHelper.createDirectoryValue(listingObj);
-        result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue));
+        result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue, true));
         continue;
       }
       throw new BindingException("Failed to create file requirements. Unknown value " + listingObj);
