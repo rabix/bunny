@@ -183,6 +183,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   
   public static FileValue createFileValue(Object value) {
     String path = CWLFileValueHelper.getPath(value);
+    String name = CWLFileValueHelper.getName(value);
     String location = CWLFileValueHelper.getLocation(value);
     String checksum = CWLFileValueHelper.getChecksum(value);
     Long size = CWLFileValueHelper.getSize(value);
@@ -204,7 +205,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         }
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {

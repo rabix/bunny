@@ -121,13 +121,13 @@ public class Draft2Bindings implements Bindings {
     File jobFile = new File(workingDir, Draft2Processor.JOB_FILE);
     if (jobFile.exists()) {
       String jobFilePath = jobFile.getAbsolutePath();
-      files.add(new FileValue(null, jobFilePath, null, null, null, null));
+      files.add(new FileValue(null, jobFilePath, null, null, null, null, jobFile.getName()));
     }
     
     File resultFile = new File(workingDir, Draft2Processor.RESULT_FILENAME);
     if (resultFile.exists()) {
       String resultFilePath = resultFile.getAbsolutePath();
-      files.add(new FileValue(null, resultFilePath, null, null, null, null));
+      files.add(new FileValue(null, resultFilePath, null, null, null, null, resultFile.getName()));
     }
     return files;
   }

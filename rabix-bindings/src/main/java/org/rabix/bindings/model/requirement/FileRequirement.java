@@ -2,6 +2,7 @@ package org.rabix.bindings.model.requirement;
 
 import java.util.List;
 
+import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 
 public class FileRequirement implements Requirement {
@@ -75,6 +76,25 @@ public class FileRequirement implements Requirement {
     @Override
     public String toString() {
       return "SingleInputFileRequirement [content=" + content + "]";
+    }
+    
+  }
+  
+  public static class SingleInputDirectoryRequirement extends SingleInputFileRequirement {
+
+    private DirectoryValue content;
+
+    public SingleInputDirectoryRequirement(String filename, DirectoryValue content) {
+      super(filename, content);
+    }
+
+    public FileValue getContent() {
+      return content;
+    }
+
+    @Override
+    public String toString() {
+      return "SingleInputDirectoryRequirement [content=" + content + "]";
     }
     
   }

@@ -306,13 +306,13 @@ public class JobHandlerImpl implements JobHandler {
     File cmdFile = new File(workingDir, COMMAND_LOG);
     if (cmdFile.exists()) {
       String cmdFilePath = cmdFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null));
+      fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null, cmdFile.getName()));
     }
     
     File jobErrFile = new File(workingDir, ERROR_LOG);
     if (jobErrFile.exists()) {
       String jobErrFilePath = jobErrFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null));
+      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null, jobErrFile.getName()));
     }
     
     Set<File> files = new HashSet<>();
