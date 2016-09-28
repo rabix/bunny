@@ -195,8 +195,8 @@ public class Draft3Processor implements ProtocolProcessor {
       result = Draft3BindingHelper.evaluateOutputEval(job, result, binding);
       logger.info("OutputEval transformed result into {}.", result);
     }
-    if (result instanceof List<?>) {
-      if (Draft3SchemaHelper.isFileFromSchema(schema)) {
+    if (Draft3SchemaHelper.isFileFromSchema(schema)) {
+      if (result instanceof List<?>) {
         switch (((List<?>) result).size()) {
         case 0:
           result = null;
@@ -207,6 +207,16 @@ public class Draft3Processor implements ProtocolProcessor {
         default:
           throw new BindingException("Invalid file format " + result);
         }
+      }
+    }
+    if(outputPort.getFormat() != null) {
+      if(result instanceof List) {
+        for(Object elem: (List<Object>) result) {
+          setFormat(elem, outputPort.getFormat(), job);
+        }
+      }
+      else if( result instanceof Map) {
+        setFormat(result, outputPort.getFormat(), job);
       }
     }
     return result;
@@ -339,6 +349,13 @@ public class Draft3Processor implements ProtocolProcessor {
       }
     }
     return secondaryFileMaps;
+  }
+  
+  @SuppressWarnings("unchecked")
+  private Object setFormat(Object result, Object format, Draft3Job job) throws Draft3ExpressionException {
+    Object resolved = Draft3ExpressionResolver.resolve(format, job, null);
+    ((Map<String, Object>) result).put("format", resolved);
+    return result;
   }
   
 }
