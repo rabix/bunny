@@ -15,6 +15,7 @@ import org.rabix.bindings.draft3.bean.Draft3Step;
 import org.rabix.bindings.draft3.bean.Draft3Workflow;
 import org.rabix.bindings.draft3.bean.resource.Draft3ResourceType;
 import org.rabix.bindings.draft3.bean.resource.requirement.Draft3EnvVarRequirement;
+import org.rabix.bindings.draft3.bean.resource.requirement.Draft3InlineJavascriptRequirement;
 import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
@@ -72,6 +73,9 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
     // handle all types of resources
     if (parentJob.getRequirement(Draft3ResourceType.ENV_VAR_REQUIREMENT, Draft3EnvVarRequirement.class) != null) {
       stepJob.setHint(parentJob.getRequirement(Draft3ResourceType.ENV_VAR_REQUIREMENT, Draft3EnvVarRequirement.class));
+    }
+    if(parentJob.getRequirement(Draft3ResourceType.INLINE_JAVASCRIPT_REQUIREMENT, Draft3InlineJavascriptRequirement.class) != null) {
+      stepJob.setRequirement(parentJob.getRequirement(Draft3ResourceType.INLINE_JAVASCRIPT_REQUIREMENT, Draft3InlineJavascriptRequirement.class));
     }
   }
   
