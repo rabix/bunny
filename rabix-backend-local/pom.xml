@@ -49,6 +49,10 @@
 									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/services/javax.ws.rs.ext.MessageBodyReader</resource>
 								</transformer>
+								<transformer
+										implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/services/javax.ws.rs.ext.MessageBodyWriter</resource>
+								</transformer>
 							</transformers>
 						</configuration>
 					</execution>
