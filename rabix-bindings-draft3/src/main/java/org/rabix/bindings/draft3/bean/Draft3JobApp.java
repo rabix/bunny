@@ -146,10 +146,10 @@ public abstract class Draft3JobApp implements Application {
     for (Draft3Resource hint : hints) {
       if (resource.getType().equals(hint.getType())) {
         hints.remove(hint);
+        hints.add(resource);
         break;
       }
     }
-    hints.add(resource);
   }
   
   public <T> void setRequirement(Draft3Resource resource) {

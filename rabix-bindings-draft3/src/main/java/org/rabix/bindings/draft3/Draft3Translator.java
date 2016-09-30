@@ -84,6 +84,9 @@ public class Draft3Translator implements ProtocolTranslator {
           defaultValue = ((Draft3StepInputs) value).getDefaultValue();
           transform = ((Draft3StepInputs) value).getValueFrom();
         }
+        else {
+          defaultValue = value;
+        }
         linkPort = new DAGLinkPort(Draft3SchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, defaultValue, transform);
       }
       else {

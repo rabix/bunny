@@ -15,6 +15,7 @@ import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
+import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
@@ -105,10 +106,17 @@ public class JobHelper {
       for (VariableRecord inputVariable : inputVariables) {
         Object value = CloneHelper.deepCopy(inputVariable.getValue());
         ApplicationPort port = node.getApp().getInput(inputVariable.getPortId());
-        Object transform = inputVariable.getTransform();
-        if(transform != null) {
-          value = bindings.transformInputs(value, newJob, transform);
+        for (DAGLinkPort p: node.getInputPorts()) {
+          if(p.getId() == inputVariable.getPortId()) {
+            if (p.getTransform() != null) {
+              Object transform = p.getTransform();
+              if(transform != null) {
+                value = bindings.transformInputs(value, newJob, transform);
+              }
+            }
+          }
         }
+        
         
         if (port != null && autoBoxingEnabled) {
           if (port.isList() && !(value instanceof List)) {

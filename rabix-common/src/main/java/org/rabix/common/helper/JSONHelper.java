@@ -293,7 +293,7 @@ public class JSONHelper {
     if (node instanceof ArrayNode) {
       List<Object> resultList = new ArrayList<>();
       for (JsonNode subnode : node) {
-        Object result = transform(subnode);
+        Object result = transformPreserveNull(subnode);
         if (result != null) {
           resultList.add(result);
         }

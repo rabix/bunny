@@ -25,14 +25,13 @@ public class VariableRecord {
   private boolean isDefault = true;
   private Object transform;
 
-  public VariableRecord(String contextId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge, Object transform) {  
+  public VariableRecord(String contextId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {  
     this.jobId = jobId;
     this.portId = portId;
     this.type = type;
     this.value = value;
     this.contextId = contextId;
     this.linkMerge = linkMerge;
-    this.transform = transform;
   }
 
   public String getContextId() {
@@ -184,7 +183,7 @@ public class VariableRecord {
   @Override
   public String toString() {
     return "VariableRecord [contextId=" + contextId + ", jobId=" + jobId + ", portId=" + portId + ", type=" + type
-        + ", value=" + value + ", isWrapped=" + isWrapped + ", numberOfGlobals=" + numberOfGlobals + ", linkMerge=" + linkMerge + ", transform=" + transform + "]";
+        + ", value=" + value + ", isWrapped=" + isWrapped + ", numberOfGlobals=" + numberOfGlobals + ", linkMerge=" + linkMerge + "]";
   }
 
 }
