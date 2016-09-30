@@ -1,8 +1,6 @@
 package org.rabix.bindings.cwl.bean;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +15,14 @@ import org.rabix.bindings.cwl.bean.resource.requirement.CWLInlineJavascriptRequi
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLSchemaDefRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLShellCommandRequirement;
+import org.rabix.bindings.cwl.json.deserializer.CWLInputPortsDeserializer;
+import org.rabix.bindings.cwl.json.deserializer.CWLOutputPortsDeserializer;
+import org.rabix.bindings.cwl.json.deserializer.CWLResourcesDeserializer;
+import org.rabix.bindings.cwl.json.serializer.CWLInputPortsSerializer;
+import org.rabix.bindings.cwl.json.serializer.CWLOutputPortsSerializer;
+import org.rabix.bindings.cwl.json.serializer.CWLResourcesSerializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -30,14 +33,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -79,8 +74,12 @@ public abstract class CWLJobApp implements Application {
   protected List<CWLOutputPort> outputs = new ArrayList<>();
 
   @JsonProperty("hints")
+  @JsonSerialize(using = CWLResourcesSerializer.class)
+  @JsonDeserialize(using = CWLResourcesDeserializer.class)
   protected List<CWLResource> hints = new ArrayList<>();
   @JsonProperty("requirements")
+  @JsonSerialize(using = CWLResourcesSerializer.class)
+  @JsonDeserialize(using = CWLResourcesDeserializer.class)
   protected List<CWLResource> requirements = new ArrayList<>();
   
   @JsonProperty("successCodes")
@@ -349,84 +348,4 @@ public abstract class CWLJobApp implements Application {
     return "JobApp [id=" + id + ", context=" + context + ", description=" + description + ", label=" + label + ", contributor=" + contributor + ", owner=" + owner + ", hints=" + hints + ", inputs=" + inputs + ", outputs=" + outputs + ", requirements=" + requirements + "]";
   }
   
-  public static class CWLInputPortsDeserializer extends JsonDeserializer<List<CWLInputPort>> {
-    @Override
-    public List<CWLInputPort> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-      JsonNode tree = p.getCodec().readTree(p);
-      if (tree.isNull()) {
-        return null;
-      }
-      List<CWLInputPort> inputPorts = new ArrayList<>();
-      if (tree.isArray()) {
-        for (JsonNode node : tree) {
-          inputPorts.add(BeanSerializer.deserialize(node.toString(), CWLInputPort.class));
-        }
-        return inputPorts;
-      }
-      if (tree.isObject()) {
-        Iterator<Map.Entry<String, JsonNode>> iterator = tree.fields();
-        
-        while (iterator.hasNext()) {
-          Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
-          CWLInputPort inputPort = BeanSerializer.deserialize(subnodeEntry.getValue().toString(), CWLInputPort.class);
-          inputPort.setId(subnodeEntry.getKey());
-          inputPorts.add(inputPort);
-        }
-        return inputPorts;
-      }
-      return null;
-    }
-  }
-  
-  public static class CWLInputPortsSerializer extends JsonSerializer<List<CWLInputPort>> {
-    @Override
-    public void serialize(List<CWLInputPort> value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-      if (value == null) {
-        gen.writeNull();
-      }
-      JsonNode node = JSONHelper.readJsonNode(BeanSerializer.serializeFull(value));
-      gen.writeTree(node);
-    }
-  }
-  
-  public static class CWLOutputPortsDeserializer extends JsonDeserializer<List<CWLOutputPort>> {
-    @Override
-    public List<CWLOutputPort> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-      JsonNode tree = p.getCodec().readTree(p);
-      if (tree.isNull()) {
-        return null;
-      }
-      List<CWLOutputPort> inputPorts = new ArrayList<>();
-      if (tree.isArray()) {
-        for (JsonNode node : tree) {
-          inputPorts.add(BeanSerializer.deserialize(node.toString(), CWLOutputPort.class));
-        }
-        return inputPorts;
-      }
-      if (tree.isObject()) {
-        Iterator<Map.Entry<String, JsonNode>> iterator = tree.fields();
-        
-        while (iterator.hasNext()) {
-          Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
-          CWLOutputPort inputPort = BeanSerializer.deserialize(subnodeEntry.getValue().toString(), CWLOutputPort.class);
-          inputPort.setId(subnodeEntry.getKey());
-          inputPorts.add(inputPort);
-        }
-        return inputPorts;
-      }
-      return null;
-    }
-  }
-  
-  public static class CWLOutputPortsSerializer extends JsonSerializer<List<CWLOutputPort>> {
-    @Override
-    public void serialize(List<CWLOutputPort> value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-      if (value == null) {
-        gen.writeNull();
-      }
-      JsonNode node = JSONHelper.readJsonNode(BeanSerializer.serializeFull(value));
-      gen.writeTree(node);
-    }
-  }
-
 }
