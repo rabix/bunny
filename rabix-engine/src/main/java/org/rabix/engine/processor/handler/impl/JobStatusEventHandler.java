@@ -253,9 +253,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
 
       StringBuilder childJobLogBuilder = new StringBuilder("\n -- JobRecord ").append(newJobId).append(", isBlocking ").append(childJob.isBlocking()).append("\n");
       for (DAGLinkPort port : node.getInputPorts()) {
+        if(port.getTransform() != null) {
+          childJob.setBlocking(true);
+        }
+        VariableRecord childVariable = new VariableRecord(contextId, newJobId, port.getId(), LinkPortType.INPUT, port.getDefaultValue(), node.getLinkMerge(port.getId(), port.getType()));
         childJobLogBuilder.append(" -- Input port ").append(port.getId()).append(", isScatter ").append(port.isScatter()).append("\n");
-        Object defaultValue = node.getDefaults().get(port.getId());
-        VariableRecord childVariable = new VariableRecord(contextId, newJobId, port.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(port.getId(), port.getType()));
         variableRecordService.create(childVariable);
       }
 
