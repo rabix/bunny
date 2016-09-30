@@ -140,9 +140,7 @@ public class Draft3Processor implements ProtocolProcessor {
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) job.getApp();
     for (Draft3OutputPort outputPort : commandLineTool.getOutputs()) {
       Object singleResult = collectOutput(job, workingDir, hashAlgorithm, outputPort.getSchema(), outputPort.getOutputBinding(), outputPort);
-      if (singleResult != null) {
-        result.put(Draft3SchemaHelper.normalizeId(outputPort.getId()), singleResult);
-      }
+      result.put(Draft3SchemaHelper.normalizeId(outputPort.getId()), singleResult);
     }
     BeanSerializer.serializePartial(resultFile, result);
     return result;
