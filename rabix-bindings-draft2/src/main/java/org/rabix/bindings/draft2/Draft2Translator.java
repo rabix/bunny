@@ -74,7 +74,8 @@ public class Draft2Translator implements ProtocolTranslator {
     List<DAGLinkPort> inputPorts = new ArrayList<>();
     
     for (ApplicationPort port : job.getApp().getInputs()) {
-      DAGLinkPort linkPort = new DAGLinkPort(Draft2SchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, null, null);
+      Object defaultValue = job.getInputs().get(Draft2SchemaHelper.normalizeId(port.getId()));
+      DAGLinkPort linkPort = new DAGLinkPort(Draft2SchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, defaultValue, null);
       inputPorts.add(linkPort);
     }
     List<DAGLinkPort> outputPorts = new ArrayList<>();
