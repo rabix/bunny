@@ -100,7 +100,7 @@ public class CWLPortProcessorHelper {
     }
   }
   
-  public Set<Map<String, Object>> flattenInputFileData(Map<String, Object> inputs) throws CWLPortProcessorException {
+  public Set<Object> flattenInputFileData(Map<String, Object> inputs) throws CWLPortProcessorException {
     CWLFileDataFlattenProcessorCallback callback = new CWLFileDataFlattenProcessorCallback();
     try {
       portProcessor.processInputs(inputs, callback);
@@ -110,7 +110,7 @@ public class CWLPortProcessorHelper {
     return callback.getFlattenedFileData();
   }
 
-  public Set<Map<String, Object>> flattenOutputFileData(Map<String, Object> outputs)
+  public Set<Object> flattenOutputFileData(Map<String, Object> outputs)
       throws CWLPortProcessorException {
     CWLFileDataFlattenProcessorCallback callback = new CWLFileDataFlattenProcessorCallback();
     try {

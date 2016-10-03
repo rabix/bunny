@@ -1,5 +1,6 @@
 package org.rabix.bindings.cwl.bean.resource.requirement;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
       return Collections.emptyList();
     }
     
-    List<Object> files = null;
+    List<Object> files = new ArrayList<>();
     if (listingObj instanceof String || CWLExpressionResolver.isExpressionObject(listingObj)) {
       files = CWLExpressionResolver.resolve(listingObj, job, null); // TODO validate
     }
