@@ -203,14 +203,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           VariableRecord sourceVariable = variableRecordService.find(link.getSourceJobId(), link.getSourceJobPort(), LinkPortType.INPUT, contextId);
           VariableRecord destinationVariable = variableRecordService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, contextId);
           if(destinationVariable == null) {
-            for(String jobId: jobs) {
-              VariableRecord stepVariable = new VariableRecord(contextId, jobId, sourceVariable.getPortId(), LinkPortType.INPUT, sourceVariable.getValue(), null);
-              variableRecordService.create(stepVariable);
-            }
-            checkIfChildJobsAreReady(job, containerNode);
-            continue;
+            VariableRecord stepVariable = new VariableRecord(contextId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, sourceVariable.getValue(), null);
+            variableRecordService.create(stepVariable);
           }
-          Event updateEvent = new InputUpdateEvent(contextId, destinationVariable.getJobId(), destinationVariable.getPortId(), sourceVariable.getValue(), link.getPosition());
+          Event updateEvent = new InputUpdateEvent(contextId, link.getDestinationJobId(), link.getDestinationJobPort(), sourceVariable.getValue(), link.getPosition());
           eventProcessor.send(updateEvent);
         }
       }
@@ -321,22 +317,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       job.increaseOutputPortIncoming(linkPort.getId());
     }
     jobRecordService.update(job);
-  }
-  
-  private void checkIfChildJobsAreReady(JobRecord job, DAGContainer containerNode) throws EventHandlerException {
-    List<JobRecord> jobs = jobRecordService.find(job.getRootId());
-    for(JobRecord childJob: jobs) {
-      if(childJob.getParentId() != null && childJob.getParentId().equals(job.getExternalId())) {
-        for(PortCounter inputPort: childJob.getInputCounters()){
-          if(inputPort.getCounter() != 0) {
-            continue;
-          }
-        }
-        if(childJob.getState() == JobState.PENDING) {
-          ready(childJob, job.getRootId());
-        }
-      }
-    }
   }
 
 }

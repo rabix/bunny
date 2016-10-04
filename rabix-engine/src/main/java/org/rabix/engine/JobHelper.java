@@ -99,13 +99,16 @@ public class JobHelper {
     String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
     
     Set<String> visiblePorts = findVisiblePorts(job, jobRecordService, linkRecordService, variableRecordService);
-    Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, inputs, null, contextRecord.getConfig(), null, visiblePorts);
+    Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, preprocesedInputs, null, contextRecord.getConfig(), null, visiblePorts);
     try {
       Bindings bindings = BindingsFactory.create(encodedApp);
       
       for (VariableRecord inputVariable : inputVariables) {
         Object value = CloneHelper.deepCopy(inputVariable.getValue());
         ApplicationPort port = node.getApp().getInput(inputVariable.getPortId());
+        if (port == null) {
+          continue;
+        }
         for (DAGLinkPort p: node.getInputPorts()) {
           if(p.getId() == inputVariable.getPortId()) {
             if (p.getTransform() != null) {
@@ -116,8 +119,6 @@ public class JobHelper {
             }
           }
         }
-        
-        
         if (port != null && autoBoxingEnabled) {
           if (port.isList() && !(value instanceof List)) {
             List<Object> transformed = new ArrayList<>();
