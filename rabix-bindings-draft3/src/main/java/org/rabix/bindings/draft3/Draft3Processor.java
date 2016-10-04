@@ -270,7 +270,7 @@ public class Draft3Processor implements ProtocolProcessor {
         Draft3FileValueHelper.setName(file.getName(), fileData);
         Draft3FileValueHelper.setPath(file.getAbsolutePath(), fileData);
 
-        List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputBinding);
+        List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputPort.getSecondaryFiles());
         if (secondaryFiles != null && !secondaryFiles.isEmpty()) {
           Draft3FileValueHelper.setSecondaryFiles(secondaryFiles, fileData);
         }
@@ -305,8 +305,7 @@ public class Draft3Processor implements ProtocolProcessor {
    * Gets secondary files (absolute paths)
    */
   @SuppressWarnings("unchecked")
-  private List<Map<String, Object>> getSecondaryFiles(Draft3Job job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object binding) throws Draft3ExpressionException {
-    Object secondaryFilesObj = Draft3BindingHelper.getSecondaryFiles(binding);
+  private List<Map<String, Object>> getSecondaryFiles(Draft3Job job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object secondaryFilesObj) throws Draft3ExpressionException {
 
     if (secondaryFilesObj == null) {
       return null;
