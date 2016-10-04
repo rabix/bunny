@@ -15,9 +15,9 @@ import org.rabix.bindings.cwl.bean.resource.requirement.CWLInlineJavascriptRequi
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLSchemaDefRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLShellCommandRequirement;
-import org.rabix.bindings.cwl.json.deserializer.CWLInputPortsDeserializer;
-import org.rabix.bindings.cwl.json.deserializer.CWLOutputPortsDeserializer;
-import org.rabix.bindings.cwl.json.deserializer.CWLResourcesDeserializer;
+import org.rabix.bindings.cwl.json.CWLInputPortsDeserializer;
+import org.rabix.bindings.cwl.json.CWLOutputPortsDeserializer;
+import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.json.BeanSerializer;

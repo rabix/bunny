@@ -1,4 +1,4 @@
-package org.rabix.bindings.cwl.json.deserializer;
+package org.rabix.bindings.cwl.json;
 
 import java.io.IOException;
 import java.util.ArrayList;
