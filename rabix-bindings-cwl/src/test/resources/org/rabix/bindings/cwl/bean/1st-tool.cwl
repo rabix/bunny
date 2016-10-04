@@ -4,6 +4,10 @@
     "src": {
       "class": "File",
       "path": "Hello.java"
+    },
+    "dir": {
+      "class": "Directory",
+      "path": "hello_directory"
     }
   },
   "app": {
@@ -26,6 +30,10 @@
         "inputBinding": {
           "position": 1
         }
+      },
+      "src": "File",
+      "dir": {
+      	"type" : "Directory"
       }
     },
     "outputs": []

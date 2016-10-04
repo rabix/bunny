@@ -33,16 +33,16 @@ public class CWLAppProcessor implements ProtocolAppProcessor {
 
   @Override
   public void validate(Job job) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
 
     boolean throwException = false;
     StringBuilder builder = new StringBuilder("Missing inputs: ");
 
-    CWLJobApp draft2JobApp = draft2Job.getApp();
-    for (CWLInputPort inputPort : draft2JobApp.getInputs()) {
+    CWLJobApp cwlJobApp = cwlJob.getApp();
+    for (CWLInputPort inputPort : cwlJobApp.getInputs()) {
       if (CWLSchemaHelper.isRequired(inputPort.getSchema())) {
         String inputPortId = CWLSchemaHelper.normalizeId(inputPort.getId());
-        if (!draft2Job.getInputs().containsKey(inputPortId)) {
+        if (!cwlJob.getInputs().containsKey(inputPortId)) {
           builder.append(throwException ? "," : "").append(inputPortId);
           throwException = true;
         }

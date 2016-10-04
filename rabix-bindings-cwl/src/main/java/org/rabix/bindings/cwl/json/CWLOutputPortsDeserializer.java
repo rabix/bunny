@@ -1,4 +1,4 @@
-package org.rabix.bindings.cwl.json.deserializer;
+package org.rabix.bindings.cwl.json;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.rabix.bindings.cwl.bean.CWLInputPort;
+import org.rabix.bindings.cwl.bean.CWLOutputPort;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -15,17 +15,17 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class CWLInputPortsDeserializer extends JsonDeserializer<List<CWLInputPort>> {
+public class CWLOutputPortsDeserializer extends JsonDeserializer<List<CWLOutputPort>> {
   @Override
-  public List<CWLInputPort> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+  public List<CWLOutputPort> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
     JsonNode tree = p.getCodec().readTree(p);
     if (tree.isNull()) {
       return null;
     }
-    List<CWLInputPort> inputPorts = new ArrayList<>();
+    List<CWLOutputPort> inputPorts = new ArrayList<>();
     if (tree.isArray()) {
       for (JsonNode node : tree) {
-        inputPorts.add(BeanSerializer.deserialize(node.toString(), CWLInputPort.class));
+        inputPorts.add(BeanSerializer.deserialize(node.toString(), CWLOutputPort.class));
       }
       return inputPorts;
     }
@@ -34,13 +34,17 @@ public class CWLInputPortsDeserializer extends JsonDeserializer<List<CWLInputPor
       
       while (iterator.hasNext()) {
         Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
-        CWLInputPort inputPort = BeanSerializer.deserialize(subnodeEntry.getValue().toString(), CWLInputPort.class);
-        inputPort.setId(subnodeEntry.getKey());
-        inputPorts.add(inputPort);
+        CWLOutputPort outputPort = null;
+        if (subnodeEntry.getValue().isObject()) {
+          outputPort = BeanSerializer.deserialize(subnodeEntry.getValue().toString(), CWLOutputPort.class);
+          outputPort.setId(subnodeEntry.getKey());
+        } else {
+          outputPort = new CWLOutputPort(subnodeEntry.getKey(), null, subnodeEntry.getValue(), null, null, null, null);
+        }
+        inputPorts.add(outputPort);
       }
       return inputPorts;
     }
     return null;
   }
 }
-

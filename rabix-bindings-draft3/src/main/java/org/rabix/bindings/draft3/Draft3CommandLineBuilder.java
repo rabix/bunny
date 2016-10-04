@@ -45,11 +45,11 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   
   @Override
   public String buildCommandLine(Job job) throws BindingException {
-    Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
-    if (draft2Job.getApp().isExpressionTool()) {
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
+    if (draft3Job.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(draft2Job);
+    return buildCommandLine(draft3Job);
   }
   
   @Override
@@ -114,6 +114,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Build command line arguments
    */
+  @SuppressWarnings("rawtypes")
   public List<Object> buildCommandLineParts(Draft3Job job) throws BindingException {
     logger.info("Building command line parts...");
 
@@ -177,6 +178,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   }
   
   
+  @SuppressWarnings("rawtypes")
   private List<Draft3CommandLinePart> buildRecordCommandLinePart(Draft3Job job, Object value, Object schema) throws BindingException {
     List<Draft3CommandLinePart> result = new ArrayList<Draft3CommandLinePart>();
     for(Object sch: (List)((Map) schema).get("fields")) {

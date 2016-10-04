@@ -16,12 +16,12 @@ public class CWLFilePathMapper implements ProtocolFilePathMapper {
 
   @Override
   public Job mapInputFilePaths(final Job job, final FilePathMapper fileMapper) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     
-    CWLPortProcessor draft2PortProcessor = new CWLPortProcessor(draft2Job);
+    CWLPortProcessor cwlPortProcessor = new CWLPortProcessor(cwlJob);
     try {
       Map<String, Object> config = job.getConfig();
-      Map<String, Object> inputs = draft2PortProcessor.processInputs(job.getInputs(), new CWLFilePathMapProcessorCallback(fileMapper, config));
+      Map<String, Object> inputs = cwlPortProcessor.processInputs(job.getInputs(), new CWLFilePathMapProcessorCallback(fileMapper, config));
       return Job.cloneWithInputs(job, inputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
@@ -30,12 +30,12 @@ public class CWLFilePathMapper implements ProtocolFilePathMapper {
 
   @Override
   public Job mapOutputFilePaths(final Job job, final FilePathMapper fileMapper) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     
-    CWLPortProcessor draft2PortProcessor = new CWLPortProcessor(draft2Job);
+    CWLPortProcessor cwlPortProcessor = new CWLPortProcessor(cwlJob);
     try {
       Map<String, Object> config = job.getConfig();
-      Map<String, Object> outputs = draft2PortProcessor.processOutputs(job.getOutputs(), new CWLFilePathMapProcessorCallback(fileMapper, config));
+      Map<String, Object> outputs = cwlPortProcessor.processOutputs(job.getOutputs(), new CWLFilePathMapProcessorCallback(fileMapper, config));
       return Job.cloneWithOutputs(job, outputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);

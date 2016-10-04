@@ -30,7 +30,10 @@ public class CWLFilePathMapProcessorCallback implements CWLPortProcessorCallback
       return new CWLPortProcessorResult(value, false);
     }
     try {
-      return new CWLPortProcessorResult(mapSingleFile(value), false);
+      if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
+        return new CWLPortProcessorResult(mapSingleFile(value), true);
+      }
+      return new CWLPortProcessorResult(value, false);
     } catch (Exception e) {
       throw new CWLPortProcessorException(e);
     }
