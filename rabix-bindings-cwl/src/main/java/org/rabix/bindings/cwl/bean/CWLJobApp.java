@@ -18,9 +18,6 @@ import org.rabix.bindings.cwl.bean.resource.requirement.CWLShellCommandRequireme
 import org.rabix.bindings.cwl.json.deserializer.CWLInputPortsDeserializer;
 import org.rabix.bindings.cwl.json.deserializer.CWLOutputPortsDeserializer;
 import org.rabix.bindings.cwl.json.deserializer.CWLResourcesDeserializer;
-import org.rabix.bindings.cwl.json.serializer.CWLInputPortsSerializer;
-import org.rabix.bindings.cwl.json.serializer.CWLOutputPortsSerializer;
-import org.rabix.bindings.cwl.json.serializer.CWLResourcesSerializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.json.BeanSerializer;
@@ -34,7 +31,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = CWLEmbeddedApp.class)
 @JsonSubTypes({ 
@@ -64,21 +60,17 @@ public abstract class CWLJobApp implements Application {
   protected List<String> owner = new ArrayList<>();
 
   @JsonProperty("inputs")
-  @JsonSerialize(using = CWLInputPortsSerializer.class)
   @JsonDeserialize(using = CWLInputPortsDeserializer.class)
   protected List<CWLInputPort> inputs = new ArrayList<>();
   
   @JsonProperty("outputs")
-  @JsonSerialize(using = CWLOutputPortsSerializer.class)
   @JsonDeserialize(using = CWLOutputPortsDeserializer.class)
   protected List<CWLOutputPort> outputs = new ArrayList<>();
 
   @JsonProperty("hints")
-  @JsonSerialize(using = CWLResourcesSerializer.class)
   @JsonDeserialize(using = CWLResourcesDeserializer.class)
   protected List<CWLResource> hints = new ArrayList<>();
   @JsonProperty("requirements")
-  @JsonSerialize(using = CWLResourcesSerializer.class)
   @JsonDeserialize(using = CWLResourcesDeserializer.class)
   protected List<CWLResource> requirements = new ArrayList<>();
   
