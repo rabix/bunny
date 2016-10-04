@@ -1,6 +1,5 @@
 package org.rabix.engine.processor.handler.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -183,7 +182,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       } else {
         containerNode = (DAGContainer) node;
       }
-      List<String> jobs = rollOutContainer(job, containerNode, contextId);
+      rollOutContainer(job, containerNode, contextId);
 
       List<LinkRecord> containerLinks = linkRecordService.findBySourceAndSourceType(job.getId(), LinkPortType.INPUT, contextId);
       if (containerLinks.isEmpty()) {
@@ -238,11 +237,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   /**
    * Unwraps {@link DAGContainer}
    */
-  private List<String> rollOutContainer(JobRecord job, DAGContainer containerNode, String contextId) {
-    List<String> createdJobs = new ArrayList<String>();
+  private void rollOutContainer(JobRecord job, DAGContainer containerNode, String contextId) {
     for (DAGNode node : containerNode.getChildren()) {
       String newJobId = InternalSchemaHelper.concatenateIds(job.getId(), InternalSchemaHelper.getLastPart(node.getId()));
-      createdJobs.add(newJobId);
       
       JobRecord childJob = scatterHelper.createJobRecord(newJobId, job.getExternalId(), node, false, contextId);
       jobRecordService.create(childJob);
@@ -291,7 +288,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       handleLinkPort(jobRecordService.find(sourceNodeId, contextId), link.getSource(), true);
       handleLinkPort(jobRecordService.find(destinationNodeId, contextId), link.getDestination(), false);
     }
-    return createdJobs;
   }
   
   /**
