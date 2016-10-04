@@ -59,7 +59,7 @@ public class CWLBindings implements Bindings {
   public Application loadAppObject(String uri) throws BindingException {
     CWLJobApp application = (CWLJobApp) appProcessor.loadAppObject(uri);
     if (!CWLJobApp.CWL_VERSION.equals(application.getCwlVersion())) {
-      throw new BindingException(uri + " is not an CWL Draft-3 application");
+      throw new BindingException(uri + " is not an CWL application");
     }
     return application;
   }

@@ -58,8 +58,8 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
 
   @Override
   public Job preprocess(final Job job, final File workingDir) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
-    CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(draft2Job);
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
       File jobFile = new File(workingDir, JOB_FILE);
       String serializedJob = BeanSerializer.serializePartial(CWLJobHelper.getCWLJob(job));
@@ -77,8 +77,8 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
   
   @Override
   public boolean isSuccessful(Job job, int statusCode) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
-    List<Integer> successCodes = draft2Job.getApp().getSuccessCodes();
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    List<Integer> successCodes = cwlJob.getApp().getSuccessCodes();
 
     if (successCodes == null) {
       successCodes = new ArrayList<>();
@@ -97,19 +97,19 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
   @Override
   @SuppressWarnings("unchecked")
   public Job postprocess(Job job, File workingDir) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
       Map<String, Object> outputs = null;
 
-      if (draft2Job.getApp().isExpressionTool()) {
-        CWLExpressionTool expressionTool = (CWLExpressionTool) draft2Job.getApp();
+      if (cwlJob.getApp().isExpressionTool()) {
+        CWLExpressionTool expressionTool = (CWLExpressionTool) cwlJob.getApp();
         try {
-          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(draft2Job.getInputs(), null, (String) expressionTool.getScript(), null);
+          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), null);
         } catch (CWLExpressionException e) {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(draft2Job, workingDir, null);
+        outputs = collectOutputs(cwlJob, workingDir, null);
       }
       return Job.cloneWithOutputs(job, outputs);
     } catch (CWLGlobException | CWLExpressionException | IOException e) {

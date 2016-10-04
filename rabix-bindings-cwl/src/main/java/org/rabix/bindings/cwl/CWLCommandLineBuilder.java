@@ -45,20 +45,20 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   
   @Override
   public String buildCommandLine(Job job) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
-    if (draft2Job.getApp().isExpressionTool()) {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    if (cwlJob.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(draft2Job);
+    return buildCommandLine(cwlJob);
   }
   
   @Override
   public List<String> buildCommandLineParts(Job job) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
-    if (!draft2Job.getApp().isCommandLineTool()) {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    if (!cwlJob.getApp().isCommandLineTool()) {
       return null;
     }
-    return Lists.transform(buildCommandLineParts(draft2Job), new Function<Object, String>() {
+    return Lists.transform(buildCommandLineParts(cwlJob), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
