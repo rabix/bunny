@@ -31,9 +31,7 @@
           "position": 1
         }
       },
-      "src": {
-      	"type" : "File"
-      },
+      "src": "File",
       "dir": {
       	"type" : "Directory"
       }
