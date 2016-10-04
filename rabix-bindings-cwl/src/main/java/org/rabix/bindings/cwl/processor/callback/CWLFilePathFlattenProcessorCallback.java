@@ -23,7 +23,7 @@ class CWLFilePathFlattenProcessorCallback implements CWLPortProcessorCallback {
 
   @Override
   public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (CWLSchemaHelper.isFileFromValue(value)) {
+    if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       flattenedPaths.addAll(flattenSingleFile(value));
       return new CWLPortProcessorResult(value, true);
     }
