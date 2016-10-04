@@ -1,6 +1,5 @@
 package org.rabix.bindings.draft3.processor.callback;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Set;
 

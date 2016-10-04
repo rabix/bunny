@@ -60,6 +60,7 @@ public class Draft3CommandLineTool extends Draft3JobApp {
     return changeExtension(stdout, "err");
   }
   
+  @SuppressWarnings("unchecked")
   public Draft3Runtime getRuntime() {
     Long cpu = null;
     Long mem = null;

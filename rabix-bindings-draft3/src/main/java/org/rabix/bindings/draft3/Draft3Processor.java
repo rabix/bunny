@@ -88,8 +88,8 @@ public class Draft3Processor implements ProtocolProcessor {
   
   @Override
   public boolean isSuccessful(Job job, int statusCode) throws BindingException {
-    Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
-    List<Integer> successCodes = draft2Job.getApp().getSuccessCodes();
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
+    List<Integer> successCodes = draft3Job.getApp().getSuccessCodes();
 
     if (successCodes == null) {
       successCodes = new ArrayList<>();

@@ -46,7 +46,7 @@ public final class Draft3Job {
   public Draft3Job(@JsonProperty("app") Draft3JobApp app,
       @JsonProperty("inputs") Map<String, Object> inputs,
       @JsonProperty("outputs") Map<String, Object> outputs,
-      @JsonProperty("runtime") Draft3Runtime resources,
+      @JsonProperty("runtime") Draft3Runtime runtime,
       @JsonProperty("id") String id, @JsonProperty("scatter") Object scatter, 
       @JsonProperty("scatterMethod") String scatterMethod) {
     this.id = id;
