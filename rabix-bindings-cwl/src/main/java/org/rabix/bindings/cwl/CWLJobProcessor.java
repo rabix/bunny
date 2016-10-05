@@ -13,6 +13,7 @@ import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.bean.CWLOutputPort;
 import org.rabix.bindings.cwl.bean.CWLStep;
 import org.rabix.bindings.cwl.bean.CWLWorkflow;
+import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
@@ -58,12 +59,21 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
         CWLJob stepJob = step.getJob();
         String stepId = job.getId() + DOT_SEPARATOR + CWLSchemaHelper.normalizeId(step.getId());
         stepJob.setId(stepId);
+        processResources(job.getApp(), stepJob.getApp());
         processElements(job, stepJob);
         process(job, stepJob);
       }
     }
     return job;
   }
+  
+  private void processResources(CWLJobApp parentJob, CWLJobApp stepJob) {
+    for(CWLResource resource: parentJob.getRequirements()) {
+      stepJob.setHint(resource);
+      stepJob.setRequirement(resource);
+    }
+  }
+  
   
   /**
    * Process Job inputs, outputs and data links

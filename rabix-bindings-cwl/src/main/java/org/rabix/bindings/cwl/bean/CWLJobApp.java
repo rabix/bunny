@@ -145,6 +145,31 @@ public abstract class CWLJobApp implements Application {
   public CWLCreateFileRequirement getCreateFileRequirement() {
     return lookForResource(CWLResourceType.CREATE_FILE_REQUIREMENT, CWLCreateFileRequirement.class);
   }
+  
+  @JsonIgnore
+  public void setHint(CWLResource resource) {
+    for (CWLResource hint : hints) {
+      if (resource.getType().equals(hint.getType())) {
+        hints.remove(hint);
+        hints.add(resource);
+        break;
+      }
+    }
+  }
+  
+  @JsonIgnore
+  public void setRequirement(CWLResource resource) {
+    boolean add = true;
+    for (CWLResource requirement : requirements) {
+      if (resource.getType().equals(requirement.getType())) {
+        add = false;
+        break;
+      }
+    }
+    if(add) {
+      requirements.add(resource);
+    }
+  }
 
   /**
    * Find one resource by type 

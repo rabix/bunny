@@ -59,7 +59,7 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
         Draft3Job stepJob = step.getJob();
         String stepId = job.getId() + DOT_SEPARATOR + Draft3SchemaHelper.normalizeId(step.getId());
         stepJob.setId(stepId);
-        overrideHints(job.getApp(), stepJob.getApp());
+        processResources(job.getApp(), stepJob.getApp());
         processElements(job, stepJob);
         process(job, stepJob);
       }
@@ -67,7 +67,7 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
     return job;
   }
   
-  private void overrideHints(Draft3JobApp parentJob, Draft3JobApp stepJob) {
+  private void processResources(Draft3JobApp parentJob, Draft3JobApp stepJob) {
     for(Draft3Resource resource: parentJob.getRequirements()) {
       stepJob.setHint(resource);
       stepJob.setRequirement(resource);
