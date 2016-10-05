@@ -55,9 +55,7 @@ public class CWLPortProcessor {
         } catch (Exception e) {
           throw new CWLPortProcessorException("Failed to process value " + value, e);
         }
-        if (mappedValue != null) {
-          mappedValues.put(entry.getKey(), mappedValue);
-        }
+        mappedValues.put(entry.getKey(), mappedValue);
       }
     }
     return mappedValues;

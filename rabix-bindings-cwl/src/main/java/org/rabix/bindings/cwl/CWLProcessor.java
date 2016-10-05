@@ -59,6 +59,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
   @Override
   public Job preprocess(final Job job, final File workingDir) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+
     CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
       File jobFile = new File(workingDir, JOB_FILE);
@@ -129,9 +130,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     for (CWLOutputPort outputPort : commandLineTool.getOutputs()) {
       Object singleResult = collectOutput(job, workingDir, hashAlgorithm, outputPort.getSchema(), outputPort.getOutputBinding(), outputPort);
-      if (singleResult != null) {
-        result.put(CWLSchemaHelper.normalizeId(outputPort.getId()), singleResult);
-      }
+      result.put(CWLSchemaHelper.normalizeId(outputPort.getId()), singleResult);
     }
     BeanSerializer.serializePartial(resultFile, result);
     return result;
@@ -195,8 +194,8 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
       result = CWLBindingHelper.evaluateOutputEval(job, result, binding);
       logger.info("OutputEval transformed result into {}.", result);
     }
-    if (result instanceof List<?>) {
-      if (CWLSchemaHelper.isFileFromSchema(schema)) {
+    if (CWLSchemaHelper.isFileFromSchema(schema)) {
+	  if (result instanceof List<?>) {
         switch (((List<?>) result).size()) {
         case 0:
           result = null;
@@ -209,8 +208,27 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
         }
       }
     }
+    if(outputPort.getFormat() != null) {
+      if(result instanceof List) {
+        for(Object elem: (List<Object>) result) {
+          setFormat(elem, outputPort.getFormat(), job);
+        }
+      }
+      else if( result instanceof Map) {
+        setFormat(result, outputPort.getFormat(), job);
+      }
+    }
     return result;
   }
+  
+  @SuppressWarnings("unchecked")
+  private Object setFormat(Object result, Object format, CWLJob job) throws CWLExpressionException {
+    Object resolved = CWLExpressionResolver.resolve(format, job, null);
+    ((Map<String, Object>) result).put("format", resolved);
+    return result;
+  }
+  
+  
 
   /**
    * Extracts files from a directory based on GLOB expression
@@ -306,13 +324,11 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
    * Gets secondary files (absolute paths)
    */
   @SuppressWarnings("unchecked")
-  private List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object binding) throws CWLExpressionException {
-    Object secondaryFilesObj = CWLBindingHelper.getSecondaryFiles(binding);
-
+  private List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object secondaryFilesObj) throws CWLExpressionException {
     if (secondaryFilesObj == null) {
       return null;
     }
-
+    
     List<Object> secondaryFilesList = new ArrayList<>();
     if (secondaryFilesObj instanceof List<?>) {
       secondaryFilesList.addAll((Collection<? extends Object>) secondaryFilesObj);
@@ -320,29 +336,41 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     
     List<Map<String, Object>> secondaryFileMaps = new ArrayList<>();
     for (Object suffixObj : secondaryFilesList) {
-      String suffix = CWLExpressionResolver.resolve(suffixObj, job, fileValue);
-      String secondaryFilePath = fileName.toString();
-
-      while (suffix.startsWith("^")) {
-        int extensionIndex = secondaryFilePath.lastIndexOf(".");
-        if (extensionIndex != -1) {
-          secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
-          suffixObj = suffix.substring(1);
-        } else {
-          break;
+      Object expr = CWLExpressionResolver.resolve(suffixObj, job, fileValue);
+      Map<String, Object> secondaryFileMap = new HashMap<>();
+      if(expr instanceof String) {
+        String secondaryFilePath;
+        String suffix = (String) expr;
+        if((suffix).startsWith("^") || suffix.startsWith(".")) {
+          secondaryFilePath = fileName.toString();
+          while (suffix.startsWith("^")) {
+            int extensionIndex = secondaryFilePath.lastIndexOf(".");
+            if (extensionIndex != -1) {
+              secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
+              suffixObj = suffix.substring(1);
+            } else {
+              break;
+            }
+          }
+          secondaryFilePath += ((String) suffixObj).startsWith(".") ? suffixObj : "." + suffixObj;
         }
+        else {
+          secondaryFilePath = suffix;
+        }
+        File secondaryFile = new File(secondaryFilePath);
+        if (secondaryFile.exists()) {
+          CWLFileValueHelper.setFileType(secondaryFileMap);
+          CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
+          CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
+          CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
+          if (hashAlgorithm != null) {
+            CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
+          }
+        }
+      } else if (expr instanceof Map) {
+        secondaryFileMap = (Map<String, Object>) expr;
       }
-      secondaryFilePath += suffix.startsWith(".") ? suffixObj : "." + suffixObj;
-      File secondaryFile = new File(secondaryFilePath);
-      if (secondaryFile.exists()) {
-        Map<String, Object> secondaryFileMap = new HashMap<>();
-        CWLFileValueHelper.setFileType(secondaryFileMap);
-        CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
-        CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
-        CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-        if (hashAlgorithm != null) {
-          CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
-        }
+      if(!secondaryFileMap.isEmpty()) {
         secondaryFileMaps.add(secondaryFileMap);
       }
     }
@@ -351,7 +379,14 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
 
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
-    return value;
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    Object result = null;
+    try {
+      result = CWLExpressionResolver.resolve(transform, cwlJob, value);
+    } catch (CWLExpressionException e) {
+      throw new BindingException(e);
+    }
+    return result;
   }
 
 }
