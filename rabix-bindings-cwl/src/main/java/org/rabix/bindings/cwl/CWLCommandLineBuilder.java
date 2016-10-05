@@ -189,7 +189,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     Object valueFrom = CWLBindingHelper.getValueFrom(inputBinding);
     if (valueFrom != null) {
       try {
-        value = CWLExpressionResolver.resolve(valueFrom, job, null);
+        value = CWLExpressionResolver.resolve(valueFrom, job, value);
       } catch (CWLExpressionException e) {
         throw new BindingException(e);
       }
