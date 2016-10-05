@@ -44,46 +44,6 @@ public class CWLPortProcessorHelper {
     return callback.getFileValues();
   }
 
-  public Set<String> flattenInputFilePaths(Map<String, Object> inputs) throws CWLPortProcessorException {
-    CWLFilePathFlattenProcessorCallback callback = new CWLFilePathFlattenProcessorCallback();
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (CWLPortProcessorException e) {
-      throw new CWLPortProcessorException("Failed to flatten input file paths.", e);
-    }
-    return callback.getFlattenedPaths();
-  }
-
-  public Set<FileValue> flattenInputFiles(Map<String, Object> inputs) throws CWLPortProcessorException {
-    CWLFileValueFlattenProcessorCallback callback = new CWLFileValueFlattenProcessorCallback(null);
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (CWLPortProcessorException e) {
-      throw new CWLPortProcessorException("Failed to flatten input file paths.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<FileValue> flattenOutputFiles(Map<String, Object> outputs, Set<String> visiblePorts) throws CWLPortProcessorException {
-    CWLFileValueFlattenProcessorCallback callback = new CWLFileValueFlattenProcessorCallback(visiblePorts);
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (CWLPortProcessorException e) {
-      throw new CWLPortProcessorException("Failed to flatten output file paths.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<String> flattenOutputFilePaths(Map<String, Object> outputs) throws CWLPortProcessorException {
-    CWLFilePathFlattenProcessorCallback callback = new CWLFilePathFlattenProcessorCallback();
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (CWLPortProcessorException e) {
-      throw new CWLPortProcessorException("Failed to flatten output file paths.", e);
-    }
-    return callback.getFlattenedPaths();
-  }
-
   public Map<String, Object> updateInputFiles(Map<String, Object> inputs, FileTransformer fileTransformer) throws CWLPortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new CWLFileValueUpdateProcessorCallback(fileTransformer));
@@ -100,27 +60,6 @@ public class CWLPortProcessorHelper {
     }
   }
   
-  public Set<Object> flattenInputFileData(Map<String, Object> inputs) throws CWLPortProcessorException {
-    CWLFileDataFlattenProcessorCallback callback = new CWLFileDataFlattenProcessorCallback();
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (CWLPortProcessorException e) {
-      throw new CWLPortProcessorException("Failed to flatten input file data.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<Object> flattenOutputFileData(Map<String, Object> outputs)
-      throws CWLPortProcessorException {
-    CWLFileDataFlattenProcessorCallback callback = new CWLFileDataFlattenProcessorCallback();
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (CWLPortProcessorException e) {
-      throw new CWLPortProcessorException("Failed to flatten output file data.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
   public Map<String, Object> setFileSize(Map<String, Object> inputs) throws CWLPortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new CWLFileSizeProcessorCallback());

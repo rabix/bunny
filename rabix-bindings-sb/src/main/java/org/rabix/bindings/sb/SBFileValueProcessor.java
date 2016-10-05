@@ -73,28 +73,4 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
     }
   }
 
-  @Override
-  public Set<FileValue> getFlattenedInputFiles(Job job) throws BindingException {
-    SBJob sbJob = SBJobHelper.getSBJob(job);
-    try {
-      return new SBPortProcessorHelper(sbJob).flattenInputFiles(job.getInputs());
-    } catch (SBPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-  @Override
-  public Set<FileValue> getFlattenedOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    SBJob sbJob = SBJobHelper.getSBJob(job);
-    try {
-      Set<String> visiblePorts = null;
-      if (onlyVisiblePorts) {
-        visiblePorts = job.getVisiblePorts();
-      }
-      return new SBPortProcessorHelper(sbJob).flattenOutputFiles(job.getOutputs(), visiblePorts);
-    } catch (SBPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
 }
