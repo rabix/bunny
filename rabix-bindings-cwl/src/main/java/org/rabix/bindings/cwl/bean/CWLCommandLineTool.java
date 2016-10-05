@@ -23,6 +23,8 @@ public class CWLCommandLineTool extends CWLJobApp {
   private Object baseCommand;
   @JsonProperty("arguments")
   private List<Object> arguments;
+  @JsonProperty("runtime")
+  private Object runtime;
   
 
   public CWLCommandLineTool() {
@@ -56,6 +58,22 @@ public class CWLCommandLineTool extends CWLJobApp {
   public String getStderr(CWLJob job) throws CWLExpressionException {
     String stdout = getStdout(job);
     return changeExtension(stdout, "err");
+  }
+  
+  public CWLRuntime getRuntime() {
+    Long cpu = null;
+    Long mem = null;
+    String outdir = null;
+    String tmpdir = null;
+    Long outdirSize = null;
+    Long tmpdirSize = null;
+    if(runtime instanceof Map) {
+      cpu = (Long) ((Map<String, Object>) runtime).get("cpu");
+      mem = (Long) ((Map<String, Object>) runtime).get("mem");
+      outdir = (String) ((Map<String, Object>) runtime).get("workingDir");
+      tmpdir = (String) ((Map<String, Object>) runtime).get("workingDir");
+    }
+    return new CWLRuntime(cpu, mem, outdir, tmpdir, outdirSize, tmpdirSize);
   }
 
   @JsonIgnore

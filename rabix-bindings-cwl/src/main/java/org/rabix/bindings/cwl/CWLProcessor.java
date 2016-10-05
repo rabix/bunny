@@ -17,6 +17,7 @@ import org.rabix.bindings.cwl.bean.CWLExpressionTool;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.bean.CWLOutputPort;
+import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.expression.javascript.CWLExpressionJavascriptResolver;
@@ -24,6 +25,7 @@ import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
+import org.rabix.bindings.cwl.helper.CWLRuntimeHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorException;
 import org.rabix.bindings.cwl.processor.callback.CWLPortProcessorHelper;
@@ -60,6 +62,18 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
   public Job preprocess(final Job job, final File workingDir) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
 
+    CWLRuntime runtime;
+    
+    try {
+      runtime = CWLRuntimeHelper.createRuntime(cwlJob);
+    }
+      catch (CWLExpressionException e1) {
+      throw new BindingException(e1);
+    }
+    runtime = CWLRuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());
+    runtime = CWLRuntimeHelper.setTmpdir(runtime, workingDir.getAbsolutePath());
+    cwlJob.setRuntime(runtime);
+    
     CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
       File jobFile = new File(workingDir, JOB_FILE);
@@ -70,7 +84,8 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-      return Job.cloneWithInputs(job, inputs);
+      Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
+      return Job.cloneWithInputs(newJob, inputs);
     } catch (CWLPortProcessorException | IOException e) {
       throw new BindingException(e);
     }

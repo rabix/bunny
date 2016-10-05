@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.cwl.bean.CWLJob;
+import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLInlineJavascriptRequirement;
-import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.expression.javascript.CWLExpressionJavascriptResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,9 +73,9 @@ public class CWLExpressionResolver {
         vars.put("inputs", job.getInputs());
         vars.put("self", self);
         
-        CWLResourceRequirement resourceRequirement = job.getApp().getResourceRequirement();
-        if (resourceRequirement != null) {
-          vars.put("runtime", resourceRequirement.build(job).toMap());
+        CWLRuntime runtime = job.getRuntime();
+        if (runtime != null) {
+          vars.put("runtime", runtime.toMap());
         }
         return (T) paramInterpolate((String) expression, vars, true);
       }
