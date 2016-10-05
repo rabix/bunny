@@ -153,13 +153,16 @@ public abstract class Draft3JobApp implements Application {
   }
   
   public <T> void setRequirement(Draft3Resource resource) {
+    boolean add = true;
     for (Draft3Resource requirement : requirements) {
       if (resource.getType().equals(requirement.getType())) {
-        requirements.remove(requirement); 
+        add = false;
         break;
       }
     }
-    requirements.add(resource);
+    if(add) {
+      requirements.add(resource);
+    }
   }
   
   @JsonIgnore
