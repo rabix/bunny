@@ -90,11 +90,11 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   public static String getPath(Object raw) {
-    return getValue(KEY_PATH, raw);
+    return getValue(KEY_LOCATION, raw);
   }
 
   public static void setPath(String path, Object raw) {
-    setValue(KEY_PATH, path, raw);
+    setValue(KEY_LOCATION, path, raw);
   }
   
   public static String getLocation(Object raw) {

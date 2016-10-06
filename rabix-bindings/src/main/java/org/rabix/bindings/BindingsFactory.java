@@ -43,6 +43,9 @@ public class BindingsFactory {
     case "draft-3":
       protocol = ProtocolType.DRAFT3;
       break;
+    case "cwl":
+      protocol = ProtocolType.CWL;
+      break;
     }
   }
  
