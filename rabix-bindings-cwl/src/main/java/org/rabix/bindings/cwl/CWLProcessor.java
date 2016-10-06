@@ -311,7 +311,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     CWLFileValueHelper.setName(file.getName(), fileData);
     CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
 
-    List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputBinding);
+    List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputPort.getSecondaryFiles());
     if (secondaryFiles != null) {
       CWLFileValueHelper.setSecondaryFiles(secondaryFiles, fileData);
     }
