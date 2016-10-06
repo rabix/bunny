@@ -179,7 +179,7 @@ public class CWLBindings implements Bindings {
 
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
-    return value;
+    return processor.transformInputs(value, job, transform);
   }
 
 }
