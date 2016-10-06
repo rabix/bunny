@@ -38,9 +38,7 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     Preconditions.checkNotNull(workingDir);
     
     try {
-      if (CWLExpressionResolver.isExpressionObject(glob)) {
-        glob = CWLExpressionResolver.resolve(glob, job, null);
-      }
+      glob = CWLExpressionResolver.resolve(glob, job, null);
     } catch (CWLExpressionException e) {
       logger.error("Failed to evaluate glob " + glob, e);
       throw new CWLGlobException("Failed to evaluate glob " + glob, e);
