@@ -8,6 +8,7 @@ import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.cwl.bean.CWLDataLink;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLStep;
+import org.rabix.bindings.cwl.bean.CWLStepInputs;
 import org.rabix.bindings.cwl.bean.CWLWorkflow;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
@@ -74,7 +75,20 @@ public class CWLTranslator implements ProtocolTranslator {
     List<DAGLinkPort> inputPorts = new ArrayList<>();
     
     for (ApplicationPort port : job.getApp().getInputs()) {
-      DAGLinkPort linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, null, null);
+      DAGLinkPort linkPort = null;
+      if(job.getInputs().containsKey(port.getId())) {
+        Object value = job.getInputs().get(port.getId());
+        Object defaultValue = null;
+        Object transform = null;
+        if(value instanceof CWLStepInputs) {
+          defaultValue = ((CWLStepInputs) value).getDefaultValue();
+          transform = ((CWLStepInputs) value).getValueFrom();
+        }
+        linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, defaultValue, transform);
+      }
+      else {
+        linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, null, null);
+      }
       inputPorts.add(linkPort);
     }
     List<DAGLinkPort> outputPorts = new ArrayList<>();

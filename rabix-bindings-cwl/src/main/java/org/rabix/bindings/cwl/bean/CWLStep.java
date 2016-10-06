@@ -81,10 +81,9 @@ public class CWLStep {
     for (Map<String, Object> port : portList) {
       String id = CWLSchemaHelper.getLastInputId(CWLBindingHelper.getId(port));
       id = CWLSchemaHelper.normalizeId(id);
-      Object value = CWLBindingHelper.getDefault(port);
-      if (value != null) {
-        portMap.put(id, value);
-      }
+      Object defaultValue = CWLBindingHelper.getDefault(port);
+      Object valueFrom = CWLBindingHelper.getValueFrom(port);
+      portMap.put(id, new CWLStepInputs(defaultValue, valueFrom));
     }
     return portMap;
   }
