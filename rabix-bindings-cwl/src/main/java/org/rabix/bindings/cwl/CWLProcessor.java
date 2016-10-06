@@ -81,6 +81,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
       FileUtils.writeStringToFile(jobFile, serializedJob);
       
       Map<String, Object> inputs = job.getInputs();
+      inputs = portProcessorHelper.setPathsToInputs(inputs);
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);

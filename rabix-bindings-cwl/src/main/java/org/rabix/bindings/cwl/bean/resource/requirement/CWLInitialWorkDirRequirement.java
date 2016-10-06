@@ -53,7 +53,10 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
           files.add(CWLDirectoryValueHelper.createDirectoryValue(listingArrayObj));
           continue;
         }
-        // TODO throw an exception
+        if (isDirent(listingArrayObj)) {
+          files.add(createDirent(listingArrayObj, job));
+          continue;
+        }
       }
     }
     return files;

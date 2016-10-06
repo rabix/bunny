@@ -78,11 +78,17 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
   }
 
   public static String getPath(Object raw) {
-    return getValue(KEY_PATH, raw);
+    String path = getValue(KEY_PATH, raw);
+    if (path == null) {
+      path = getValue(KEY_LOCATION, raw);
+      setPath(path, raw);
+    }
+    return path;
   }
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
+    setLocation(path, raw);
   }
   
   public static String getLocation(Object raw) {

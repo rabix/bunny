@@ -70,8 +70,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
 
   }
 
-  private FileRequirement getFileRequirement(CWLJob cwlJob, CWLInitialWorkDirRequirement initialWorkDirRequirement)
-      throws BindingException {
+  private FileRequirement getFileRequirement(CWLJob cwlJob, CWLInitialWorkDirRequirement initialWorkDirRequirement) throws BindingException {
     if (initialWorkDirRequirement == null) {
       return null;
     }
