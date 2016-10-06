@@ -114,6 +114,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Build command line arguments
    */
+  @SuppressWarnings("rawtypes")
   public List<Object> buildCommandLineParts(CWLJob job) throws BindingException {
     logger.info("Building command line parts...");
 
@@ -149,10 +150,16 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       for (CWLInputPort inputPort : inputPorts) {
         String key = inputPort.getId();
         Object schema = inputPort.getSchema();
-
-        CWLCommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema, key);
-        if (part != null) {
-          commandLineParts.add(part);
+        
+        if(schema instanceof Map && ((Map) schema).get("type").equals("record") && inputPort.getInputBinding() == null) {
+          List<CWLCommandLinePart> parts = buildRecordCommandLinePart(job, job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema);
+          commandLineParts.addAll(parts);          
+        }
+        else {
+          CWLCommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema, key);
+          if (part != null) {
+            commandLineParts.add(part);
+          }
         }
       }
       Collections.sort(commandLineParts, new CWLCommandLinePart.CommandLinePartComparator());
@@ -169,6 +176,26 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
     return result;
   }
+  
+  @SuppressWarnings("rawtypes")
+  private List<CWLCommandLinePart> buildRecordCommandLinePart(CWLJob job, Object value, Object schema) throws BindingException {
+    List<CWLCommandLinePart> result = new ArrayList<CWLCommandLinePart>();
+    for(Object sch: (List)((Map) schema).get("fields")) {
+      if(sch instanceof Map && ((Map) sch).get("type").equals("record") && ((Map) sch).get("inputBinding") == null) {
+        result.addAll(buildRecordCommandLinePart(job, value, sch));
+      }
+      else {
+        Object inputBinding = CWLSchemaHelper.getInputBinding(sch);
+        Object key = CWLSchemaHelper.getName(sch);
+        if (inputBinding == null) {
+          continue;
+        }
+        result.add(buildCommandLinePart(job, null, inputBinding,((Map) value).get(key), sch, (String) key));
+      }
+    }
+    return result;
+  }
+  
 
   @SuppressWarnings("unchecked")
   private CWLCommandLinePart buildCommandLinePart(CWLJob job, CWLInputPort inputPort, Object inputBinding, Object value, Object schema, String key) throws BindingException {

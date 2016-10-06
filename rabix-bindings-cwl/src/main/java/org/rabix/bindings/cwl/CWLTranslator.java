@@ -84,6 +84,9 @@ public class CWLTranslator implements ProtocolTranslator {
           defaultValue = ((CWLStepInputs) value).getDefaultValue();
           transform = ((CWLStepInputs) value).getValueFrom();
         }
+        else {
+          defaultValue = value;
+        }
         linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, defaultValue, transform);
       }
       else {
