@@ -182,4 +182,9 @@ public class Draft3Bindings implements Bindings {
     return processor.transformInputs(value, job, transform);
   }
 
+  @Override
+  public String getStandardErrorLog(Job job) throws BindingException {
+    return null;
+  }
+
 }

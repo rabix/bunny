@@ -254,7 +254,12 @@ public class JobHandlerImpl implements JobHandler {
         job = bindings.mapOutputFilePaths(job, outputFileMapper);
         return job;
       }
-      containerHandler.dumpContainerLogs(new File(workingDir, ERROR_LOG));
+      
+      String standardErrorLog = bindings.getStandardErrorLog(job);
+      if (standardErrorLog == null) {
+        standardErrorLog = ERROR_LOG;
+      }
+      containerHandler.dumpContainerLogs(new File(workingDir, standardErrorLog));
 
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);

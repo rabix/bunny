@@ -192,6 +192,15 @@ public interface Bindings {
   List<Requirement> getHints(Job job) throws BindingException;
   
   /**
+   * Gets standard error log file name
+   * 
+   * @param job         Job object
+   * @return            Standard error log
+   * @throws BindingException
+   */
+  String getStandardErrorLog(Job job) throws BindingException;
+  
+  /**
    * Gets {@link ResourceRequirement} object
    *
    * @param job         Job object

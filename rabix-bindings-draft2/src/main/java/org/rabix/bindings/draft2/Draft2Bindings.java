@@ -177,4 +177,9 @@ public class Draft2Bindings implements Bindings {
     return value;
   }
 
+  @Override
+  public String getStandardErrorLog(Job job) throws BindingException {
+    return null;
+  }
+
 }

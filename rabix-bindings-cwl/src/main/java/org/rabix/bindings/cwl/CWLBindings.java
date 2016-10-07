@@ -15,7 +15,11 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
+import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
+import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
+import org.rabix.bindings.cwl.expression.CWLExpressionException;
+import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.FileValue;
@@ -117,6 +121,16 @@ public class CWLBindings implements Bindings {
   @Override
   public Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
     return fileValueProcessor.updateOutputFiles(job, fileTransformer);
+  }
+  
+  @Override
+  public String getStandardErrorLog(Job job) throws BindingException {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    try {
+      return ((CWLCommandLineTool) cwlJob.getApp()).getStderr(cwlJob);
+    } catch (CWLExpressionException e) {
+      throw new BindingException(e);
+    }
   }
   
   @Override
