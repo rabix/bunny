@@ -127,7 +127,10 @@ public class CWLBindings implements Bindings {
   public String getStandardErrorLog(Job job) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
-      return ((CWLCommandLineTool) cwlJob.getApp()).getStderr(cwlJob);
+      if (cwlJob.getApp().isCommandLineTool()) {
+        return ((CWLCommandLineTool) cwlJob.getApp()).getStderr(cwlJob);
+      }
+      return null;
     } catch (CWLExpressionException e) {
       throw new BindingException(e);
     }
