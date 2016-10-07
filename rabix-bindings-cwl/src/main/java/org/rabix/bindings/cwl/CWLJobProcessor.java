@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLDataLink;
 import org.rabix.bindings.cwl.bean.CWLInputPort;
 import org.rabix.bindings.cwl.bean.CWLJob;
@@ -176,6 +177,25 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       if (job != null && job.getApp().isWorkflow()) {
         CWLWorkflow workflowApp = (CWLWorkflow) job.getApp();
         processDataLinks(workflowApp.getDataLinks(), port, job, false);
+      }
+      
+      // handle standard out
+      if (job.getApp().isCommandLineTool() && port instanceof CWLOutputPort) {
+        Object type = port.getSchema();
+        if (CWLSchemaHelper.TYPE_JOB_FILE.equals(type)) {
+          
+          Object outputBinding = ((CWLOutputPort) port).getOutputBinding();
+          if (outputBinding != null) {
+            Object glob = CWLBindingHelper.getGlob(outputBinding);
+            if (outputBinding != null && glob != null && glob instanceof String) {
+              if (((String) glob).startsWith(CWLCommandLineTool.RANDOM_STDOUT_PREFIX)) {
+                ((CWLCommandLineTool) job.getApp()).setStdout(glob);
+              } else if (((String) glob).startsWith(CWLCommandLineTool.RANDOM_STDERR_PREFIX)) {
+                ((CWLCommandLineTool) job.getApp()).setStderr(glob);
+              }
+            }
+          }
+        }
       }
     }
   }

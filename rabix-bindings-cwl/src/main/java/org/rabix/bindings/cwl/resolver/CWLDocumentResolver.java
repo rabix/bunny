@@ -47,6 +47,9 @@ public class CWLDocumentResolver {
     types.add("enum");
     types.add("array");
     types.add("Any");
+    types.add("stdin");
+    types.add("stdout");
+    types.add("stderr");
   }
 
   public static final String APP_STEP_KEY = "run";

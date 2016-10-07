@@ -2,11 +2,15 @@ package org.rabix.bindings.cwl.json;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLOutputPort;
+import org.rabix.bindings.cwl.helper.CWLBindingHelper;
+import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -16,18 +20,19 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class CWLOutputPortsDeserializer extends JsonDeserializer<List<CWLOutputPort>> {
+  
   @Override
   public List<CWLOutputPort> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
     JsonNode tree = p.getCodec().readTree(p);
     if (tree.isNull()) {
       return null;
     }
-    List<CWLOutputPort> inputPorts = new ArrayList<>();
+    List<CWLOutputPort> outputPorts = new ArrayList<>();
     if (tree.isArray()) {
       for (JsonNode node : tree) {
-        inputPorts.add(BeanSerializer.deserialize(node.toString(), CWLOutputPort.class));
+        outputPorts.add(BeanSerializer.deserialize(node.toString(), CWLOutputPort.class));
       }
-      return inputPorts;
+      return outputPorts;
     }
     if (tree.isObject()) {
       Iterator<Map.Entry<String, JsonNode>> iterator = tree.fields();
@@ -41,10 +46,26 @@ public class CWLOutputPortsDeserializer extends JsonDeserializer<List<CWLOutputP
         } else {
           outputPort = new CWLOutputPort(subnodeEntry.getKey(), null, null, subnodeEntry.getValue(), null, null, null, null, null);
         }
-        inputPorts.add(outputPort);
+        outputPort = handleRedirection(outputPort, CWLCommandLineTool.STDOUT_KEY);
+        outputPort = handleRedirection(outputPort, CWLCommandLineTool.STDERR_KEY);
+        outputPorts.add(outputPort);
       }
-      return inputPorts;
+      return outputPorts;
     }
     return null;
+  }
+  
+  private CWLOutputPort handleRedirection(CWLOutputPort outputPort, String redirection) {
+    Object type = outputPort.getSchema();
+    if (type instanceof String && type.equals(redirection)) {
+      Map<String, Object> outputBinding = new HashMap<>();
+      if (CWLCommandLineTool.STDOUT_KEY.equals(redirection)) {
+        outputBinding.put(CWLBindingHelper.KEY_GLOB, CWLCommandLineTool.generateRandomStdoutGlob());  
+      } else if (CWLCommandLineTool.STDERR_KEY.equals(redirection)) {
+        outputBinding.put(CWLBindingHelper.KEY_GLOB, CWLCommandLineTool.generateRandomStderrGlob());
+      }
+      return new CWLOutputPort(outputPort.getId(), null, null, CWLSchemaHelper.TYPE_JOB_FILE, outputBinding, null, null, null, null);
+    }
+    return outputPort;
   }
 }
