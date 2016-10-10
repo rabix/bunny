@@ -22,8 +22,9 @@ public class CWLOutputPort extends ApplicationPort {
   @JsonCreator
   public CWLOutputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue,
       @JsonProperty("type") Object schema, @JsonProperty("outputBinding") Object outputBinding,
-      @JsonProperty("scatter") Boolean scatter, @JsonProperty("source") Object source, @JsonProperty("linkMerge") String linkMerge) {
-    super(id, defaultValue, schema, scatter, linkMerge);
+      @JsonProperty("scatter") Boolean scatter, @JsonProperty("source") Object source,
+      @JsonProperty("linkMerge") String linkMerge, @JsonProperty("description") String description) {
+    super(id, defaultValue, schema, scatter, linkMerge, description);
     this.outputBinding = outputBinding;
     this.source = source;
   }
