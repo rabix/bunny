@@ -6,11 +6,13 @@ import java.util.Map;
 
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
+import org.rabix.bindings.cwl.json.CWLStepPortsDeserializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CWLStep {
@@ -21,10 +23,12 @@ public class CWLStep {
   @JsonProperty("run")
   private CWLJobApp app;
 
-  @JsonProperty("inputs")
+  @JsonProperty("in")
+  @JsonDeserialize(using = CWLStepPortsDeserializer.class)
   private List<Map<String, Object>> inputs;
 
-  @JsonProperty("outputs")
+  @JsonProperty("out")
+  @JsonDeserialize(using = CWLStepPortsDeserializer.class)
   private List<Map<String, Object>> outputs;
 
   @JsonProperty("scatter")
@@ -39,7 +43,7 @@ public class CWLStep {
   @JsonCreator
   public CWLStep(@JsonProperty("id") String id, @JsonProperty("run") CWLJobApp app,
       @JsonProperty("scatter") Object scatter, @JsonProperty("scatterMethod") String scatterMethod, @JsonProperty("linkMerge") String linkMerge,
-      @JsonProperty("inputs") List<Map<String, Object>> inputs, @JsonProperty("outputs") List<Map<String, Object>> outputs) {
+      @JsonProperty("in") List<Map<String, Object>> inputs, @JsonProperty("out") List<Map<String, Object>> outputs) {
     this.id = id;
     this.app = app;
     this.scatter = scatter;

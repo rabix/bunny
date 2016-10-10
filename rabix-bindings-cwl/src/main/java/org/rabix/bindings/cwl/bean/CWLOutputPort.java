@@ -58,8 +58,7 @@ public class CWLOutputPort extends ApplicationPort {
 
   @Override
   public String toString() {
-    return "OutputPort [outputBinding=" + outputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter="
-        + getScatter() + ", source=" + source + "]";
+    return "OutputPort [outputBinding=" + outputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter=" + getScatter() + ", source=" + source + "]";
   }
 
 }
