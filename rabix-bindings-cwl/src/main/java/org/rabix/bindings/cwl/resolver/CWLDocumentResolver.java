@@ -238,6 +238,10 @@ private static boolean graphResolve = false;
   }
   
   private static boolean isTypeReference(String type) {
+    if(type.contains("[]")) {
+      // check if this is array
+      type = type.replace("[]", "");
+    }
     if(types.contains(type)) {
       return false;
     }
