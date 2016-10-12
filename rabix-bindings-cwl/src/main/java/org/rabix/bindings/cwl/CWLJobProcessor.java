@@ -162,11 +162,10 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    */
   private void processPorts(CWLJob parentJob, CWLJob job, List<? extends ApplicationPort> ports) throws CWLException {
     for (ApplicationPort port : ports) {
-      String prefix = job.getId().substring(job.getId().lastIndexOf(DOT_SEPARATOR) + 1) + SLASH_SEPARATOR;
-      setScatter(job, prefix, port);  // if it's a container
+      setScatter(job, port);  // if it's a container
       if (parentJob != null) {
         // it it's an embedded container
-        setScatter(parentJob, prefix, port);
+        setScatter(parentJob, port);
       }
       
       if (parentJob != null && parentJob.getApp().isWorkflow()) {
@@ -201,8 +200,8 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
   }
   
   @SuppressWarnings("unchecked")
-  private void setScatter(CWLJob job, String prefix, ApplicationPort port) throws CWLException {
-    Object scatterObj = job.getScatter();;
+  private void setScatter(CWLJob job, ApplicationPort port) throws CWLException {
+    Object scatterObj = job.getScatter();
     if (scatterObj != null) {
       List<String> scatterList = new ArrayList<>();
       if (scatterObj instanceof List<?>) {
@@ -217,13 +216,11 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
 
       // TODO fix
       for (String scatterStr : scatterList) {
-        if (scatterStr.startsWith(prefix)) {
-          if ((prefix + CWLSchemaHelper.normalizeId(port.getId())).equals(scatterStr)) {
-            if (!(port.getScatter() != null && port.getScatter())) {
-              port.setScatter(true);              
-            }
-            break;
+        if ((CWLSchemaHelper.normalizeId(port.getId())).equals(scatterStr)) {
+          if (!(port.getScatter() != null && port.getScatter())) {
+            port.setScatter(true);
           }
+          break;
         }
       }
     }
