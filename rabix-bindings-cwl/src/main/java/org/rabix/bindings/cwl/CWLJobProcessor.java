@@ -75,7 +75,6 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
     }
   }
   
-  
   /**
    * Process Job inputs, outputs and data links
    */

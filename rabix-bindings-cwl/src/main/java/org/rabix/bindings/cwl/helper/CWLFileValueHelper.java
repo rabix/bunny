@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.ChecksumHelper;
@@ -92,7 +93,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   public static String getPath(Object raw) {
     String path = getValue(KEY_PATH, raw);
     if (path == null) {
-      path = getValue(KEY_LOCATION, raw);
+      path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
       setPath(path, raw);
     }
     return path;
@@ -193,6 +194,13 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     String location = CWLFileValueHelper.getLocation(value);
     String checksum = CWLFileValueHelper.getChecksum(value);
     Long size = CWLFileValueHelper.getSize(value);
+    
+    if (path == null) { // TODO remove
+      setPath(getLocation(value), value);
+    }
+    if (location == null) { // TODO remove
+      setLocation(getPath(value), value);
+    }
     
     Map<String, Object> properties = new HashMap<>();
     properties.put(CWLBindingHelper.KEY_SBG_METADATA, CWLFileValueHelper.getMetadata(value));

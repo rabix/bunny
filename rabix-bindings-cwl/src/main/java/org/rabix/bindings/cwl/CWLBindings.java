@@ -28,6 +28,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.transformer.FileTransformer;
+import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLBindings implements Bindings {
 
@@ -84,8 +85,8 @@ public class CWLBindings implements Bindings {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir) throws BindingException {
-    return processor.postprocess(job, workingDir);
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+    return processor.postprocess(job, workingDir, hashAlgorithm);
   }
 
   @Override

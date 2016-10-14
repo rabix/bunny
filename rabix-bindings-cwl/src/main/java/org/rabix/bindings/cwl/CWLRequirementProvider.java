@@ -89,15 +89,15 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         CWLDirent dirent = (CWLDirent) listingObj;
         
         Object entry = dirent.getEntry();
-        Object entryname = dirent.getEntryname();
+        Object entryname = dirent.getEntryname(); // TODO explicit cast
         if (CWLSchemaHelper.isFileFromValue(entry)) {
-          FileValue fileValue = CWLFileValueHelper.createFileValue(listingObj);
-          result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue, dirent.isWritable()));
+          FileValue fileValue = CWLFileValueHelper.createFileValue(((CWLDirent) listingObj).getEntry());
+          result.add(new FileRequirement.SingleInputFileRequirement((String) entryname, fileValue, dirent.isWritable()));
           continue;
         }
         if (CWLSchemaHelper.isDirectoryFromValue(entry)) {
-          DirectoryValue directoryValue = CWLDirectoryValueHelper.createDirectoryValue(listingObj);
-          result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue, dirent.isWritable()));
+          DirectoryValue directoryValue = CWLDirectoryValueHelper.createDirectoryValue(((CWLDirent) listingObj).getEntry());
+          result.add(new FileRequirement.SingleInputDirectoryRequirement((String) entryname, directoryValue, dirent.isWritable()));
           continue;
         }
         if (entry instanceof String) {

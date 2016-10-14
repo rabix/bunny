@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
 
@@ -238,9 +239,13 @@ private static boolean graphResolve = false;
   }
   
   private static boolean isTypeReference(String type) {
-    if(type.contains("[]")) {
-      // check if this is array
-      type = type.replace("[]", "");
+    Object shortenedType = CWLSchemaHelper.getOptionalShortenedType(type);
+    if (shortenedType != null) {
+      return false;
+    }
+    shortenedType = CWLSchemaHelper.getArrayShortenedType(type);
+    if (shortenedType != null) {
+      return false;
     }
     if(types.contains(type)) {
       return false;

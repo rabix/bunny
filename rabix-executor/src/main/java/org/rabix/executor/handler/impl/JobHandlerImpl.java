@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import javax.inject.Inject;
 
@@ -28,7 +27,6 @@ import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequi
 import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
 import org.rabix.bindings.model.requirement.LocalContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
-import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.download.DownloadServiceException;
@@ -60,8 +58,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.assistedinject.Assisted;
 
 public class JobHandlerImpl implements JobHandler {
-
-  private final String KEY_CHECKSUM = "checksum";
 
   private static final Logger logger = LoggerFactory.getLogger(JobHandlerImpl.class);
 
@@ -134,7 +130,6 @@ public class JobHandlerImpl implements JobHandler {
         containerHandler.start();
         return;
       }
-
       Bindings bindings = BindingsFactory.create(job);
       
       statusCallback.onInputFilesDownloadStarted(job);
@@ -235,7 +230,6 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Job postprocess(boolean isTerminal) throws ExecutorException {
     logger.debug("postprocess(id={})", job.getId());
     try {
@@ -268,13 +262,7 @@ public class JobHandlerImpl implements JobHandler {
       if (setPermissions) {
         filePermissionService.execute(job);
       }
-      job = bindings.postprocess(job, workingDir);
-
-      if (enableHash) {
-        Map<String, Object> outputs = job.getOutputs();
-        Map<String, Object> outputsWithCheckSum = (Map<String, Object>) populateChecksum(outputs);
-        job = Job.cloneWithOutputs(job, outputsWithCheckSum);
-      }
+      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null);
 
       statusCallback.onOutputFilesUploadStarted(job);
       uploadOutputFiles(job, bindings);
@@ -386,44 +374,6 @@ public class JobHandlerImpl implements JobHandler {
     logger.debug("isSuccessful()");
     int processExitStatus = getExitStatus();
     return isSuccessful(processExitStatus);
-  }
-
-  @SuppressWarnings("unchecked")
-  private void calculateChecksum(Object file) {
-    Map<String, Object> fileMap = (Map<String, Object>) file;
-    File f = new File((String) fileMap.get("path"));
-    String checksum = ChecksumHelper.checksum(f, hashAlgorithm);
-    if (checksum != null) {
-      fileMap.put(KEY_CHECKSUM, checksum);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public Object populateChecksum(Object outputs) {
-    if (outputs instanceof Map) {
-      String mapClass = (String) ((Map<String, Object>) outputs).get("class");
-      if (mapClass != null && mapClass.equals("File")) {
-        calculateChecksum(outputs);
-        return outputs;
-      } else {
-        Map<String, Object> outputsMap = (Map<String, Object>) outputs;
-        Map<String, Object> result = new TreeMap<String, Object>();
-        for (String output : outputsMap.keySet()) {
-          Object value = outputsMap.get(output);
-          result.put(output, populateChecksum(value));
-        }
-        return result;
-      }
-    } else if (outputs instanceof List) {
-      List<Object> iter = (List<Object>) outputs;
-      List<Object> resultList = new ArrayList<Object>();
-      for (Object elem : iter) {
-        resultList.add(populateChecksum(elem));
-      }
-      return resultList;
-    } else {
-      return outputs;
-    }
   }
 
   @Override

@@ -35,6 +35,7 @@ import org.rabix.bindings.draft3.service.Draft3MetadataService;
 import org.rabix.bindings.draft3.service.impl.Draft3GlobServiceImpl;
 import org.rabix.bindings.draft3.service.impl.Draft3MetadataServiceImpl;
 import org.rabix.bindings.model.Job;
+import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
@@ -107,7 +108,7 @@ public class Draft3Processor implements ProtocolProcessor {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Job postprocess(Job job, File workingDir) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     try {
       Map<String, Object> outputs = null;
@@ -120,7 +121,7 @@ public class Draft3Processor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(draft3Job, workingDir, null);
+        outputs = collectOutputs(draft3Job, workingDir, hashAlgorithm);
       }
       return Job.cloneWithOutputs(job, outputs);
     } catch (Draft3GlobException | Draft3ExpressionException | IOException e) {
@@ -133,7 +134,10 @@ public class Draft3Processor implements ProtocolProcessor {
     
     if (resultFile.exists()) {
       String resultStr = FileUtils.readFileToString(resultFile);
-      return JSONHelper.readMap(resultStr);
+      Map<String, Object> result = JSONHelper.readMap(resultStr);
+      postprocessToolCreatedResults(result, hashAlgorithm);
+      BeanSerializer.serializePartial(resultFile, result);
+      return result;
     }
     
     Map<String, Object> result = new TreeMap<>();
@@ -144,6 +148,38 @@ public class Draft3Processor implements ProtocolProcessor {
     }
     BeanSerializer.serializePartial(resultFile, result);
     return result;
+  }
+  
+  private void postprocessToolCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
+    if (value == null) {
+      return;
+    }
+    if ((Draft3SchemaHelper.isFileFromValue(value))) {
+      File file = new File(Draft3FileValueHelper.getPath(value));
+      if (!file.exists()) {
+        return;
+      }
+      Draft3FileValueHelper.setSize(file.length(), value);
+      
+      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+      if (checksum != null) {
+        Draft3FileValueHelper.setChecksum(checksum, value);
+      }
+      List<Map<String, Object>> secondaryFiles = Draft3FileValueHelper.getSecondaryFiles(value);
+      if (secondaryFiles != null) {
+        for (Object secondaryFile : secondaryFiles) {
+          postprocessToolCreatedResults(secondaryFile, hashAlgorithm);
+        }
+      }
+    } else if (value instanceof List<?>) {
+      for (Object subvalue : (List<?>) value) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    } else if (value instanceof Map<?, ?>) {
+      for (Object subvalue : ((Map<?, ?>) value).values()) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -230,7 +266,7 @@ public class Draft3Processor implements ProtocolProcessor {
     }
     return result;
   }
-
+  
   /**
    * Extracts files from a directory based on GLOB expression
    */
@@ -329,14 +365,13 @@ public class Draft3Processor implements ProtocolProcessor {
             int extensionIndex = secondaryFilePath.lastIndexOf(".");
             if (extensionIndex != -1) {
               secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
-              suffixObj = suffix.substring(1);
+              suffix = suffix.substring(1);
             } else {
               break;
             }
           }
-          secondaryFilePath += ((String) suffixObj).startsWith(".") ? suffixObj : "." + suffixObj;
-        }
-        else {
+          secondaryFilePath += ((String) suffix).startsWith(".") ? suffix : "." + suffix;
+        } else {
           secondaryFilePath = suffix;
         }
         File secondaryFile = new File(secondaryFilePath);

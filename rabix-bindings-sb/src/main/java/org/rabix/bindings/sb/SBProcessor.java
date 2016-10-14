@@ -30,6 +30,7 @@ import org.rabix.bindings.sb.service.SBGlobService;
 import org.rabix.bindings.sb.service.SBMetadataService;
 import org.rabix.bindings.sb.service.impl.SBGlobServiceImpl;
 import org.rabix.bindings.sb.service.impl.SBMetadataServiceImpl;
+import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
@@ -92,7 +93,7 @@ public class SBProcessor implements ProtocolProcessor {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     try {
       Map<String, Object> outputs = null;
@@ -105,10 +106,10 @@ public class SBProcessor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(sbJob, workingDir, null);
+        outputs = collectOutputs(sbJob, workingDir, hashAlgorithm);
       }
       outputs = new SBPortProcessorHelper(sbJob).fixOutputMetadata(sbJob.getInputs(), outputs);
-      writeResult(workingDir, outputs);
+      BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
       return Job.cloneWithOutputs(job, outputs);
     } catch (SBGlobException | SBExpressionException | IOException | SBPortProcessorException e) {
       throw new BindingException(e);
@@ -120,6 +121,8 @@ public class SBProcessor implements ProtocolProcessor {
     
     if (resultFile.exists()) {
       String resultStr = FileUtils.readFileToString(resultFile);
+      Map<String, Object> result = JSONHelper.readMap(resultStr);
+      postprocessToolCreatedResults(result, hashAlgorithm);
       return JSONHelper.readMap(resultStr);
     }
     
@@ -131,14 +134,41 @@ public class SBProcessor implements ProtocolProcessor {
         result.put(SBSchemaHelper.normalizeId(outputPort.getId()), singleResult);
       }
     }
-    writeResult(workingDir, result);
     return result;
   }
   
-  public void writeResult(File workingDir, Map<String, Object> result) {
-    BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), result);
+  private void postprocessToolCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
+    if (value == null) {
+      return;
+    }
+    if ((SBSchemaHelper.isFileFromValue(value))) {
+      File file = new File(SBFileValueHelper.getPath(value));
+      if (!file.exists()) {
+        return;
+      }
+      SBFileValueHelper.setSize(file.length(), value);
+      
+      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+      if (checksum != null) {
+        SBFileValueHelper.setChecksum(checksum, value);
+      }
+      List<Map<String, Object>> secondaryFiles = SBFileValueHelper.getSecondaryFiles(value);
+      if (secondaryFiles != null) {
+        for (Object secondaryFile : secondaryFiles) {
+          postprocessToolCreatedResults(secondaryFile, hashAlgorithm);
+        }
+      }
+    } else if (value instanceof List<?>) {
+      for (Object subvalue : (List<?>) value) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    } else if (value instanceof Map<?, ?>) {
+      for (Object subvalue : ((Map<?, ?>) value).values()) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    }
   }
-
+  
   @SuppressWarnings("unchecked")
   private Object collectOutput(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, SBOutputPort outputPort) throws SBGlobException, SBExpressionException, BindingException {
     if (binding == null) {
@@ -213,9 +243,8 @@ public class SBProcessor implements ProtocolProcessor {
       }
     }
     return result;
-
   }
-
+  
   /**
    * Extracts files from a directory based on GLOB expression
    */

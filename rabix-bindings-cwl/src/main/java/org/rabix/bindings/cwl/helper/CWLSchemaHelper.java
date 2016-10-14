@@ -141,7 +141,7 @@ public class CWLSchemaHelper extends CWLBeanHelper {
     }
   }
   
-  private static String getOptionalShortenedType(Object schema) {
+  public static String getOptionalShortenedType(Object schema) {
     if (schema == null) {
       return null;
     }
@@ -155,7 +155,7 @@ public class CWLSchemaHelper extends CWLBeanHelper {
     return null;
   }
   
-  private static String getArrayShortenedType(Object schema) {
+  public static String getArrayShortenedType(Object schema) {
     if (schema == null) {
       return null;
     }

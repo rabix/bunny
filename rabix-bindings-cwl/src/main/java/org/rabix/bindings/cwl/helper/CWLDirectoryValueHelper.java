@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.ChecksumHelper;
@@ -80,7 +81,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
   public static String getPath(Object raw) {
     String path = getValue(KEY_PATH, raw);
     if (path == null) {
-      path = getValue(KEY_LOCATION, raw);
+      path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
       setPath(path, raw);
     }
     return path;

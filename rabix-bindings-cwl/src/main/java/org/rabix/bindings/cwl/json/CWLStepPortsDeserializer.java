@@ -48,8 +48,14 @@ public class CWLStepPortsDeserializer extends JsonDeserializer<List<Map<String, 
       while (iterator.hasNext()) {
         Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
         Map<String, Object> stepPort = new HashMap<>();
-        stepPort.put(CWLSchemaHelper.STEP_PORT_ID, subnodeEntry.getKey());
-        stepPort.put(CWLBindingHelper.KEY_SOURCE, subnodeEntry.getValue().toString());
+        
+        if (subnodeEntry.getValue().isObject()) {
+          stepPort = JSONHelper.readMap(subnodeEntry.getValue());
+        } else {
+          stepPort = new HashMap<>();
+          stepPort.put(CWLBindingHelper.KEY_SOURCE, JSONHelper.transform(subnodeEntry.getValue()));
+        }
+        stepPort.put(CWLSchemaHelper.STEP_PORT_ID, subnodeEntry.getKey());        
         stepPorts.add(stepPort);
       }
       return stepPorts;

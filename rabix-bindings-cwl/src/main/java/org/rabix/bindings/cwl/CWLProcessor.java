@@ -35,6 +35,7 @@ import org.rabix.bindings.cwl.service.CWLMetadataService;
 import org.rabix.bindings.cwl.service.impl.CWLGlobServiceImpl;
 import org.rabix.bindings.cwl.service.impl.CWLMetadataServiceImpl;
 import org.rabix.bindings.model.Job;
+import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
@@ -113,7 +114,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
 
   @Override
   @SuppressWarnings("unchecked")
-  public Job postprocess(Job job, File workingDir) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
       Map<String, Object> outputs = null;
@@ -126,7 +127,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(cwlJob, workingDir, null);
+        outputs = collectOutputs(cwlJob, workingDir, hashAlgorithm);
       }
       return Job.cloneWithOutputs(job, outputs);
     } catch (CWLGlobException | CWLExpressionException | IOException e) {
@@ -139,7 +140,10 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     
     if (resultFile.exists()) {
       String resultStr = FileUtils.readFileToString(resultFile);
-      return JSONHelper.readMap(resultStr);
+      Map<String, Object> result = JSONHelper.readMap(resultStr);
+      postprocessToolCreatedResults(result, hashAlgorithm);
+      BeanSerializer.serializePartial(resultFile, result);
+      return result;
     }
     
     Map<String, Object> result = new HashMap<>();
@@ -151,7 +155,39 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     BeanSerializer.serializePartial(resultFile, result);
     return result;
   }
-
+  
+  private void postprocessToolCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
+    if (value == null) {
+      return;
+    }
+    if ((CWLSchemaHelper.isFileFromValue(value)) || CWLSchemaHelper.isDirectoryFromValue(value)) {
+      File file = new File(CWLFileValueHelper.getPath(value));
+      if (!file.exists()) {
+        return;
+      }
+      CWLFileValueHelper.setSize(file.length(), value);
+      
+      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+      if (checksum != null) {
+        CWLFileValueHelper.setChecksum(checksum, value);
+      }
+      List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
+      if (secondaryFiles != null) {
+        for (Object secondaryFile : secondaryFiles) {
+          postprocessToolCreatedResults(secondaryFile, hashAlgorithm);
+        }
+      }
+    } else if (value instanceof List<?>) {
+      for (Object subvalue : (List<?>) value) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    } else if (value instanceof Map<?, ?>) {
+      for (Object subvalue : ((Map<?, ?>) value).values()) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    }
+  }
+  
   @SuppressWarnings("unchecked")
   private Object collectOutput(CWLJob job, File workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, CWLOutputPort outputPort) throws CWLGlobException, CWLExpressionException, BindingException {
     if (binding == null) {
@@ -243,8 +279,6 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     ((Map<String, Object>) result).put("format", resolved);
     return result;
   }
-  
-  
 
   /**
    * Extracts files from a directory based on GLOB expression
@@ -363,14 +397,13 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
             int extensionIndex = secondaryFilePath.lastIndexOf(".");
             if (extensionIndex != -1) {
               secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
-              suffixObj = suffix.substring(1);
+              suffix = suffix.substring(1);
             } else {
               break;
             }
           }
-          secondaryFilePath += ((String) suffixObj).startsWith(".") ? suffixObj : "." + suffixObj;
-        }
-        else {
+          secondaryFilePath += ((String) suffix).startsWith(".") ? suffix : "." + suffix;
+        } else {
           secondaryFilePath = suffix;
         }
         File secondaryFile = new File(secondaryFilePath);
