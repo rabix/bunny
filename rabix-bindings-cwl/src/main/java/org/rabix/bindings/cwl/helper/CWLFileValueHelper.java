@@ -94,6 +94,9 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     String path = getValue(KEY_PATH, raw);
     if (path == null) {
       path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
+      if (path == null) {
+        path = getValue(KEY_LOCATION, raw);
+      }
       setPath(path, raw);
     }
     return path;

@@ -64,11 +64,9 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
 
     CWLRuntime runtime;
-    
     try {
       runtime = CWLRuntimeHelper.createRuntime(cwlJob);
-    }
-      catch (CWLExpressionException e1) {
+    } catch (CWLExpressionException e1) {
       throw new BindingException(e1);
     }
     runtime = CWLRuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());

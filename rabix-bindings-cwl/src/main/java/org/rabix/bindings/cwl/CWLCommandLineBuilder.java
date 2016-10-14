@@ -132,7 +132,8 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         for (int i = 0; i < commandLineTool.getArguments().size(); i++) {
           Object argBinding = commandLineTool.getArguments().get(i);
           if (argBinding instanceof String) {
-            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(0, false).part(argBinding).keyValue("").build();
+            String arg = CWLExpressionResolver.resolve(argBinding, job, null);
+            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(0, false).part(arg).keyValue("").build();
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
             continue;
@@ -222,7 +223,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       }
     }
 
-    boolean isFile = CWLSchemaHelper.isFileFromValue(value);
+    boolean isFile = CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value);
     if (isFile) {
       value = CWLFileValueHelper.getPath(value);
     }

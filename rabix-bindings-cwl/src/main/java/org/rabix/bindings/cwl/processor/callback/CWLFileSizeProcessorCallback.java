@@ -15,7 +15,7 @@ public class CWLFileSizeProcessorCallback implements CWLPortProcessorCallback {
 
   @Override
   public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (CWLSchemaHelper.isFileFromValue(value)) {
+    if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       Object clonedValue = CloneHelper.deepCopy(value);
 
       String path = CWLFileValueHelper.getPath(clonedValue);
