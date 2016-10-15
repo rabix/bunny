@@ -127,11 +127,12 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case FAILED:
-      eventProcessor.addToQueue(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
       if (jobRecord.isRoot()) {
         try {
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, null);
           engineStatusCallback.onJobRootFailed(rootJob);
+          
+          eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
           deleteRecords(rootJob.getId());
         } catch (Exception e) {
           logger.error("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
@@ -141,6 +142,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         try {
           Job failedJob = JobHelper.createJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
           engineStatusCallback.onJobFailed(failedJob);
+          
+          eventProcessor.send(new JobStatusEvent("root", event.getContextId(), JobState.FAILED, null)); // TODO remove hardcoded 'root' value
         } catch (Exception e) {
           logger.error("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
           throw new EventHandlerException("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
