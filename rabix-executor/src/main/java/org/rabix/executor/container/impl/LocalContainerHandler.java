@@ -70,15 +70,13 @@ public class LocalContainerHandler implements ContainerHandler {
         }
       }
       
-      if(commandLine.startsWith("/bin/bash -c")) {
+      if (commandLine.startsWith("/bin/bash -c")) {
         commandLine = commandLine.replace("/bin/bash -c", "");
         processBuilder.command("/bin/bash", "-c", commandLine);
-      }
-      else if (commandLine.startsWith("/bin/sh -c")) {
+      } else if (commandLine.startsWith("/bin/sh -c")) {
         commandLine = commandLine.replace("/bin/sh -c", "");
         processBuilder.command("/bin/sh", "-c", commandLine);
-      }
-      else {
+      } else {
         processBuilder.command("/bin/bash", "-c", commandLine);
       }
       

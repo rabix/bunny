@@ -55,6 +55,9 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     
     final Set<File> files = new HashSet<>();
     for (String singleGlob : globs) {
+      if (singleGlob.equals(".")) { // TODO fix this
+        singleGlob = workingDir.getName();
+      }
       final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + singleGlob);
       try {
         Files.walkFileTree(workingDir.toPath(), new SimpleFileVisitor<Path>() {
