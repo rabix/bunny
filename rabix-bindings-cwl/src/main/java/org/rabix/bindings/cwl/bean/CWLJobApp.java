@@ -148,12 +148,15 @@ public abstract class CWLJobApp implements Application {
   
   @JsonIgnore
   public void setHint(CWLResource resource) {
+    boolean add = true;
     for (CWLResource hint : hints) {
       if (resource.getType().equals(hint.getType())) {
-        hints.remove(hint);
-        hints.add(resource);
+        add = false;
         break;
       }
+    }
+    if(add) {
+      hints.add(resource);
     }
   }
   
@@ -168,6 +171,12 @@ public abstract class CWLJobApp implements Application {
     }
     if(add) {
       requirements.add(resource);
+      for (CWLResource hint : hints) {
+        if (resource.getType().equals(hint.getType())) {
+          hints.remove(hint);
+          break;
+        }
+      }
     }
   }
 
