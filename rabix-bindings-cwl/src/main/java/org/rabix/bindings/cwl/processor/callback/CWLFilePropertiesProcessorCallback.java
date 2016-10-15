@@ -11,7 +11,7 @@ import org.rabix.bindings.cwl.processor.CWLPortProcessorResult;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.helper.CloneHelper;
 
-public class CWLFileSizeProcessorCallback implements CWLPortProcessorCallback {
+public class CWLFilePropertiesProcessorCallback implements CWLPortProcessorCallback {
 
   @Override
   public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
@@ -19,7 +19,10 @@ public class CWLFileSizeProcessorCallback implements CWLPortProcessorCallback {
       Object clonedValue = CloneHelper.deepCopy(value);
 
       String path = CWLFileValueHelper.getPath(clonedValue);
-      CWLFileValueHelper.setSize(new File(path).length(), clonedValue);
+      File file = new File(path);
+      CWLFileValueHelper.setSize(file.length(), clonedValue);
+      CWLFileValueHelper.setName(file.getName(), clonedValue);
+      CWLFileValueHelper.setDirname(file.getParentFile().getAbsolutePath(), clonedValue);
 
       List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(clonedValue);
       if (secondaryFiles != null) {

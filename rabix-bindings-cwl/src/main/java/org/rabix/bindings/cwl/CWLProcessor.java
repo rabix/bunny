@@ -84,7 +84,7 @@ public class CWLProcessor implements ProtocolProcessor {
       
       Map<String, Object> inputs = job.getInputs();
       inputs = portProcessorHelper.setPathsToInputs(inputs);
-      inputs = portProcessorHelper.setFileSize(inputs);
+      inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
@@ -354,6 +354,7 @@ public class CWLProcessor implements ProtocolProcessor {
     }
     CWLFileValueHelper.setSize(file.length(), fileData);
     CWLFileValueHelper.setName(file.getName(), fileData);
+    CWLFileValueHelper.setDirname(file.getParentFile().getAbsolutePath(), fileData);
     CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
 
     List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputPort.getSecondaryFiles());

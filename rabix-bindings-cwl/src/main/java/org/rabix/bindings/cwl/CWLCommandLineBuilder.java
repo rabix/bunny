@@ -36,6 +36,8 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
   private final static Logger logger = LoggerFactory.getLogger(CWLCommandLineBuilder.class);
   
+  public final static String SHELL_QUOTE_KEY = "shellQuote";
+  
   public static final Escaper SHELL_ESCAPE;
   static {
       final Escapers.Builder builder = Escapers.builder();
