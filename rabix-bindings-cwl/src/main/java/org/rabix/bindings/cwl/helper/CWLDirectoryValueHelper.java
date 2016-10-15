@@ -14,7 +14,7 @@ import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLDirectoryValueHelper extends CWLBeanHelper {
 
-  private static final String KEY_NAME = "name";
+  private static final String KEY_NAME = "basename";
   private static final String KEY_PATH = "path";
   private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";

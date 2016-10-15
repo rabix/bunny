@@ -88,14 +88,8 @@ public class FileRequirement implements Requirement {
   
   public static class SingleInputDirectoryRequirement extends SingleInputFileRequirement {
 
-    private DirectoryValue content;
-
     public SingleInputDirectoryRequirement(String filename, DirectoryValue content, boolean isLinkEnabled) {
       super(filename, content, isLinkEnabled);
-    }
-
-    public FileValue getContent() {
-      return content;
     }
 
     @Override

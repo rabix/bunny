@@ -142,14 +142,13 @@ public class JobHandlerImpl implements JobHandler {
       statusCallback.onInputFilesDownloadCompleted(job);
       
       job = bindings.mapInputFilePaths(job, inputFileMapper);
+      job = bindings.preprocess(job, workingDir);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
 
       stageFileRequirements(combinedRequirements);
-
-      job = bindings.preprocess(job, workingDir);
 
       if (bindings.canExecute(job)) {
         containerHandler = new CompletedContainerHandler(job);
