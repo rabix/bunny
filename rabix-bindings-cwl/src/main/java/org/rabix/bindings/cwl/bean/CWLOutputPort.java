@@ -14,18 +14,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CWLOutputPort extends ApplicationPort {
 
+  @JsonProperty("format")
+  protected Object format;
   @JsonProperty("outputBinding")
   protected Object outputBinding;
-  @JsonProperty("source")
+  @JsonProperty("outputSource")
   protected Object source;
-
+  @JsonProperty("secondaryFiles")
+  protected Object secondaryFiles;
+  
   @JsonCreator
-  public CWLOutputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue,
-      @JsonProperty("type") Object schema, @JsonProperty("outputBinding") Object outputBinding,
-      @JsonProperty("scatter") Boolean scatter, @JsonProperty("source") Object source, @JsonProperty("linkMerge") String linkMerge) {
+  public CWLOutputPort(@JsonProperty("id") String id, @JsonProperty("format") Object format,  @JsonProperty("default") Object defaultValue,
+      @JsonProperty("type") Object schema, @JsonProperty("outputBinding") Object outputBinding, @JsonProperty("scatter") Boolean scatter, 
+      @JsonProperty("outputSource") Object source, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("secondaryFiles") Object secondaryFiles) {
     super(id, defaultValue, schema, scatter, linkMerge);
+    this.format = format;
     this.outputBinding = outputBinding;
     this.source = source;
+    this.secondaryFiles = secondaryFiles;
   }
 
   @Override
@@ -41,11 +47,18 @@ public class CWLOutputPort extends ApplicationPort {
   public Object getSource() {
     return source;
   }
+  
+  public Object getFormat() {
+    return format;
+  }
+  
+  public Object getSecondaryFiles() {
+    return secondaryFiles;
+  }
 
   @Override
   public String toString() {
-    return "OutputPort [outputBinding=" + outputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter="
-        + getScatter() + ", source=" + source + "]";
+    return "OutputPort [outputBinding=" + outputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter=" + getScatter() + ", source=" + source + "]";
   }
 
 }

@@ -23,6 +23,8 @@ public class Draft3CommandLineTool extends Draft3JobApp {
   private Object baseCommand;
   @JsonProperty("arguments")
   private List<Object> arguments;
+  @JsonProperty("resources")
+  private Object runtime;
   
 
   public Draft3CommandLineTool() {
@@ -56,6 +58,23 @@ public class Draft3CommandLineTool extends Draft3JobApp {
   public String getStderr(Draft3Job job) throws Draft3ExpressionException {
     String stdout = getStdout(job);
     return changeExtension(stdout, "err");
+  }
+  
+  @SuppressWarnings("unchecked")
+  public Draft3Runtime getRuntime() {
+    Long cpu = null;
+    Long mem = null;
+    String outdir = null;
+    String tmpdir = null;
+    Long outdirSize = null;
+    Long tmpdirSize = null;
+    if(runtime instanceof Map) {
+      cpu = (Long) ((Map<String, Object>) runtime).get("cpu");
+      mem = (Long) ((Map<String, Object>) runtime).get("mem");
+      outdir = (String) ((Map<String, Object>) runtime).get("workingDir");
+      tmpdir = (String) ((Map<String, Object>) runtime).get("workingDir");
+    }
+    return new Draft3Runtime(cpu, mem, outdir, tmpdir, outdirSize, tmpdirSize);
   }
 
   @JsonIgnore

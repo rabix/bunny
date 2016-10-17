@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLDataLink;
 import org.rabix.bindings.cwl.bean.CWLInputPort;
 import org.rabix.bindings.cwl.bean.CWLJob;
@@ -13,6 +14,7 @@ import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.bean.CWLOutputPort;
 import org.rabix.bindings.cwl.bean.CWLStep;
 import org.rabix.bindings.cwl.bean.CWLWorkflow;
+import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
@@ -58,11 +60,19 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
         CWLJob stepJob = step.getJob();
         String stepId = job.getId() + DOT_SEPARATOR + CWLSchemaHelper.normalizeId(step.getId());
         stepJob.setId(stepId);
+        processResources(job.getApp(), stepJob.getApp());
         processElements(job, stepJob);
         process(job, stepJob);
       }
     }
     return job;
+  }
+  
+  private void processResources(CWLJobApp parentJob, CWLJobApp stepJob) {
+    for(CWLResource resource: parentJob.getRequirements()) {
+      stepJob.setHint(resource);
+      stepJob.setRequirement(resource);
+    }
   }
   
   /**
@@ -151,11 +161,10 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    */
   private void processPorts(CWLJob parentJob, CWLJob job, List<? extends ApplicationPort> ports) throws CWLException {
     for (ApplicationPort port : ports) {
-      String prefix = job.getId().substring(job.getId().lastIndexOf(DOT_SEPARATOR) + 1) + SLASH_SEPARATOR;
-      setScatter(job, prefix, port);  // if it's a container
+      setScatter(job, port);  // if it's a container
       if (parentJob != null) {
         // it it's an embedded container
-        setScatter(parentJob, prefix, port);
+        setScatter(parentJob, port);
       }
       
       if (parentJob != null && parentJob.getApp().isWorkflow()) {
@@ -167,12 +176,31 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
         CWLWorkflow workflowApp = (CWLWorkflow) job.getApp();
         processDataLinks(workflowApp.getDataLinks(), port, job, false);
       }
+      
+      // handle standard out
+      if (job.getApp().isCommandLineTool() && port instanceof CWLOutputPort) {
+        Object type = port.getSchema();
+        if (CWLSchemaHelper.TYPE_JOB_FILE.equals(type)) {
+          
+          Object outputBinding = ((CWLOutputPort) port).getOutputBinding();
+          if (outputBinding != null) {
+            Object glob = CWLBindingHelper.getGlob(outputBinding);
+            if (outputBinding != null && glob != null && glob instanceof String) {
+              if (((String) glob).startsWith(CWLCommandLineTool.RANDOM_STDOUT_PREFIX)) {
+                ((CWLCommandLineTool) job.getApp()).setStdout(glob);
+              } else if (((String) glob).startsWith(CWLCommandLineTool.RANDOM_STDERR_PREFIX)) {
+                ((CWLCommandLineTool) job.getApp()).setStderr(glob);
+              }
+            }
+          }
+        }
+      }
     }
   }
   
   @SuppressWarnings("unchecked")
-  private void setScatter(CWLJob job, String prefix, ApplicationPort port) throws CWLException {
-    Object scatterObj = job.getScatter();;
+  private void setScatter(CWLJob job, ApplicationPort port) throws CWLException {
+    Object scatterObj = job.getScatter();
     if (scatterObj != null) {
       List<String> scatterList = new ArrayList<>();
       if (scatterObj instanceof List<?>) {
@@ -187,13 +215,11 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
 
       // TODO fix
       for (String scatterStr : scatterList) {
-        if (scatterStr.startsWith(prefix)) {
-          if ((prefix + CWLSchemaHelper.normalizeId(port.getId())).equals(scatterStr)) {
-            if (!(port.getScatter() != null && port.getScatter())) {
-              port.setScatter(true);              
-            }
-            break;
+        if ((CWLSchemaHelper.normalizeId(port.getId())).equals(scatterStr)) {
+          if (!(port.getScatter() != null && port.getScatter())) {
+            port.setScatter(true);
           }
+          break;
         }
       }
     }

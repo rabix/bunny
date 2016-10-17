@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
@@ -14,16 +15,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class CWLCommandLineTool extends CWLJobApp {
 
   public static final String KEY_ARGUMENT_VALUE = "valueFrom";
+  
+  public static final String STDIN_KEY = "stdin";
+  public static final String STDOUT_KEY = "stdout";
+  public static final String STDERR_KEY = "stderr";
+  
+  public static final String RANDOM_STDOUT_PREFIX = "random_stdout_";
+  public static final String RANDOM_STDERR_PREFIX = "random_error_";
 
   @JsonProperty("stdin")
   private Object stdin;
   @JsonProperty("stdout")
   private Object stdout;
+  @JsonProperty("stderr")
+  private Object stderr;
   @JsonProperty("baseCommand")
   private Object baseCommand;
   @JsonProperty("arguments")
   private List<Object> arguments;
-  
+  @JsonProperty("runtime")
+  private Object runtime;
 
   public CWLCommandLineTool() {
     super();
@@ -45,17 +56,46 @@ public class CWLCommandLineTool extends CWLJobApp {
   
   public String getStdin(CWLJob job) throws CWLExpressionException {
     String evaluatedStdin = CWLExpressionResolver.resolve(stdin, job, null);
-    return evaluatedStdin != null ? evaluatedStdin.toString() : null;
+    return evaluatedStdin != null ? evaluatedStdin : null;
+  }
+  
+  public void setStdin(Object stdin) {
+    this.stdin = stdin;
   }
 
   public String getStdout(CWLJob job) throws CWLExpressionException {
     String evaluatedStdout = CWLExpressionResolver.resolve(stdout, job, null);
-    return evaluatedStdout != null ? evaluatedStdout.toString() : null;
+    return evaluatedStdout != null ? evaluatedStdout : null;
   }
 
+  public void setStdout(Object stdout) {
+    this.stdout = stdout;
+  }
+  
   public String getStderr(CWLJob job) throws CWLExpressionException {
-    String stdout = getStdout(job);
-    return changeExtension(stdout, "err");
+    String evaluatedStderr = CWLExpressionResolver.resolve(stderr, job, null);
+    return evaluatedStderr != null ? evaluatedStderr : null;
+  }
+  
+  public void setStderr(Object stderr) {
+    this.stderr = stderr;
+  }
+  
+  @SuppressWarnings("unchecked")
+  public CWLRuntime getRuntime() {
+    Long cpu = null;
+    Long mem = null;
+    String outdir = null;
+    String tmpdir = null;
+    Long outdirSize = null;
+    Long tmpdirSize = null;
+    if(runtime instanceof Map) {
+      cpu = (Long) ((Map<String, Object>) runtime).get("cpu");
+      mem = (Long) ((Map<String, Object>) runtime).get("mem");
+      outdir = (String) ((Map<String, Object>) runtime).get("workingDir");
+      tmpdir = (String) ((Map<String, Object>) runtime).get("workingDir");
+    }
+    return new CWLRuntime(cpu, mem, outdir, tmpdir, outdirSize, tmpdirSize);
   }
 
   @JsonIgnore
@@ -78,17 +118,14 @@ public class CWLCommandLineTool extends CWLJobApp {
     return CWLExpressionResolver.resolve(binding, job, null);
   }
 
-  /**
-   * Replaces extension if there is any
-   */
-  private String changeExtension(String fileName, String extension) {
-    if (fileName == null) {
-      return null;
-    }
-    int lastIndexOf = fileName.lastIndexOf(".");
-    return lastIndexOf != -1 ? fileName.substring(0, lastIndexOf + 1) + extension : fileName + "." + extension;
+  public static String generateRandomStdoutGlob() {
+    return RANDOM_STDOUT_PREFIX + UUID.randomUUID().toString();
   }
-
+  
+  public static String generateRandomStderrGlob() {
+    return RANDOM_STDERR_PREFIX + UUID.randomUUID().toString();
+  }
+  
   @Override
   @JsonIgnore
   public CWLJobAppType getType() {

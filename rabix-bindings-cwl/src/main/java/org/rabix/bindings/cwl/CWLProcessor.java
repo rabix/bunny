@@ -17,6 +17,7 @@ import org.rabix.bindings.cwl.bean.CWLExpressionTool;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.bean.CWLOutputPort;
+import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.expression.javascript.CWLExpressionJavascriptResolver;
@@ -24,6 +25,7 @@ import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
+import org.rabix.bindings.cwl.helper.CWLRuntimeHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorException;
 import org.rabix.bindings.cwl.processor.callback.CWLPortProcessorHelper;
@@ -33,6 +35,7 @@ import org.rabix.bindings.cwl.service.CWLMetadataService;
 import org.rabix.bindings.cwl.service.impl.CWLGlobServiceImpl;
 import org.rabix.bindings.cwl.service.impl.CWLMetadataServiceImpl;
 import org.rabix.bindings.model.Job;
+import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
@@ -41,11 +44,14 @@ import org.slf4j.LoggerFactory;
 
 public class CWLProcessor implements ProtocolProcessor {
 
-public final static int DEFAULT_SUCCESS_CODE = 0;
-  
+  public final static int DEFAULT_SUCCESS_CODE = 0;
+
   public final static String JOB_FILE = "job.json";
   public final static String RESULT_FILENAME = "cwl.output.json";
-  
+
+  public final static String RESERVED_EXECUTOR_CMD_LOG_FILE_NAME = "cmd.log";
+  public final static String RESERVED_EXECUTOR_ERROR_LOG_FILE_NAME = "job.err.log";
+
   private final static Logger logger = LoggerFactory.getLogger(CWLProcessor.class);
 
   private final CWLGlobService globService;
@@ -58,18 +64,31 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
 
   @Override
   public Job preprocess(final Job job, final File workingDir) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
-    CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(draft2Job);
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+
+    CWLRuntime runtime;
+    try {
+      runtime = CWLRuntimeHelper.createRuntime(cwlJob);
+    } catch (CWLExpressionException e1) {
+      throw new BindingException(e1);
+    }
+    runtime = CWLRuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());
+    runtime = CWLRuntimeHelper.setTmpdir(runtime, workingDir.getAbsolutePath());
+    cwlJob.setRuntime(runtime);
+    
+    CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
       File jobFile = new File(workingDir, JOB_FILE);
       String serializedJob = BeanSerializer.serializePartial(CWLJobHelper.getCWLJob(job));
       FileUtils.writeStringToFile(jobFile, serializedJob);
       
       Map<String, Object> inputs = job.getInputs();
-      inputs = portProcessorHelper.setFileSize(inputs);
+      inputs = portProcessorHelper.setPathsToInputs(inputs);
+      inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-      return Job.cloneWithInputs(job, inputs);
+      Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
+      return Job.cloneWithInputs(newJob, inputs);
     } catch (CWLPortProcessorException | IOException e) {
       throw new BindingException(e);
     }
@@ -77,8 +96,8 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
   
   @Override
   public boolean isSuccessful(Job job, int statusCode) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
-    List<Integer> successCodes = draft2Job.getApp().getSuccessCodes();
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    List<Integer> successCodes = cwlJob.getApp().getSuccessCodes();
 
     if (successCodes == null) {
       successCodes = new ArrayList<>();
@@ -96,20 +115,20 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
 
   @Override
   @SuppressWarnings("unchecked")
-  public Job postprocess(Job job, File workingDir) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
       Map<String, Object> outputs = null;
 
-      if (draft2Job.getApp().isExpressionTool()) {
-        CWLExpressionTool expressionTool = (CWLExpressionTool) draft2Job.getApp();
+      if (cwlJob.getApp().isExpressionTool()) {
+        CWLExpressionTool expressionTool = (CWLExpressionTool) cwlJob.getApp();
         try {
-          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(draft2Job.getInputs(), null, (String) expressionTool.getScript(), null);
+          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), null);
         } catch (CWLExpressionException e) {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(draft2Job, workingDir, null);
+        outputs = collectOutputs(cwlJob, workingDir, hashAlgorithm);
       }
       return Job.cloneWithOutputs(job, outputs);
     } catch (CWLGlobException | CWLExpressionException | IOException e) {
@@ -122,21 +141,54 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     
     if (resultFile.exists()) {
       String resultStr = FileUtils.readFileToString(resultFile);
-      return JSONHelper.readMap(resultStr);
+      Map<String, Object> result = JSONHelper.readMap(resultStr);
+      postprocessToolCreatedResults(result, hashAlgorithm);
+      BeanSerializer.serializePartial(resultFile, result);
+      return result;
     }
     
     Map<String, Object> result = new HashMap<>();
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     for (CWLOutputPort outputPort : commandLineTool.getOutputs()) {
       Object singleResult = collectOutput(job, workingDir, hashAlgorithm, outputPort.getSchema(), outputPort.getOutputBinding(), outputPort);
-      if (singleResult != null) {
-        result.put(CWLSchemaHelper.normalizeId(outputPort.getId()), singleResult);
-      }
+      result.put(CWLSchemaHelper.normalizeId(outputPort.getId()), singleResult);
     }
     BeanSerializer.serializePartial(resultFile, result);
     return result;
   }
-
+  
+  private void postprocessToolCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
+    if (value == null) {
+      return;
+    }
+    if ((CWLSchemaHelper.isFileFromValue(value)) || CWLSchemaHelper.isDirectoryFromValue(value)) {
+      File file = new File(CWLFileValueHelper.getPath(value));
+      if (!file.exists()) {
+        return;
+      }
+      CWLFileValueHelper.setSize(file.length(), value);
+      
+      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+      if (checksum != null) {
+        CWLFileValueHelper.setChecksum(checksum, value);
+      }
+      List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
+      if (secondaryFiles != null) {
+        for (Object secondaryFile : secondaryFiles) {
+          postprocessToolCreatedResults(secondaryFile, hashAlgorithm);
+        }
+      }
+    } else if (value instanceof List<?>) {
+      for (Object subvalue : (List<?>) value) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    } else if (value instanceof Map<?, ?>) {
+      for (Object subvalue : ((Map<?, ?>) value).values()) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    }
+  }
+  
   @SuppressWarnings("unchecked")
   private Object collectOutput(CWLJob job, File workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, CWLOutputPort outputPort) throws CWLGlobException, CWLExpressionException, BindingException {
     if (binding == null) {
@@ -151,7 +203,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     Object result = null;
     if (CWLSchemaHelper.isArrayFromSchema(schema)) {
       CWLJobApp app = job.getApp();
-      Object itemSchema = CWLSchemaHelper.getSchemaForArrayItem(app.getSchemaDefs(), schema);
+      Object itemSchema = CWLSchemaHelper.getSchemaForArrayItem(null, app.getSchemaDefs(), schema);
       if (itemSchema == null) {
         return null;
       }
@@ -195,8 +247,8 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
       result = CWLBindingHelper.evaluateOutputEval(job, result, binding);
       logger.info("OutputEval transformed result into {}.", result);
     }
-    if (result instanceof List<?>) {
-      if (CWLSchemaHelper.isFileFromSchema(schema)) {
+    if (CWLSchemaHelper.isFileFromSchema(schema)) {
+	  if (result instanceof List<?>) {
         switch (((List<?>) result).size()) {
         case 0:
           result = null;
@@ -209,6 +261,23 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
         }
       }
     }
+    if(outputPort.getFormat() != null) {
+      if(result instanceof List) {
+        for(Object elem: (List<Object>) result) {
+          setFormat(elem, outputPort.getFormat(), job);
+        }
+      }
+      else if( result instanceof Map) {
+        setFormat(result, outputPort.getFormat(), job);
+      }
+    }
+    return result;
+  }
+  
+  @SuppressWarnings("unchecked")
+  private Object setFormat(Object result, Object format, CWLJob job) throws CWLExpressionException {
+    Object resolved = CWLExpressionResolver.resolve(format, job, null);
+    ((Map<String, Object>) result).put("format", resolved);
     return result;
   }
 
@@ -263,6 +332,15 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
       
       List<Object> listing = new ArrayList<>();
       for (File subfile : list) {
+        switch (subfile.getName()) {
+        case JOB_FILE:
+        case RESULT_FILENAME:
+        case RESERVED_EXECUTOR_CMD_LOG_FILE_NAME:
+        case RESERVED_EXECUTOR_ERROR_LOG_FILE_NAME:
+          continue;
+        default:
+          break;
+        }
         listing.add(formFileValue(subfile, job, outputBinding, outputPort, hashAlgorithm));
       }
       CWLDirectoryValueHelper.setListing(listing, directory);
@@ -276,9 +354,10 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     }
     CWLFileValueHelper.setSize(file.length(), fileData);
     CWLFileValueHelper.setName(file.getName(), fileData);
+    CWLFileValueHelper.setDirname(file.getParentFile().getAbsolutePath(), fileData);
     CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
 
-    List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputBinding);
+    List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputPort.getSecondaryFiles());
     if (secondaryFiles != null) {
       CWLFileValueHelper.setSecondaryFiles(secondaryFiles, fileData);
     }
@@ -306,13 +385,11 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
    * Gets secondary files (absolute paths)
    */
   @SuppressWarnings("unchecked")
-  private List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object binding) throws CWLExpressionException {
-    Object secondaryFilesObj = CWLBindingHelper.getSecondaryFiles(binding);
-
+  private List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object secondaryFilesObj) throws CWLExpressionException {
     if (secondaryFilesObj == null) {
       return null;
     }
-
+    
     List<Object> secondaryFilesList = new ArrayList<>();
     if (secondaryFilesObj instanceof List<?>) {
       secondaryFilesList.addAll((Collection<? extends Object>) secondaryFilesObj);
@@ -320,33 +397,56 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     
     List<Map<String, Object>> secondaryFileMaps = new ArrayList<>();
     for (Object suffixObj : secondaryFilesList) {
-      String suffix = CWLExpressionResolver.resolve(suffixObj, job, fileValue);
-      String secondaryFilePath = fileName.toString();
-
-      while (suffix.startsWith("^")) {
-        int extensionIndex = secondaryFilePath.lastIndexOf(".");
-        if (extensionIndex != -1) {
-          secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
-          suffixObj = suffix.substring(1);
+      Object expr = CWLExpressionResolver.resolve(suffixObj, job, fileValue);
+      Map<String, Object> secondaryFileMap = new HashMap<>();
+      if(expr instanceof String) {
+        String secondaryFilePath;
+        String suffix = (String) expr;
+        if((suffix).startsWith("^") || suffix.startsWith(".")) {
+          secondaryFilePath = fileName.toString();
+          while (suffix.startsWith("^")) {
+            int extensionIndex = secondaryFilePath.lastIndexOf(".");
+            if (extensionIndex != -1) {
+              secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
+              suffix = suffix.substring(1);
+            } else {
+              break;
+            }
+          }
+          secondaryFilePath += ((String) suffix).startsWith(".") ? suffix : "." + suffix;
         } else {
-          break;
+          secondaryFilePath = suffix;
         }
+        File secondaryFile = new File(secondaryFilePath);
+        if (secondaryFile.exists()) {
+          CWLFileValueHelper.setFileType(secondaryFileMap);
+          CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
+          CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
+          CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
+          if (hashAlgorithm != null) {
+            CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
+          }
+        }
+      } else if (expr instanceof Map) {
+        secondaryFileMap = (Map<String, Object>) expr;
       }
-      secondaryFilePath += suffix.startsWith(".") ? suffixObj : "." + suffixObj;
-      File secondaryFile = new File(secondaryFilePath);
-      if (secondaryFile.exists()) {
-        Map<String, Object> secondaryFileMap = new HashMap<>();
-        CWLFileValueHelper.setFileType(secondaryFileMap);
-        CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
-        CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
-        CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-        if (hashAlgorithm != null) {
-          CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
-        }
+      if(!secondaryFileMap.isEmpty()) {
         secondaryFileMaps.add(secondaryFileMap);
       }
     }
     return secondaryFileMaps;
+  }
+
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    Object result = null;
+    try {
+      result = CWLExpressionResolver.resolve(transform, cwlJob, value);
+    } catch (CWLExpressionException e) {
+      throw new BindingException(e);
+    }
+    return result;
   }
 
 }

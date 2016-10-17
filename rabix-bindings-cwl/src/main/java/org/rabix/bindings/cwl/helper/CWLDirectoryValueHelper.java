@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.ChecksumHelper;
@@ -13,7 +14,7 @@ import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLDirectoryValueHelper extends CWLBeanHelper {
 
-  private static final String KEY_NAME = "name";
+  private static final String KEY_NAME = "basename";
   private static final String KEY_PATH = "path";
   private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";
@@ -78,11 +79,20 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
   }
 
   public static String getPath(Object raw) {
-    return getValue(KEY_PATH, raw);
+    String path = getValue(KEY_PATH, raw);
+    if (path == null) {
+      path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
+      if (path == null) {
+        path = getValue(KEY_LOCATION, raw);
+      }
+      setPath(path, raw);
+    }
+    return path;
   }
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
+    setLocation(path, raw);
   }
   
   public static String getLocation(Object raw) {
@@ -118,6 +128,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
    */
   public static DirectoryValue createDirectoryValue(Object value) {
     String path = CWLFileValueHelper.getPath(value);
+    String name = CWLFileValueHelper.getName(value);
     String location = CWLFileValueHelper.getLocation(value);
     Long size = CWLFileValueHelper.getSize(value);
     
@@ -151,7 +162,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
         continue;
       }
     }
-    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties);
+    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties, name);
   }
 
   public static Map<String, Object> createDirectoryRaw(DirectoryValue fileValue) {

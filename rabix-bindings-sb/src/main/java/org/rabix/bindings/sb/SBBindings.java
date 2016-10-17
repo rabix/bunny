@@ -23,6 +23,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.transformer.FileTransformer;
+import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class SBBindings implements Bindings {
 
@@ -75,8 +76,8 @@ public class SBBindings implements Bindings {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir) throws BindingException {
-    return processor.postprocess(job, workingDir);
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+    return processor.postprocess(job, workingDir, hashAlgorithm);
   }
 
   @Override
@@ -121,13 +122,13 @@ public class SBBindings implements Bindings {
     File jobFile = new File(workingDir, SBProcessor.JOB_FILE);
     if (jobFile.exists()) {
       String jobFilePath = jobFile.getAbsolutePath();
-      files.add(new FileValue(null, jobFilePath, null, null, null, null));
+      files.add(new FileValue(null, jobFilePath, null, null, null, null, jobFile.getName()));
     }
     
     File resultFile = new File(workingDir, SBProcessor.RESULT_FILENAME);
     if (resultFile.exists()) {
       String resultFilePath = resultFile.getAbsolutePath();
-      files.add(new FileValue(null, resultFilePath, null, null, null, null));
+      files.add(new FileValue(null, resultFilePath, null, null, null, null, resultFile.getName()));
     }
     return files;
   }
@@ -170,6 +171,16 @@ public class SBBindings implements Bindings {
   @Override
   public ProtocolType getProtocolType() {
     return protocolType;
+  }
+
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    return value;
+  }
+
+  @Override
+  public String getStandardErrorLog(Job job) throws BindingException {
+    return null;
   }
 
 }

@@ -39,21 +39,21 @@ public final class Draft3Job {
   @JsonView(BeanPropertyView.Full.class)
   private String scatterMethod;
   
-  @JsonProperty("allocatedResources")
-  private Draft3Resources resources;
+  @JsonProperty("runtime")
+  private Draft3Runtime runtime;
 
   @JsonCreator
   public Draft3Job(@JsonProperty("app") Draft3JobApp app,
       @JsonProperty("inputs") Map<String, Object> inputs,
       @JsonProperty("outputs") Map<String, Object> outputs,
-      @JsonProperty("allocatedResources") Draft3Resources resources,
+      @JsonProperty("runtime") Draft3Runtime runtime,
       @JsonProperty("id") String id, @JsonProperty("scatter") Object scatter, 
       @JsonProperty("scatterMethod") String scatterMethod) {
     this.id = id;
     this.app = app;
     this.inputs = inputs;
     this.outputs = outputs;
-    this.resources = resources;
+    this.runtime = runtime;
     this.scatter = scatter;
     this.scatterMethod = scatterMethod;
     processPortDefaults();
@@ -114,13 +114,13 @@ public final class Draft3Job {
   public Map<String, Object> getOutputs() {
     return outputs;
   }
-
-  public void setResources(Draft3Resources resources) {
-    this.resources = resources;
+  
+  public void setRuntime(Draft3Runtime runtime) {
+    this.runtime = runtime;
   }
   
-  public Draft3Resources getResources() {
-    return resources;
+  public Draft3Runtime getRuntime() {
+    return runtime;
   }
 
   public Object getScatter() {
@@ -164,7 +164,7 @@ public final class Draft3Job {
 
   @Override
   public String toString() {
-    return "Job [id=" + id + ", app=" + app + ", inputs=" + inputs + ", outputs=" + outputs + ", scatter=" + scatter + ", resources=" + resources + "]";
+    return "Job [id=" + id + ", app=" + app + ", inputs=" + inputs + ", outputs=" + outputs + ", scatter=" + scatter + ", resources=" + runtime + "]";
   }
-
+  
 }

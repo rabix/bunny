@@ -23,8 +23,9 @@ public class VariableRecord {
   private int numberOfTimesUpdated = 0;
   
   private boolean isDefault = true;
+  private Object transform;
 
-  public VariableRecord(String contextId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
+  public VariableRecord(String contextId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {  
     this.jobId = jobId;
     this.portId = portId;
     this.type = type;
@@ -36,6 +37,15 @@ public class VariableRecord {
   public String getContextId() {
     return contextId;
   }
+  
+  public Object getTransform() {
+    return transform;
+  }
+  
+  public void setTransform(Object transform) {
+    this.transform = transform;
+  }
+  
 
   @SuppressWarnings("unchecked")
   public void addValue(Object value, Integer position) {

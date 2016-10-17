@@ -126,6 +126,45 @@ public abstract class Draft3JobApp implements Application {
     return lookForResource(Draft3ResourceType.ENV_VAR_REQUIREMENT, Draft3EnvVarRequirement.class);
   }
 
+  public <T extends Draft3Resource> T getRequirement(Draft3ResourceType type, Class<T> clazz) {
+    List<T> resources = getRequirements(type, clazz);
+    if (resources != null && !resources.isEmpty()) {
+      return resources.get(0);
+    }
+    return null;
+  }
+  
+  public <T extends Draft3Resource> T getHint(Draft3ResourceType type, Class<T> clazz) {
+    List<T> resources = getHints(type, clazz);
+    if(resources != null && !resources.isEmpty()) {
+      return resources.get(0);
+    }
+    return null;
+  }
+  
+  public <T> void setHint(Draft3Resource resource) {
+    for (Draft3Resource hint : hints) {
+      if (resource.getTypeEnum().equals(hint.getTypeEnum())) {
+        hints.remove(hint);
+        hints.add(resource);
+        break;
+      }
+    }
+  }
+  
+  public <T> void setRequirement(Draft3Resource resource) {
+    boolean add = true;
+    for (Draft3Resource requirement : requirements) {
+      if (resource.getTypeEnum().equals(requirement.getTypeEnum())) {
+        add = false;
+        break;
+      }
+    }
+    if(add) {
+      requirements.add(resource);
+    }
+  }
+  
   @JsonIgnore
   public Draft3CreateFileRequirement getCreateFileRequirement() {
     return lookForResource(Draft3ResourceType.CREATE_FILE_REQUIREMENT, Draft3CreateFileRequirement.class);
@@ -157,7 +196,7 @@ public abstract class Draft3JobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (Draft3Resource requirement : requirements) {
-      if (type.equals(requirement.getType())) {
+      if (type.equals(requirement.getTypeEnum())) {
         result.add(clazz.cast(requirement));
       }
     }
@@ -171,7 +210,7 @@ public abstract class Draft3JobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (Draft3Resource hint : hints) {
-      if (type.equals(hint.getType())) {
+      if (type.equals(hint.getTypeEnum())) {
         result.add(clazz.cast(hint));
       }
     }

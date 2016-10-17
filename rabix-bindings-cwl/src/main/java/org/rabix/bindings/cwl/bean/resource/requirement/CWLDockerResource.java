@@ -22,7 +22,7 @@ public class CWLDockerResource extends CWLResource {
 
   @Override
   @JsonIgnore
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.DOCKER_RESOURCE;
   }
   
