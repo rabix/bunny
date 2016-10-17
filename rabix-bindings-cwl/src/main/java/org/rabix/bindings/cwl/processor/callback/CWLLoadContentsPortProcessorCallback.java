@@ -13,7 +13,7 @@ public class CWLLoadContentsPortProcessorCallback implements CWLPortProcessorCal
 
   @Override
   public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (CWLSchemaHelper.isFileFromValue(value) && port instanceof CWLInputPort) {
+    if ((CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) && port instanceof CWLInputPort) {
       Object clonedValue = CloneHelper.deepCopy(value);
       
       Object inputBinding = ((CWLInputPort) port).getInputBinding();

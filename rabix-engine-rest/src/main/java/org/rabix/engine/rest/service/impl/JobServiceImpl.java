@@ -209,13 +209,13 @@ public class JobServiceImpl implements JobService {
         long numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
         long memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
         
-        Resources resources = new Resources(numberOfCores, memory, null, true);
+        Resources resources = new Resources(numberOfCores, memory, null, true, null);
         job = Job.cloneWithResources(job, resources);
       }
       else if (conformance && job.getConfig() != null) {
         long numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : null;
         long memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : null;
-        Resources resources = new Resources(numberOfCores, memory, null, true);
+        Resources resources = new Resources(numberOfCores, memory, null, true, null);
         job = Job.cloneWithResources(job, resources);
       }
       jobDB.update(job);

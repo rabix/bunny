@@ -36,6 +36,8 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
   private final static Logger logger = LoggerFactory.getLogger(CWLCommandLineBuilder.class);
   
+  public final static String SHELL_QUOTE_KEY = "shellQuote";
+  
   public static final Escaper SHELL_ESCAPE;
   static {
       final Escapers.Builder builder = Escapers.builder();
@@ -45,20 +47,20 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   
   @Override
   public String buildCommandLine(Job job) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
-    if (draft2Job.getApp().isExpressionTool()) {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    if (cwlJob.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(draft2Job);
+    return buildCommandLine(cwlJob);
   }
   
   @Override
   public List<String> buildCommandLineParts(Job job) throws BindingException {
-    CWLJob draft2Job = CWLJobHelper.getCWLJob(job);
-    if (!draft2Job.getApp().isCommandLineTool()) {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    if (!cwlJob.getApp().isCommandLineTool()) {
       return null;
     }
-    return Lists.transform(buildCommandLineParts(draft2Job), new Function<Object, String>() {
+    return Lists.transform(buildCommandLineParts(cwlJob), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
@@ -114,6 +116,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Build command line arguments
    */
+  @SuppressWarnings("rawtypes")
   public List<Object> buildCommandLineParts(CWLJob job) throws BindingException {
     logger.info("Building command line parts...");
 
@@ -131,7 +134,8 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         for (int i = 0; i < commandLineTool.getArguments().size(); i++) {
           Object argBinding = commandLineTool.getArguments().get(i);
           if (argBinding instanceof String) {
-            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(0, false).part(argBinding).keyValue("").build();
+            String arg = CWLExpressionResolver.resolve(argBinding, job, null);
+            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(0, false).part(arg).keyValue("").build();
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
             continue;
@@ -149,10 +153,16 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       for (CWLInputPort inputPort : inputPorts) {
         String key = inputPort.getId();
         Object schema = inputPort.getSchema();
-
-        CWLCommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema, key);
-        if (part != null) {
-          commandLineParts.add(part);
+        
+        if(schema instanceof Map && ((Map) schema).get("type").equals("record") && inputPort.getInputBinding() == null) {
+          List<CWLCommandLinePart> parts = buildRecordCommandLinePart(job, job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema);
+          commandLineParts.addAll(parts);          
+        }
+        else {
+          CWLCommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema, key);
+          if (part != null) {
+            commandLineParts.add(part);
+          }
         }
       }
       Collections.sort(commandLineParts, new CWLCommandLinePart.CommandLinePartComparator());
@@ -169,6 +179,26 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
     return result;
   }
+  
+  @SuppressWarnings("rawtypes")
+  private List<CWLCommandLinePart> buildRecordCommandLinePart(CWLJob job, Object value, Object schema) throws BindingException {
+    List<CWLCommandLinePart> result = new ArrayList<CWLCommandLinePart>();
+    for(Object sch: (List)((Map) schema).get("fields")) {
+      if(sch instanceof Map && ((Map) sch).get("type").equals("record") && ((Map) sch).get("inputBinding") == null) {
+        result.addAll(buildRecordCommandLinePart(job, value, sch));
+      }
+      else {
+        Object inputBinding = CWLSchemaHelper.getInputBinding(sch);
+        Object key = CWLSchemaHelper.getName(sch);
+        if (inputBinding == null) {
+          continue;
+        }
+        result.add(buildCommandLinePart(job, null, inputBinding,((Map) value).get(key), sch, (String) key));
+      }
+    }
+    return result;
+  }
+  
 
   @SuppressWarnings("unchecked")
   private CWLCommandLinePart buildCommandLinePart(CWLJob job, CWLInputPort inputPort, Object inputBinding, Object value, Object schema, String key) throws BindingException {
@@ -189,13 +219,13 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     Object valueFrom = CWLBindingHelper.getValueFrom(inputBinding);
     if (valueFrom != null) {
       try {
-        value = CWLExpressionResolver.resolve(valueFrom, job, null);
+        value = CWLExpressionResolver.resolve(valueFrom, job, value);
       } catch (CWLExpressionException e) {
         throw new BindingException(e);
       }
     }
 
-    boolean isFile = CWLSchemaHelper.isFileFromValue(value);
+    boolean isFile = CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value);
     if (isFile) {
       value = CWLFileValueHelper.getPath(value);
     }
@@ -248,7 +278,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       commandLinePartBuilder.keyValue(keyValue);
       
       for (Object item : ((List<?>) value)) {
-        Object arrayItemSchema = CWLSchemaHelper.getSchemaForArrayItem(commandLineTool.getSchemaDefs(), schema);
+        Object arrayItemSchema = CWLSchemaHelper.getSchemaForArrayItem(item, commandLineTool.getSchemaDefs(), schema);
         Object arrayItemInputBinding = new HashMap<>();
         if (schema != null && CWLSchemaHelper.getInputBinding(schema) != null) {
           arrayItemInputBinding = (Map<String, Object>) CWLSchemaHelper.getInputBinding(schema);

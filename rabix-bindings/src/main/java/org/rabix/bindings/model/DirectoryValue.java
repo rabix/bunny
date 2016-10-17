@@ -7,8 +7,8 @@ public class DirectoryValue extends FileValue {
 
   private final List<FileValue> listing;
   
-  public DirectoryValue(Long size, String path, String location, String checksum, List<FileValue> listing, List<FileValue> secondaryFiles, Map<String, Object> properties) {
-    super(size, path, location, checksum, secondaryFiles, properties);
+  public DirectoryValue(Long size, String path, String location, String checksum, List<FileValue> listing, List<FileValue> secondaryFiles, Map<String, Object> properties, String name) {
+    super(size, path, location, checksum, secondaryFiles, properties, name);
     this.listing = listing;
   }
 

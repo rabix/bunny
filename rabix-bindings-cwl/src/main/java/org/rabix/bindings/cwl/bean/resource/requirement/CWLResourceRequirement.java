@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.rabix.bindings.cwl.bean.CWLJob;
+import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
@@ -13,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CWLResourceRequirement extends CWLResource {
-
   public final static Long CORES_MIN_DEFAULT = 1L;
   public final static Long CORES_MAX_DEFAULT = 1L;
   public final static Long RAM_MIN_DEFAULT = 1024L;
@@ -86,7 +86,7 @@ public class CWLResourceRequirement extends CWLResource {
   }
   
   @JsonIgnore
-  public Resources build(CWLJob job) throws CWLExpressionException {
+  public CWLRuntime build(CWLJob job) throws CWLExpressionException {
     Long coresMin = getCoresMin(job);
     Long coresMax = getCoresMax(job);
 
@@ -118,7 +118,7 @@ public class CWLResourceRequirement extends CWLResource {
     if (outDir == null) {
       outDir = OUTDIR_MIN_DEFAULT;
     }
-    return new Resources(cores, ram, tmpDir, outDir);
+    return new CWLRuntime(cores, ram, null, null, tmpDir, outDir);
   }
   
   public static class Resources {
@@ -168,7 +168,7 @@ public class CWLResourceRequirement extends CWLResource {
   
   
   @Override
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.RESOURCE_REQUIREMENT;
   }
 

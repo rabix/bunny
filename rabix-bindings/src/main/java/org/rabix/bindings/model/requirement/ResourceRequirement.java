@@ -3,7 +3,7 @@ package org.rabix.bindings.model.requirement;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ResourceRequirement implements Requirement {
+public class ResourceRequirement extends Requirement {
 
   @JsonProperty("cpuMin")
   private final Long cpuMin;
@@ -65,10 +65,24 @@ public class ResourceRequirement implements Requirement {
   }
 
   @Override
+  public boolean isCustom() {
+    return false;
+  }
+
+  @Override
+  public Object getData() {
+    return null;
+  }
+
+  @Override
+  public String getType() {
+    return RESOURCE_REQUIREMENT_TYPE;
+  }
+
+  @Override
   public String toString() {
     return "ResourceRequirement [cpuMin=" + cpuMin + ", cpuRecommended=" + cpuRecommended + ", memMinMB=" + memMinMB
         + ", memRecommendedMB=" + memRecommendedMB + ", diskSpaceMinMB=" + diskSpaceMinMB + ", diskSpaceRecommendedMB="
         + diskSpaceRecommendedMB + ", networkAccess=" + networkAccess + "]";
   }
-
 }

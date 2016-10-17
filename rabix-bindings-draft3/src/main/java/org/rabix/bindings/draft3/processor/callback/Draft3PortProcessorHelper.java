@@ -1,6 +1,5 @@
 package org.rabix.bindings.draft3.processor.callback;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,46 +45,6 @@ public class Draft3PortProcessorHelper {
     return callback.getFileValues();
   }
 
-  public Set<String> flattenInputFilePaths(Map<String, Object> inputs) throws Draft3PortProcessorException {
-    Draft3FilePathFlattenProcessorCallback callback = new Draft3FilePathFlattenProcessorCallback();
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (Draft3PortProcessorException e) {
-      throw new Draft3PortProcessorException("Failed to flatten input file paths.", e);
-    }
-    return callback.getFlattenedPaths();
-  }
-
-  public Set<FileValue> flattenInputFiles(Map<String, Object> inputs) throws Draft3PortProcessorException {
-    Draft3FileValueFlattenProcessorCallback callback = new Draft3FileValueFlattenProcessorCallback(null);
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (Draft3PortProcessorException e) {
-      throw new Draft3PortProcessorException("Failed to flatten input file paths.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<FileValue> flattenOutputFiles(Map<String, Object> outputs, Set<String> visiblePorts) throws Draft3PortProcessorException {
-    Draft3FileValueFlattenProcessorCallback callback = new Draft3FileValueFlattenProcessorCallback(visiblePorts);
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (Draft3PortProcessorException e) {
-      throw new Draft3PortProcessorException("Failed to flatten output file paths.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<String> flattenOutputFilePaths(Map<String, Object> outputs) throws Draft3PortProcessorException {
-    Draft3FilePathFlattenProcessorCallback callback = new Draft3FilePathFlattenProcessorCallback();
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (Draft3PortProcessorException e) {
-      throw new Draft3PortProcessorException("Failed to flatten output file paths.", e);
-    }
-    return callback.getFlattenedPaths();
-  }
-
   public Map<String, Object> updateInputFiles(Map<String, Object> inputs, FileTransformer fileTransformer) throws Draft3PortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new Draft3FileValueUpdateProcessorCallback(fileTransformer));
@@ -102,27 +61,6 @@ public class Draft3PortProcessorHelper {
     }
   }
   
-  public Set<Map<String, Object>> flattenInputFileData(Map<String, Object> inputs) throws Draft3PortProcessorException {
-    Draft3FileDataFlattenProcessorCallback callback = new Draft3FileDataFlattenProcessorCallback();
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (Draft3PortProcessorException e) {
-      throw new Draft3PortProcessorException("Failed to flatten input file data.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<Map<String, Object>> flattenOutputFileData(Map<String, Object> outputs)
-      throws Draft3PortProcessorException {
-    Draft3FileDataFlattenProcessorCallback callback = new Draft3FileDataFlattenProcessorCallback();
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (Draft3PortProcessorException e) {
-      throw new Draft3PortProcessorException("Failed to flatten output file data.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
   public Map<String, Object> setFileSize(Map<String, Object> inputs) throws Draft3PortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new Draft3FileSizeProcessorCallback());
@@ -136,15 +74,6 @@ public class Draft3PortProcessorHelper {
       return portProcessor.processInputs(inputs, new Draft3LoadContentsPortProcessorCallback());
     } catch (Draft3PortProcessorException e) {
       throw new Draft3PortProcessorException("Failed to load input contents.", e);
-    }
-  }
-
-  public Map<String, Object> stageInputFiles(Map<String, Object> inputs, File workingDir)
-      throws Draft3PortProcessorException {
-    try {
-      return portProcessor.processInputs(inputs, new Draft3StageInputProcessorCallback(workingDir));
-    } catch (Draft3PortProcessorException e) {
-      throw new Draft3PortProcessorException("Failed to stage inputs.", e);
     }
   }
 

@@ -17,7 +17,7 @@ public class Draft3InlineJavascriptRequirement extends Draft3Resource {
   }
 
   @Override
-  public Draft3ResourceType getType() {
+  public Draft3ResourceType getTypeEnum() {
     return Draft3ResourceType.INLINE_JAVASCRIPT_REQUIREMENT;
   }
 

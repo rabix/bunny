@@ -38,9 +38,7 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     Preconditions.checkNotNull(workingDir);
     
     try {
-      if (CWLExpressionResolver.isExpressionObject(glob)) {
-        glob = CWLExpressionResolver.resolve(glob, job, null);
-      }
+      glob = CWLExpressionResolver.resolve(glob, job, null);
     } catch (CWLExpressionException e) {
       logger.error("Failed to evaluate glob " + glob, e);
       throw new CWLGlobException("Failed to evaluate glob " + glob, e);
@@ -57,6 +55,9 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     
     final Set<File> files = new HashSet<>();
     for (String singleGlob : globs) {
+      if (singleGlob.equals(".")) { // TODO fix this
+        singleGlob = workingDir.getName();
+      }
       final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + singleGlob);
       try {
         Files.walkFileTree(workingDir.toPath(), new SimpleFileVisitor<Path>() {

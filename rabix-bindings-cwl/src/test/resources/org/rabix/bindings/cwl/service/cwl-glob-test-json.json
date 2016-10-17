@@ -1,0 +1,170 @@
+{
+	"app": 
+	{
+		"id": "some_id",
+		"class": "CommandLineTool",
+		"hints": 
+		[
+			{
+				"class": "sbg:MemRequirement",
+				"value": 5000
+			}
+		],
+
+		"requirements": 
+		[
+			{
+				"class": "DockerRequirement",
+				"dockerPull": "images.sbgenomics.com/rabix/bwa",
+				"dockerImageId": "9d3b9b0359cf"
+			}
+		],
+
+		"inputs": 
+		[
+			{
+				"id": "#reference",
+				"sbg:stageInput": "copy",
+				"type": 
+				{
+					"type": "File",
+					"adapter": 
+					{
+						"position": 2,
+						"metadata": 
+						{
+							"file_type": "reference",
+							"sample": "SAMPLE1"
+						}
+					}
+				}
+			},
+
+			{
+				"id": "#reads",
+				"type": 
+				{
+					"type": "array",
+					"items": "File",
+					"adapter": 
+					{
+						"position": 3
+					}
+				}
+			},
+
+			{
+				"id": "#minimum_seed_length",
+				"type": 
+				{
+					"type": "int",
+					"adapter": 
+					{
+						"position": 1,
+						"prefix": "-m"
+					}
+				}
+			},
+
+			{
+				"id": "#min_std_max_min",
+				"type": 
+				{
+					"items": "int",
+					"type": "array",
+					"adapter": 
+					{
+						"itemSeparator": ",",
+						"position": 1,
+						"prefix": "-I"
+					}
+				}
+			}
+		],
+
+		"outputs": 
+		[
+			{
+				"id": "#single",
+				"type": 
+				{
+					"type": "File"
+				},
+
+				"outputBinding": 
+				{
+					"glob": "file1.txt",
+					"sbg:metadata": 
+					{
+						"file_type": 
+						{
+							"class": "Expression",
+							"script": "{ var path = $self.path; var chunks = path.split('/'); return chunks.slice(-1)[0].split('.').slice(-1)[0]; }"
+						},
+
+						"sample": "SAMPLE1"
+					},
+
+					"secondaryFiles": 
+					[
+						"^^sec",
+						".aq",
+						"aw",
+						"^.dict"
+					]
+				}
+			},
+
+			{
+				"id": "#directory",
+				"type": 
+				[
+					"null",
+					"Directory"
+				],
+
+				"outputBinding": 
+				{
+					"glob": "dir1"
+				}
+			},
+
+			{
+				"id": "#directory_file",
+				"type": 
+				[
+					"null",
+					"File"
+				],
+
+				"outputBinding": 
+				{
+					"glob": "file2.txt"
+				}
+			}
+		],
+
+		"arguments": 
+		[
+			{
+				"valueFrom": 
+				{
+					"class": "Expression",
+					"engine": "cwl-js-engine",
+					"script": "{return 1 + 2}"
+				},
+
+				"position": 1,
+				"prefix": "-t"
+			}
+		],
+
+		"baseCommand": 
+		[
+			"bwa",
+			"mem"
+		],
+
+		"stdout": "output.sam"
+	}
+}

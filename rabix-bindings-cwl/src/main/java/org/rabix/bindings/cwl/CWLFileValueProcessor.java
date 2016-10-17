@@ -73,29 +73,4 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
     }
   }
 
-  @Override
-  public Set<FileValue> getFlattenedInputFiles(Job job) throws BindingException {
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    try {
-      return new CWLPortProcessorHelper(cwlJob).flattenInputFiles(job.getInputs());
-    } catch (CWLPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-  @Override
-  public Set<FileValue> getFlattenedOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    try {
-      Set<String> visiblePorts = null;
-      if (onlyVisiblePorts) {
-        visiblePorts = job.getVisiblePorts();
-      }
-      return new CWLPortProcessorHelper(cwlJob).flattenOutputFiles(job.getOutputs(), visiblePorts);
-    } catch (CWLPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-
 }

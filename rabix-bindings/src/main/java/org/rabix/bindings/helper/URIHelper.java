@@ -29,7 +29,7 @@ public class URIHelper {
   public final static String FTP_URI_SCHEME = "ftp://";
   public final static String HTTP_URI_SCHEME = "http";
   public final static String DATA_URI_SCHEME = "data";
-  public final static String FILE_URI_SCHEME = "file";
+  public final static String FILE_URI_SCHEME = "file://";
   
   private final static String DATA_URI_BASE_64 = "base64";
   private final static String DATA_URI_PAYLOAD_SEPARATOR = ",";
@@ -72,7 +72,7 @@ public class URIHelper {
   }
   
   public static String createURI(String scheme, String payload) {
-    return scheme + ":" + payload;
+    return scheme + payload;
   }
   
   public static String createDataURI(String payload) {
@@ -100,10 +100,10 @@ public class URIHelper {
       return uri.substring(FTP_URI_SCHEME.length());
     }
     if (isFile(uri)) {
-      return uri.substring(FILE_URI_SCHEME.length() + 1);
+      return uri.substring(FILE_URI_SCHEME.length());
     }
     if (isData(uri)) {
-      return uri.substring(DATA_URI_PAYLOAD_SEPARATOR.length() + 1);
+      return uri;
     }
     if (isHTTP(uri)) {
       return uri.substring(HTTP_URI_SCHEME.length() + 1);

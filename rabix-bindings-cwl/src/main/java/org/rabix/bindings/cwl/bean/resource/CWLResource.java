@@ -6,6 +6,7 @@ import java.util.Map;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLCreateFileRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLEnvVarRequirement;
+import org.rabix.bindings.cwl.bean.resource.requirement.CWLInitialWorkDirRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLInlineJavascriptRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLSchemaDefRequirement;
@@ -16,20 +17,26 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = CWLResource.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = CWLResource.class, visible = true)
 @JsonSubTypes({ @Type(value = CWLDockerResource.class, name = "DockerRequirement"),
     @Type(value = CWLInlineJavascriptRequirement.class, name = "InlineJavascriptRequirement"),
     @Type(value = CWLShellCommandRequirement.class, name = "ShellCommandRequirement"),
     @Type(value = CWLResourceRequirement.class, name = "ResourceRequirement"),
     @Type(value = CWLSchemaDefRequirement.class, name = "SchemaDefRequirement"),
     @Type(value = CWLCreateFileRequirement.class, name = "CreateFileRequirement"),
+    @Type(value = CWLInitialWorkDirRequirement.class, name = "InitialWorkDirRequirement"),
     @Type(value = CWLEnvVarRequirement.class, name = "EnvVarRequirement") })
 @JsonInclude(Include.NON_NULL)
 public class CWLResource {
+  
+  @JsonProperty("class")
+  protected String type;
   protected Map<String, Object> raw = new HashMap<>();
 
   public CWLResource() {
@@ -57,8 +64,13 @@ public class CWLResource {
   }
 
   @JsonIgnore
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.OTHER;
+  }
+  
+  @JsonTypeId
+  public String getType() {
+    return type;
   }
 
   @Override
@@ -88,6 +100,7 @@ public class CWLResource {
 
   @Override
   public String toString() {
-    return "Hint [" + raw + "]";
+    return "CWLResource [type=" + type + ", raw=" + raw + "]";
   }
+
 }

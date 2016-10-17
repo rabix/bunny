@@ -5,7 +5,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,9 +25,13 @@ import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
+import org.rabix.bindings.model.Application;
+import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.DataType;
+import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.bindings.model.*;
+import org.rabix.bindings.model.Resources;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.VerboseLogger;
@@ -397,7 +405,7 @@ public class BackendCommandLine {
         Map<String, Object> allocatedResources = (Map<String, Object>) inputs.get("allocatedResources");
         Long cpu = ((Integer) allocatedResources.get("cpu")).longValue();
         Long mem = ((Integer) allocatedResources.get("mem")).longValue();
-        return new Resources(cpu, mem, null, false);
+        return new Resources(cpu, mem, null, false, null);
       }
     }
     case DRAFT3: 
@@ -412,7 +420,7 @@ public class BackendCommandLine {
       if (inputType.isFile()) {
         List<Map<String, Object>> ret = new ArrayList<>();
         for (String s : value) {
-          FileValue fileValue = new FileValue(null, s, null, null, null, null);
+          FileValue fileValue = new FileValue(null, s, null, null, null, null, null);
           Map<String, Object> entry = bindings.translateFile(fileValue);
           ret.add(entry);
         }
@@ -423,7 +431,7 @@ public class BackendCommandLine {
     }
 
     if (inputType.isFile()) {
-      FileValue fileValue = new FileValue(null, value[0], null, null, null, null);
+      FileValue fileValue = new FileValue(null, value[0], null, null, null, null, null);
       return bindings.translateFile(fileValue);
     } else {
       return value[0];

@@ -81,10 +81,9 @@ public class Draft3Step {
     for (Map<String, Object> port : portList) {
       String id = Draft3SchemaHelper.getLastInputId(Draft3BindingHelper.getId(port));
       id = Draft3SchemaHelper.normalizeId(id);
-      Object value = Draft3BindingHelper.getDefault(port);
-      if (value != null) {
-        portMap.put(id, value);
-      }
+      Object defaultValue = Draft3BindingHelper.getDefault(port);
+      Object valueFrom = Draft3BindingHelper.getValueFrom(port);
+      portMap.put(id, new Draft3StepInputs(defaultValue, valueFrom));
     }
     return portMap;
   }

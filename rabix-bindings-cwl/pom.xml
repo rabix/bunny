@@ -20,5 +20,10 @@
 			<artifactId>rabix-bindings</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+  			<groupId>org.apache.avro</groupId>
+  			<artifactId>avro</artifactId>
+  			<version>1.7.7</version>
+  		</dependency>
 	</dependencies>
 </project>

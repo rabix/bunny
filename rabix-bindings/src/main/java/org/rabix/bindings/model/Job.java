@@ -91,6 +91,10 @@ public class Job {
   public static Job cloneWithId(Job job, String id) {
     return new Job(id, job.parentId, job.rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
+  
+  public static Job cloneWithName(Job job, String name) {
+    return new Job(job.id, job.parentId, job.rootId, name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
+  }
 
   public static Job cloneWithIds(Job job, String id, String rootId) {
     return new Job(id, job.parentId, rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);

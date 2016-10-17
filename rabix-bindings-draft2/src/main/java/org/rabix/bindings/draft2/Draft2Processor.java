@@ -30,6 +30,7 @@ import org.rabix.bindings.draft2.service.Draft2MetadataService;
 import org.rabix.bindings.draft2.service.impl.Draft2GlobServiceImpl;
 import org.rabix.bindings.draft2.service.impl.Draft2MetadataServiceImpl;
 import org.rabix.bindings.model.Job;
+import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
@@ -92,7 +93,7 @@ public class Draft2Processor implements ProtocolProcessor {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     try {
       Map<String, Object> outputs = null;
@@ -105,10 +106,10 @@ public class Draft2Processor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(draft2Job, workingDir, null);
+        outputs = collectOutputs(draft2Job, workingDir, hashAlgorithm);
       }
       outputs = new Draft2PortProcessorHelper(draft2Job).fixOutputMetadata(draft2Job.getInputs(), outputs);
-      writeResult(workingDir, outputs);
+      BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
       return Job.cloneWithOutputs(job, outputs);
     } catch (Draft2GlobException | Draft2ExpressionException | IOException | Draft2PortProcessorException e) {
       throw new BindingException(e);
@@ -120,6 +121,8 @@ public class Draft2Processor implements ProtocolProcessor {
     
     if (resultFile.exists()) {
       String resultStr = FileUtils.readFileToString(resultFile);
+      Map<String, Object> outputs = JSONHelper.readMap(resultStr);
+      postprocessToolCreatedResults(outputs, hashAlgorithm);
       return JSONHelper.readMap(resultStr);
     }
     
@@ -131,14 +134,41 @@ public class Draft2Processor implements ProtocolProcessor {
         result.put(Draft2SchemaHelper.normalizeId(outputPort.getId()), singleResult);
       }
     }
-    writeResult(workingDir, result);
     return result;
   }
   
-  public void writeResult(File workingDir, Map<String, Object> result) {
-    BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), result);
+  private void postprocessToolCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
+    if (value == null) {
+      return;
+    }
+    if ((Draft2SchemaHelper.isFileFromValue(value))) {
+      File file = new File(Draft2FileValueHelper.getPath(value));
+      if (!file.exists()) {
+        return;
+      }
+      Draft2FileValueHelper.setSize(file.length(), value);
+      
+      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+      if (checksum != null) {
+        Draft2FileValueHelper.setChecksum(checksum, value);
+      }
+      List<Map<String, Object>> secondaryFiles = Draft2FileValueHelper.getSecondaryFiles(value);
+      if (secondaryFiles != null) {
+        for (Object secondaryFile : secondaryFiles) {
+          postprocessToolCreatedResults(secondaryFile, hashAlgorithm);
+        }
+      }
+    } else if (value instanceof List<?>) {
+      for (Object subvalue : (List<?>) value) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    } else if (value instanceof Map<?, ?>) {
+      for (Object subvalue : ((Map<?, ?>) value).values()) {
+        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+      }
+    }
   }
-
+  
   @SuppressWarnings("unchecked")
   private Object collectOutput(Draft2Job job, File workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, Draft2OutputPort outputPort) throws Draft2GlobException, Draft2ExpressionException, BindingException {
     if (binding == null) {
@@ -212,9 +242,8 @@ public class Draft2Processor implements ProtocolProcessor {
       }
     }
     return result;
-
   }
-
+  
   /**
    * Extracts files from a directory based on GLOB expression
    */
@@ -327,6 +356,11 @@ public class Draft2Processor implements ProtocolProcessor {
       }
     }
     return secondaryFileMaps;
+  }
+
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    return value;
   }
 
 }

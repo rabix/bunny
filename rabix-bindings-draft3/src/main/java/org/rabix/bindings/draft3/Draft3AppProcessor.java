@@ -33,16 +33,16 @@ public class Draft3AppProcessor implements ProtocolAppProcessor {
 
   @Override
   public void validate(Job job) throws BindingException {
-    Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
 
     boolean throwException = false;
     StringBuilder builder = new StringBuilder("Missing inputs: ");
 
-    Draft3JobApp draft2JobApp = draft2Job.getApp();
-    for (Draft3InputPort inputPort : draft2JobApp.getInputs()) {
+    Draft3JobApp draft3JobApp = draft3Job.getApp();
+    for (Draft3InputPort inputPort : draft3JobApp.getInputs()) {
       if (Draft3SchemaHelper.isRequired(inputPort.getSchema())) {
         String inputPortId = Draft3SchemaHelper.normalizeId(inputPort.getId());
-        if (!draft2Job.getInputs().containsKey(inputPortId)) {
+        if (!draft3Job.getInputs().containsKey(inputPortId)) {
           builder.append(throwException ? "," : "").append(inputPortId);
           throwException = true;
         }
