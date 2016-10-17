@@ -5,7 +5,7 @@ import java.util.List;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 
-public class FileRequirement implements Requirement {
+public class FileRequirement extends Requirement {
 
   private final List<SingleFileRequirement> fileRequirements;
 
@@ -15,6 +15,21 @@ public class FileRequirement implements Requirement {
 
   public List<SingleFileRequirement> getFileRequirements() {
     return fileRequirements;
+  }
+  
+  @Override
+  public boolean isCustom() {
+    return false;
+  }
+
+  @Override
+  public Object getData() {
+    return null;
+  }
+
+  @Override
+  public String getType() {
+    return FILE_REQUIREMENT_TYPE;
   }
   
   @Override
@@ -98,4 +113,5 @@ public class FileRequirement implements Requirement {
     }
     
   }
+
 }

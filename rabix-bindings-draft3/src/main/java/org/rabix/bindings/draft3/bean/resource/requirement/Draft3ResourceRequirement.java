@@ -119,7 +119,7 @@ public class Draft3ResourceRequirement extends Draft3Resource {
   }  
   
   @Override
-  public Draft3ResourceType getType() {
+  public Draft3ResourceType getTypeEnum() {
     return Draft3ResourceType.RESOURCE_REQUIREMENT;
   }
 

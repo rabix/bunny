@@ -31,7 +31,7 @@ public class SBIORequirement extends SBResource {
   
   @Override
   @JsonIgnore
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.IO_REQUIREMENT;
   }
   

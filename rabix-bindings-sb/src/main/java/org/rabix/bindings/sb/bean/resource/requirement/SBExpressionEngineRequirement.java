@@ -29,7 +29,7 @@ public class SBExpressionEngineRequirement extends SBResource {
   
   @Override
   @JsonIgnore
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.EXPRESSION_ENGINE_REQUIREMENT;
   }
 

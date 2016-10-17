@@ -29,7 +29,7 @@ public class SBCpuResource extends SBResource {
   
   @Override
   @JsonIgnore
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.CPU_RESOURCE;
   }
   

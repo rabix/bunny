@@ -19,7 +19,7 @@ public class CWLSchemaDefRequirement extends CWLResource {
   
   @Override
   @JsonIgnore
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.SCHEMA_DEF_REQUIREMENT;
   }
   

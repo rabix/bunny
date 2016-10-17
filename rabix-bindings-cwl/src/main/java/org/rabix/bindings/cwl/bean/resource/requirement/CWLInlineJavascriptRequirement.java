@@ -17,7 +17,7 @@ public class CWLInlineJavascriptRequirement extends CWLResource {
   }
 
   @Override
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.INLINE_JAVASCRIPT_REQUIREMENT;
   }
 

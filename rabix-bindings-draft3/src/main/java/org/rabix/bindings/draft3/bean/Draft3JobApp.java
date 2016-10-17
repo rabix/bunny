@@ -144,7 +144,7 @@ public abstract class Draft3JobApp implements Application {
   
   public <T> void setHint(Draft3Resource resource) {
     for (Draft3Resource hint : hints) {
-      if (resource.getType().equals(hint.getType())) {
+      if (resource.getTypeEnum().equals(hint.getTypeEnum())) {
         hints.remove(hint);
         hints.add(resource);
         break;
@@ -155,7 +155,7 @@ public abstract class Draft3JobApp implements Application {
   public <T> void setRequirement(Draft3Resource resource) {
     boolean add = true;
     for (Draft3Resource requirement : requirements) {
-      if (resource.getType().equals(requirement.getType())) {
+      if (resource.getTypeEnum().equals(requirement.getTypeEnum())) {
         add = false;
         break;
       }
@@ -196,7 +196,7 @@ public abstract class Draft3JobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (Draft3Resource requirement : requirements) {
-      if (type.equals(requirement.getType())) {
+      if (type.equals(requirement.getTypeEnum())) {
         result.add(clazz.cast(requirement));
       }
     }
@@ -210,7 +210,7 @@ public abstract class Draft3JobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (Draft3Resource hint : hints) {
-      if (type.equals(hint.getType())) {
+      if (type.equals(hint.getTypeEnum())) {
         result.add(clazz.cast(hint));
       }
     }

@@ -10,6 +10,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.requirement.CustomRequirement;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
@@ -131,6 +132,7 @@ public class SBRequirementProvider implements ProtocolRequirementProvider {
         result.add(getFileRequirement(sbJob, (SBCreateFileRequirement) sbResource));
         continue;
       }
+      result.add(new CustomRequirement(sbResource.getType(), sbResource.getRaw()));
     }
     return result;
   }

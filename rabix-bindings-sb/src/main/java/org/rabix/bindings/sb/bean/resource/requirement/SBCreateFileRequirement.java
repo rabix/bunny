@@ -84,7 +84,7 @@ public class SBCreateFileRequirement extends SBResource {
 
   @Override
   @JsonIgnore
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.CREATE_FILE_REQUIREMENT;
   }
 

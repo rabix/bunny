@@ -134,7 +134,7 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
   
   @Override
   @JsonIgnore
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.INITIAL_WORK_DIR_REQUIREMENT;
   }
   

@@ -26,6 +26,7 @@ import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.requirement.CustomRequirement;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
@@ -154,6 +155,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         result.add(getFileRequirement(cwlJob, (CWLInitialWorkDirRequirement) cwlResource));
         continue;
       }
+      result.add(new CustomRequirement(cwlResource.getType(), cwlResource.getRaw()));
     }
     return result;
   }

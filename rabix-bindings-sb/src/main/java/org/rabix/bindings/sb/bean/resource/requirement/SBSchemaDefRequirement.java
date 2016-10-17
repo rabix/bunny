@@ -19,7 +19,7 @@ public class SBSchemaDefRequirement extends SBResource {
   
   @Override
   @JsonIgnore
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.SCHEMA_DEF_REQUIREMENT;
   }
   
