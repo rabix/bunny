@@ -76,6 +76,14 @@ public class CWLPortProcessorHelper {
     }
   }
 
+  public Map<String, Object> createFileLiteralFiles(Map<String, Object> inputs, File workingDir) throws CWLPortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new CWLFileLiteralProcessorCallback(workingDir));
+    } catch (CWLPortProcessorException e) {
+      throw new CWLPortProcessorException("Failed to set paths", e);
+    }
+  }
+  
   public Map<String, Object> loadInputContents(Map<String, Object> inputs) throws CWLPortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new CWLLoadContentsPortProcessorCallback());

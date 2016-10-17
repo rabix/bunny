@@ -3,6 +3,7 @@ package org.rabix.bindings.cwl.processor.callback;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
@@ -43,7 +44,12 @@ public class CWLFilePathMapProcessorCallback implements CWLPortProcessorCallback
   private Object mapSingleFile(Object value) throws FileMappingException {
     if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       Object clonedValue = CloneHelper.deepCopy(value);
-      CWLFileValueHelper.setPath(filePathMapper.map(CWLFileValueHelper.getPath(clonedValue), config), clonedValue);
+      String path = CWLFileValueHelper.getPath(clonedValue);
+      if (StringUtils.isEmpty(path)) { // file literals
+        return value;
+      }
+
+      CWLFileValueHelper.setPath(filePathMapper.map(path, config), clonedValue);
       
       List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(clonedValue);
       if (secondaryFiles != null) {

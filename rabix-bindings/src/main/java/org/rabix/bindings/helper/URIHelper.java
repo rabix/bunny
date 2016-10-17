@@ -96,6 +96,9 @@ public class URIHelper {
   }
   
   public static String getURIInfo(String uri) {
+    if (uri == null) {
+      return null;
+    }
     if (isFTP(uri)) {
       return uri.substring(FTP_URI_SCHEME.length());
     }

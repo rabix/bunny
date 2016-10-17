@@ -83,6 +83,8 @@ public class CWLProcessor implements ProtocolProcessor {
       FileUtils.writeStringToFile(jobFile, serializedJob);
       
       Map<String, Object> inputs = job.getInputs();
+      
+      inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
       inputs = portProcessorHelper.setPathsToInputs(inputs);
       inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
