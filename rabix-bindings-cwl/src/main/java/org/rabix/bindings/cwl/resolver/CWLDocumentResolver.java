@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
@@ -58,7 +59,7 @@ public class CWLDocumentResolver {
   public static final String RESOLVER_REFERENCE_KEY = "$import";
   public static final String RESOLVER_REFERENCE_INCLUDE_KEY = "$include";
   public static final String GRAPH_KEY = "$graph";
-  public static final String SCHEMA_KEY = "$schema";
+  public static final String SCHEMA_KEY = "$schemas";
   public static final String NAMESPACES_KEY = "$namespaces";
   
   public static final String RESOLVER_JSON_POINTER_KEY = "$job";
@@ -92,6 +93,10 @@ private static boolean graphResolve = false;
       root = JSONHelper.readJsonNode(input);
     } catch (IOException e) {
       throw new BindingException(e);
+    }
+    
+    if(root.has(SCHEMA_KEY)) {
+      throw new NotImplementedException("Feature not implemented"); 
     }
     
     if(root.has(GRAPH_KEY)) {

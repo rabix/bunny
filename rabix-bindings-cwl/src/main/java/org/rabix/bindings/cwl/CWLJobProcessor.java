@@ -61,7 +61,6 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
         stepJob.setId(stepId);
         processHints(step, job.getApp(), stepJob.getApp());
         processRequirements(step, job.getApp(), stepJob.getApp());
-        //processResources(job.getApp(), stepJob.getApp());
         processElements(job, stepJob);
         process(job, stepJob);
       }

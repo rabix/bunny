@@ -43,6 +43,7 @@ public class CWLStep {
   @JsonProperty("hints")
   @JsonDeserialize(using = CWLResourcesDeserializer.class)
   protected List<CWLResource> hints = new ArrayList<>();
+  
   @JsonProperty("requirements")
   @JsonDeserialize(using = CWLResourcesDeserializer.class)
   protected List<CWLResource> requirements = new ArrayList<>();
