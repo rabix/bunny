@@ -21,6 +21,8 @@ public class CWLFileValueHelper extends CWLBeanHelper {
 
   private static final String KEY_NAME = "basename";
   private static final String KEY_DIRNAME = "dirname";
+  private static final String KEY_NAMEROOT = "nameroot";
+  private static final String KEY_NAMEEXT = "nameext";
   private static final String KEY_PATH = "path";
   private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";
@@ -39,6 +41,14 @@ public class CWLFileValueHelper extends CWLBeanHelper {
 
   public static Object getFormat(Object raw) {
     return getValue(KEY_FORMAT, raw);
+  }
+  
+  public static void setNameroot(String nameroot, Object raw) {
+    setValue(KEY_NAMEROOT, nameroot, raw);
+  }
+  
+  public static void setNameext(String nameext, Object raw) {
+    setValue(KEY_NAMEEXT, nameext, raw);
   }
   
   public static String getName(Object raw) {

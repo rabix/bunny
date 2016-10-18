@@ -28,6 +28,13 @@ public class CWLFilePropertiesProcessorCallback implements CWLPortProcessorCallb
       File file = new File(path);
       CWLFileValueHelper.setSize(file.length(), clonedValue);
       CWLFileValueHelper.setName(file.getName(), clonedValue);
+      
+      int dotIndex = file.getName().lastIndexOf(".");
+      if (dotIndex != -1) {
+        CWLFileValueHelper.setNameext(file.getName().substring(dotIndex), clonedValue);
+        CWLFileValueHelper.setNameroot(file.getName().substring(0, dotIndex), clonedValue);
+      }
+      
       CWLFileValueHelper.setDirname(file.getParentFile().getAbsolutePath(), clonedValue);
 
       List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(clonedValue);
