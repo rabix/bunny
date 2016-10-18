@@ -1,0 +1,854 @@
+
+{
+  "id": "root",
+  "requirements": [],
+  "sbg:canvas_x": -280,
+  "sbg:image_url": "https://brood.sbgenomics.com/static/sinisa/strawberry/grep-demo/3.png",
+  "sbg:project": "sinisa/strawberry",
+  "sbg:canvas_y": 99,
+  "sbg:validationErrors": [],
+  "sbg:modifiedBy": "sinisa",
+  "inputs": [
+    {
+      "type": [
+        "null",
+        "File"
+      ],
+      "label": "input_file",
+      "id": "#input_file",
+      "sbg:y": 290,
+      "sbg:x": 48
+    },
+    {
+      "type": [
+        "null",
+        "string"
+      ],
+      "inputBinding": {
+        "sbg:cmdInclude": true,
+        "separate": true,
+        "position": 1
+      },
+      "id": "#pattern"
+    },
+    {
+      "type": [
+        "null",
+        "string"
+      ],
+      "inputBinding": {
+        "sbg:cmdInclude": true,
+        "separate": true,
+        "position": 1
+      },
+      "id": "#pattern_1"
+    },
+    {
+      "type": [
+        "null",
+        "string"
+      ],
+      "inputBinding": {
+        "sbg:cmdInclude": true,
+        "separate": true,
+        "position": 1
+      },
+      "id": "#pattern_1_1"
+    },
+    {
+      "type": [
+        "null",
+        "string"
+      ],
+      "inputBinding": {
+        "sbg:cmdInclude": true,
+        "separate": true,
+        "position": 1
+      },
+      "id": "#pattern_2"
+    }
+  ],
+  "outputs": [
+    {
+      "sbg:includeInPorts": true,
+      "sbg:y": 153,
+      "sbg:x": 1426,
+      "type": [
+        "null",
+        "File"
+      ],
+      "label": "output_1",
+      "id": "#output_1",
+      "source": [
+        "#grep_workflow.output_1"
+      ]
+    },
+    {
+      "sbg:includeInPorts": true,
+      "sbg:y": 433,
+      "sbg:x": 1403,
+      "type": [
+        "null",
+        "File"
+      ],
+      "label": "output",
+      "id": "#output",
+      "source": [
+        "#grep_workflow.output"
+      ]
+    },
+    {
+      "sbg:includeInPorts": true,
+      "sbg:y": 662,
+      "sbg:x": 1408,
+      "type": [
+        "null",
+        "File"
+      ],
+      "label": "output_2",
+      "id": "#output_2",
+      "source": [
+        "#grep.output"
+      ]
+    }
+  ],
+  "sbg:revision": 3,
+  "sbg:contributors": [
+    "sinisa"
+  ],
+  "steps": [
+    {
+      "run": {
+        "requirements": [],
+        "stdin": "",
+        "successCodes": [],
+        "temporaryFailCodes": [],
+        "id": "https://api.sbgenomics.com/v2/apps/sinisa/strawberry/grep/1/raw/",
+        "sbg:project": "sinisa/strawberry",
+        "sbg:validationErrors": [],
+        "sbg:modifiedBy": "sinisa",
+        "inputs": [
+          {
+            "type": [
+              "null",
+              "File"
+            ],
+            "inputBinding": {
+              "sbg:cmdInclude": true,
+              "separate": true,
+              "position": 2
+            },
+            "id": "#input_file"
+          },
+          {
+            "type": [
+              "null",
+              "string"
+            ],
+            "inputBinding": {
+              "sbg:cmdInclude": true,
+              "separate": true,
+              "position": 1
+            },
+            "id": "#pattern"
+          }
+        ],
+        "outputs": [
+          {
+            "type": [
+              "null",
+              "File"
+            ],
+            "outputBinding": {
+              "glob": "*.txt"
+            },
+            "id": "#output"
+          }
+        ],
+        "sbg:revision": 1,
+        "sbg:contributors": [
+          "sinisa"
+        ],
+        "sbg:revisionsInfo": [
+          {
+            "sbg:revision": 0,
+            "sbg:modifiedOn": 1455901751,
+            "sbg:modifiedBy": "sinisa"
+          },
+          {
+            "sbg:revision": 1,
+            "sbg:modifiedOn": 1455901813,
+            "sbg:modifiedBy": "sinisa"
+          }
+        ],
+        "class": "CommandLineTool",
+        "sbg:sbgMaintained": false,
+        "sbg:createdBy": "sinisa",
+        "baseCommand": [
+          "grep"
+        ],
+        "arguments": [],
+        "description": "",
+        "stdout": "output.txt",
+        "sbg:latestRevision": 1,
+        "hints": [
+          {
+            "class": "sbg:CPURequirement",
+            "value": 1
+          },
+          {
+            "class": "sbg:MemRequirement",
+            "value": 1000
+          },
+          {
+            "dockerImageId": "",
+            "class": "DockerRequirement",
+            "dockerPull": "ubuntu:latest"
+          }
+        ],
+        "sbg:id": "sinisa/strawberry/grep/1",
+        "sbg:modifiedOn": 1455901813,
+        "sbg:createdOn": 1455901751,
+        "label": "grep",
+        "sbg:job": {
+          "allocatedResources": {
+            "mem": 1000,
+            "cpu": 1
+          },
+          "inputs": {
+            "pattern": "pattern-string-value",
+            "input_file": {
+              "size": 0,
+              "class": "File",
+              "path": "/path/to/input_file.ext",
+              "secondaryFiles": []
+            }
+          }
+        },
+        "sbg:cmdPreview": "grep  > output.txt"
+      },
+      "inputs": [
+        {
+          "id": "#grep.input_file",
+          "source": [
+            "#input_file"
+          ]
+        },
+        {
+          "id": "#grep.pattern",
+          "source": [
+            "#pattern"
+          ]
+        }
+      ],
+      "sbg:y": 219,
+      "outputs": [
+        {
+          "id": "#grep.output"
+        }
+      ],
+      "sbg:x": 520,
+      "id": "#grep",
+      "scatter": "#grep.input_file"
+    },
+    {
+      "run": {
+        "requirements": [],
+        "sbg:canvas_x": 0,
+        "sbg:image_url": "https://brood.sbgenomics.com/static/sinisa/strawberry/grep-workflow/2.png",
+        "sbg:project": "sinisa/strawberry",
+        "sbg:canvas_y": 0,
+        "sbg:validationErrors": [],
+        "sbg:modifiedBy": "sinisa",
+        "inputs": [
+          {
+            "type": [
+              "null",
+              "File"
+            ],
+            "label": "input_file",
+            "id": "#input_file",
+            "sbg:y": 217,
+            "sbg:x": 94
+          },
+          {
+            "type": [
+              "null",
+              "string"
+            ],
+            "inputBinding": {
+              "sbg:cmdInclude": true,
+              "separate": true,
+              "position": 1
+            },
+            "id": "#pattern"
+          },
+          {
+            "type": [
+              "null",
+              "string"
+            ],
+            "inputBinding": {
+              "sbg:cmdInclude": true,
+              "separate": true,
+              "position": 1
+            },
+            "id": "#pattern_1"
+          },
+          {
+            "type": [
+              "null",
+              "string"
+            ],
+            "inputBinding": {
+              "sbg:cmdInclude": true,
+              "separate": true,
+              "position": 1
+            },
+            "id": "#pattern_2"
+          }
+        ],
+        "outputs": [
+          {
+            "sbg:includeInPorts": true,
+            "sbg:y": 235,
+            "sbg:x": 976,
+            "type": [
+              "null",
+              "File"
+            ],
+            "label": "output",
+            "id": "#output",
+            "source": [
+              "#grep_2.output"
+            ]
+          },
+          {
+            "sbg:includeInPorts": true,
+            "sbg:y": 431,
+            "sbg:x": 963,
+            "type": [
+              "null",
+              "File"
+            ],
+            "label": "output_1",
+            "id": "#output_1",
+            "source": [
+              "#grep.output"
+            ]
+          }
+        ],
+        "sbg:revision": 2,
+        "sbg:contributors": [
+          "sinisa"
+        ],
+        "steps": [
+          {
+            "run": {
+              "requirements": [],
+              "stdin": "",
+              "successCodes": [],
+              "temporaryFailCodes": [],
+              "id": "https://api.sbgenomics.com/sinisa/strawberry/grep/1/raw/",
+              "sbg:project": "sinisa/strawberry",
+              "sbg:validationErrors": [],
+              "sbg:modifiedBy": "sinisa",
+              "inputs": [
+                {
+                  "type": [
+                    "null",
+                    "File"
+                  ],
+                  "inputBinding": {
+                    "sbg:cmdInclude": true,
+                    "separate": true,
+                    "position": 2
+                  },
+                  "id": "#input_file"
+                },
+                {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "inputBinding": {
+                    "sbg:cmdInclude": true,
+                    "separate": true,
+                    "position": 1
+                  },
+                  "id": "#pattern"
+                }
+              ],
+              "outputs": [
+                {
+                  "type": [
+                    "null",
+                    "File"
+                  ],
+                  "outputBinding": {
+                    "glob": "*.txt"
+                  },
+                  "id": "#output"
+                }
+              ],
+              "sbg:revision": 1,
+              "sbg:contributors": [
+                "sinisa"
+              ],
+              "sbg:revisionsInfo": [
+                {
+                  "sbg:revision": 0,
+                  "sbg:modifiedOn": 1455901751,
+                  "sbg:modifiedBy": "sinisa"
+                },
+                {
+                  "sbg:revision": 1,
+                  "sbg:modifiedOn": 1455901813,
+                  "sbg:modifiedBy": "sinisa"
+                }
+              ],
+              "class": "CommandLineTool",
+              "sbg:sbgMaintained": false,
+              "sbg:createdBy": "sinisa",
+              "baseCommand": [
+                "grep"
+              ],
+              "arguments": [],
+              "description": "",
+              "stdout": "output.txt",
+              "sbg:latestRevision": 1,
+              "hints": [
+                {
+                  "class": "sbg:CPURequirement",
+                  "value": 1
+                },
+                {
+                  "class": "sbg:MemRequirement",
+                  "value": 1000
+                },
+                {
+                  "dockerImageId": "",
+                  "class": "DockerRequirement",
+                  "dockerPull": "ubuntu:latest"
+                }
+              ],
+              "sbg:id": "sinisa/strawberry/grep/1",
+              "sbg:modifiedOn": 1455901813,
+              "sbg:createdOn": 1455901751,
+              "label": "grep",
+              "sbg:job": {
+                "allocatedResources": {
+                  "mem": 1000,
+                  "cpu": 1
+                },
+                "inputs": {
+                  "pattern": "pattern-string-value",
+                  "input_file": {
+                    "size": 0,
+                    "class": "File",
+                    "path": "/path/to/input_file.ext",
+                    "secondaryFiles": []
+                  }
+                }
+              },
+              "sbg:cmdPreview": "grep  > output.txt"
+            },
+            "inputs": [
+              {
+                "id": "#grep.input_file",
+                "source": [
+                  "#input_file"
+                ]
+              },
+              {
+                "id": "#grep.pattern",
+                "source": [
+                  "#pattern"
+                ]
+              }
+            ],
+            "sbg:y": 406,
+            "outputs": [
+              {
+                "id": "#grep.output"
+              }
+            ],
+            "sbg:x": 453,
+            "id": "#grep"
+          },
+          {
+            "run": {
+              "requirements": [],
+              "stdin": "",
+              "successCodes": [],
+              "temporaryFailCodes": [],
+              "id": "https://api.sbgenomics.com/sinisa/strawberry/grep/1/raw/",
+              "sbg:project": "sinisa/strawberry",
+              "sbg:validationErrors": [],
+              "sbg:modifiedBy": "sinisa",
+              "inputs": [
+                {
+                  "type": [
+                    "null",
+                    "File"
+                  ],
+                  "inputBinding": {
+                    "sbg:cmdInclude": true,
+                    "separate": true,
+                    "position": 2
+                  },
+                  "id": "#input_file"
+                },
+                {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "inputBinding": {
+                    "sbg:cmdInclude": true,
+                    "separate": true,
+                    "position": 1
+                  },
+                  "id": "#pattern"
+                }
+              ],
+              "outputs": [
+                {
+                  "type": [
+                    "null",
+                    "File"
+                  ],
+                  "outputBinding": {
+                    "glob": "*.txt"
+                  },
+                  "id": "#output"
+                }
+              ],
+              "sbg:revision": 1,
+              "sbg:contributors": [
+                "sinisa"
+              ],
+              "sbg:revisionsInfo": [
+                {
+                  "sbg:revision": 0,
+                  "sbg:modifiedOn": 1455901751,
+                  "sbg:modifiedBy": "sinisa"
+                },
+                {
+                  "sbg:revision": 1,
+                  "sbg:modifiedOn": 1455901813,
+                  "sbg:modifiedBy": "sinisa"
+                }
+              ],
+              "class": "CommandLineTool",
+              "sbg:sbgMaintained": false,
+              "sbg:createdBy": "sinisa",
+              "baseCommand": [
+                "grep"
+              ],
+              "arguments": [],
+              "description": "",
+              "stdout": "output.txt",
+              "sbg:latestRevision": 1,
+              "hints": [
+                {
+                  "class": "sbg:CPURequirement",
+                  "value": 1
+                },
+                {
+                  "class": "sbg:MemRequirement",
+                  "value": 1000
+                },
+                {
+                  "dockerImageId": "",
+                  "class": "DockerRequirement",
+                  "dockerPull": "ubuntu:latest"
+                }
+              ],
+              "sbg:id": "sinisa/strawberry/grep/1",
+              "sbg:modifiedOn": 1455901813,
+              "sbg:createdOn": 1455901751,
+              "label": "grep",
+              "sbg:job": {
+                "allocatedResources": {
+                  "mem": 1000,
+                  "cpu": 1
+                },
+                "inputs": {
+                  "pattern": "pattern-string-value",
+                  "input_file": {
+                    "size": 0,
+                    "class": "File",
+                    "path": "/path/to/input_file.ext",
+                    "secondaryFiles": []
+                  }
+                }
+              },
+              "sbg:cmdPreview": "grep  > output.txt"
+            },
+            "inputs": [
+              {
+                "id": "#grep_1.input_file",
+                "source": [
+                  "#input_file"
+                ]
+              },
+              {
+                "id": "#grep_1.pattern",
+                "source": [
+                  "#pattern_1"
+                ]
+              }
+            ],
+            "sbg:y": 182,
+            "outputs": [
+              {
+                "id": "#grep_1.output"
+              }
+            ],
+            "sbg:x": 492,
+            "id": "#grep_1",
+            "scatter": "#grep_1.input_file"
+          },
+          {
+            "run": {
+              "requirements": [],
+              "stdin": "",
+              "successCodes": [],
+              "temporaryFailCodes": [],
+              "id": "https://api.sbgenomics.com/sinisa/strawberry/grep/1/raw/",
+              "sbg:project": "sinisa/strawberry",
+              "sbg:validationErrors": [],
+              "sbg:modifiedBy": "sinisa",
+              "inputs": [
+                {
+                  "type": [
+                    "null",
+                    "File"
+                  ],
+                  "inputBinding": {
+                    "sbg:cmdInclude": true,
+                    "separate": true,
+                    "position": 2
+                  },
+                  "id": "#input_file"
+                },
+                {
+                  "type": [
+                    "null",
+                    "string"
+                  ],
+                  "inputBinding": {
+                    "sbg:cmdInclude": true,
+                    "separate": true,
+                    "position": 1
+                  },
+                  "id": "#pattern"
+                }
+              ],
+              "outputs": [
+                {
+                  "type": [
+                    "null",
+                    "File"
+                  ],
+                  "outputBinding": {
+                    "glob": "*.txt"
+                  },
+                  "id": "#output"
+                }
+              ],
+              "sbg:revision": 1,
+              "sbg:contributors": [
+                "sinisa"
+              ],
+              "sbg:revisionsInfo": [
+                {
+                  "sbg:revision": 0,
+                  "sbg:modifiedOn": 1455901751,
+                  "sbg:modifiedBy": "sinisa"
+                },
+                {
+                  "sbg:revision": 1,
+                  "sbg:modifiedOn": 1455901813,
+                  "sbg:modifiedBy": "sinisa"
+                }
+              ],
+              "class": "CommandLineTool",
+              "sbg:sbgMaintained": false,
+              "sbg:createdBy": "sinisa",
+              "baseCommand": [
+                "grep"
+              ],
+              "arguments": [],
+              "description": "",
+              "stdout": "output.txt",
+              "sbg:latestRevision": 1,
+              "hints": [
+                {
+                  "class": "sbg:CPURequirement",
+                  "value": 1
+                },
+                {
+                  "class": "sbg:MemRequirement",
+                  "value": 1000
+                },
+                {
+                  "dockerImageId": "",
+                  "class": "DockerRequirement",
+                  "dockerPull": "ubuntu:latest"
+                }
+              ],
+              "sbg:id": "sinisa/strawberry/grep/1",
+              "sbg:modifiedOn": 1455901813,
+              "sbg:createdOn": 1455901751,
+              "label": "grep",
+              "sbg:job": {
+                "allocatedResources": {
+                  "mem": 1000,
+                  "cpu": 1
+                },
+                "inputs": {
+                  "pattern": "pattern-string-value",
+                  "input_file": {
+                    "size": 0,
+                    "class": "File",
+                    "path": "/path/to/input_file.ext",
+                    "secondaryFiles": []
+                  }
+                }
+              },
+              "sbg:cmdPreview": "grep  > output.txt"
+            },
+            "inputs": [
+              {
+                "id": "#grep_2.input_file",
+                "source": [
+                  "#grep_1.output"
+                ]
+              },
+              {
+                "id": "#grep_2.pattern",
+                "source": [
+                  "#pattern_2"
+                ]
+              }
+            ],
+            "sbg:y": 278,
+            "outputs": [
+              {
+                "id": "#grep_2.output"
+              }
+            ],
+            "sbg:x": 806,
+            "id": "#grep_2"
+          }
+        ],
+        "sbg:revisionsInfo": [
+          {
+            "sbg:revision": 0,
+            "sbg:modifiedOn": 1455901840,
+            "sbg:modifiedBy": "sinisa"
+          },
+          {
+            "sbg:revision": 1,
+            "sbg:modifiedOn": 1455901893,
+            "sbg:modifiedBy": "sinisa"
+          },
+          {
+            "sbg:revision": 2,
+            "sbg:modifiedOn": 1459812127,
+            "sbg:modifiedBy": "sinisa"
+          }
+        ],
+        "class": "Workflow",
+        "sbg:canvas_zoom": 1,
+        "sbg:sbgMaintained": false,
+        "id": "https://api.sbgenomics.com/v2/apps/sinisa/strawberry/grep-workflow/2/raw/",
+        "description": "",
+        "sbg:latestRevision": 2,
+        "sbg:createdBy": "sinisa",
+        "sbg:id": "sinisa/strawberry/grep-workflow/2",
+        "sbg:modifiedOn": 1459812127,
+        "sbg:createdOn": 1455901840,
+        "label": "grep_workflow",
+        "hints": []
+      },
+      "inputs": [
+        {
+          "id": "#grep_workflow.input_file",
+          "source": [
+            "#grep.output"
+          ]
+        },
+        {
+          "id": "#grep_workflow.pattern",
+          "source": [
+            "#pattern_1"
+          ]
+        },
+        {
+          "id": "#grep_workflow.pattern_1",
+          "source": [
+            "#pattern_1_1"
+          ]
+        },
+        {
+          "id": "#grep_workflow.pattern_2",
+          "source": [
+            "#pattern_2"
+          ]
+        }
+      ],
+      "sbg:y": 125,
+      "outputs": [
+        {
+          "id": "#grep_workflow.output"
+        },
+        {
+          "id": "#grep_workflow.output_1"
+        }
+      ],
+      "sbg:x": 1037,
+      "id": "#grep_workflow",
+      "scatter": "#grep_workflow.input_file"
+    }
+  ],
+  "sbg:revisionsInfo": [
+    {
+      "sbg:revision": 0,
+      "sbg:modifiedOn": 1457448853,
+      "sbg:modifiedBy": "sinisa",
+      "sbg:revisionNotes": null
+    },
+    {
+      "sbg:revision": 1,
+      "sbg:modifiedOn": 1457448904,
+      "sbg:modifiedBy": "sinisa",
+      "sbg:revisionNotes": null
+    },
+    {
+      "sbg:revision": 2,
+      "sbg:modifiedOn": 1457452492,
+      "sbg:modifiedBy": "sinisa",
+      "sbg:revisionNotes": null
+    },
+    {
+      "sbg:revision": 3,
+      "sbg:modifiedOn": 1459812147,
+      "sbg:modifiedBy": "sinisa",
+      "sbg:revisionNotes": null
+    }
+  ],
+  "class": "Workflow",
+  "sbg:canvas_zoom": 1,
+  "sbg:sbgMaintained": false,
+  "sbg:createdBy": "sinisa",
+  "description": "",
+  "sbg:latestRevision": 3,
+  "hints": [],
+  "sbg:id": "sinisa/strawberry/grep-demo/3",
+  "sbg:modifiedOn": 1459812147,
+  "sbg:createdOn": 1457448853,
+  "label": "grep-demo"
+}

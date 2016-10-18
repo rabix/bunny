@@ -1,0 +1,10 @@
+{
+  "input_file": {
+  "class": "File",
+  "path": "input.txt"
+  },
+  "pattern": "A",
+  "pattern_1": "T",
+  "pattern_1_1": "G", 
+  "pattern_2": "C"
+}
