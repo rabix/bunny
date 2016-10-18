@@ -39,7 +39,7 @@ public class CWLInputPortsDeserializer extends JsonDeserializer<List<CWLInputPor
           inputPort = BeanSerializer.deserialize(subnodeEntry.getValue().toString(), CWLInputPort.class);
           inputPort.setId(subnodeEntry.getKey());
         } else {
-          inputPort = new CWLInputPort(subnodeEntry.getKey(), null, subnodeEntry.getValue(), null, null, null, null, null, null);
+          inputPort = new CWLInputPort(subnodeEntry.getKey(), null, subnodeEntry.getValue(), null, null, null, null, null, null, null);
         }
         inputPorts.add(inputPort);
       }

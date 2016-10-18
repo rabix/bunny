@@ -14,8 +14,10 @@ import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLDirectoryValueHelper extends CWLBeanHelper {
 
-  private static final String KEY_NAME = "name";
+  private static final String KEY_NAME = "basename";
   private static final String KEY_PATH = "path";
+  private static final String KEY_NAMEROOT = "nameroot";
+  private static final String KEY_NAMEEXT = "nameext";
   private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";
   private static final String KEY_FORMAT = "format";
@@ -24,6 +26,14 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
   private static final String KEY_SECONDARY_FILES = "secondaryFiles";
   
   private static final String KEY_LISTING = "listing";
+  
+  public static void setNameroot(String nameroot, Object raw) {
+    setValue(KEY_NAMEROOT, nameroot, raw);
+  }
+  
+  public static void setNameext(String nameext, Object raw) {
+    setValue(KEY_NAMEEXT, nameext, raw);
+  }
   
   public static void setDirectoryType(Object raw) {
     setValue(CWLSchemaHelper.KEY_JOB_TYPE, CWLSchemaHelper.TYPE_JOB_DIRECTORY, raw);
@@ -82,6 +92,9 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     String path = getValue(KEY_PATH, raw);
     if (path == null) {
       path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
+      if (path == null) {
+        path = getValue(KEY_LOCATION, raw);
+      }
       setPath(path, raw);
     }
     return path;

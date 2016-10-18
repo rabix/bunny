@@ -22,7 +22,7 @@ public class Draft3DockerResource extends Draft3Resource {
 
   @Override
   @JsonIgnore
-  public Draft3ResourceType getType() {
+  public Draft3ResourceType getTypeEnum() {
     return Draft3ResourceType.DOCKER_RESOURCE;
   }
   

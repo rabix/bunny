@@ -3,6 +3,7 @@ package org.rabix.bindings.sb;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.BindingException;
@@ -22,6 +23,7 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
+import org.rabix.bindings.sb.helper.SBFileValueHelper;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
@@ -172,7 +174,7 @@ public class SBBindings implements Bindings {
   public ProtocolType getProtocolType() {
     return protocolType;
   }
-
+  
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
     return value;
@@ -183,4 +185,8 @@ public class SBBindings implements Bindings {
     return null;
   }
 
+  @Override
+  public Map<String, Object> translateFile(FileValue fileValue) {
+    return SBFileValueHelper.createFileRaw(fileValue);
+  }
 }

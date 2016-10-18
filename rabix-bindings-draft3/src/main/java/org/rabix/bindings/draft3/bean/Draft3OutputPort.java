@@ -26,8 +26,8 @@ public class Draft3OutputPort extends ApplicationPort {
   @JsonCreator
   public Draft3OutputPort(@JsonProperty("id") String id, @JsonProperty("format") Object format, @JsonProperty("default") Object defaultValue,
       @JsonProperty("type") Object schema, @JsonProperty("outputBinding") Object outputBinding,
-      @JsonProperty("scatter") Boolean scatter, @JsonProperty("source") Object source, @JsonProperty("secondaryFiles") Object secondaryFiles, @JsonProperty("linkMerge") String linkMerge) {
-    super(id, defaultValue, schema, scatter, linkMerge);
+      @JsonProperty("scatter") Boolean scatter, @JsonProperty("source") Object source, @JsonProperty("secondaryFiles") Object secondaryFiles, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("description") String description) {
+    super(id, defaultValue, schema, scatter, linkMerge, description);
     this.format = format;
     this.outputBinding = outputBinding;
     this.source = source;

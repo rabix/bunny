@@ -142,14 +142,13 @@ public class JobHandlerImpl implements JobHandler {
       statusCallback.onInputFilesDownloadCompleted(job);
       
       job = bindings.mapInputFilePaths(job, inputFileMapper);
+      job = bindings.preprocess(job, workingDir);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
 
       stageFileRequirements(combinedRequirements);
-
-      job = bindings.preprocess(job, workingDir);
 
       if (bindings.canExecute(job)) {
         containerHandler = new CompletedContainerHandler(job);
@@ -242,7 +241,10 @@ public class JobHandlerImpl implements JobHandler {
         Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);
         Set<File> files = new HashSet<>();
         for (FileValue fileValue : fileValues) {
-          files.add(new File(fileValue.getPath()));
+          File file = new File(fileValue.getPath());
+          if (file.exists()) {
+            files.add(new File(fileValue.getPath()));
+          }
         }
         uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
         job = bindings.mapOutputFilePaths(job, outputFileMapper);

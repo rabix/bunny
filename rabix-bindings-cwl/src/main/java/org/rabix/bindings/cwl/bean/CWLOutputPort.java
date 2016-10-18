@@ -26,8 +26,8 @@ public class CWLOutputPort extends ApplicationPort {
   @JsonCreator
   public CWLOutputPort(@JsonProperty("id") String id, @JsonProperty("format") Object format,  @JsonProperty("default") Object defaultValue,
       @JsonProperty("type") Object schema, @JsonProperty("outputBinding") Object outputBinding, @JsonProperty("scatter") Boolean scatter, 
-      @JsonProperty("outputSource") Object source, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("secondaryFiles") Object secondaryFiles) {
-    super(id, defaultValue, schema, scatter, linkMerge);
+      @JsonProperty("outputSource") Object source, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("secondaryFiles") Object secondaryFiles, @JsonProperty("description") String description) {
+    super(id, defaultValue, schema, scatter, linkMerge, description);
     this.format = format;
     this.outputBinding = outputBinding;
     this.source = source;
@@ -40,20 +40,20 @@ public class CWLOutputPort extends ApplicationPort {
     return CWLSchemaHelper.isArrayFromSchema(schema);
   }
   
-  public Object getOutputBinding() {
-    return outputBinding;
-  }
-
-  public Object getSource() {
-    return source;
-  }
-  
   public Object getFormat() {
     return format;
   }
   
+  public Object getOutputBinding() {
+    return outputBinding;
+  }
+
   public Object getSecondaryFiles() {
     return secondaryFiles;
+  }
+  
+  public Object getSource() {
+    return source;
   }
 
   @Override

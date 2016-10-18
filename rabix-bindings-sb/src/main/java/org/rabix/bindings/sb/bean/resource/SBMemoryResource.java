@@ -29,7 +29,7 @@ public class SBMemoryResource extends SBResource {
 
   @Override
   @JsonIgnore
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.MEMORY_RESOURCE;
   }
 

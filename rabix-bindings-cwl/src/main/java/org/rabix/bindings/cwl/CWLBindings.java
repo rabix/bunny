@@ -3,6 +3,7 @@ package org.rabix.bindings.cwl;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.BindingException;
@@ -19,6 +20,7 @@ import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
+import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -194,10 +196,14 @@ public class CWLBindings implements Bindings {
   public ProtocolType getProtocolType() {
     return protocolType;
   }
-
+  
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
     return processor.transformInputs(value, job, transform);
   }
 
+  @Override
+  public Map<String, Object> translateFile(FileValue fileValue) {
+    return CWLFileValueHelper.createFileRaw(fileValue);
+  }
 }

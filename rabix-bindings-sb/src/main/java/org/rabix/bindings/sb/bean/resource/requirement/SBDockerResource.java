@@ -22,7 +22,7 @@ public class SBDockerResource extends SBResource {
 
   @Override
   @JsonIgnore
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.DOCKER_RESOURCE;
   }
   

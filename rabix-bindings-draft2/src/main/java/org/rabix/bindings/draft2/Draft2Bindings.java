@@ -3,6 +3,7 @@ package org.rabix.bindings.draft2;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.BindingException;
@@ -15,6 +16,7 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
+import org.rabix.bindings.draft2.helper.Draft2FileValueHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.FileValue;
@@ -183,4 +185,8 @@ public class Draft2Bindings implements Bindings {
     return null;
   }
 
+  @Override
+  public Map<String, Object> translateFile(FileValue fileValue) {
+    return Draft2FileValueHelper.createFileRaw(fileValue);
+  }
 }

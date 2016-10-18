@@ -22,6 +22,7 @@ import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.requirement.CustomRequirement;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
@@ -131,6 +132,7 @@ public class Draft2RequirementProvider implements ProtocolRequirementProvider {
         result.add(getFileRequirement(draft2Job, (Draft2CreateFileRequirement) draft2Resource));
         continue;
       }
+      result.add(new CustomRequirement(draft2Resource.getType(), draft2Resource.getRaw()));
     }
     return result;
   }

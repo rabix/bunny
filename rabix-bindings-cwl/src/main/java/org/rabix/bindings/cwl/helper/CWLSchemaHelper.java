@@ -340,7 +340,10 @@ public class CWLSchemaHelper extends CWLBeanHelper {
 
     List<Object> schemaObjects = new ArrayList<>();
     for (Object schema : schemas) {
-      Object schemaObj = findSchema(schemaDefs, ((String) schema).substring(1));
+      Object schemaObj = schema;
+      if (schema instanceof String) {
+        schemaObj = findSchema(schemaDefs, ((String) schema).substring(1));
+      }
 
       if (schemaObj == null) {
         continue;

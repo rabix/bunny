@@ -78,7 +78,7 @@ public class CWLCreateFileRequirement extends CWLResource {
 
   @Override
   @JsonIgnore
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.CREATE_FILE_REQUIREMENT;
   }
 

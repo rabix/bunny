@@ -1,14 +1,10 @@
 package org.rabix.bindings.draft2.helper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.avro.Schema;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.model.DataType;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.JSONHelper;
 
@@ -108,7 +104,7 @@ public class Draft2SchemaHelper extends Draft2BeanHelper {
       }
       if (clonedSchema instanceof List<?>) {
         for (Object subschema : ((List<Object>) clonedSchema)) {
-          if (subschema == null) {
+          if (subschema == null || SCHEMA_NULL.equals(subschema)) {
             return false;
           }
         }
@@ -461,5 +457,59 @@ public class Draft2SchemaHelper extends Draft2BeanHelper {
       throw new IllegalArgumentException("Unsupported schema: " + schema);
     }
     return false;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static DataType readDataType(Object schema) {
+
+    // UNION
+    if (schema instanceof List) {
+      List<?> schemaList = (List<?>) schema;
+      int numberOfTypes = schemaList.size() - (schemaList.contains("null") ? 1 : 0);
+      if (numberOfTypes > 1 ) {
+        Set<DataType> types = new HashSet<>();
+        for (Object subschema : schemaList) {
+          types.add(readDataType(subschema));
+        }
+        return new DataType(DataType.Type.UNION, types);
+      }
+    }
+
+    // FILE
+    if (isFileFromSchema(schema))
+      return new DataType(DataType.Type.FILE);
+
+    //ARRAY
+    if (isArrayFromSchema(schema)) {
+      DataType arrayType = readDataType(getItems(schema));
+      return new DataType(DataType.Type.ARRAY, arrayType);
+    }
+
+    // RECORD
+    if (isRecordFromSchema(schema)) {
+      Map<String, DataType> subTypes = new HashMap<>();
+      Object fields = getFields(schema);
+      if (fields instanceof Map<?, ?>) {
+        Map<String, Object> fieldsMap = (Map<String, Object>) fields;
+        for (String key: fieldsMap.keySet()) {
+          subTypes.put(key, readDataType(fieldsMap.get(key)));
+        }
+      }
+      return new DataType(DataType.Type.RECORD, subTypes);
+    }
+
+    // BOOLEAN
+    if (isTypeFromSchema(schema, "boolean")) {
+      return new DataType(DataType.Type.BOOLEAN);
+    }
+
+    // PRIMITIVE
+    String[] primitiveTypes = {"string", "int", "long", "float", "double"};
+    for (String s : primitiveTypes) {
+      if (isTypeFromSchema(schema, s))
+        return new DataType(DataType.Type.PRIMITIVE);
+    }
+
+    return new DataType(DataType.Type.ANY);
   }
 }

@@ -168,7 +168,7 @@ public class CWLResourceRequirement extends CWLResource {
   
   
   @Override
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.RESOURCE_REQUIREMENT;
   }
 

@@ -164,7 +164,7 @@ public abstract class CWLJobApp implements Application {
   public void setRequirement(CWLResource resource) {
     boolean add = true;
     for (CWLResource requirement : requirements) {
-      if (resource.getType().equals(requirement.getType())) {
+      if (resource.getTypeEnum().equals(requirement.getTypeEnum())) {
         add = false;
         break;
       }
@@ -206,7 +206,7 @@ public abstract class CWLJobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (CWLResource requirement : requirements) {
-      if (type.equals(requirement.getType())) {
+      if (type.equals(requirement.getTypeEnum())) {
         result.add(clazz.cast(requirement));
       }
     }
@@ -220,7 +220,7 @@ public abstract class CWLJobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (CWLResource hint : hints) {
-      if (type.equals(hint.getType())) {
+      if (type.equals(hint.getTypeEnum())) {
         result.add(clazz.cast(hint));
       }
     }

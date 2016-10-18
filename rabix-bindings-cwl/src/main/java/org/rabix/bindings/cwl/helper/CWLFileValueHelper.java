@@ -19,7 +19,10 @@ import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLFileValueHelper extends CWLBeanHelper {
 
-  private static final String KEY_NAME = "name";
+  private static final String KEY_NAME = "basename";
+  private static final String KEY_DIRNAME = "dirname";
+  private static final String KEY_NAMEROOT = "nameroot";
+  private static final String KEY_NAMEEXT = "nameext";
   private static final String KEY_PATH = "path";
   private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";
@@ -40,12 +43,28 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     return getValue(KEY_FORMAT, raw);
   }
   
+  public static void setNameroot(String nameroot, Object raw) {
+    setValue(KEY_NAMEROOT, nameroot, raw);
+  }
+  
+  public static void setNameext(String nameext, Object raw) {
+    setValue(KEY_NAMEEXT, nameext, raw);
+  }
+  
   public static String getName(Object raw) {
     return getValue(KEY_NAME, raw);
   }
 
   public static void setName(String name, Object raw) {
     setValue(KEY_NAME, name, raw);
+  }
+  
+  public static String getDirname(Object raw) {
+    return getValue(KEY_DIRNAME, raw);
+  }
+
+  public static void setDirname(String name, Object raw) {
+    setValue(KEY_DIRNAME, name, raw);
   }
 
   public static void setSize(Long size, Object raw) {
@@ -94,6 +113,9 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     String path = getValue(KEY_PATH, raw);
     if (path == null) {
       path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
+      if (path == null) {
+        path = getValue(KEY_LOCATION, raw);
+      }
       setPath(path, raw);
     }
     return path;

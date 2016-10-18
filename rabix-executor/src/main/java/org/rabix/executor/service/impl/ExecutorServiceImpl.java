@@ -1,5 +1,6 @@
 package org.rabix.executor.service.impl;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -79,8 +80,9 @@ public class ExecutorServiceImpl implements ExecutorService {
     if (cachingEnabled) {
       Map<String, Object> result = resultCacheService.findResultsFromCache(job);
       if (result != null) {
+        logger.info("Found cache hit for Job {}", job.getName());
         Job updatedJob = Job.cloneWithStatus(job, JobStatus.COMPLETED);
-        updatedJob = Job.cloneWithOutputs(job, result);
+        updatedJob = Job.cloneWithOutputs(updatedJob, result);
         engineStub.send(updatedJob);
         return;
       }

@@ -60,11 +60,11 @@ public class CWLPortProcessorHelper {
     }
   }
   
-  public Map<String, Object> setFileSize(Map<String, Object> inputs) throws CWLPortProcessorException {
+  public Map<String, Object> setFileProperties(Map<String, Object> inputs) throws CWLPortProcessorException {
     try {
-      return portProcessor.processInputs(inputs, new CWLFileSizeProcessorCallback());
+      return portProcessor.processInputs(inputs, new CWLFilePropertiesProcessorCallback());
     } catch (CWLPortProcessorException e) {
-      throw new CWLPortProcessorException("Failed to set input file size", e);
+      throw new CWLPortProcessorException("Failed to set input file properties", e);
     }
   }
   
@@ -76,6 +76,14 @@ public class CWLPortProcessorHelper {
     }
   }
 
+  public Map<String, Object> createFileLiteralFiles(Map<String, Object> inputs, File workingDir) throws CWLPortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new CWLFileLiteralProcessorCallback(workingDir));
+    } catch (CWLPortProcessorException e) {
+      throw new CWLPortProcessorException("Failed to set paths", e);
+    }
+  }
+  
   public Map<String, Object> loadInputContents(Map<String, Object> inputs) throws CWLPortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new CWLLoadContentsPortProcessorCallback());

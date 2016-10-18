@@ -3,6 +3,7 @@ package org.rabix.bindings.draft3;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.BindingException;
@@ -16,6 +17,7 @@ import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.draft3.bean.Draft3JobApp;
+import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.FileValue;
@@ -177,7 +179,7 @@ public class Draft3Bindings implements Bindings {
   public ProtocolType getProtocolType() {
     return protocolType;
   }
-
+  
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
     return processor.transformInputs(value, job, transform);
@@ -188,4 +190,8 @@ public class Draft3Bindings implements Bindings {
     return null;
   }
 
+  @Override
+  public Map<String, Object> translateFile(FileValue fileValue) {
+    return Draft3FileValueHelper.createFileRaw(fileValue);
+  }
 }

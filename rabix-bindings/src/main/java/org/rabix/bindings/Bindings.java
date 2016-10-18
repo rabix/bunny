@@ -2,6 +2,7 @@ package org.rabix.bindings;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.mapper.FilePathMapper;
@@ -19,7 +20,7 @@ public interface Bindings {
   /**
    * Loads and resolves application from URL
    *
-   * @param url         Application URL
+   * @param appURI         Application URL
    * @return            Application as string
    * @throws BindingException
    */
@@ -28,7 +29,7 @@ public interface Bindings {
   /**
    * Loads application object from URL
    *
-   * @param url         Application URL
+   * @param uri         Application URL
    * @return            Application as object
    * @throws BindingException
    */
@@ -104,7 +105,7 @@ public interface Bindings {
   Set<FileValue> getInputFiles(Job job) throws BindingException;
   
   /**
-   * Gets a set of input {@link FileValue} objects with their secondary files mapped with a {@link FileMapper}
+   * Gets a set of input {@link FileValue} objects with their secondary files mapped with a {@link FilePathMapper}
    *
    * @param job         Job object
    * @param fileMapper  FileMapper object
@@ -134,8 +135,17 @@ public interface Bindings {
    */
   Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
   
-  
+  /**
+   * Evaluates expression over the inputs
+   * 
+   * @param value           Input value
+   * @param job             Job value
+   * @param transform       Expression
+   * @return                Transformed vallues
+   * @throws BindingException
+   */
   Object transformInputs(Object value, Job job, Object transform) throws BindingException;
+  
   /**
    * Updates output files
    *
@@ -156,7 +166,7 @@ public interface Bindings {
   Set<FileValue> getProtocolFiles(File workingDir) throws BindingException;
   
   /**
-   * Maps input file paths using the particular {@link FileMapper}
+   * Maps input file paths using the particular {@link FilePathMapper}
    *
    * @param job         Job object
    * @param fileMapper  FileMapper object
@@ -166,7 +176,7 @@ public interface Bindings {
   Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException;
 
   /**
-   * Maps output file paths using the particular {@link FileMapper}
+   * Maps output file paths using the particular {@link FilePathMapper}
    *
    * @param job         Job object
    * @param fileMapper  FileMapper object
@@ -235,5 +245,11 @@ public interface Bindings {
    */
   ProtocolType getProtocolType();
 
+  /**
+   * Converts FileValue object into raw map format
+   * @param fileValue
+   * @return
+   */
+  Map<String, Object> translateFile(FileValue fileValue);
   
 }

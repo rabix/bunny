@@ -44,11 +44,14 @@ import org.slf4j.LoggerFactory;
 
 public class CWLProcessor implements ProtocolProcessor {
 
-public final static int DEFAULT_SUCCESS_CODE = 0;
-  
+  public final static int DEFAULT_SUCCESS_CODE = 0;
+
   public final static String JOB_FILE = "job.json";
   public final static String RESULT_FILENAME = "cwl.output.json";
-  
+
+  public final static String RESERVED_EXECUTOR_CMD_LOG_FILE_NAME = "cmd.log";
+  public final static String RESERVED_EXECUTOR_ERROR_LOG_FILE_NAME = "job.err.log";
+
   private final static Logger logger = LoggerFactory.getLogger(CWLProcessor.class);
 
   private final CWLGlobService globService;
@@ -64,11 +67,9 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
 
     CWLRuntime runtime;
-    
     try {
       runtime = CWLRuntimeHelper.createRuntime(cwlJob);
-    }
-      catch (CWLExpressionException e1) {
+    } catch (CWLExpressionException e1) {
       throw new BindingException(e1);
     }
     runtime = CWLRuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());
@@ -82,8 +83,10 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
       FileUtils.writeStringToFile(jobFile, serializedJob);
       
       Map<String, Object> inputs = job.getInputs();
+      
+      inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
       inputs = portProcessorHelper.setPathsToInputs(inputs);
-      inputs = portProcessorHelper.setFileSize(inputs);
+      inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
@@ -331,6 +334,15 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
       
       List<Object> listing = new ArrayList<>();
       for (File subfile : list) {
+        switch (subfile.getName()) {
+        case JOB_FILE:
+        case RESULT_FILENAME:
+        case RESERVED_EXECUTOR_CMD_LOG_FILE_NAME:
+        case RESERVED_EXECUTOR_ERROR_LOG_FILE_NAME:
+          continue;
+        default:
+          break;
+        }
         listing.add(formFileValue(subfile, job, outputBinding, outputPort, hashAlgorithm));
       }
       CWLDirectoryValueHelper.setListing(listing, directory);
@@ -344,6 +356,7 @@ public final static int DEFAULT_SUCCESS_CODE = 0;
     }
     CWLFileValueHelper.setSize(file.length(), fileData);
     CWLFileValueHelper.setName(file.getName(), fileData);
+    CWLFileValueHelper.setDirname(file.getParentFile().getAbsolutePath(), fileData);
     CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
 
     List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputPort.getSecondaryFiles());
