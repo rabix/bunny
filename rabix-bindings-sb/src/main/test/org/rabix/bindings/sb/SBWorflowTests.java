@@ -27,10 +27,9 @@ public class SBWorflowTests {
     Map<String, Object> inputs = JSONHelper.readMap(inputJson);
     
     Job job = new Job(appURI, inputs);
-    job = Job.cloneWithName(job, "root.blah");
+    job = Job.cloneWithName(job, "root.blah.1");
     Bindings bindings = new SBBindings();
     DAGNode node = bindings.translateToDAG(job);
-    assertEquals(((DAGContainer) node).getChildren().get(0).getId(), "root.blah.grep");
+    assertEquals(((DAGContainer) node).getChildren().get(0).getId(), "root.blah.1.grep");
   }
-
 }
