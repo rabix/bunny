@@ -86,9 +86,11 @@ public final class SBJob {
     processPortDefaults();
   }
   
-  public SBJob(SBJobApp app, Map<String, Object> inputs) {
+  public SBJob(String id, SBJobApp app, Map<String, Object> inputs, Map<String, Object> outputs) {
+    this.id = id;
     this.app = app;
     this.inputs = inputs;
+    this.outputs = outputs;
     processPortDefaults();
   }
 
