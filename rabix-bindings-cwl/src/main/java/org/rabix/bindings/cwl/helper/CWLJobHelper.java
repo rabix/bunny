@@ -16,7 +16,7 @@ public class CWLJobHelper {
   public static CWLJob getCWLJob(Job job) throws BindingException {
     String resolvedAppStr = CWLDocumentResolver.resolve(job.getApp());
     CWLJobApp app = BeanSerializer.deserialize(JSONHelper.transformToJSON(resolvedAppStr), CWLJobApp.class);
-    CWLJob cwlJob =  new CWLJobProcessor().process(new CWLJob(InternalSchemaHelper.getNativeIdFromName(job.getName()), app, job.getInputs(), job.getOutputs()));
+    CWLJob cwlJob =  new CWLJobProcessor().process(new CWLJob(InternalSchemaHelper.normalizeId(job.getName()), app, job.getInputs(), job.getOutputs()));
     
     if (job.getResources() != null) {
       CWLRuntime cwlRuntime = new CWLRuntime(job.getResources().getCpu(), job.getResources().getMemMB(), job.getResources().getWorkingDir(), job.getResources().getWorkingDir(), job.getResources().getDiskSpaceMB(), job.getResources().getDiskSpaceMB());

@@ -16,7 +16,7 @@ public class SBJobHelper {
   public static SBJob getSBJob(Job job) throws BindingException {
     String resolvedAppStr = SBDocumentResolver.resolve(job.getApp());
     SBJobApp app = BeanSerializer.deserialize(JSONHelper.transformToJSON(resolvedAppStr), SBJobApp.class);
-    SBJob sbJob = new SBJobProcessor().process(new SBJob(InternalSchemaHelper.getNativeIdFromName(job.getName()), app, job.getInputs(), job.getOutputs()));
+    SBJob sbJob = new SBJobProcessor().process(new SBJob(InternalSchemaHelper.normalizeId(job.getName()), app, job.getInputs(), job.getOutputs()));
 
     if (job.getResources() != null) {
       SBResources sbResources = new SBResources(false, job.getResources().getCpu(), job.getResources().getMemMB());

@@ -88,30 +88,6 @@ public class InternalSchemaHelper {
     }
   }
 
-  public static String getNativeIdFromName(String name) {
-    if (name == null) {
-      return null;
-    }
-    
-    String id = null;
-    String previousName = name;
-    boolean strip = true;
-    while (strip) {
-      int separatorIndex = previousName.lastIndexOf(InternalSchemaHelper.SEPARATOR);
-      if (separatorIndex == -1) {
-        return previousName;
-      }
-      id = previousName.substring(separatorIndex + 1);
-      try {
-        Integer.parseInt(id);
-      } catch (Exception e) {
-        return id;
-      }
-      previousName = previousName.substring(0, separatorIndex);
-    }
-    return id;
-  }
-  
   /**
    * Use Jackson for transformation
    */
