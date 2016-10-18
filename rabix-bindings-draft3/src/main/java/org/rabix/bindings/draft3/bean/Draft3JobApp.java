@@ -142,17 +142,22 @@ public abstract class Draft3JobApp implements Application {
     return null;
   }
   
-  public <T> void setHint(Draft3Resource resource) {
+  @JsonIgnore
+  public void setHint(Draft3Resource resource) {
+    boolean add = true;
     for (Draft3Resource hint : hints) {
-      if (resource.getTypeEnum().equals(hint.getTypeEnum())) {
-        hints.remove(hint);
-        hints.add(resource);
+      if (resource.getType().equals(hint.getType())) {
+        add = false;
         break;
       }
     }
+    if(add) {
+      hints.add(resource);
+    }
   }
   
-  public <T> void setRequirement(Draft3Resource resource) {
+  @JsonIgnore
+  public void setRequirement(Draft3Resource resource) {
     boolean add = true;
     for (Draft3Resource requirement : requirements) {
       if (resource.getTypeEnum().equals(requirement.getTypeEnum())) {
@@ -162,6 +167,12 @@ public abstract class Draft3JobApp implements Application {
     }
     if(add) {
       requirements.add(resource);
+      for (Draft3Resource hint : hints) {
+        if (resource.getType().equals(hint.getType())) {
+          hints.remove(hint);
+          break;
+        }
+      }
     }
   }
   

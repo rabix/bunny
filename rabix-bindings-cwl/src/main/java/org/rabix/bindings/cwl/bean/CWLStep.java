@@ -1,11 +1,14 @@
 package org.rabix.bindings.cwl.bean;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
+import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
 import org.rabix.bindings.cwl.json.CWLStepPortsDeserializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -36,6 +39,14 @@ public class CWLStep {
   
   @JsonProperty("scatterMethod")
   private String scatterMethod;
+  
+  @JsonProperty("hints")
+  @JsonDeserialize(using = CWLResourcesDeserializer.class)
+  protected List<CWLResource> hints = new ArrayList<>();
+  
+  @JsonProperty("requirements")
+  @JsonDeserialize(using = CWLResourcesDeserializer.class)
+  protected List<CWLResource> requirements = new ArrayList<>();
   
   @JsonIgnore
   private CWLJob job;
@@ -118,6 +129,22 @@ public class CWLStep {
   
   public String getScatterMethod() {
     return scatterMethod;
+  }
+  
+  public List<CWLResource> getHints() {
+    return hints;
+  }
+
+  public void setHints(List<CWLResource> hints) {
+    this.hints = hints;
+  }
+
+  public List<CWLResource> getRequirements() {
+    return requirements;
+  }
+
+  public void setRequirements(List<CWLResource> requirements) {
+    this.requirements = requirements;
   }
 
   @JsonIgnore

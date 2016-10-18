@@ -56,11 +56,11 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       CWLWorkflow workflow = (CWLWorkflow) job.getApp();
       for (CWLStep step : workflow.getSteps()) {
         step.setId(Draft2ToCWLConverter.convertStepID(step.getId()));
-        
         CWLJob stepJob = step.getJob();
         String stepId = job.getId() + DOT_SEPARATOR + CWLSchemaHelper.normalizeId(step.getId());
         stepJob.setId(stepId);
-        processResources(job.getApp(), stepJob.getApp());
+        processHints(step, job.getApp(), stepJob.getApp());
+        processRequirements(step, job.getApp(), stepJob.getApp());
         processElements(job, stepJob);
         process(job, stepJob);
       }
@@ -68,10 +68,33 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
     return job;
   }
   
-  private void processResources(CWLJobApp parentJob, CWLJobApp stepJob) {
+  /**
+   * @param step
+   * @param parentJob
+   * @param childJob
+   * Process hints in workflow 
+   */
+  public void processHints(CWLStep step, CWLJobApp parentJob, CWLJobApp childJob) {
+    for(CWLResource resource: parentJob.getHints()) {
+      childJob.setHint(resource);
+    }
+    for(CWLResource resource: step.getHints()) {
+      childJob.setHint(resource);
+    }
+  }
+  
+  /**
+   * @param step
+   * @param parentJob
+   * @param childJob
+   * Process requirements in workflow
+   */
+  public void processRequirements(CWLStep step, CWLJobApp parentJob, CWLJobApp childJob) {
     for(CWLResource resource: parentJob.getRequirements()) {
-      stepJob.setHint(resource);
-      stepJob.setRequirement(resource);
+      childJob.setRequirement(resource);
+    }
+    for(CWLResource resource: step.getRequirements()) {
+      childJob.setRequirement(resource);
     }
   }
   

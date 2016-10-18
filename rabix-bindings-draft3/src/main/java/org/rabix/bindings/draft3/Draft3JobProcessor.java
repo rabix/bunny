@@ -59,7 +59,8 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
         Draft3Job stepJob = step.getJob();
         String stepId = job.getId() + DOT_SEPARATOR + Draft3SchemaHelper.normalizeId(step.getId());
         stepJob.setId(stepId);
-        processResources(job.getApp(), stepJob.getApp());
+        processHints(step, job.getApp(), stepJob.getApp());
+        processRequirements(step, job.getApp(), stepJob.getApp());
         processElements(job, stepJob);
         process(job, stepJob);
       }
@@ -67,10 +68,33 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
     return job;
   }
   
-  private void processResources(Draft3JobApp parentJob, Draft3JobApp stepJob) {
+  /**
+   * @param step
+   * @param parentJob
+   * @param childJob
+   * Process hints in workflow 
+   */
+  public void processHints(Draft3Step step, Draft3JobApp parentJob, Draft3JobApp childJob) {
+    for(Draft3Resource resource: parentJob.getHints()) {
+      childJob.setHint(resource);
+    }
+    for(Draft3Resource resource: step.getHints()) {
+      childJob.setHint(resource);
+    }
+  }
+  
+  /**
+   * @param step
+   * @param parentJob
+   * @param childJob
+   * Process requirements in workflow
+   */
+  public void processRequirements(Draft3Step step, Draft3JobApp parentJob, Draft3JobApp childJob) {
     for(Draft3Resource resource: parentJob.getRequirements()) {
-      stepJob.setHint(resource);
-      stepJob.setRequirement(resource);
+      childJob.setRequirement(resource);
+    }
+    for(Draft3Resource resource: step.getRequirements()) {
+      childJob.setRequirement(resource);
     }
   }
   
