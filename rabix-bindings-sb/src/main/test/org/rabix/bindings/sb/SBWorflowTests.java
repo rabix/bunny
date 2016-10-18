@@ -1,12 +1,12 @@
 package org.rabix.bindings.sb;
 
 import static org.testng.AssertJUnit.assertEquals;
+
 import java.io.IOException;
 import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
-import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGContainer;
