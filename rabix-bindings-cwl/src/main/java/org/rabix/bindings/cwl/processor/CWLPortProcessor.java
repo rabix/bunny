@@ -81,6 +81,10 @@ public class CWLPortProcessor {
     if (CWLSchemaHelper.isFileFromValue(value)) {
       return value;
     }
+    
+    if (CWLSchemaHelper.isDirectoryFromValue(value)) {
+      return value;
+    }
 
     if (value instanceof Map<?, ?>) {
       Map<String, Object> result = new HashMap<>();

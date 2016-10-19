@@ -16,10 +16,12 @@ import org.rabix.bindings.cwl.bean.CWLInputPort;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
+import org.rabix.bindings.cwl.helper.CWLBeanHelper;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
+import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   private final static Logger logger = LoggerFactory.getLogger(CWLCommandLineBuilder.class);
   
   public final static String SHELL_QUOTE_KEY = "shellQuote";
+  public final static String SHELL_QUOTE_VALUE_KEY = "valueFrom";
   
   public static final Escaper SHELL_ESCAPE;
   static {
@@ -112,6 +115,24 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   private String normalizeCommandLine(String commandLine) {
     return commandLine.trim().replaceAll(PART_SEPARATOR + "+", PART_SEPARATOR);
   }
+  
+  private boolean isShellQuote(Object input) {
+    if (input == null) {
+      return false;
+    }
+    if (input instanceof Map<?,?>) {
+      return CWLBeanHelper.getValue(SHELL_QUOTE_KEY, input) != null;
+    }
+    return false;
+  }
+  
+  private boolean getShellQuote(Object input) {
+    return CWLBeanHelper.getValue(SHELL_QUOTE_KEY, input);
+  }
+  
+  private Object getShellQuoteValue(Object input) {
+    return CWLBeanHelper.getValue(SHELL_QUOTE_VALUE_KEY, input);
+  }
 
   /**
    * Build command line arguments
@@ -133,6 +154,9 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       if (commandLineTool.hasArguments()) {
         for (int i = 0; i < commandLineTool.getArguments().size(); i++) {
           Object argBinding = commandLineTool.getArguments().get(i);
+          if (isShellQuote(argBinding)) {
+            argBinding = getShellQuoteValue(argBinding);
+          }
           if (argBinding instanceof String) {
             String arg = CWLExpressionResolver.resolve(argBinding, job, null);
             CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(0, false).part(arg).keyValue("").build();
@@ -149,7 +173,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
           }
         }
       }
-
       for (CWLInputPort inputPort : inputPorts) {
         String key = inputPort.getId();
         Object schema = inputPort.getSchema();
@@ -216,6 +239,10 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     String itemSeparator = CWLBindingHelper.getItemSeparator(inputBinding);
     String keyValue = inputPort != null ? inputPort.getId() : "";
 
+    if (isShellQuote(value)) {
+      value = getShellQuoteValue(value);
+    }
+    
     Object valueFrom = CWLBindingHelper.getValueFrom(inputBinding);
     if (valueFrom != null) {
       try {

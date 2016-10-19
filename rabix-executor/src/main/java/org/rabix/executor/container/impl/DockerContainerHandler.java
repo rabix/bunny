@@ -175,8 +175,7 @@ public class DockerContainerHandler implements ContainerHandler {
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
 
-      EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements,
-          EnvironmentVariableRequirement.class);
+      EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
       if (environmentVariableResource != null) {
         builder.env(transformEnvironmentVariables(environmentVariableResource.getVariables()));
       }
