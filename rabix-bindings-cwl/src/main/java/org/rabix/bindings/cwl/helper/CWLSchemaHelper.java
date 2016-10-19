@@ -1,10 +1,8 @@
 package org.rabix.bindings.cwl.helper;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import org.rabix.bindings.model.DataType;
 import org.rabix.common.helper.CloneHelper;
 
 import com.google.common.base.Preconditions;
@@ -358,5 +356,101 @@ public class CWLSchemaHelper extends CWLBeanHelper {
     }
     return id;
   }
+  @SuppressWarnings("unchecked")
+  public static DataType readDataType(Object schema) {
 
+    // UNION
+    if (schema instanceof List) {
+      List<?> schemaList = (List<?>) schema;
+      int numberOfTypes = schemaList.size() - (schemaList.contains("null") ? 1 : 0);
+      if (numberOfTypes > 1 ) {
+        Set<DataType> types = new HashSet<>();
+        for (Object subschema : schemaList) {
+          types.add(readDataType(subschema));
+        }
+        return new DataType(DataType.Type.UNION, types);
+      }
+    }
+
+    // FILE
+    if (isFileFromSchema(schema))
+      return new DataType(DataType.Type.FILE);
+
+    //ARRAY
+    if (isArrayFromSchema(schema)) {
+      DataType arrayType = readDataType(getItems(schema));
+      return new DataType(DataType.Type.ARRAY, arrayType);
+    }
+
+    // RECORD
+    if (isRecordFromSchema(schema)) {
+      Map<String, DataType> subTypes = new HashMap<>();
+      Object fields = getFields(schema);
+      if (fields instanceof Map<?, ?>) {
+        Map<String, Object> fieldsMap = (Map<String, Object>) fields;
+        for (String key: fieldsMap.keySet()) {
+          subTypes.put(key, readDataType(fieldsMap.get(key)));
+        }
+      }
+      return new DataType(DataType.Type.RECORD, subTypes);
+    }
+
+    // PRIMITIVES
+    if (isTypeFromSchema(schema, "boolean")) {
+      return new DataType(DataType.Type.BOOLEAN);
+    }
+    if (isTypeFromSchema(schema, "string")) {
+      return new DataType(DataType.Type.STRING);
+    }
+    if (isTypeFromSchema(schema, "int")) {
+      return new DataType(DataType.Type.INT);
+    }
+    if (isTypeFromSchema(schema, "long")) {
+      return new DataType(DataType.Type.LONG);
+    }
+    if (isTypeFromSchema(schema, "float")) {
+      return new DataType(DataType.Type.FLOAT);
+    }
+    if (isTypeFromSchema(schema, "double")) {
+      return new DataType(DataType.Type.DOUBLE);
+    }
+    if (isTypeFromSchema(schema, "null")) {
+      return new DataType(DataType.Type.NULL);
+    }
+
+    return new DataType(DataType.Type.ANY);
+  }
+
+  public static DataType getDataTypeFromValue(Object value) {
+    if (value==null)
+      return new DataType(DataType.Type.ANY);
+
+    // FILE
+    if (isFileFromValue(value))
+      return new DataType(DataType.Type.FILE);
+
+    //ARRAY
+    if (value instanceof List) {
+      DataType arrayType = getDataTypeFromValue(((List<?>)value).get(0));
+      return new DataType(DataType.Type.ARRAY, arrayType);
+    }
+
+    // RECORD
+    if (value instanceof Map) {
+      Map<String, DataType> subTypes = new HashMap<>();
+      Map<?, ?> valueMap = (Map<?, ?>) value;
+      for (Object key: valueMap.keySet()) {
+        subTypes.put((String)key, getDataTypeFromValue(valueMap.get(key)));
+      }
+      return new DataType(DataType.Type.RECORD, subTypes);
+    }
+
+    // PRIMITIVE
+    for (DataType.Type t : DataType.Type.values()) {
+      if (t.primitiveType !=null && t.primitiveType.isInstance(value))
+        return new DataType(t);
+    }
+
+    return new DataType(DataType.Type.ANY);
+  }
 }

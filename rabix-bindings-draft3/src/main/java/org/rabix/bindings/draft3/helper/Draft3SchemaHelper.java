@@ -380,16 +380,61 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
       return new DataType(DataType.Type.RECORD, subTypes);
     }
 
-    // BOOLEAN
+    // PRIMITIVES
     if (isTypeFromSchema(schema, "boolean")) {
       return new DataType(DataType.Type.BOOLEAN);
     }
+    if (isTypeFromSchema(schema, "string")) {
+      return new DataType(DataType.Type.STRING);
+    }
+    if (isTypeFromSchema(schema, "int")) {
+      return new DataType(DataType.Type.INT);
+    }
+    if (isTypeFromSchema(schema, "long")) {
+      return new DataType(DataType.Type.LONG);
+    }
+    if (isTypeFromSchema(schema, "float")) {
+      return new DataType(DataType.Type.FLOAT);
+    }
+    if (isTypeFromSchema(schema, "double")) {
+      return new DataType(DataType.Type.DOUBLE);
+    }
+    if (isTypeFromSchema(schema, "null")) {
+      return new DataType(DataType.Type.NULL);
+    }
+
+    return new DataType(DataType.Type.ANY);
+  }
+
+
+  public static DataType getDataTypeFromValue(Object value) {
+    if (value==null)
+      return new DataType(DataType.Type.ANY);
+
+    // FILE
+    if (isFileFromValue(value))
+      return new DataType(DataType.Type.FILE);
+
+    //ARRAY
+    if (value instanceof List) {
+      DataType arrayType = getDataTypeFromValue(((List<?>)value).get(0));
+      return new DataType(DataType.Type.ARRAY, arrayType);
+    }
+
+    // RECORD
+    if (value instanceof Map) {
+      Map<String, DataType> subTypes = new HashMap<>();
+      Map<?, ?> valueMap = (Map<?, ?>) value;
+      for (Object key: valueMap.keySet()) {
+        subTypes.put((String)key, getDataTypeFromValue(valueMap.get(key)));
+      }
+      return new DataType(DataType.Type.RECORD, subTypes);
+    }
 
     // PRIMITIVE
-    String[] primitiveTypes = {"string", "int", "long", "float", "double"};
-    for (String s : primitiveTypes) {
-      if (isTypeFromSchema(schema, s))
-        return new DataType(DataType.Type.PRIMITIVE);
+    for (DataType.Type t : DataType.Type.values()) {
+      if (t.primitiveType !=null && t.primitiveType.isInstance(value))
+        return new DataType(t);
     }
 
     return new DataType(DataType.Type.ANY);

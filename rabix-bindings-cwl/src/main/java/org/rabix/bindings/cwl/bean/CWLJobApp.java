@@ -48,7 +48,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
     @Type(value = CWLPythonTool.class, name = "PythonTool")})
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class CWLJobApp implements Application {
+public abstract class CWLJobApp extends Application {
 
   public static final String CWL_VERSION = "v1.0";
   
