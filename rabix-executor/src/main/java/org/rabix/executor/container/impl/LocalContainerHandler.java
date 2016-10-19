@@ -26,6 +26,7 @@ import org.rabix.common.logging.VerboseLogger;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.container.ContainerException;
 import org.rabix.executor.container.ContainerHandler;
+import org.rabix.executor.handler.JobHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class LocalContainerHandler implements ContainerHandler {
   private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
   private Process process;
+  private String commandLine;
 
   public LocalContainerHandler(Job job, StorageConfiguration storageConfig) {
     this.job = job;
@@ -52,10 +54,7 @@ public class LocalContainerHandler implements ContainerHandler {
       VerboseLogger.log(String.format("Local execution (no container) has started"));
       
       Bindings bindings = BindingsFactory.create(job);
-      String commandLine = bindings.buildCommandLine(job);
-
-      File commandLineFile = new File(workingDir, "cmd.log");
-      FileUtils.writeStringToFile(commandLineFile, commandLine);
+      commandLine = bindings.buildCommandLine(job);
 
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();
@@ -150,6 +149,17 @@ public class LocalContainerHandler implements ContainerHandler {
     } catch (IOException e) {
       logger.error("Failed to create " + errorFile.getName(), e);
       throw new ContainerException("Failed to create " + errorFile.getName(), e);
+    }
+  }
+
+  @Override
+  public void dumpCommandLine() throws ContainerException {
+    try {
+      File commandLineFile = new File(workingDir, JobHandler.COMMAND_LOG);
+      FileUtils.writeStringToFile(commandLineFile, commandLine);
+    } catch (IOException e) {
+      logger.error("Failed to dump command line into " + JobHandler.COMMAND_LOG);
+      throw new ContainerException(e);
     }
   }
 }

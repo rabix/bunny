@@ -265,7 +265,8 @@ public class JobHandlerImpl implements JobHandler {
         filePermissionService.execute(job);
       }
       job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null);
-
+      containerHandler.dumpCommandLine();
+      
       statusCallback.onOutputFilesUploadStarted(job);
       uploadOutputFiles(job, bindings);
       statusCallback.onOutputFilesUploadCompleted(job);

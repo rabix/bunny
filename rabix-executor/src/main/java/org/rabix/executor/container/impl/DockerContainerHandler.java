@@ -78,7 +78,9 @@ public class DockerContainerHandler implements ContainerHandler {
 
   private StorageConfiguration storageConfig;
   private ExecutorStatusCallback statusCallback;
-
+  
+  private String commandLine;
+  
   public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, ExecutorStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
     this.dockerClient = dockerClient;
@@ -149,25 +151,20 @@ public class DockerContainerHandler implements ContainerHandler {
       builder.hostConfig(hostConfig);
 
       Bindings bindings = BindingsFactory.create(job);
-      String commandLine = bindings.buildCommandLine(job);
+      commandLine = bindings.buildCommandLine(job);
 
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success
         return;
       }
 
-      File commandLineFile = new File(workingDir, JobHandler.COMMAND_LOG);
-      FileUtils.writeStringToFile(commandLineFile, commandLine);
-      
-      if(commandLine.startsWith("/bin/bash -c")) {
+      if (commandLine.startsWith("/bin/bash -c")) {
         commandLine = commandLine.replace("/bin/bash -c", "");
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/bash", "-c", commandLine);
-      }
-      else if (commandLine.startsWith("/bin/sh -c")) {
+      } else if (commandLine.startsWith("/bin/sh -c")) {
         commandLine = commandLine.replace("/bin/sh -c", "");
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
-      }
-      else {
+      } else {
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
       }
 
@@ -195,9 +192,6 @@ public class DockerContainerHandler implements ContainerHandler {
         throw new ContainerException("Failed to start Docker container " + containerId);
       }
       logger.info("Docker container {} has started.", containerId);
-    } catch (IOException e) {
-      logger.error("Failed to create cmd.log file.", e);
-      throw new ContainerException("Failed to create cmd.log file.");
     } catch (Exception e) {
       logger.error("Failed to start container.", e);
       throw new ContainerException("Failed to start container.", e);
@@ -414,8 +408,10 @@ public class DockerContainerHandler implements ContainerHandler {
     public static DockerClient createDockerClient(Configuration configuration) throws ContainerException {
       DockerClient docker = null;
       try {
-        DefaultDockerClient.Builder dockerClientBuilder = DefaultDockerClient.fromEnv()
-            .connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5)).readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
+        DefaultDockerClient.Builder dockerClientBuilder = DefaultDockerClient
+            .fromEnv()
+            .connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5))
+            .readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
 
         boolean isConfigAuthEnabled = configuration.getBoolean("docker.override.auth.enabled", false);
         if (isConfigAuthEnabled) {
@@ -433,6 +429,17 @@ public class DockerContainerHandler implements ContainerHandler {
       return docker;
     }
 
+  }
+
+  @Override
+  public void dumpCommandLine() throws ContainerException {
+    try {
+      File commandLineFile = new File(workingDir, JobHandler.COMMAND_LOG);
+      FileUtils.writeStringToFile(commandLineFile, commandLine);
+    } catch (IOException e) {
+      logger.error("Failed to dump command line into " + JobHandler.COMMAND_LOG);
+      throw new ContainerException(e);
+    }
   }
 
 }

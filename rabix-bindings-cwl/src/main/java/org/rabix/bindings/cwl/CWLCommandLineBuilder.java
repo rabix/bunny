@@ -21,7 +21,6 @@ import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
-import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,6 +115,9 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     return commandLine.trim().replaceAll(PART_SEPARATOR + "+", PART_SEPARATOR);
   }
   
+  /**
+   * Is shellQuote enabled
+   */
   private boolean isShellQuote(Object input) {
     if (input == null) {
       return false;
@@ -125,11 +127,18 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
     return false;
   }
-  
+
+  /**
+   * Get shellQuote flag 
+   */
+  @SuppressWarnings("unused")
   private boolean getShellQuote(Object input) {
     return CWLBeanHelper.getValue(SHELL_QUOTE_KEY, input);
   }
   
+  /**
+   * Get shellQuote value 
+   */
   private Object getShellQuoteValue(Object input) {
     return CWLBeanHelper.getValue(SHELL_QUOTE_VALUE_KEY, input);
   }
