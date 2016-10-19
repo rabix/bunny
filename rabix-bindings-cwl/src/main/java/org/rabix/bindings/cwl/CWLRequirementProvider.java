@@ -22,6 +22,7 @@ import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
+import org.rabix.bindings.cwl.helper.CWLRuntimeHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
@@ -136,6 +137,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
   }
 
   private List<Requirement> convertRequirements(Job job, List<CWLResource> resources) throws BindingException {
+    EnvironmentVariableRequirement environmentVariableRequirement = null;
     if (resources == null) {
       return Collections.<Requirement> emptyList();
     }
@@ -148,7 +150,8 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         continue;
       }
       if (cwlResource instanceof CWLEnvVarRequirement) {
-        result.add(getEnvironmentVariableRequirement(cwlJob, (CWLEnvVarRequirement) cwlResource));
+        environmentVariableRequirement = getEnvironmentVariableRequirement(cwlJob, (CWLEnvVarRequirement) cwlResource);
+        result.add(environmentVariableRequirement);
         continue;
       }
       if (cwlResource instanceof CWLInitialWorkDirRequirement) {
@@ -157,7 +160,24 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
       }
       result.add(new CustomRequirement(cwlResource.getType(), cwlResource.getRaw()));
     }
+    setRuntimeEnvironmentVariables(cwlJob, environmentVariableRequirement, result);
+    
     return result;
+  }
+  
+  public void setRuntimeEnvironmentVariables(CWLJob cwlJob, EnvironmentVariableRequirement environmentVariableRequirement, List<Requirement> result) {
+    if (environmentVariableRequirement == null) {
+      Map<String, String> variables = new HashMap<String, String>();
+      variables.put(CWLRuntimeHelper.homeRuntimeEnvVar, cwlJob.getRuntime().getOutdir());
+      variables.put(CWLRuntimeHelper.tmpdirRuntimeEnvVar, cwlJob.getRuntime().getTmpdir());
+      environmentVariableRequirement = new EnvironmentVariableRequirement(variables);
+      result.add(environmentVariableRequirement);      
+    }
+    else {
+      Map<String, String> variables = environmentVariableRequirement.getVariables();
+      variables.put(CWLRuntimeHelper.homeRuntimeEnvVar, cwlJob.getRuntime().getOutdir());
+      variables.put(CWLRuntimeHelper.tmpdirRuntimeEnvVar, cwlJob.getRuntime().getTmpdir());
+    }
   }
 
   @Override
