@@ -6,6 +6,7 @@ import java.util.List;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.cwl.CWLBindings;
+import org.rabix.bindings.cwl.helper.CWLRuntimeHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.FileRequirement;
@@ -24,10 +25,12 @@ public class CWLInitialWorkDirRequirementTest {
     String inputJson = ResourceHelper.readResource(this.getClass(), "1st-tool.cwl");
 
     CWLJob cwlJob = BeanSerializer.deserialize(inputJson, CWLJob.class);
+    CWLRuntime runtime = new CWLRuntime(null, null, "HOME", "TMPDIR", null, null);
 
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(cwlJob.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, cwlJob.getInputs(), null, null, null, null);
+      job = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       Bindings bindings = new CWLBindings();
       
       List<Requirement> requirements = bindings.getRequirements(job);
