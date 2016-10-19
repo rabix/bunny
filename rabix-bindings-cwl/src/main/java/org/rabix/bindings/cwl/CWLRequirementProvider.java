@@ -168,15 +168,15 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
   public void setRuntimeEnvironmentVariables(CWLJob cwlJob, EnvironmentVariableRequirement environmentVariableRequirement, List<Requirement> result) {
     if (environmentVariableRequirement == null) {
       Map<String, String> variables = new HashMap<String, String>();
-      variables.put(CWLRuntimeHelper.homeRuntimeEnvVar, cwlJob.getRuntime().getOutdir());
-      variables.put(CWLRuntimeHelper.tmpdirRuntimeEnvVar, cwlJob.getRuntime().getTmpdir());
+      variables.put(CWLRuntimeHelper.HOME_RUNTIME_ENV_VAR, cwlJob.getRuntime().getOutdir());
+      variables.put(CWLRuntimeHelper.TMPDIR_RUNTIME_ENV_VAR, cwlJob.getRuntime().getTmpdir());
       environmentVariableRequirement = new EnvironmentVariableRequirement(variables);
       result.add(environmentVariableRequirement);      
     }
     else {
       Map<String, String> variables = environmentVariableRequirement.getVariables();
-      variables.put(CWLRuntimeHelper.homeRuntimeEnvVar, cwlJob.getRuntime().getOutdir());
-      variables.put(CWLRuntimeHelper.tmpdirRuntimeEnvVar, cwlJob.getRuntime().getTmpdir());
+      variables.put(CWLRuntimeHelper.HOME_RUNTIME_ENV_VAR, cwlJob.getRuntime().getOutdir());
+      variables.put(CWLRuntimeHelper.TMPDIR_RUNTIME_ENV_VAR, cwlJob.getRuntime().getTmpdir());
     }
   }
 
