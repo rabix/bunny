@@ -1,5 +1,6 @@
 package org.rabix.bindings.draft2;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import org.rabix.bindings.draft2.helper.Draft2BindingHelper;
 import org.rabix.bindings.draft2.helper.Draft2FileValueHelper;
 import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +37,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
   private final static Logger logger = LoggerFactory.getLogger(Draft2CommandLineBuilder.class);
 
   @Override
-  public String buildCommandLine(Job job) throws BindingException {
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     if (draft2Job.getApp().isExpressionTool()) {
       return null;

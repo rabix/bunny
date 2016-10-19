@@ -150,7 +150,7 @@ public class ConformanceCommandLineTest {
       String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat3-tool.cwl");
       
       Job job = new Job(commandLineToolStr, inputs);
-      String cmdLine = new Draft3Bindings().buildCommandLine(job);
+      String cmdLine = new Draft3Bindings().buildCommandLine(job, null, null);
       Assert.assertNotNull(cmdLine);
       Assert.assertEquals("cat hello.txt > output.txt", cmdLine);
     } catch (BindingException e) {
@@ -167,7 +167,7 @@ public class ConformanceCommandLineTest {
       String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat4-tool.cwl");
       
       Job job = new Job(commandLineToolStr, inputs);
-      String cmdLine = new Draft3Bindings().buildCommandLine(job);
+      String cmdLine = new Draft3Bindings().buildCommandLine(job, null, null);
       Assert.assertNotNull(cmdLine);
       Assert.assertEquals("cat < hello.txt > output.txt", cmdLine);
     } catch (BindingException e) {

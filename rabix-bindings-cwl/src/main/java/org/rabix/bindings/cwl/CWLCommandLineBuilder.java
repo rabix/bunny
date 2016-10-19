@@ -1,5 +1,6 @@
 package org.rabix.bindings.cwl;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,6 +22,8 @@ import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,12 +51,12 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   }
   
   @Override
-  public String buildCommandLine(Job job) throws BindingException {
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     if (cwlJob.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(cwlJob);
+    return buildCommandLine(cwlJob, workingDir, filePathMapper, job.getConfig());
   }
   
   @Override
@@ -72,7 +75,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Builds command line string with both STDIN and STDOUT
    */
-  public String buildCommandLine(CWLJob job) throws BindingException {
+  public String buildCommandLine(CWLJob job, File workingDir, FilePathMapper filePathMapper, Map<String, Object> config) throws BindingException {
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     
     List<Object> commandLineParts = buildCommandLineParts(job);
@@ -100,6 +103,14 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       throw new BindingException("Failed to extract standard outputs.", e);
     }
     if (!StringUtils.isEmpty(stdout)) {
+      if (!stdout.startsWith("/")) {
+        try {
+          String mappedWorkingDir = filePathMapper.map(workingDir.getAbsolutePath(), config);
+          stdout = new File(mappedWorkingDir, stdout).getAbsolutePath();
+        } catch (FileMappingException e) {
+          throw new BindingException(e);
+        }
+      }
       builder.append(PART_SEPARATOR).append(">").append(PART_SEPARATOR).append(stdout);
     }
 

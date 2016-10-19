@@ -19,6 +19,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
@@ -54,7 +56,12 @@ public class LocalContainerHandler implements ContainerHandler {
       VerboseLogger.log(String.format("Local execution (no container) has started"));
       
       Bindings bindings = BindingsFactory.create(job);
-      commandLine = bindings.buildCommandLine(job);
+      commandLine = bindings.buildCommandLine(job, workingDir, new FilePathMapper() {
+        @Override
+        public String map(String path, Map<String, Object> config) throws FileMappingException {
+          return path;
+        }
+      });
 
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();

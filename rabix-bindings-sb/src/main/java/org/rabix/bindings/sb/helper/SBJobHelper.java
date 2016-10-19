@@ -7,7 +7,6 @@ import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.bean.SBJobApp;
 import org.rabix.bindings.sb.bean.SBResources;
 import org.rabix.bindings.sb.resolver.SBDocumentResolver;
-import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 

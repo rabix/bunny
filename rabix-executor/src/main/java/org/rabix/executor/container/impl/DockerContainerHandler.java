@@ -20,6 +20,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
@@ -151,7 +153,12 @@ public class DockerContainerHandler implements ContainerHandler {
       builder.hostConfig(hostConfig);
 
       Bindings bindings = BindingsFactory.create(job);
-      commandLine = bindings.buildCommandLine(job);
+      commandLine = bindings.buildCommandLine(job, workingDir, new FilePathMapper() {
+        @Override
+        public String map(String path, Map<String, Object> config) throws FileMappingException {
+          return path;
+        }
+      });
 
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success

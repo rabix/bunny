@@ -1,5 +1,6 @@
 package org.rabix.bindings.sb;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.sb.bean.SBCommandLineTool;
 import org.rabix.bindings.sb.bean.SBInputPort;
@@ -35,7 +37,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   private final static Logger logger = LoggerFactory.getLogger(SBCommandLineBuilder.class);
 
   @Override
-  public String buildCommandLine(Job job) throws BindingException {
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     if (sbJob.getApp().isExpressionTool()) {
       return null;
