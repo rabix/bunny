@@ -13,6 +13,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.transformer.FileTransformer;
+import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public interface Bindings {
 
@@ -68,12 +69,13 @@ public interface Bindings {
    * Post process the {@link Job}
    * Note: Call post process after successfull or failed Job execution
    *
-   * @param job         Job object
-   * @param workingDir  Working directory
-   * @return            Post processed Job object
+   * @param job             Job object
+   * @param workingDir      Working directory
+   * @param hashAlgorithm   Checksum hash algorithm
+   * @return                Post processed Job object
    * @throws BindingException
    */
-  Job postprocess(Job job, File workingDir) throws BindingException;
+  Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException;
 
   /**
    * Builds command line as a string
@@ -134,6 +136,17 @@ public interface Bindings {
   Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
   
   /**
+   * Evaluates expression over the inputs
+   * 
+   * @param value           Input value
+   * @param job             Job value
+   * @param transform       Expression
+   * @return                Transformed vallues
+   * @throws BindingException
+   */
+  Object transformInputs(Object value, Job job, Object transform) throws BindingException;
+  
+  /**
    * Updates output files
    *
    * @param job             Job object
@@ -189,6 +202,15 @@ public interface Bindings {
    * @throws BindingException
    */
   List<Requirement> getHints(Job job) throws BindingException;
+  
+  /**
+   * Gets standard error log file name
+   * 
+   * @param job         Job object
+   * @return            Standard error log
+   * @throws BindingException
+   */
+  String getStandardErrorLog(Job job) throws BindingException;
   
   /**
    * Gets {@link ResourceRequirement} object

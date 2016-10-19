@@ -19,7 +19,7 @@ public class Draft3SchemaDefRequirement extends Draft3Resource {
   
   @Override
   @JsonIgnore
-  public Draft3ResourceType getType() {
+  public Draft3ResourceType getTypeEnum() {
     return Draft3ResourceType.SCHEMA_DEF_REQUIREMENT;
   }
   

@@ -6,7 +6,7 @@ import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
 public class CWLShellCommandRequirement extends CWLResource {
 
   @Override
-  public CWLResourceType getType() {
+  public CWLResourceType getTypeEnum() {
     return CWLResourceType.SHELL_COMMAND_REQUIREMENT;
   }
   

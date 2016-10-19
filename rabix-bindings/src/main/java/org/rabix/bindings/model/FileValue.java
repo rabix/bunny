@@ -9,14 +9,16 @@ public class FileValue {
   protected final String path;
   protected final String location;
   
+  protected final String name;
   protected final String checksum;
   protected final List<FileValue> secondaryFiles;
   protected final Map<String, Object> properties;
   
-  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties) {
+  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties, String name) {
     super();
     this.size = size;
     this.path = path;
+    this.name = name;
     this.location = location;
     this.checksum = checksum;
     this.secondaryFiles = secondaryFiles;
@@ -24,15 +26,15 @@ public class FileValue {
   }
   
   public static FileValue cloneWithPath(FileValue fileValue, String path) {
-    return new FileValue(fileValue.size, path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles, fileValue.properties);
+    return new FileValue(fileValue.size, path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles, fileValue.properties, fileValue.name);
   }
   
   public static FileValue cloneWithProperties(FileValue fileValue, Map<String, Object> properties) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles, properties);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles, properties, fileValue.name);
   }
   
   public static FileValue cloneWithSecondaryFiles(FileValue fileValue, List<FileValue> secondaryFiles) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, secondaryFiles, fileValue.properties);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, secondaryFiles, fileValue.properties, fileValue.name);
   }
 
   public Long getSize() {
@@ -41,6 +43,10 @@ public class FileValue {
 
   public String getPath() {
     return path;
+  }
+  
+  public String getName() {
+    return name;
   }
   
   public String getLocation() {

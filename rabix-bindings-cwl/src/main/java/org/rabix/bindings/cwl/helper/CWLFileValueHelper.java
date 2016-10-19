@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.ChecksumHelper;
@@ -18,7 +19,10 @@ import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLFileValueHelper extends CWLBeanHelper {
 
-  private static final String KEY_NAME = "name";
+  private static final String KEY_NAME = "basename";
+  private static final String KEY_DIRNAME = "dirname";
+  private static final String KEY_NAMEROOT = "nameroot";
+  private static final String KEY_NAMEEXT = "nameext";
   private static final String KEY_PATH = "path";
   private static final String KEY_LOCATION = "location";
   private static final String KEY_SIZE = "size";
@@ -39,12 +43,28 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     return getValue(KEY_FORMAT, raw);
   }
   
+  public static void setNameroot(String nameroot, Object raw) {
+    setValue(KEY_NAMEROOT, nameroot, raw);
+  }
+  
+  public static void setNameext(String nameext, Object raw) {
+    setValue(KEY_NAMEEXT, nameext, raw);
+  }
+  
   public static String getName(Object raw) {
     return getValue(KEY_NAME, raw);
   }
 
   public static void setName(String name, Object raw) {
     setValue(KEY_NAME, name, raw);
+  }
+  
+  public static String getDirname(Object raw) {
+    return getValue(KEY_DIRNAME, raw);
+  }
+
+  public static void setDirname(String name, Object raw) {
+    setValue(KEY_DIRNAME, name, raw);
   }
 
   public static void setSize(Long size, Object raw) {
@@ -90,11 +110,20 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   public static String getPath(Object raw) {
-    return getValue(KEY_PATH, raw);
+    String path = getValue(KEY_PATH, raw);
+    if (path == null) {
+      path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
+      if (path == null) {
+        path = getValue(KEY_LOCATION, raw);
+      }
+      setPath(path, raw);
+    }
+    return path;
   }
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
+    setLocation(path, raw);
   }
   
   public static String getLocation(Object raw) {
@@ -183,9 +212,17 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   
   public static FileValue createFileValue(Object value) {
     String path = CWLFileValueHelper.getPath(value);
+    String name = CWLFileValueHelper.getName(value);
     String location = CWLFileValueHelper.getLocation(value);
     String checksum = CWLFileValueHelper.getChecksum(value);
     Long size = CWLFileValueHelper.getSize(value);
+    
+    if (path == null) { // TODO remove
+      setPath(getLocation(value), value);
+    }
+    if (location == null) { // TODO remove
+      setLocation(getPath(value), value);
+    }
     
     Map<String, Object> properties = new HashMap<>();
     properties.put(CWLBindingHelper.KEY_SBG_METADATA, CWLFileValueHelper.getMetadata(value));
@@ -204,7 +241,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         }
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {

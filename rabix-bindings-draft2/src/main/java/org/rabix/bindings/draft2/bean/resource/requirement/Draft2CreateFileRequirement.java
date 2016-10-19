@@ -84,7 +84,7 @@ public class Draft2CreateFileRequirement extends Draft2Resource {
 
   @Override
   @JsonIgnore
-  public Draft2ResourceType getType() {
+  public Draft2ResourceType getTypeEnum() {
     return Draft2ResourceType.CREATE_FILE_REQUIREMENT;
   }
 

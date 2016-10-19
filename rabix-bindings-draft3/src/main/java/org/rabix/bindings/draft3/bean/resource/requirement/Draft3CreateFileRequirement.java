@@ -78,7 +78,7 @@ public class Draft3CreateFileRequirement extends Draft3Resource {
 
   @Override
   @JsonIgnore
-  public Draft3ResourceType getType() {
+  public Draft3ResourceType getTypeEnum() {
     return Draft3ResourceType.CREATE_FILE_REQUIREMENT;
   }
 

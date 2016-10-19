@@ -1,16 +1,13 @@
 package org.rabix.bindings.draft3.bean.resource.requirement;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.rabix.bindings.draft3.bean.Draft3Job;
+import org.rabix.bindings.draft3.bean.Draft3Runtime;
 import org.rabix.bindings.draft3.bean.resource.Draft3Resource;
 import org.rabix.bindings.draft3.bean.resource.Draft3ResourceType;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Draft3ResourceRequirement extends Draft3Resource {
 
@@ -86,7 +83,7 @@ public class Draft3ResourceRequirement extends Draft3Resource {
   }
   
   @JsonIgnore
-  public Resources build(Draft3Job job) throws Draft3ExpressionException {
+  public Draft3Runtime build(Draft3Job job) throws Draft3ExpressionException {
     Long coresMin = getCoresMin(job);
     Long coresMax = getCoresMax(job);
 
@@ -118,57 +115,11 @@ public class Draft3ResourceRequirement extends Draft3Resource {
     if (outDir == null) {
       outDir = OUTDIR_MIN_DEFAULT;
     }
-    return new Resources(cores, ram, tmpDir, outDir);
-  }
-  
-  public static class Resources {
-    @JsonProperty("cores")
-    private final Long cores;
-    @JsonProperty("ram")
-    private final Long ram;
-    @JsonProperty("tmpdir")
-    private final Long tmpdir;
-    @JsonProperty("outdir")
-    private final Long outdir;
-    
-    public Resources(Long cores, Long ram, Long tmpdir, Long outdir) {
-      this.cores = cores;
-      this.ram = ram;
-      this.tmpdir = tmpdir;
-      this.outdir = outdir;
-    }
-    
-    public Long getCores() {
-      return cores;
-    }
-    
-    public Long getRam() {
-      return ram;
-    }
-
-    public Long getTmpdir() {
-      return tmpdir;
-    }
-
-    public Long getOutdir() {
-      return outdir;
-    }
-    
-    @JsonIgnore
-    public Map<String, Object> toMap() {
-      Map<String, Object> map = new HashMap<>();
-      map.put("cores", cores);
-      map.put("ram", ram);
-      map.put("tmpdir", tmpdir);
-      map.put("outdir", outdir);
-      return map;
-    }
-    
-  }
-  
+    return new Draft3Runtime(cores, ram, null, null, tmpDir, outDir);
+  }  
   
   @Override
-  public Draft3ResourceType getType() {
+  public Draft3ResourceType getTypeEnum() {
     return Draft3ResourceType.RESOURCE_REQUIREMENT;
   }
 

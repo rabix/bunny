@@ -29,7 +29,7 @@ public class Draft2ExpressionEngineRequirement extends Draft2Resource {
   
   @Override
   @JsonIgnore
-  public Draft2ResourceType getType() {
+  public Draft2ResourceType getTypeEnum() {
     return Draft2ResourceType.EXPRESSION_ENGINE_REQUIREMENT;
   }
 

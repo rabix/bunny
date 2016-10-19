@@ -3,7 +3,6 @@ package org.rabix.executor.handler.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +22,11 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleFileRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleInputDirectoryRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
 import org.rabix.bindings.model.requirement.LocalContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
-import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.download.DownloadServiceException;
@@ -48,9 +47,9 @@ import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
-import org.rabix.executor.service.BasicMemoizationService;
 import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
+import org.rabix.executor.service.ResultCacheService;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.slf4j.Logger;
@@ -59,8 +58,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.assistedinject.Assisted;
 
 public class JobHandlerImpl implements JobHandler {
-
-  private final String KEY_CHECKSUM = "checksum";
 
   private static final Logger logger = LoggerFactory.getLogger(JobHandlerImpl.class);
 
@@ -88,7 +85,7 @@ public class JobHandlerImpl implements JobHandler {
   private final ExecutorStatusCallback statusCallback;
   
   private final FilePermissionService filePermissionService;
-  private final BasicMemoizationService localMemoizationService;
+  private final ResultCacheService localMemoizationService;
 
   private boolean setPermissions;
 
@@ -98,7 +95,7 @@ public class JobHandlerImpl implements JobHandler {
       JobDataService jobDataService, Configuration configuration, StorageConfiguration storageConfig, 
       DockerConfigation dockerConfig, FileConfiguration fileConfiguration, 
       DockerClientLockDecorator dockerClient, ExecutorStatusCallback statusCallback,
-      BasicMemoizationService localMemoizationService, FilePermissionService filePermissionService, 
+      ResultCacheService localMemoizationService, FilePermissionService filePermissionService, 
       UploadService uploadService, DownloadService downloadService,
       @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper) {
     this.job = job;
@@ -127,13 +124,12 @@ public class JobHandlerImpl implements JobHandler {
     try {
       job = statusCallback.onJobReady(job);
       
-      Map<String, Object> results = localMemoizationService.tryToFindResults(job);
+      Map<String, Object> results = localMemoizationService.findResultsFromCachingDir(job);
       if (results != null) {
         containerHandler = new CompletedContainerHandler(job);
         containerHandler.start();
         return;
       }
-
       Bindings bindings = BindingsFactory.create(job);
       
       statusCallback.onInputFilesDownloadStarted(job);
@@ -145,14 +141,14 @@ public class JobHandlerImpl implements JobHandler {
       }
       statusCallback.onInputFilesDownloadCompleted(job);
       
+      job = bindings.mapInputFilePaths(job, inputFileMapper);
+      job = bindings.preprocess(job, workingDir);
+      
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
 
-      createFileRequirements(combinedRequirements);
-
-      job = bindings.mapInputFilePaths(job, inputFileMapper);
-      job = bindings.preprocess(job, workingDir);
+      stageFileRequirements(combinedRequirements);
 
       if (bindings.canExecute(job)) {
         containerHandler = new CompletedContainerHandler(job);
@@ -183,7 +179,7 @@ public class JobHandlerImpl implements JobHandler {
     downloadService.download(workingDir, paths, job.getConfig());
   }
   
-  private void createFileRequirements(List<Requirement> requirements) throws ExecutorException, FileMappingException {
+  private void stageFileRequirements(List<Requirement> requirements) throws ExecutorException, FileMappingException {
     try {
       FileRequirement fileRequirementResource = getRequirement(requirements, FileRequirement.class);
       if (fileRequirementResource == null) {
@@ -202,7 +198,7 @@ public class JobHandlerImpl implements JobHandler {
           FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent());
           continue;
         }
-        if (fileRequirement instanceof SingleInputFileRequirement) {
+        if (fileRequirement instanceof SingleInputFileRequirement || fileRequirement instanceof SingleInputDirectoryRequirement) {
           String path = ((SingleInputFileRequirement) fileRequirement).getContent().getPath();
           String mappedPath = inputFileMapper.map(path, job.getConfig());
           File file = new File(mappedPath);
@@ -233,13 +229,12 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Job postprocess(boolean isTerminal) throws ExecutorException {
     logger.debug("postprocess(id={})", job.getId());
     try {
       Bindings bindings = BindingsFactory.create(job);
       
-      Map<String, Object> results = localMemoizationService.tryToFindResults(job);
+      Map<String, Object> results = localMemoizationService.findResultsFromCachingDir(job);
       if (results != null) {
         job = Job.cloneWithOutputs(job, results);
         
@@ -255,7 +250,12 @@ public class JobHandlerImpl implements JobHandler {
         job = bindings.mapOutputFilePaths(job, outputFileMapper);
         return job;
       }
-      containerHandler.dumpContainerLogs(new File(workingDir, ERROR_LOG));
+      
+      String standardErrorLog = bindings.getStandardErrorLog(job);
+      if (standardErrorLog == null) {
+        standardErrorLog = ERROR_LOG;
+      }
+      containerHandler.dumpContainerLogs(new File(workingDir, standardErrorLog));
 
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
@@ -264,13 +264,7 @@ public class JobHandlerImpl implements JobHandler {
       if (setPermissions) {
         filePermissionService.execute(job);
       }
-      job = bindings.postprocess(job, workingDir);
-
-      if (enableHash) {
-        Map<String, Object> outputs = job.getOutputs();
-        Map<String, Object> outputsWithCheckSum = (Map<String, Object>) populateChecksum(outputs);
-        job = Job.cloneWithOutputs(job, outputsWithCheckSum);
-      }
+      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null);
 
       statusCallback.onOutputFilesUploadStarted(job);
       uploadOutputFiles(job, bindings);
@@ -309,13 +303,13 @@ public class JobHandlerImpl implements JobHandler {
     File cmdFile = new File(workingDir, COMMAND_LOG);
     if (cmdFile.exists()) {
       String cmdFilePath = cmdFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null));
+      fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null, cmdFile.getName()));
     }
     
     File jobErrFile = new File(workingDir, ERROR_LOG);
     if (jobErrFile.exists()) {
       String jobErrFilePath = jobErrFile.getAbsolutePath();
-      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null));
+      fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null, jobErrFile.getName()));
     }
     
     Set<File> files = new HashSet<>();
@@ -382,44 +376,6 @@ public class JobHandlerImpl implements JobHandler {
     logger.debug("isSuccessful()");
     int processExitStatus = getExitStatus();
     return isSuccessful(processExitStatus);
-  }
-
-  @SuppressWarnings("unchecked")
-  private void calculateChecksum(Object file) {
-    Map<String, Object> fileMap = (Map<String, Object>) file;
-    File f = new File((String) fileMap.get("path"));
-    String checksum = ChecksumHelper.checksum(f, hashAlgorithm);
-    if (checksum != null) {
-      fileMap.put(KEY_CHECKSUM, checksum);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public Object populateChecksum(Object outputs) {
-    if (outputs instanceof Map) {
-      String mapClass = (String) ((Map<String, Object>) outputs).get("class");
-      if (mapClass != null && mapClass.equals("File")) {
-        calculateChecksum(outputs);
-        return outputs;
-      } else {
-        Map<String, Object> outputsMap = (Map<String, Object>) outputs;
-        Map<String, Object> result = new HashMap<String, Object>();
-        for (String output : outputsMap.keySet()) {
-          Object value = outputsMap.get(output);
-          result.put(output, populateChecksum(value));
-        }
-        return result;
-      }
-    } else if (outputs instanceof List) {
-      List<Object> iter = (List<Object>) outputs;
-      List<Object> resultList = new ArrayList<Object>();
-      for (Object elem : iter) {
-        resultList.add(populateChecksum(elem));
-      }
-      return resultList;
-    } else {
-      return outputs;
-    }
   }
 
   @Override

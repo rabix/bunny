@@ -67,7 +67,7 @@ public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback 
   }
 
   private Object stageSingle(Object value, StageInput stageInput) throws BindingException {
-    if (CWLSchemaHelper.isFileFromValue(value)) {
+    if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       String originalPath = CWLFileValueHelper.getPath(value);
       String path = stagePath(originalPath, stageInput);
       CWLFileValueHelper.setPath(path, value);

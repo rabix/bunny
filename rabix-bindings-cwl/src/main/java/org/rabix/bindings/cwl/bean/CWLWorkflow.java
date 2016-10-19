@@ -3,15 +3,18 @@ package org.rabix.bindings.cwl.bean;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.rabix.bindings.cwl.json.CWLStepsDeserializer;
 import org.rabix.common.json.BeanPropertyView;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 public class CWLWorkflow extends CWLJobApp {
 
   @JsonProperty("steps")
+  @JsonDeserialize(using = CWLStepsDeserializer.class)
   private List<CWLStep> steps;
 
   @JsonProperty("dataLinks")

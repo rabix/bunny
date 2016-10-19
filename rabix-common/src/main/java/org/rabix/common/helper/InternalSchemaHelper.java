@@ -50,6 +50,9 @@ public class InternalSchemaHelper {
   }
 
   public static String normalizeId(String id) {
+    if (id == null) {
+      return null;
+    }
     String result = id;
     String[] idParts = id.split("\\" + SEPARATOR);
     if (idParts.length == 0) {

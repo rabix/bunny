@@ -14,19 +14,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CWLOutputPort extends ApplicationPort {
 
+  @JsonProperty("format")
+  protected Object format;
   @JsonProperty("outputBinding")
   protected Object outputBinding;
-  @JsonProperty("source")
+  @JsonProperty("outputSource")
   protected Object source;
-
+  @JsonProperty("secondaryFiles")
+  protected Object secondaryFiles;
+  
   @JsonCreator
-  public CWLOutputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue,
-      @JsonProperty("type") Object schema, @JsonProperty("outputBinding") Object outputBinding,
-      @JsonProperty("scatter") Boolean scatter, @JsonProperty("source") Object source,
-      @JsonProperty("linkMerge") String linkMerge, @JsonProperty("description") String description) {
+  public CWLOutputPort(@JsonProperty("id") String id, @JsonProperty("format") Object format,  @JsonProperty("default") Object defaultValue,
+      @JsonProperty("type") Object schema, @JsonProperty("outputBinding") Object outputBinding, @JsonProperty("scatter") Boolean scatter, 
+      @JsonProperty("outputSource") Object source, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("secondaryFiles") Object secondaryFiles, @JsonProperty("description") String description) {
     super(id, defaultValue, schema, scatter, linkMerge, description);
+    this.format = format;
     this.outputBinding = outputBinding;
     this.source = source;
+    this.secondaryFiles = secondaryFiles;
   }
 
   @Override
@@ -35,18 +40,25 @@ public class CWLOutputPort extends ApplicationPort {
     return CWLSchemaHelper.isArrayFromSchema(schema);
   }
   
+  public Object getFormat() {
+    return format;
+  }
+  
   public Object getOutputBinding() {
     return outputBinding;
   }
 
+  public Object getSecondaryFiles() {
+    return secondaryFiles;
+  }
+  
   public Object getSource() {
     return source;
   }
 
   @Override
   public String toString() {
-    return "OutputPort [outputBinding=" + outputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter="
-        + getScatter() + ", source=" + source + "]";
+    return "OutputPort [outputBinding=" + outputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter=" + getScatter() + ", source=" + source + "]";
   }
 
 }

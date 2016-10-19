@@ -16,11 +16,13 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = Draft3Resource.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = Draft3Resource.class, visible = true)
 @JsonSubTypes({ @Type(value = Draft3DockerResource.class, name = "DockerRequirement"),
     @Type(value = Draft3InlineJavascriptRequirement.class, name = "InlineJavascriptRequirement"),
     @Type(value = Draft3ShellCommandRequirement.class, name = "ShellCommandRequirement"),
@@ -30,6 +32,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = Draft3EnvVarRequirement.class, name = "EnvVarRequirement") })
 @JsonInclude(Include.NON_NULL)
 public class Draft3Resource {
+
+  @JsonProperty("class")
+  protected String type;
   protected Map<String, Object> raw = new HashMap<>();
 
   public Draft3Resource() {
@@ -57,8 +62,13 @@ public class Draft3Resource {
   }
 
   @JsonIgnore
-  public Draft3ResourceType getType() {
+  public Draft3ResourceType getTypeEnum() {
     return Draft3ResourceType.OTHER;
+  }
+  
+  @JsonTypeId
+  public String getType() {
+    return type;
   }
 
   @Override
@@ -88,6 +98,7 @@ public class Draft3Resource {
 
   @Override
   public String toString() {
-    return "Hint [" + raw + "]";
+    return "Draft3Resource [type=" + type + ", raw=" + raw + "]";
   }
+
 }

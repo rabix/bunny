@@ -23,6 +23,7 @@ import org.rabix.bindings.draft3.helper.Draft3JobHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.requirement.CustomRequirement;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
@@ -68,8 +69,7 @@ public class Draft3RequirementProvider implements ProtocolRequirementProvider {
 
   }
 
-  private FileRequirement getFileRequirement(Draft3Job draft3Job, Draft3CreateFileRequirement createFileRequirement)
-      throws BindingException {
+  private FileRequirement getFileRequirement(Draft3Job draft3Job, Draft3CreateFileRequirement createFileRequirement) throws BindingException {
     if (createFileRequirement == null) {
       return null;
     }
@@ -89,7 +89,7 @@ public class Draft3RequirementProvider implements ProtocolRequirementProvider {
 
         if (Draft3SchemaHelper.isFileFromValue(content)) {
           FileValue fileValue = Draft3FileValueHelper.createFileValue(content);
-          result.add(new FileRequirement.SingleInputFileRequirement(filename, fileValue));
+          result.add(new FileRequirement.SingleInputFileRequirement(filename, fileValue, true));
         } else {
           result.add(new FileRequirement.SingleTextFileRequirement(filename, (String) content));
         }
@@ -134,6 +134,7 @@ public class Draft3RequirementProvider implements ProtocolRequirementProvider {
         result.add(getFileRequirement(draft3Job, (Draft3CreateFileRequirement) draft3Resource));
         continue;
       }
+      result.add(new CustomRequirement(draft3Resource.getType(), draft3Resource.getRaw()));
     }
     return result;
   }

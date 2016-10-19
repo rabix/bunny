@@ -41,20 +41,15 @@ public class Draft3InputPort extends ApplicationPort {
   @JsonProperty("streamable")
   protected Boolean streamable;
   
-  @JsonProperty("sbg:stageInput")
-  protected final String stageInput;
   @JsonProperty("inputBinding")
   protected final Object inputBinding;
 
   @JsonCreator
   public Draft3InputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema, 
-      @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("streamable") Boolean streamable, @JsonProperty("format") Object format,
-                         @JsonProperty("scatter") Boolean scatter, @JsonProperty("sbg:stageInput") String stageInput, @JsonProperty("linkMerge") String linkMerge,
-                         @JsonProperty("description") String description) {
+      @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("streamable") Boolean streamable, @JsonProperty("format") Object format, @JsonProperty("scatter") Boolean scatter, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("description") String description) {
     super(id, defaultValue, schema, scatter, linkMerge, description);
     this.format = format;
     this.streamable = streamable;
-    this.stageInput = stageInput;
     this.inputBinding = inputBinding;
   }
 
@@ -66,10 +61,6 @@ public class Draft3InputPort extends ApplicationPort {
   
   public Object getInputBinding() {
     return inputBinding;
-  }
-
-  public String getStageInput() {
-    return stageInput;
   }
   
   public Boolean getStreamable() {

@@ -157,7 +157,7 @@ public abstract class SBJobApp extends Application {
     }
     List<T> result = new ArrayList<>();
     for (SBResource requirement : requirements) {
-      if (type.equals(requirement.getType())) {
+      if (type.equals(requirement.getTypeEnum())) {
         result.add(clazz.cast(requirement));
       }
     }
@@ -171,7 +171,7 @@ public abstract class SBJobApp extends Application {
     }
     List<T> result = new ArrayList<>();
     for (SBResource hint : hints) {
-      if (type.equals(hint.getType())) {
+      if (type.equals(hint.getTypeEnum())) {
         result.add(clazz.cast(hint));
       }
     }

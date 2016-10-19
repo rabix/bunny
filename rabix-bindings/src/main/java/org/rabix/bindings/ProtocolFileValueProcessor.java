@@ -15,10 +15,6 @@ public interface ProtocolFileValueProcessor {
   
   Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException;
  
-  Set<FileValue> getFlattenedInputFiles(Job job) throws BindingException;
-
-  Set<FileValue> getFlattenedOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException;
-  
   Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
 
   Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException;

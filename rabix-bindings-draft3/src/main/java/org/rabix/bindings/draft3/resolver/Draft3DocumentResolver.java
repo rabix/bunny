@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.helper.URIHelper;
@@ -24,11 +26,39 @@ import org.rabix.common.helper.JSONHelper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.Preconditions;
 
 public class Draft3DocumentResolver {
+  
+public static Set<String> types = new HashSet<String>();
+  
+  static {
+    types.add("null");
+    types.add("boolean");
+    types.add("int");
+    types.add("long");
+    types.add("float");
+    types.add("double");
+    types.add("string");
+    types.add("File");
+    types.add("record");
+    types.add("enum");
+    types.add("array");
+    types.add("Any");
+  }
 
-  public static final String RESOLVER_REFERENCE_KEY = "import";
+
+  public static final String APP_STEP_KEY = "run";
+  public static final String TYPE_KEY = "type";
+  public static final String RESOLVER_REFERENCE_KEY = "$import";
+  public static final String RESOLVER_REFERENCE_INCLUDE_KEY = "$include";
+  public static final String GRAPH_KEY = "$graph";
+  public static final String SCHEMA_KEY = "$schemas";
+  public static final String NAMESPACES_KEY = "$namespaces";
+  public static final String SCHEMADEF_KEY = "SchemaDefRequirement";
+  
   public static final String RESOLVER_JSON_POINTER_KEY = "$job";
   
   public static final String DOCUMENT_FRAGMENT_SEPARATOR = "#";
@@ -36,7 +66,9 @@ public class Draft3DocumentResolver {
   private static final String DEFAULT_ENCODING = "UTF-8";
 
   private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>(); 
+  private static boolean graphResolve = false;
   
+  private static Map<String, String> namespaces = new HashMap<String, String>();
   private static Map<String, Map<String, Draft3DocumentResolverReference>> referenceCache = new HashMap<>();
   private static Map<String, LinkedHashSet<Draft3DocumentResolverReplacement>> replacements = new HashMap<>();
   
@@ -59,7 +91,21 @@ public class Draft3DocumentResolver {
     } catch (IOException e) {
       throw new BindingException(e);
     }
-    traverse(appUrl, root, file, null, root, true);
+    
+    if(root.has(SCHEMA_KEY)) {
+      throw new NotImplementedException("Feature not implemented");
+    }
+    
+    if(root.has(GRAPH_KEY)) {
+      graphResolve = true;
+    }
+    
+    if(root.has(NAMESPACES_KEY)) {
+      populateNamespaces(root);
+      ((ObjectNode) root).remove(NAMESPACES_KEY);
+    }
+    
+    traverse(appUrl, root, file, null, root);
 
     for (Draft3DocumentResolverReplacement replacement : getReplacements(appUrl)) {
       if (replacement.getParentNode().isArray()) {
@@ -69,24 +115,81 @@ public class Draft3DocumentResolver {
       }
     }
     
-    cache.put(appUrl, JSONHelper.writeObject(root));
+    if(graphResolve) {
+      String fragment = URIHelper.extractFragment(appUrl).substring(1);
+      
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      
+      removeFragmentIdentifier(appUrl, root, file, null, root, fragment);
+      
+      for (Draft3DocumentResolverReplacement replacement : getReplacements(appUrl)) {
+        if (replacement.getParentNode().isArray()) {
+          replaceArrayItem(appUrl, root, replacement);
+        } else if (replacement.getParentNode().isObject()) {
+          replaceObjectItem(appUrl, root, replacement);
+        }
+      }
+      
+      for(final JsonNode elem: root.get(GRAPH_KEY)) {
+        if(elem.get("id").asText().equals(fragment)) {
+          cache.put(appUrl, JSONHelper.writeObject(elem));
+          break;
+        }
+      }
+      graphResolve = false;
+    }
+    else {
+      cache.put(appUrl, JSONHelper.writeObject(root));
+    }
 
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);;
     return cache.get(appUrl);
   }
   
-  private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode, boolean addReplacement) throws BindingException {
+  private static void populateNamespaces(JsonNode root) {
+    Iterator<Entry<String, JsonNode>> fieldIterator = root.get(NAMESPACES_KEY).fields();
+    while (fieldIterator.hasNext()) {
+      Entry<String, JsonNode> fieldEntry = fieldIterator.next();
+      namespaces.put(fieldEntry.getKey(), fieldEntry.getValue().asText());
+    }
+  }
+  
+  private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
 
+    boolean isInclude = currentNode.has(RESOLVER_REFERENCE_INCLUDE_KEY);
+    
+    if (isInclude) {
+      String path = currentNode.get(RESOLVER_REFERENCE_INCLUDE_KEY).textValue();
+      String content = loadContents(file, path);
+
+      Draft3DocumentResolverReference reference = new Draft3DocumentResolverReference(false, new TextNode(content));
+      getReferenceCache(appUrl).put(path, reference);
+      getReplacements(appUrl).add(new Draft3DocumentResolverReplacement(parentNode, currentNode, path));
+      return null;
+    }
+    
+    namespace(currentNode);
+    
     boolean isReference = currentNode.has(RESOLVER_REFERENCE_KEY);
+    boolean appReference = currentNode.has(APP_STEP_KEY) && currentNode.get(APP_STEP_KEY).isTextual();
+    boolean typeReference = currentNode.has(TYPE_KEY) && currentNode.get(TYPE_KEY).isTextual() && isTypeReference(currentNode.get(TYPE_KEY).textValue());
     boolean isJsonPointer = currentNode.has(RESOLVER_JSON_POINTER_KEY) && parentNode != null; // we skip the first level $job
 
-    if (isReference || isJsonPointer) {
+    if (isReference || isJsonPointer || appReference || typeReference) {
       String referencePath = null;
       if (isReference) {
         referencePath = currentNode.get(RESOLVER_REFERENCE_KEY).textValue();
-      } else {
+      } 
+      else if (appReference) {
+        referencePath = currentNode.get(APP_STEP_KEY).textValue();
+      } 
+      else if(typeReference) {
+        referencePath = currentNode.get(TYPE_KEY).textValue();
+      }
+      else {
         referencePath = currentNode.get(RESOLVER_JSON_POINTER_KEY).textValue();
       }
 
@@ -102,20 +205,50 @@ public class Draft3DocumentResolver {
 
         JsonNode referenceDocumentRoot = findDocumentRoot(root, file, referencePath, isJsonPointer);
         ParentChild parentChild = findReferencedNode(referenceDocumentRoot, referencePath);
-        reference.setResolvedNode(traverse(appUrl, root, file, parentChild.parent, parentChild.child, true));
+        JsonNode resolvedNode = traverse(appUrl, root, file, parentChild.parent, parentChild.child);
+        if(resolvedNode == null) {
+          return null;
+        }
+        
+        reference.setResolvedNode(resolvedNode);
         reference.setResolving(false);
         getReferenceCache(appUrl).put(referencePath, reference);
       }
-      if (addReplacement) {
+      if(appReference) {
+        getReplacements(appUrl).add(new Draft3DocumentResolverReplacement(currentNode, currentNode.get("run"), referencePath));
+      }
+      else if(typeReference) {
+        getReplacements(appUrl).add(new Draft3DocumentResolverReplacement(currentNode, currentNode.get("type"), referencePath));
+      }
+      else {
         getReplacements(appUrl).add(new Draft3DocumentResolverReplacement(parentNode, currentNode, referencePath));
       }
       return reference.getResolvedNode();
     } else if (currentNode.isContainerNode()) {
       for (JsonNode subnode : currentNode) {
-        traverse(appUrl, root, file, currentNode, subnode, addReplacement);
+        traverse(appUrl, root, file, currentNode, subnode);
       }
     }
     return currentNode;
+  }
+  
+  private static void namespace(JsonNode currentNode) {
+    Iterator<Entry<String, JsonNode>> fieldIterator = currentNode.fields();
+    while (fieldIterator.hasNext()) {
+      Entry<String, JsonNode> fieldEntry = fieldIterator.next();
+      if(fieldEntry.getValue().isTextual() && namespaces.keySet().contains(fieldEntry.getValue().asText().split(":")[0])) {
+        String prefix = namespaces.get(fieldEntry.getValue().asText().split(":")[0]);
+        String namespacedValue = fieldEntry.getValue().asText().replace(fieldEntry.getValue().asText().split(":")[0] + ":", prefix);
+        ((ObjectNode) currentNode).put(fieldEntry.getKey(), namespacedValue);
+      }
+    }
+  }
+  
+  private static boolean isTypeReference(String type) {
+    if(types.contains(type)) {
+      return false;
+    }
+    return true;
   }
 
   @SuppressWarnings("deprecation")
@@ -175,40 +308,41 @@ public class Draft3DocumentResolver {
       if (parts.length > 2) {
         throw new BindingException("Invalid reference " + reference);
       }
-      String externalResource = parts[0];
-      if (externalResource.startsWith("http")) {
+      String contents = loadContents(file, parts[0]);
+      return JSONHelper.readJsonNode(JSONHelper.transformToJSON(contents));
+    }
+  }
+  
+  private static String loadContents(File file, String path) throws BindingException {
+    if (path.startsWith("http")) {
+      try {
+        URL website = new URL(path);
+        URLConnection connection = website.openConnection();
+        BufferedReader in = null;
+
         try {
-          URL website = new URL(externalResource);
-          URLConnection connection = website.openConnection();
-          BufferedReader in = null;
+          in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-          try {
-            in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-            StringBuilder response = new StringBuilder();
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-              response.append(inputLine);
-            }
-
-            String linkContents = response.toString();
-            return JSONHelper.readJsonNode(linkContents);
-          } finally {
-            if (in != null) {
-              in.close();
-            }
+          StringBuilder response = new StringBuilder();
+          String inputLine;
+          while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
           }
-        } catch (Exception e) {
-          throw new BindingException("Couldn't fetch contents from " + externalResource);
+          return response.toString();
+        } finally {
+          if (in != null) {
+            in.close();
+          }
         }
-      } else {
-        try {
-          String filePath = new File(file.getParentFile(), externalResource).getCanonicalPath();
-          String fileContents = FileUtils.readFileToString(new File(filePath), DEFAULT_ENCODING);
-          return JSONHelper.readJsonNode(JSONHelper.transformToJSON(fileContents));
-        } catch (IOException e) {
-          throw new BindingException("Couldn't fetch contents from " + externalResource);
-        }
+      } catch (Exception e) {
+        throw new BindingException("Couldn't fetch contents from " + path);
+      }
+    } else {
+      try {
+        String filePath = new File(file.getParentFile(), path).getCanonicalPath();
+        return FileUtils.readFileToString(new File(filePath), DEFAULT_ENCODING);
+      } catch (IOException e) {
+        throw new BindingException("Couldn't fetch contents from " + path);
       }
     }
   }
@@ -220,6 +354,30 @@ public class Draft3DocumentResolver {
     String subpath = absolutePath.substring(absolutePath.indexOf(DOCUMENT_FRAGMENT_SEPARATOR) + 1);
     String[] parts = subpath.split("/");
 
+    if(rootNode.has("$graph")) {
+      JsonNode objects = rootNode.get("$graph");
+      JsonNode child = null;
+      JsonNode parent = objects;
+      for(final JsonNode elem: objects) {
+        if(elem.get("id").asText().equals(parts[0])) {
+          child = elem;
+          break;
+        }
+      }
+      return new ParentChild(parent, child);
+    }
+    else if (rootNode.has("class") && rootNode.get("class").asText().equals(SCHEMADEF_KEY)) {
+      JsonNode objects = rootNode.get("types");
+      JsonNode child = null;
+      for(final JsonNode elem: objects) {
+        if(elem.get("name").asText().equals(parts[0])) {
+          child = elem;
+          break;
+        }
+      }
+      return new ParentChild(null, child);
+    }
+    
     JsonNode parent = null;
     JsonNode child = rootNode;
     for (String part : parts) {
@@ -230,6 +388,23 @@ public class Draft3DocumentResolver {
       child = child.get(part);
     }
     return new ParentChild(parent, child);
+  }
+  
+  private static JsonNode removeFragmentIdentifier(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode, String fragment) throws BindingException {
+    Preconditions.checkNotNull(currentNode, "current node id is null");
+    if(currentNode.isTextual() && currentNode.asText().startsWith(DOCUMENT_FRAGMENT_SEPARATOR)) {
+      Draft3DocumentResolverReference reference = new Draft3DocumentResolverReference();
+      reference.setResolvedNode(JsonNodeFactory.instance.textNode(currentNode.asText().replace(fragment + "/", "")));
+      getReferenceCache(appUrl).put(currentNode.asText(), reference);
+      getReplacements(appUrl).add(new Draft3DocumentResolverReplacement(parentNode, currentNode, currentNode.asText()));
+      
+    }
+    else if (currentNode.isContainerNode()) {
+      for (JsonNode subnode : currentNode) {
+        removeFragmentIdentifier(appUrl, root, file, currentNode, subnode, fragment);
+      }
+    }
+    return currentNode;
   }
   
   private synchronized static Set<Draft3DocumentResolverReplacement> getReplacements(String url) {

@@ -39,21 +39,21 @@ public final class CWLJob {
   @JsonView(BeanPropertyView.Full.class)
   private String scatterMethod;
   
-  @JsonProperty("allocatedResources")
-  private CWLResources resources;
+  @JsonProperty("runtime")
+  private CWLRuntime runtime;
 
   @JsonCreator
   public CWLJob(@JsonProperty("app") CWLJobApp app,
       @JsonProperty("inputs") Map<String, Object> inputs,
       @JsonProperty("outputs") Map<String, Object> outputs,
-      @JsonProperty("allocatedResources") CWLResources resources,
+      @JsonProperty("runtime") CWLRuntime runtime,
       @JsonProperty("id") String id, @JsonProperty("scatter") Object scatter, 
       @JsonProperty("scatterMethod") String scatterMethod) {
     this.id = id;
     this.app = app;
     this.inputs = inputs;
     this.outputs = outputs;
-    this.resources = resources;
+    this.runtime = runtime;
     this.scatter = scatter;
     this.scatterMethod = scatterMethod;
     processPortDefaults();
@@ -81,9 +81,12 @@ public final class CWLJob {
     processPortDefaults();
   }
   
-  public CWLJob(CWLJobApp app, Map<String, Object> inputs) {
+  public CWLJob(String id, CWLJobApp app, Map<String, Object> inputs, Map<String, Object> outputs) {
+    this.id = id;
     this.app = app;
     this.inputs = inputs;
+    this.outputs = outputs;
+    
     processPortDefaults();
   }
 
@@ -115,12 +118,12 @@ public final class CWLJob {
     return outputs;
   }
 
-  public void setResources(CWLResources resources) {
-    this.resources = resources;
+  public CWLRuntime getRuntime() {
+    return runtime;
   }
-  
-  public CWLResources getResources() {
-    return resources;
+
+  public void setRuntime(CWLRuntime runtime) {
+    this.runtime = runtime;
   }
 
   public Object getScatter() {
@@ -164,7 +167,7 @@ public final class CWLJob {
 
   @Override
   public String toString() {
-    return "Job [id=" + id + ", app=" + app + ", inputs=" + inputs + ", outputs=" + outputs + ", scatter=" + scatter + ", resources=" + resources + "]";
+    return "Job [id=" + id + ", app=" + app + ", inputs=" + inputs + ", outputs=" + outputs + ", scatter=" + scatter + ", runtime=" + runtime + "]";
   }
 
 }

@@ -16,8 +16,12 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
+import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
+import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
+import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
+import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.FileValue;
@@ -26,6 +30,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.transformer.FileTransformer;
+import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLBindings implements Bindings {
 
@@ -61,7 +66,7 @@ public class CWLBindings implements Bindings {
   public Application loadAppObject(String uri) throws BindingException {
     CWLJobApp application = (CWLJobApp) appProcessor.loadAppObject(uri);
     if (!CWLJobApp.CWL_VERSION.equals(application.getCwlVersion())) {
-      throw new BindingException(uri + " is not an CWL Draft-3 application");
+      throw new BindingException(uri + " is not an CWL application");
     }
     return application;
   }
@@ -82,8 +87,8 @@ public class CWLBindings implements Bindings {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir) throws BindingException {
-    return processor.postprocess(job, workingDir);
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+    return processor.postprocess(job, workingDir, hashAlgorithm);
   }
 
   @Override
@@ -122,19 +127,32 @@ public class CWLBindings implements Bindings {
   }
   
   @Override
+  public String getStandardErrorLog(Job job) throws BindingException {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    try {
+      if (cwlJob.getApp().isCommandLineTool()) {
+        return ((CWLCommandLineTool) cwlJob.getApp()).getStderr(cwlJob);
+      }
+      return null;
+    } catch (CWLExpressionException e) {
+      throw new BindingException(e);
+    }
+  }
+  
+  @Override
   public Set<FileValue> getProtocolFiles(File workingDir) throws BindingException {
     Set<FileValue> files = new HashSet<>();
     
     File jobFile = new File(workingDir, CWLProcessor.JOB_FILE);
     if (jobFile.exists()) {
       String jobFilePath = jobFile.getAbsolutePath();
-      files.add(new FileValue(null, jobFilePath, null, null, null, null));
+      files.add(new FileValue(null, jobFilePath, null, null, null, null, jobFile.getName()));
     }
     
     File resultFile = new File(workingDir, CWLProcessor.RESULT_FILENAME);
     if (resultFile.exists()) {
       String resultFilePath = resultFile.getAbsolutePath();
-      files.add(new FileValue(null, resultFilePath, null, null, null, null));
+      files.add(new FileValue(null, resultFilePath, null, null, null, null, resultFile.getName()));
     }
     return files;
   }
@@ -177,6 +195,11 @@ public class CWLBindings implements Bindings {
   @Override
   public ProtocolType getProtocolType() {
     return protocolType;
+  }
+  
+  @Override
+  public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    return processor.transformInputs(value, job, transform);
   }
 
   @Override

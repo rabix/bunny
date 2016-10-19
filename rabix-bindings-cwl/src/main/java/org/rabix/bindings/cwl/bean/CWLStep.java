@@ -1,16 +1,21 @@
 package org.rabix.bindings.cwl.bean;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
+import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
+import org.rabix.bindings.cwl.json.CWLStepPortsDeserializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CWLStep {
@@ -21,10 +26,12 @@ public class CWLStep {
   @JsonProperty("run")
   private CWLJobApp app;
 
-  @JsonProperty("inputs")
+  @JsonProperty("in")
+  @JsonDeserialize(using = CWLStepPortsDeserializer.class)
   private List<Map<String, Object>> inputs;
 
-  @JsonProperty("outputs")
+  @JsonProperty("out")
+  @JsonDeserialize(using = CWLStepPortsDeserializer.class)
   private List<Map<String, Object>> outputs;
 
   @JsonProperty("scatter")
@@ -33,13 +40,21 @@ public class CWLStep {
   @JsonProperty("scatterMethod")
   private String scatterMethod;
   
+  @JsonProperty("hints")
+  @JsonDeserialize(using = CWLResourcesDeserializer.class)
+  protected List<CWLResource> hints = new ArrayList<>();
+  
+  @JsonProperty("requirements")
+  @JsonDeserialize(using = CWLResourcesDeserializer.class)
+  protected List<CWLResource> requirements = new ArrayList<>();
+  
   @JsonIgnore
   private CWLJob job;
 
   @JsonCreator
   public CWLStep(@JsonProperty("id") String id, @JsonProperty("run") CWLJobApp app,
       @JsonProperty("scatter") Object scatter, @JsonProperty("scatterMethod") String scatterMethod, @JsonProperty("linkMerge") String linkMerge,
-      @JsonProperty("inputs") List<Map<String, Object>> inputs, @JsonProperty("outputs") List<Map<String, Object>> outputs) {
+      @JsonProperty("in") List<Map<String, Object>> inputs, @JsonProperty("out") List<Map<String, Object>> outputs) {
     this.id = id;
     this.app = app;
     this.scatter = scatter;
@@ -81,10 +96,9 @@ public class CWLStep {
     for (Map<String, Object> port : portList) {
       String id = CWLSchemaHelper.getLastInputId(CWLBindingHelper.getId(port));
       id = CWLSchemaHelper.normalizeId(id);
-      Object value = CWLBindingHelper.getDefault(port);
-      if (value != null) {
-        portMap.put(id, value);
-      }
+      Object defaultValue = CWLBindingHelper.getDefault(port);
+      Object valueFrom = CWLBindingHelper.getValueFrom(port);
+      portMap.put(id, new CWLStepInputs(defaultValue, valueFrom));
     }
     return portMap;
   }
@@ -115,6 +129,22 @@ public class CWLStep {
   
   public String getScatterMethod() {
     return scatterMethod;
+  }
+  
+  public List<CWLResource> getHints() {
+    return hints;
+  }
+
+  public void setHints(List<CWLResource> hints) {
+    this.hints = hints;
+  }
+
+  public List<CWLResource> getRequirements() {
+    return requirements;
+  }
+
+  public void setRequirements(List<CWLResource> requirements) {
+    this.requirements = requirements;
   }
 
   @JsonIgnore

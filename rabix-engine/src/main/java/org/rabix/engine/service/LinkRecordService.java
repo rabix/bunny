@@ -16,6 +16,10 @@ public class LinkRecordService {
     getLinkRecords(link.getContextId()).add(link);
   }
 
+  public void delete(String rootId) {
+    linkRecordsPerContext.remove(rootId);
+  }
+  
   public List<LinkRecord> findBySourceJobId(String jobId, String contextId) {
     List<LinkRecord> result = new ArrayList<>();
     for (LinkRecord lr : getLinkRecords(contextId)) {

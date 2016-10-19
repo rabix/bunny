@@ -182,6 +182,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
   
   public static FileValue createFileValue(Object value) {
     String path = Draft3FileValueHelper.getPath(value);
+    String name = Draft3FileValueHelper.getName(value);
     String location = Draft3FileValueHelper.getLocation(value);
     String checksum = Draft3FileValueHelper.getChecksum(value);
     Long size = Draft3FileValueHelper.getSize(value);
@@ -196,7 +197,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {

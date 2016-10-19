@@ -19,7 +19,7 @@ public class Draft2ToCWLConverter {
   }
   
   public static String convertSource(String source) {
-    return source.replaceAll("\\.", "/");
+    return source.replaceAll("\\.", "/").replaceAll("^\"|\"$", "");
   }
 
   public static String convertDestinationId(String destination) {

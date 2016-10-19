@@ -133,6 +133,7 @@ public abstract class Draft2JobApp extends Application {
     }
     return null;
   }
+  
   public <T extends Draft2Resource> T getHint(Draft2ResourceType type, Class<T> clazz) {
     List<T> resources = getHints(type, clazz);
     if(resources != null && !resources.isEmpty()) {
@@ -143,7 +144,7 @@ public abstract class Draft2JobApp extends Application {
   
   public <T> void setHint(Draft2Resource resource) {
     for (Draft2Resource hint : hints) {
-    if (resource.getType().equals(hint.getType())) {
+    if (resource.getTypeEnum().equals(hint.getTypeEnum())) {
       hints.remove(hint);
       hints.add(resource);
       break;
@@ -182,7 +183,7 @@ public abstract class Draft2JobApp extends Application {
     }
     List<T> result = new ArrayList<>();
     for (Draft2Resource requirement : requirements) {
-      if (type.equals(requirement.getType())) {
+      if (type.equals(requirement.getTypeEnum())) {
         result.add(clazz.cast(requirement));
       }
     }
@@ -196,7 +197,7 @@ public abstract class Draft2JobApp extends Application {
     }
     List<T> result = new ArrayList<>();
     for (Draft2Resource hint : hints) {
-      if (type.equals(hint.getType())) {
+      if (type.equals(hint.getTypeEnum())) {
         result.add(clazz.cast(hint));
       }
     }

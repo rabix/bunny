@@ -74,7 +74,11 @@ public class Draft2FileValueProcessorCallback implements Draft2PortProcessorCall
                 }
                 secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
               }
-              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null, null));
+              String secondaryFilename = null;
+              if (secondaryFilePath.contains("/")) {
+                secondaryFilename = secondaryFilePath.substring(secondaryFilePath.lastIndexOf("/") + 1);
+              }
+              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null, null, secondaryFilename));
             }
             fileValue = FileValue.cloneWithSecondaryFiles(fileValue, secondaryFileValues);
           }
@@ -85,7 +89,7 @@ public class Draft2FileValueProcessorCallback implements Draft2PortProcessorCall
     }
     return new Draft2PortProcessorResult(value, false);
   }
-
+  
   private boolean skip(String portId) {
     return visiblePorts != null && !visiblePorts.contains(Draft2SchemaHelper.normalizeId(portId));
   }
