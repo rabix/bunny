@@ -178,7 +178,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
             argBinding = getShellQuoteValue(argBinding);
           }
           if (argBinding instanceof String) {
-            String arg = CWLExpressionResolver.resolve(argBinding, job, null);
+            Object arg = CWLExpressionResolver.resolve(argBinding, job, null);
             CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(0, false).part(arg).keyValue("").build();
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
