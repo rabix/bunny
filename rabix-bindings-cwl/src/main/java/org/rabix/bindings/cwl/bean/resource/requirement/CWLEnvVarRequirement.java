@@ -9,8 +9,6 @@ import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeId;
 
 /**
  * Requirement that defines environment variables needed for execution 
@@ -19,9 +17,6 @@ public class CWLEnvVarRequirement extends CWLResource {
 
   public final static String KEY_ENV_DEF = "envDef";
 
-  @JsonProperty("type")
-  private String type;
-  
   @JsonIgnore
   @SuppressWarnings("unchecked")
   public List<EnvironmentDef> getEnvironmentDefinitions() {
@@ -51,11 +46,6 @@ public class CWLEnvVarRequirement extends CWLResource {
     return null;
   }
   
-  @JsonTypeId
-  public String getType() {
-    return type;
-  }
-
   @Override
   public CWLResourceType getTypeEnum() {
     return CWLResourceType.ENV_VAR_REQUIREMENT;
