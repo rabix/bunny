@@ -18,7 +18,6 @@ import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLJob;
-import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
@@ -64,11 +63,7 @@ public class CWLBindings implements Bindings {
   
   @Override
   public Application loadAppObject(String uri) throws BindingException {
-    CWLJobApp application = (CWLJobApp) appProcessor.loadAppObject(uri);
-    if (!CWLJobApp.CWL_VERSION.equals(application.getCwlVersion())) {
-      throw new BindingException(uri + " is not an CWL application");
-    }
-    return application;
+    return appProcessor.loadAppObject(uri);
   }
   
   @Override
