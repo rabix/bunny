@@ -20,42 +20,21 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.Preconditions;
 
 public class CWLDocumentResolver {
   
   public static Set<String> types = new HashSet<String>();
-  
-  static {
-    types.add("null");
-    types.add("boolean");
-    types.add("int");
-    types.add("long");
-    types.add("float");
-    types.add("double");
-    types.add("string");
-    types.add("File");
-    types.add("Directory");
-    types.add("record");
-    types.add("enum");
-    types.add("array");
-    types.add("Any");
-    types.add("stdin");
-    types.add("stdout");
-    types.add("stderr");
-  }
 
   public static final String APP_STEP_KEY = "run";
-  public static final String TYPE_KEY = "type";
   public static final String RESOLVER_REFERENCE_KEY = "$import";
   public static final String RESOLVER_REFERENCE_INCLUDE_KEY = "$include";
   public static final String GRAPH_KEY = "$graph";
@@ -69,7 +48,7 @@ public class CWLDocumentResolver {
   private static final String DEFAULT_ENCODING = "UTF-8";
 
   private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>(); 
-private static boolean graphResolve = false;
+  private static boolean graphResolve = false;
   
   private static Map<String, String> namespaces = new HashMap<String, String>();
   private static Map<String, Map<String, CWLDocumentResolverReference>> referenceCache = new HashMap<>();
@@ -177,21 +156,15 @@ private static boolean graphResolve = false;
     
     boolean isReference = currentNode.has(RESOLVER_REFERENCE_KEY);
     boolean appReference = currentNode.has(APP_STEP_KEY) && currentNode.get(APP_STEP_KEY).isTextual();
-    boolean typeReference = currentNode.has(TYPE_KEY) && currentNode.get(TYPE_KEY).isTextual() && isTypeReference(currentNode.get(TYPE_KEY).textValue());
     boolean isJsonPointer = currentNode.has(RESOLVER_JSON_POINTER_KEY) && parentNode != null; // we skip the first level $job
 
-    if (isReference || isJsonPointer || appReference || typeReference) {
+    if (isReference || isJsonPointer || appReference) {
       String referencePath = null;
       if (isReference) {
         referencePath = currentNode.get(RESOLVER_REFERENCE_KEY).textValue();
-      } 
-      else if (appReference) {
+      } else if (appReference) {
         referencePath = currentNode.get(APP_STEP_KEY).textValue();
-      } 
-      else if(typeReference) {
-        referencePath = currentNode.get(TYPE_KEY).textValue();
-      }
-      else {
+      } else {
         referencePath = currentNode.get(RESOLVER_JSON_POINTER_KEY).textValue();
       }
 
@@ -243,21 +216,6 @@ private static boolean graphResolve = false;
     }
   }
   
-  private static boolean isTypeReference(String type) {
-    Object shortenedType = CWLSchemaHelper.getOptionalShortenedType(type);
-    if (shortenedType != null) {
-      return false;
-    }
-    shortenedType = CWLSchemaHelper.getArrayShortenedType(type);
-    if (shortenedType != null) {
-      return false;
-    }
-    if(types.contains(type)) {
-      return false;
-    }
-    return true;
-  }
-
   @SuppressWarnings("deprecation")
   private static void replaceObjectItem(String appUrl, JsonNode root, CWLDocumentResolverReplacement replacement) throws BindingException {
     JsonNode parent = replacement.getParentNode() == null ? root : replacement.getParentNode();
