@@ -88,8 +88,8 @@ public class SBBindings implements Bindings {
   }
 
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
-    return commandLineBuilder.buildCommandLineParts(job);
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLineParts(job, workingDir, filePathMapper);
   }
 
   @Override

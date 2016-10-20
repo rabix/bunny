@@ -60,12 +60,12 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   }
   
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     if (!cwlJob.getApp().isCommandLineTool()) {
       return null;
     }
-    return Lists.transform(buildCommandLineParts(cwlJob), new Function<Object, String>() {
+    return Lists.transform(buildCommandLineParts(cwlJob, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
@@ -78,7 +78,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   public String buildCommandLine(CWLJob job, File workingDir, FilePathMapper filePathMapper, Map<String, Object> config) throws BindingException {
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     
-    List<Object> commandLineParts = buildCommandLineParts(job);
+    List<Object> commandLineParts = buildCommandLineParts(job, workingDir, filePathMapper);
     StringBuilder builder = new StringBuilder();
     for (Object commandLinePart : commandLineParts) {
       builder.append(commandLinePart).append(PART_SEPARATOR);
@@ -158,7 +158,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
    * Build command line arguments
    */
   @SuppressWarnings("rawtypes")
-  public List<Object> buildCommandLineParts(CWLJob job) throws BindingException {
+  public List<Object> buildCommandLineParts(CWLJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     logger.info("Building command line parts...");
 
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();

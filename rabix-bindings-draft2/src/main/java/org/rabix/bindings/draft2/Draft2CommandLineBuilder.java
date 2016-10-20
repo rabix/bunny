@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
-import org.rabix.bindings.model.Job;
 import org.rabix.bindings.draft2.bean.Draft2CommandLineTool;
 import org.rabix.bindings.draft2.bean.Draft2InputPort;
 import org.rabix.bindings.draft2.bean.Draft2Job;
@@ -23,6 +22,7 @@ import org.rabix.bindings.draft2.helper.Draft2FileValueHelper;
 import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
+import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,16 +42,16 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
     if (draft2Job.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(draft2Job);
+    return buildCommandLine(draft2Job, workingDir, filePathMapper);
   }
   
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     if (!draft2Job.getApp().isCommandLineTool()) {
       return null;
     }
-    return Lists.transform(buildCommandLineParts(draft2Job), new Function<Object, String>() {
+    return Lists.transform(buildCommandLineParts(draft2Job, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
@@ -61,10 +61,10 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Builds command line string with both STDIN and STDOUT
    */
-  public String buildCommandLine(Draft2Job job) throws BindingException {
+  public String buildCommandLine(Draft2Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     Draft2CommandLineTool commandLineTool = (Draft2CommandLineTool) job.getApp();
     
-    List<Object> commandLineParts = buildCommandLineParts(job);
+    List<Object> commandLineParts = buildCommandLineParts(job, workingDir, filePathMapper);
     StringBuilder builder = new StringBuilder();
     for (Object commandLinePart : commandLineParts) {
       builder.append(commandLinePart).append(PART_SEPARATOR);
@@ -107,7 +107,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Build command line arguments
    */
-  public List<Object> buildCommandLineParts(Draft2Job job) throws BindingException {
+  public List<Object> buildCommandLineParts(Draft2Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     logger.info("Building command line parts...");
 
     Draft2CommandLineTool commandLineTool = (Draft2CommandLineTool) job.getApp();

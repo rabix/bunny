@@ -91,11 +91,13 @@ public interface Bindings {
   /**
    * Builds command line as a list of command line parts
    *
-   * @param job         Job object
-   * @return            List of command line parts
+   * @param job             Job object
+   * @param workingDir      Working directory
+   * @param filePathMapper  FilePathMapper used to map workingDir when new files are being created
+   * @return                List of command line parts
    * @throws BindingException
    */
-  List<String> buildCommandLineParts(Job job) throws BindingException;
+  List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
 
   /**
    * Gets a set of input {@link FileValue} objects with their secondary files

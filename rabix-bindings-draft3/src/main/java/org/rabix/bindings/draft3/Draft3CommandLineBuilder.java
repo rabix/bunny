@@ -51,16 +51,16 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     if (draft3Job.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(draft3Job);
+    return buildCommandLine(draft3Job, workingDir, filePathMapper);
   }
   
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     if (!draft3Job.getApp().isCommandLineTool()) {
       return null;
     }
-    return Lists.transform(buildCommandLineParts(draft3Job), new Function<Object, String>() {
+    return Lists.transform(buildCommandLineParts(draft3Job, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
@@ -70,10 +70,10 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Builds command line string with both STDIN and STDOUT
    */
-  public String buildCommandLine(Draft3Job job) throws BindingException {
+  public String buildCommandLine(Draft3Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) job.getApp();
     
-    List<Object> commandLineParts = buildCommandLineParts(job);
+    List<Object> commandLineParts = buildCommandLineParts(job, workingDir, filePathMapper);
     StringBuilder builder = new StringBuilder();
     for (Object commandLinePart : commandLineParts) {
       builder.append(commandLinePart).append(PART_SEPARATOR);
@@ -117,7 +117,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
    * Build command line arguments
    */
   @SuppressWarnings("rawtypes")
-  public List<Object> buildCommandLineParts(Draft3Job job) throws BindingException {
+  public List<Object> buildCommandLineParts(Draft3Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     logger.info("Building command line parts...");
 
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) job.getApp();

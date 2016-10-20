@@ -42,16 +42,16 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
     if (sbJob.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(sbJob);
+    return buildCommandLine(sbJob, workingDir, filePathMapper);
   }
   
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     if (!sbJob.getApp().isCommandLineTool()) {
       return null;
     }
-    return Lists.transform(buildCommandLineParts(sbJob), new Function<Object, String>() {
+    return Lists.transform(buildCommandLineParts(sbJob, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
@@ -61,10 +61,10 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Builds command line string with both STDIN and STDOUT
    */
-  public String buildCommandLine(SBJob job) throws BindingException {
+  public String buildCommandLine(SBJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     SBCommandLineTool commandLineTool = (SBCommandLineTool) job.getApp();
     
-    List<Object> commandLineParts = buildCommandLineParts(job);
+    List<Object> commandLineParts = buildCommandLineParts(job, workingDir, filePathMapper);
     StringBuilder builder = new StringBuilder();
     for (Object commandLinePart : commandLineParts) {
       builder.append(commandLinePart).append(PART_SEPARATOR);
@@ -107,7 +107,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Build command line arguments
    */
-  public List<Object> buildCommandLineParts(SBJob job) throws BindingException {
+  public List<Object> buildCommandLineParts(SBJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     logger.info("Building command line parts...");
 
     SBCommandLineTool commandLineTool = (SBCommandLineTool) job.getApp();

@@ -10,6 +10,6 @@ public interface ProtocolCommandLineBuilder {
 
   String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
   
-  List<String> buildCommandLineParts(Job job) throws BindingException;
+  List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
   
 }
