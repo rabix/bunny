@@ -85,7 +85,7 @@ public class CWLGlobServiceImpl implements CWLGlobService {
         throw new CWLGlobException("Failed to traverse through working directory", e);
       }
     }
-    return files;
+    return files.isEmpty() ? null : files;
   }
   
 }

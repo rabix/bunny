@@ -432,7 +432,7 @@ public class CWLProcessor implements ProtocolProcessor {
         secondaryFileMaps.add(secondaryFileMap);
       }
     }
-    return secondaryFileMaps;
+    return secondaryFileMaps.isEmpty() ? null : secondaryFileMaps;
   }
 
   @Override
