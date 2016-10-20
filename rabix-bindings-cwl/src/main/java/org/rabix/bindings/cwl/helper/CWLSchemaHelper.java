@@ -99,6 +99,10 @@ public class CWLSchemaHelper extends CWLBeanHelper {
   public static boolean isFileFromSchema(Object schema) {
     return isTypeFromSchema(schema, TYPE_JOB_FILE);
   }
+  
+  public static boolean isDirectoryFromSchema(Object schema) {
+    return isTypeFromSchema(schema, TYPE_JOB_DIRECTORY);
+  }
 
   public static boolean isArrayFromSchema(Object schema) {
     String shortenedSchema = getArrayShortenedType(schema);

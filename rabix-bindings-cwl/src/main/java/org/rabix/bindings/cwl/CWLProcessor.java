@@ -245,7 +245,7 @@ public class CWLProcessor implements ProtocolProcessor {
       result = CWLBindingHelper.evaluateOutputEval(job, result, binding);
       logger.info("OutputEval transformed result into {}.", result);
     }
-    if (CWLSchemaHelper.isFileFromSchema(schema)) {
+    if (CWLSchemaHelper.isFileFromSchema(schema) || CWLSchemaHelper.isDirectoryFromSchema(schema)) {
 	  if (result instanceof List<?>) {
         switch (((List<?>) result).size()) {
         case 0:
