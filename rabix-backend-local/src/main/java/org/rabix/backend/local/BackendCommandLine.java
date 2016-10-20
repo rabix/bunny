@@ -238,7 +238,7 @@ public class BackendCommandLine {
       List<String> missingRequiredFields = new ArrayList<>();
       for (ApplicationPort schemaInput : application.getInputs()) {
         String id = schemaInput.getId().replaceFirst("^#", "");
-        if (schemaInput.isRequired() && ! inputs.containsKey(id)) {
+        if (schemaInput.isRequired() && schemaInput.getDefaultValue()==null && ! inputs.containsKey(id)) {
           missingRequiredFields.add(id);
         }
       }
