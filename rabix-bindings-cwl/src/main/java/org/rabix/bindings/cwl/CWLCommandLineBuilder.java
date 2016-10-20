@@ -41,6 +41,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   private final static Logger logger = LoggerFactory.getLogger(CWLCommandLineBuilder.class);
   
   public final static String SHELL_QUOTE_KEY = "shellQuote";
+  public final static String SHELL_QUOTE_POSITION = "position";
   public final static String SHELL_QUOTE_VALUE_KEY = "valueFrom";
   
   public static final Escaper SHELL_ESCAPE;
@@ -153,6 +154,13 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   private Object getShellQuoteValue(Object input) {
     return CWLBeanHelper.getValue(SHELL_QUOTE_VALUE_KEY, input);
   }
+  
+  /**
+   * Get shellQuote value 
+   */
+  private int getShellQuotePosition(Object input) {
+    return CWLBeanHelper.getValue(SHELL_QUOTE_POSITION, input, 0);
+  }
 
   /**
    * Build command line arguments
@@ -173,13 +181,15 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
       if (commandLineTool.hasArguments()) {
         for (int i = 0; i < commandLineTool.getArguments().size(); i++) {
+          int position = 0;
           Object argBinding = commandLineTool.getArguments().get(i);
           if (isShellQuote(argBinding)) {
+            position = getShellQuotePosition(argBinding);
             argBinding = getShellQuoteValue(argBinding);
           }
           if (argBinding instanceof String) {
             Object arg = CWLExpressionResolver.resolve(argBinding, job, null);
-            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(0, false).part(arg).keyValue("").build();
+            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(position, false).part(arg).keyValue("").build();
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
             continue;
