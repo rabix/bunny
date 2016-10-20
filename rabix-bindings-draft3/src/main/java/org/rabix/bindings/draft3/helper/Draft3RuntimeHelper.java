@@ -31,7 +31,7 @@ public class Draft3RuntimeHelper {
   }
   
   public static Resources convertToResources(Draft3Runtime runtime) {
-    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir());
+    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir(), runtime.getTmpdir());
   }
 
 }

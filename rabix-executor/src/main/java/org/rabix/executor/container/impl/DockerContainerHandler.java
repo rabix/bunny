@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,9 @@ public class DockerContainerHandler implements ContainerHandler {
   private static final String dockerHubServer = "https://index.docker.io/v1/";
 
   public static final String DIRECTORY_MAP_MODE = "rw";
+
+  public static final String HOME_ENV_VAR = "HOME";
+  public static final String TMPDIR_ENV_VAR = "TMPDIR";
   
   private String containerId;
   private DockerClientLockDecorator dockerClient;
@@ -180,9 +184,14 @@ public class DockerContainerHandler implements ContainerHandler {
       combinedRequirements.addAll(bindings.getRequirements(job));
 
       EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
-      if (environmentVariableResource != null) {
-        builder.env(transformEnvironmentVariables(environmentVariableResource.getVariables()));
+      Map<String, String> environmentVariables = environmentVariableResource != null ? environmentVariableResource.getVariables() : new HashMap<String, String>();
+      if(job.getResources().getWorkingDir() != null) {
+        environmentVariables.put(HOME_ENV_VAR, job.getResources().getWorkingDir());
       }
+      if(job.getResources().getTmpDir() != null) {
+        environmentVariables.put(TMPDIR_ENV_VAR, job.getResources().getTmpDir());
+      }
+      builder.env(transformEnvironmentVariables(environmentVariables));
       ContainerCreation creation = null;
       try {
         VerboseLogger.log(String.format("Running command line: %s", commandLine));

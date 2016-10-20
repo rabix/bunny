@@ -44,6 +44,9 @@ public class LocalContainerHandler implements ContainerHandler {
 
   private Process process;
   private String commandLine;
+  
+  public static final String HOME_ENV_VAR = "HOME";
+  public static final String TMPDIR_ENV_VAR = "TMPDIR";
 
   public LocalContainerHandler(Job job, StorageConfiguration storageConfig) {
     this.job = job;
@@ -67,10 +70,17 @@ public class LocalContainerHandler implements ContainerHandler {
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
-
+      
+      Map<String, String> env = processBuilder.environment();
+      if(job.getResources().getWorkingDir() != null) {
+        env.put(HOME_ENV_VAR, job.getResources().getWorkingDir());
+      }
+      if(job.getResources().getTmpDir() != null) {
+        env.put(TMPDIR_ENV_VAR, job.getResources().getTmpDir());
+      }
+      
       EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
       if (environmentVariableResource != null) {
-        Map<String, String> env = processBuilder.environment();
         for (Entry<String, String> envVariableEntry : environmentVariableResource.getVariables().entrySet()) {
           env.put(envVariableEntry.getKey(), envVariableEntry.getValue());
         }

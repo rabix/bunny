@@ -9,9 +9,6 @@ import org.rabix.bindings.model.Resources;
 
 
 public class CWLRuntimeHelper {
-  
-  public static final String HOME_RUNTIME_ENV_VAR = "HOME";
-  public static final String TMPDIR_RUNTIME_ENV_VAR = "TMPDIR";
 
   public static CWLRuntime createRuntime(CWLJob job) throws CWLExpressionException {
     CWLRuntime runtime = job.getRuntime();
@@ -36,7 +33,7 @@ public class CWLRuntimeHelper {
   }
   
   public static Resources convertToResources(CWLRuntime runtime) {
-    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir());
+    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir(), runtime.getTmpdir());
   }
 
 }
