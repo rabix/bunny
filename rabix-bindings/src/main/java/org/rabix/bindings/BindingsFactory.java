@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,8 @@ public class BindingsFactory {
         }
         bindings.add((Bindings) clazz.newInstance());
       }
+    } catch (NotImplementedException e) {
+      throw e; // fail if we do not support this kind of deserialization (Schema salad)
     } catch (Exception e) {
       logger.error("Failed to initialize bindings", e);
       throw new RuntimeException("Failed to initialize bindings", e);
