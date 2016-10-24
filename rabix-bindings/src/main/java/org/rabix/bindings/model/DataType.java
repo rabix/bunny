@@ -6,7 +6,18 @@ import java.util.Set;
 
 public class DataType {
     public enum Type {
-        PRIMITIVE, UNION, ARRAY, RECORD, FILE, DIRECTORY, ANY, BOOLEAN;
+        UNION, ARRAY, RECORD, FILE, DIRECTORY, ANY, NULL,
+        BOOLEAN(Boolean.class), STRING(String.class), INT(Integer.class),
+        LONG(Long.class), FLOAT(Float.class), DOUBLE(Double.class);
+
+        public final Class primitiveType;
+
+        Type() {
+            primitiveType = null;
+        }
+        Type(Class primitiveType) {
+            this.primitiveType = primitiveType;
+        }
     }
 
     public DataType(Type type) {
@@ -78,4 +89,43 @@ public class DataType {
         return false;
     }
 
+    public boolean isCompatible(DataType value) {
+        if (value==null)
+            return false;
+
+        if (type == Type.ANY || value.getType() == Type.ANY)
+            return true;
+
+        if (isUnion()) {
+            for (DataType dt : types) {
+                if (dt.isCompatible(value))
+                    return true;
+            }
+            return false;
+        }
+
+        if (isArray())
+            return value.isArray() && subtype.isCompatible(value.getSubtype());
+
+        if (isRecord()) {
+            if (!value.isRecord())
+                return false;
+            for (String s : subtypes.keySet()) {
+                if (!subtypes.get(s).isCompatible(value.getSubtypes().get(s)))
+                    return false;
+            }
+            return true;
+        }
+        return type == value.getType();
+    }
+
+    @Override
+    public String toString() {
+        return "DataType{" +
+                "type=" + type +
+                (subtype != null ? ", subtype=" + subtype : "") +
+                (types != null ? ", types=" + types : "") +
+                (subtypes != null ? ", subtypes=" + subtypes : "")+
+                '}';
+    }
 }

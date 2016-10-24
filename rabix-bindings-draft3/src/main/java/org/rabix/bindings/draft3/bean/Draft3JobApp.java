@@ -35,7 +35,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = Draft3PythonTool.class, name = "PythonTool")})
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class Draft3JobApp implements Application {
+public abstract class Draft3JobApp extends Application {
 
   public static final String DRAFT_3_VERSION = "cwl:draft-3";
   

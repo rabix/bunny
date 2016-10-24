@@ -70,7 +70,11 @@ public abstract class ApplicationPort {
     dataType = new DataType(DataType.Type.ANY);
   }
 
-  
+  @JsonIgnore
+  public DataType getDataTypeFromValue(Object input) {
+    return new DataType(DataType.Type.ANY);
+  }
+
   public void setId(String id) {
     this.id = id;
   }
@@ -122,7 +126,24 @@ public abstract class ApplicationPort {
     return dataType;
   }
 
+  @JsonIgnore
   public boolean isRequired() {
     return false;
+  }
+
+  /**
+   * Checks if supplied value is valid for this ApplicationPort
+   * @param in Potential input value
+   * @return null if input is valid else description why input is not valid
+   */
+  @JsonIgnore
+  public String validateInput(Object in) {
+    if (in==null)
+      return null;
+
+    DataType inDataType = getDataTypeFromValue(in);
+    if (!getDataType().isCompatible(inDataType))
+      return "Invalid Value for " + id + ".\n Expected: " + getDataType() + ".\n Received: " + inDataType;
+    return null;
   }
 }
