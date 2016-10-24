@@ -136,6 +136,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
   }
 
   private List<Requirement> convertRequirements(Job job, List<CWLResource> resources) throws BindingException {
+    EnvironmentVariableRequirement environmentVariableRequirement = null;
     if (resources == null) {
       return Collections.<Requirement> emptyList();
     }
@@ -148,7 +149,8 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         continue;
       }
       if (cwlResource instanceof CWLEnvVarRequirement) {
-        result.add(getEnvironmentVariableRequirement(cwlJob, (CWLEnvVarRequirement) cwlResource));
+        environmentVariableRequirement = getEnvironmentVariableRequirement(cwlJob, (CWLEnvVarRequirement) cwlResource);
+        result.add(environmentVariableRequirement);
         continue;
       }
       if (cwlResource instanceof CWLInitialWorkDirRequirement) {
@@ -159,6 +161,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
     }
     return result;
   }
+  
 
   @Override
   public ResourceRequirement getResourceRequirement(Job job) throws BindingException {

@@ -33,6 +33,11 @@ public interface ContainerHandler {
   public int getProcessExitStatus() throws ContainerException;
 
   /**
+   * Dumps command line into a file 
+   */
+  public void dumpCommandLine() throws ContainerException;
+  
+  /**
    * Do post-processing if needed
    */
   public void dumpContainerLogs(File errorFile) throws ContainerException;

@@ -164,7 +164,7 @@ public abstract class CWLJobApp extends Application {
   public void setRequirement(CWLResource resource) {
     boolean add = true;
     for (CWLResource requirement : requirements) {
-      if (resource.getTypeEnum().equals(requirement.getTypeEnum())) {
+      if (resource.getType().equals(requirement.getType())) {
         add = false;
         break;
       }

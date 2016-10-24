@@ -22,7 +22,6 @@ public class CompletedContainerHandler implements ContainerHandler {
 
   @Override
   public void stop() throws ContainerException {
-    // do nothing
   }
 
   @Override
@@ -42,7 +41,10 @@ public class CompletedContainerHandler implements ContainerHandler {
 
   @Override
   public void dumpContainerLogs(File errorFile) throws ContainerException {
-    // do nothing
+  }
+
+  @Override
+  public void dumpCommandLine() throws ContainerException {
   }
 
 }

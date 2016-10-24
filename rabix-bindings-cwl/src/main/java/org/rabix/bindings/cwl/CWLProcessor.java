@@ -78,10 +78,6 @@ public class CWLProcessor implements ProtocolProcessor {
     
     CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
-      File jobFile = new File(workingDir, JOB_FILE);
-      String serializedJob = BeanSerializer.serializePartial(CWLJobHelper.getCWLJob(job));
-      FileUtils.writeStringToFile(jobFile, serializedJob);
-      
       Map<String, Object> inputs = job.getInputs();
       
       inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
@@ -91,7 +87,7 @@ public class CWLProcessor implements ProtocolProcessor {
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       return Job.cloneWithInputs(newJob, inputs);
-    } catch (CWLPortProcessorException | IOException e) {
+    } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
   }
@@ -249,7 +245,7 @@ public class CWLProcessor implements ProtocolProcessor {
       result = CWLBindingHelper.evaluateOutputEval(job, result, binding);
       logger.info("OutputEval transformed result into {}.", result);
     }
-    if (CWLSchemaHelper.isFileFromSchema(schema)) {
+    if (CWLSchemaHelper.isFileFromSchema(schema) || CWLSchemaHelper.isDirectoryFromSchema(schema)) {
 	  if (result instanceof List<?>) {
         switch (((List<?>) result).size()) {
         case 0:
@@ -436,7 +432,7 @@ public class CWLProcessor implements ProtocolProcessor {
         secondaryFileMaps.add(secondaryFileMap);
       }
     }
-    return secondaryFileMaps;
+    return secondaryFileMaps.isEmpty() ? null : secondaryFileMaps;
   }
 
   @Override

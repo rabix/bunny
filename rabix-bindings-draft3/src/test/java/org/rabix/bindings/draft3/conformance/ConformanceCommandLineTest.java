@@ -38,7 +38,7 @@ public class ConformanceCommandLineTest {
       expectedList.add("rabix/tests/test-files/example_human_Illumina.pe_2.fastq");
 
       Job job = new Job(commandLineToolStr, inputs);
-      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job);
+      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job, null, null);
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
       Assert.assertEquals(resultList, expectedList);
@@ -66,7 +66,7 @@ public class ConformanceCommandLineTest {
       expectedList.add("rabix/tests/test-files/example_human_Illumina.pe_2.fastq");
 
       Job job = new Job(commandLineToolStr, inputs);
-      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job);
+      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job, null, null);
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
       Assert.assertEquals(resultList, expectedList);
@@ -88,7 +88,7 @@ public class ConformanceCommandLineTest {
       expectedList.add("hello.txt");
 
       Job job = new Job(commandLineToolStr, inputs);
-      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job);
+      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job, null, null);
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
       Assert.assertEquals(resultList, expectedList);
@@ -111,7 +111,7 @@ public class ConformanceCommandLineTest {
       expectedList.add("hello.txt");
 
       Job job = new Job(commandLineToolStr, inputs);
-      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job);
+      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job, null, null);
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
       Assert.assertEquals(resultList, expectedList);
@@ -132,7 +132,7 @@ public class ConformanceCommandLineTest {
       expectedList.add("cat");
 
       Job job = new Job(commandLineToolStr, inputs);
-      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job);
+      List<?> resultList = new Draft3Bindings().buildCommandLineParts(job, null, null);
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
       Assert.assertEquals(resultList, expectedList);
@@ -150,7 +150,7 @@ public class ConformanceCommandLineTest {
       String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat3-tool.cwl");
       
       Job job = new Job(commandLineToolStr, inputs);
-      String cmdLine = new Draft3Bindings().buildCommandLine(job);
+      String cmdLine = new Draft3Bindings().buildCommandLine(job, null, null);
       Assert.assertNotNull(cmdLine);
       Assert.assertEquals("cat hello.txt > output.txt", cmdLine);
     } catch (BindingException e) {
@@ -167,7 +167,7 @@ public class ConformanceCommandLineTest {
       String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat4-tool.cwl");
       
       Job job = new Job(commandLineToolStr, inputs);
-      String cmdLine = new Draft3Bindings().buildCommandLine(job);
+      String cmdLine = new Draft3Bindings().buildCommandLine(job, null, null);
       Assert.assertNotNull(cmdLine);
       Assert.assertEquals("cat < hello.txt > output.txt", cmdLine);
     } catch (BindingException e) {

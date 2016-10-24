@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class CWLResourcesDeserializer extends JsonDeserializer<List<CWLResource>> {
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<CWLResource> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
     JsonNode tree = p.getCodec().readTree(p);
     if (tree.isNull()) {
@@ -36,8 +38,10 @@ public class CWLResourcesDeserializer extends JsonDeserializer<List<CWLResource>
       
       while (iterator.hasNext()) {
         Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
-        CWLResource resource = BeanSerializer.deserialize(subnodeEntry.getValue().toString(), CWLResource.class);
-        resource.add(CWLSchemaHelper.KEY_JOB_TYPE, subnodeEntry.getKey());
+        Map<String, Object> resourceValue = (Map<String, Object>) JSONHelper.transform(subnodeEntry.getValue());
+        resourceValue.put(CWLSchemaHelper.KEY_JOB_TYPE, subnodeEntry.getKey());
+        
+        CWLResource resource = BeanSerializer.deserialize(JSONHelper.writeObject(resourceValue), CWLResource.class);
         resources.add(resource);
       }
       return resources;

@@ -33,7 +33,7 @@ public class CWLRuntimeHelper {
   }
   
   public static Resources convertToResources(CWLRuntime runtime) {
-    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir());
+    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir(), runtime.getTmpdir());
   }
 
 }

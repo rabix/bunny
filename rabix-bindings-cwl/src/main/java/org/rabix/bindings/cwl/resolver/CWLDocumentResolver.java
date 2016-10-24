@@ -26,9 +26,9 @@ import org.rabix.common.helper.JSONHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.Preconditions;
 
 public class CWLDocumentResolver {
@@ -54,13 +54,18 @@ public class CWLDocumentResolver {
     types.add("stderr");
   }
 
+  public static final String ID_KEY = "id";
   public static final String APP_STEP_KEY = "run";
   public static final String TYPE_KEY = "type";
+  public static final String TYPES_KEY = "types";
+  public static final String CLASS_KEY = "class";
+  public static final String NAME_KEY = "name";
   public static final String RESOLVER_REFERENCE_KEY = "$import";
   public static final String RESOLVER_REFERENCE_INCLUDE_KEY = "$include";
   public static final String GRAPH_KEY = "$graph";
   public static final String SCHEMA_KEY = "$schemas";
   public static final String NAMESPACES_KEY = "$namespaces";
+  public static final String SCHEMADEF_KEY = "SchemaDefRequirement";
   
   public static final String RESOLVER_JSON_POINTER_KEY = "$job";
   
@@ -69,7 +74,7 @@ public class CWLDocumentResolver {
   private static final String DEFAULT_ENCODING = "UTF-8";
 
   private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>(); 
-private static boolean graphResolve = false;
+  private static boolean graphResolve = false;
   
   private static Map<String, String> namespaces = new HashMap<String, String>();
   private static Map<String, Map<String, CWLDocumentResolverReference>> referenceCache = new HashMap<>();
@@ -150,6 +155,21 @@ private static boolean graphResolve = false;
     return cache.get(appUrl);
   }
   
+  private static boolean isTypeReference(String type) {
+    Object shortenedType = CWLSchemaHelper.getOptionalShortenedType(type);
+      if (shortenedType != null) {
+        return false;
+    }
+    shortenedType = CWLSchemaHelper.getArrayShortenedType(type);
+    if (shortenedType != null) {
+      return false;
+    }
+    if(types.contains(type)) {
+      return false;
+    }
+    return true;
+  }
+  
   private static void populateNamespaces(JsonNode root) {
     Iterator<Entry<String, JsonNode>> fieldIterator = root.get(NAMESPACES_KEY).fields();
     while (fieldIterator.hasNext()) {
@@ -180,18 +200,15 @@ private static boolean graphResolve = false;
     boolean typeReference = currentNode.has(TYPE_KEY) && currentNode.get(TYPE_KEY).isTextual() && isTypeReference(currentNode.get(TYPE_KEY).textValue());
     boolean isJsonPointer = currentNode.has(RESOLVER_JSON_POINTER_KEY) && parentNode != null; // we skip the first level $job
 
-    if (isReference || isJsonPointer || appReference || typeReference) {
+    if (isReference || isJsonPointer || typeReference || appReference) {
       String referencePath = null;
       if (isReference) {
         referencePath = currentNode.get(RESOLVER_REFERENCE_KEY).textValue();
-      } 
-      else if (appReference) {
+      } else if (appReference) {
         referencePath = currentNode.get(APP_STEP_KEY).textValue();
-      } 
-      else if(typeReference) {
+      } else if(typeReference) {
         referencePath = currentNode.get(TYPE_KEY).textValue();
-      }
-      else {
+      } else {
         referencePath = currentNode.get(RESOLVER_JSON_POINTER_KEY).textValue();
       }
 
@@ -219,6 +236,9 @@ private static boolean graphResolve = false;
       if(appReference) {
         getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("run"), referencePath));
       }
+      else if(typeReference) {
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("type"), referencePath));
+      }
       else {
         getReplacements(appUrl).add(new CWLDocumentResolverReplacement(parentNode, currentNode, referencePath));
       }
@@ -243,21 +263,6 @@ private static boolean graphResolve = false;
     }
   }
   
-  private static boolean isTypeReference(String type) {
-    Object shortenedType = CWLSchemaHelper.getOptionalShortenedType(type);
-    if (shortenedType != null) {
-      return false;
-    }
-    shortenedType = CWLSchemaHelper.getArrayShortenedType(type);
-    if (shortenedType != null) {
-      return false;
-    }
-    if(types.contains(type)) {
-      return false;
-    }
-    return true;
-  }
-
   @SuppressWarnings("deprecation")
   private static void replaceObjectItem(String appUrl, JsonNode root, CWLDocumentResolverReplacement replacement) throws BindingException {
     JsonNode parent = replacement.getParentNode() == null ? root : replacement.getParentNode();
@@ -353,38 +358,49 @@ private static boolean graphResolve = false;
       }
     }
   }
-
+  
   private static ParentChild findReferencedNode(JsonNode rootNode, String absolutePath) {
     if (!absolutePath.contains(DOCUMENT_FRAGMENT_SEPARATOR)) {
       return new ParentChild(null, rootNode);
     }
     String subpath = absolutePath.substring(absolutePath.indexOf(DOCUMENT_FRAGMENT_SEPARATOR) + 1);
     String[] parts = subpath.split("/");
-
-    if(rootNode.has("$graph")) {
-      JsonNode objects = rootNode.get("$graph");
+  
+    if(rootNode.has(GRAPH_KEY)) {
+      JsonNode objects = rootNode.get(GRAPH_KEY);
       JsonNode child = null;
       JsonNode parent = objects;
       for(final JsonNode elem: objects) {
-        if(elem.get("id").asText().equals(parts[0])) {
+        if(elem.get(ID_KEY).asText().equals(parts[0])) {
           child = elem;
           break;
         }
       }
       return new ParentChild(parent, child);
     }
-    JsonNode parent = null;
-    JsonNode child = rootNode;
-    for (String part : parts) {
-      if (StringUtils.isEmpty(part)) {
-        continue;
+    else if (rootNode.has(CLASS_KEY) && rootNode.get(CLASS_KEY).asText().equals(SCHEMADEF_KEY)) {
+      JsonNode objects = rootNode.get(TYPES_KEY);
+      JsonNode child = null;
+      for(final JsonNode elem: objects) {
+        if(elem.get(NAME_KEY).asText().equals(parts[0])) {
+          child = elem;
+          break;
+        }
       }
-      parent = child;
-      child = child.get(part);
-    }
-    return new ParentChild(parent, child);
+    return new ParentChild(null, child);
   }
   
+  JsonNode parent = null;
+  JsonNode child = rootNode;
+  for (String part : parts) {
+    if (StringUtils.isEmpty(part)) {
+      continue;
+    }
+    parent = child;
+    child = child.get(part);
+  }
+  return new ParentChild(parent, child);
+}
   private static JsonNode removeFragmentIdentifier(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode, String fragment) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
     if(currentNode.isTextual() && currentNode.asText().startsWith(DOCUMENT_FRAGMENT_SEPARATOR)) {

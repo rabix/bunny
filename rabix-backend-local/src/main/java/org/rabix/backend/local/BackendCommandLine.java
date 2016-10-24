@@ -18,6 +18,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
@@ -188,20 +189,22 @@ public class BackendCommandLine {
       }
 
       // Load app from JSON
-        Application application;
-        Bindings bindings;
-        try{
-            bindings = BindingsFactory.create(appUrl);
-            application = bindings.loadAppObject(appUrl);
-        }
-        catch (BindingException e1) {
-            application = null;
-            bindings = null;
-        }
-        if (application==null) {
-            System.out.println("Error reading the app file");
-            System.exit(10);
-        }
+      Bindings bindings = null;
+      Application application = null;
+      try {
+        bindings = BindingsFactory.create(appUrl);
+        application = bindings.loadAppObject(appUrl);
+      } catch (NotImplementedException e) {
+        logger.error("Not implemented feature");
+        System.exit(33);
+      } catch (BindingException e) {
+        logger.error("Failed to create Bindings for application " + appUrl, e);
+        System.exit(10);
+      }
+      if (application == null) {
+        System.out.println("Error reading the app file");
+        System.exit(10);
+      }
 
       if (inputArguments != null) {
         Options inputOptions = new Options();
@@ -238,6 +241,7 @@ public class BackendCommandLine {
       List<String> missingRequiredFields = new ArrayList<>();
       for (ApplicationPort schemaInput : application.getInputs()) {
         String id = schemaInput.getId().replaceFirst("^#", "");
+
         if (schemaInput.isRequired() && schemaInput.getDefaultValue()==null && !inputs.containsKey(id)) {
           missingRequiredFields.add(id);
         }
@@ -405,7 +409,7 @@ public class BackendCommandLine {
         Map<String, Object> allocatedResources = (Map<String, Object>) inputs.get("allocatedResources");
         Long cpu = ((Integer) allocatedResources.get("cpu")).longValue();
         Long mem = ((Integer) allocatedResources.get("mem")).longValue();
-        return new Resources(cpu, mem, null, false, null);
+        return new Resources(cpu, mem, null, false, null, null);
       }
     }
     case DRAFT3: 

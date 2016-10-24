@@ -45,7 +45,7 @@ public class CWLEnvVarRequirement extends CWLResource {
     }
     return null;
   }
-
+  
   @Override
   public CWLResourceType getTypeEnum() {
     return CWLResourceType.ENV_VAR_REQUIREMENT;

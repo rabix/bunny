@@ -18,7 +18,6 @@ import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLJob;
-import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
@@ -66,11 +65,7 @@ public class CWLBindings implements Bindings {
   
   @Override
   public Application loadAppObject(String uri) throws BindingException {
-    CWLJobApp application = (CWLJobApp) appProcessor.loadAppObject(uri);
-    if (!CWLJobApp.CWL_VERSION.equals(application.getCwlVersion())) {
-      throw new BindingException(uri + " is not an CWL application");
-    }
-    return application;
+    return appProcessor.loadAppObject(uri);
   }
   
   @Override
@@ -94,13 +89,13 @@ public class CWLBindings implements Bindings {
   }
 
   @Override
-  public String buildCommandLine(Job job) throws BindingException {
-    return commandLineBuilder.buildCommandLine(job);
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLine(job, workingDir, filePathMapper);
   }
 
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
-    return commandLineBuilder.buildCommandLineParts(job);
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLineParts(job, workingDir, filePathMapper);
   }
 
   @Override

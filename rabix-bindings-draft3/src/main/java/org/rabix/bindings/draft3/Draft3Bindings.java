@@ -90,13 +90,13 @@ public class Draft3Bindings implements Bindings {
   }
 
   @Override
-  public String buildCommandLine(Job job) throws BindingException {
-    return commandLineBuilder.buildCommandLine(job);
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLine(job, workingDir, filePathMapper);
   }
 
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
-    return commandLineBuilder.buildCommandLineParts(job);
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLineParts(job, workingDir, filePathMapper);
   }
 
   @Override
