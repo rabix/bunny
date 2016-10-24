@@ -17,8 +17,10 @@ import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.draft2.helper.Draft2FileValueHelper;
+import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
+import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
@@ -188,5 +190,10 @@ public class Draft2Bindings implements Bindings {
   @Override
   public Map<String, Object> translateFile(FileValue fileValue) {
     return Draft2FileValueHelper.createFileRaw(fileValue);
+  }
+
+  @Override
+  public DataType getDataTypeFromValue(Object input) {
+    return Draft2SchemaHelper.getDataTypeFromValue(input);
   }
 }

@@ -22,8 +22,10 @@ import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
+import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
+import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
@@ -205,5 +207,10 @@ public class CWLBindings implements Bindings {
   @Override
   public Map<String, Object> translateFile(FileValue fileValue) {
     return CWLFileValueHelper.createFileRaw(fileValue);
+  }
+
+  @Override
+  public DataType getDataTypeFromValue(Object input) {
+    return CWLSchemaHelper.getDataTypeFromValue(input);
   }
 }

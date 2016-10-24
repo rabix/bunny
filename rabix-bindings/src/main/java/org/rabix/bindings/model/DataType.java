@@ -104,10 +104,8 @@ public class DataType {
             return false;
         }
 
-        if (isArray()) {
-            DataType compareTo = value.isArray() ? value.subtype : value;
-            return subtype.isCompatible(compareTo);
-        }
+        if (isArray())
+            return value.isArray() && subtype.isCompatible(value.getSubtype());
 
         if (isRecord()) {
             if (!value.isRecord())
