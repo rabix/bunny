@@ -421,7 +421,7 @@ public class BackendCommandLine {
 
   private static Object createInputValue(String[] value, DataType inputType, Bindings bindings) {
     if (value.length > 1 || inputType.isArray()) {
-      if (inputType.isFile()) {
+      if (inputType.getSubtype().isFile()) {
         List<Map<String, Object>> ret = new ArrayList<>();
         for (String s : value) {
           FileValue fileValue = new FileValue(null, s, null, null, null, null, null);
