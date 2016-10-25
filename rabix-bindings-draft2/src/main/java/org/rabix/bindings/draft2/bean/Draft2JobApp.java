@@ -36,7 +36,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = Draft2PythonTool.class, name = "PythonTool")})
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class Draft2JobApp implements Application {
+public abstract class Draft2JobApp extends Application {
 
   @JsonProperty("id")
   protected String id;

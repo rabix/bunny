@@ -18,12 +18,14 @@ import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
+import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.sb.helper.SBFileValueHelper;
+import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
@@ -188,5 +190,10 @@ public class SBBindings implements Bindings {
   @Override
   public Map<String, Object> translateFile(FileValue fileValue) {
     return SBFileValueHelper.createFileRaw(fileValue);
+  }
+
+  @Override
+  public DataType getDataTypeFromValue(Object input) {
+    return SBSchemaHelper.getDataTypeFromValue(input);
   }
 }

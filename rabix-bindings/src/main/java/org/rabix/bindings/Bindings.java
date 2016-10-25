@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
+import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
@@ -255,5 +256,11 @@ public interface Bindings {
    * @return
    */
   Map<String, Object> translateFile(FileValue fileValue);
-  
+
+  /**
+   * Reads the type of raw input value
+   * @param input
+   * @return DataType object that represents input's type
+   */
+  public DataType getDataTypeFromValue(Object input);
 }

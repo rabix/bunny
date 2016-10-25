@@ -36,7 +36,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = SBPythonTool.class, name = "PythonTool")})
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class SBJobApp implements Application {
+public abstract class SBJobApp extends Application {
 
   @JsonProperty("id")
   protected String id;
