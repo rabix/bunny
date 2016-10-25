@@ -1,5 +1,6 @@
 package org.rabix.bindings.draft3.helper;
 
+import java.util.List;
 import java.util.Map;
 
 public class Draft3BeanHelper {
@@ -17,6 +18,14 @@ public class Draft3BeanHelper {
       T value = (T) ((Map<?, ?>) raw).get(key);
       if (value != null) {
         return value;
+      }
+    }
+    if (raw instanceof List<?>) {
+      for (Object rawItem : (List<?>) raw) {
+        T result = getValue(key, rawItem, defaultValue);
+        if (result != null) {
+          return result;
+        }
       }
     }
     return defaultValue;
