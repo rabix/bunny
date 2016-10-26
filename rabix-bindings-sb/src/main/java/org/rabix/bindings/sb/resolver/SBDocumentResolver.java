@@ -50,8 +50,11 @@ public class SBDocumentResolver {
       return cache.get(appUrl);
     }
     
-    String appUrlBase = URIHelper.extractBase(appUrl);
-    
+    String appUrlBase = appUrl;
+    if (!URIHelper.isData(appUrl)) {
+      appUrlBase = URIHelper.extractBase(appUrl);
+    }
+
     File file = null;
     JsonNode root = null;
     try {
