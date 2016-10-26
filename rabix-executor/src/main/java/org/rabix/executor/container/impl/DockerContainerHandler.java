@@ -386,14 +386,25 @@ public class DockerContainerHandler implements ContainerHandler {
       this.dockerClient = createDockerClient(configuration);
     }
 
-    @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true, sleepTimeMillis = SLEEP_TIME)
+    @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = false, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image) throws DockerException, InterruptedException {
-      dockerClient.pull(image);
+      try {
+        dockerClient.pull(image);
+      } catch (Throwable e) {
+        VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
+        throw e;
+      }
+        
     }
     
-    @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true, sleepTimeMillis = SLEEP_TIME)
+    @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = false, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException {
-      dockerClient.pull(image, authConfig); 
+      try {
+        dockerClient.pull(image, authConfig);
+      } catch (Throwable e) {
+        VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
+        throw e;
+      }
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
