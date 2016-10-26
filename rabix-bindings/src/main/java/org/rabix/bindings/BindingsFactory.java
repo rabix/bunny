@@ -77,5 +77,14 @@ public class BindingsFactory {
   public static Bindings create(Job job) throws BindingException {
     return create(job.getApp());
   }
+  
+  public static Bindings create(ProtocolType protocol) throws BindingException {
+    for(Bindings binding: bindings) {
+      if(binding.getProtocolType().equals(protocol)) {
+        return binding;
+      }
+    }
+    throw new BindingException("Cannot find binding for the protocol.");
+  }
 
 }
