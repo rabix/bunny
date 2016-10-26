@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.rabix.bindings.cwl.bean.CWLInputPort;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -39,7 +40,7 @@ public class CWLInputPortsDeserializer extends JsonDeserializer<List<CWLInputPor
           inputPort = BeanSerializer.deserialize(subnodeEntry.getValue().toString(), CWLInputPort.class);
           inputPort.setId(subnodeEntry.getKey());
         } else {
-          inputPort = new CWLInputPort(subnodeEntry.getKey(), null, subnodeEntry.getValue(), null, null, null, null, null, null, null);
+          inputPort = new CWLInputPort(subnodeEntry.getKey(), null, JSONHelper.transform(subnodeEntry.getValue()), null, null, null, null, null, null, null);
         }
         inputPorts.add(inputPort);
       }
