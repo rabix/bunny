@@ -77,16 +77,21 @@ public static Set<String> types = new HashSet<String>();
       return cache.get(appUrl);
     }
     
+    String appUrlBase = appUrl;
+    if (!URIHelper.isData(appUrl)) {
+      appUrlBase = URIHelper.extractBase(appUrl);
+    }
+    
     File file = null;
     JsonNode root = null;
     try {
-      boolean isFile = URIHelper.isFile(appUrl);
+      boolean isFile = URIHelper.isFile(appUrlBase);
       if (isFile) {
-        file = new File(URIHelper.getURIInfo(appUrl));
+        file = new File(URIHelper.getURIInfo(appUrlBase));
       } else {
         file = new File(".");
       }
-      String input = JSONHelper.transformToJSON(URIHelper.getData(appUrl));
+      String input = JSONHelper.transformToJSON(URIHelper.getData(appUrlBase));
       root = JSONHelper.readJsonNode(input);
     } catch (IOException e) {
       throw new BindingException(e);
