@@ -22,6 +22,7 @@ import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.common.logging.VerboseLogger;
@@ -72,11 +73,14 @@ public class LocalContainerHandler implements ContainerHandler {
       combinedRequirements.addAll(bindings.getRequirements(job));
       
       Map<String, String> env = processBuilder.environment();
-      if(job.getResources().getWorkingDir() != null) {
-        env.put(HOME_ENV_VAR, job.getResources().getWorkingDir());
-      }
-      if(job.getResources().getTmpDir() != null) {
-        env.put(TMPDIR_ENV_VAR, job.getResources().getTmpDir());
+      Resources resources = job.getResources();
+      if(resources != null) {
+        if(resources.getWorkingDir() != null) {
+          env.put(HOME_ENV_VAR, resources.getWorkingDir());
+        }
+        if(resources.getTmpDir() != null) {
+          env.put(TMPDIR_ENV_VAR, resources.getTmpDir());
+        }
       }
       
       EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);

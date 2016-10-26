@@ -24,6 +24,7 @@ import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
@@ -185,12 +186,16 @@ public class DockerContainerHandler implements ContainerHandler {
 
       EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
       Map<String, String> environmentVariables = environmentVariableResource != null ? environmentVariableResource.getVariables() : new HashMap<String, String>();
-      if(job.getResources().getWorkingDir() != null) {
-        environmentVariables.put(HOME_ENV_VAR, job.getResources().getWorkingDir());
+      Resources resources = job.getResources();
+      if(resources != null) {
+        if(resources.getWorkingDir() != null) {
+          environmentVariables.put(HOME_ENV_VAR, resources.getWorkingDir());
+        }
+        if(resources.getTmpDir() != null) {
+          environmentVariables.put(TMPDIR_ENV_VAR, resources.getTmpDir());
+        }
       }
-      if(job.getResources().getTmpDir() != null) {
-        environmentVariables.put(TMPDIR_ENV_VAR, job.getResources().getTmpDir());
-      }
+      
       builder.env(transformEnvironmentVariables(environmentVariables));
       ContainerCreation creation = null;
       try {
@@ -388,7 +393,7 @@ public class DockerContainerHandler implements ContainerHandler {
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException {
-      dockerClient.pull(image, authConfig);
+      dockerClient.pull(image, authConfig); 
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
