@@ -248,7 +248,7 @@ public class BackendCommandLine {
         System.out.println("Required inputs missing: " + StringUtils.join(missingRequiredFields, ", "));
         System.exit(10);
       }
-
+      
       Resources resources = null;
       Map<String, Object> contextConfig = null;
 

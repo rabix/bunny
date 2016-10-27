@@ -16,7 +16,6 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.draft3.bean.Draft3JobApp;
 import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
@@ -62,11 +61,7 @@ public class Draft3Bindings implements Bindings {
   
   @Override
   public Application loadAppObject(String uri) throws BindingException {
-    Draft3JobApp application = (Draft3JobApp) appProcessor.loadAppObject(uri);
-    if (!Draft3JobApp.DRAFT_3_VERSION.equals(application.getCwlVersion())) {
-      throw new BindingException(uri + " is not an CWL Draft-3 application");
-    }
-    return application;
+    return appProcessor.loadAppObject(uri);
   }
   
   @Override

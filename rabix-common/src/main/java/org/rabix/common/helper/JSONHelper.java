@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 public class JSONHelper {
 
+  public static final Yaml yamlReader = new Yaml();
   public static final ObjectMapper mapper = new ObjectMapper();
   public static final ObjectMapper mapperWithoutIdentation = new ObjectMapper();
   
@@ -42,8 +43,7 @@ public class JSONHelper {
 
   public static String transformToJSON(String data) {
     try {
-      Yaml reader = new Yaml();
-      return writeObject(reader.load(data));
+      return writeObject(yamlReader.load(data));
     } catch (Exception e) {
       // it's not YAML (or it's not valid)
     }
