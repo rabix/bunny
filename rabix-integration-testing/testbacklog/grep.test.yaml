@@ -16,7 +16,7 @@ test2:
       name: out.txt
       size: 36
 test3:
-  app: testbacklog/grep.cwl.yaml
+  app: testbacklog/grep_wrong_name.cwl.yaml
   inputs: testbacklog/grep.inputs.yaml
   expected:
     outfile:
