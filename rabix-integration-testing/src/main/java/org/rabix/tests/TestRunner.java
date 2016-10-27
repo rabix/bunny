@@ -172,6 +172,7 @@ public class TestRunner {
 
       int exitCode = process.waitFor();
       if (0 != exitCode) {
+    	logger.error("stderr output: ", process.getErrorStream());  
         throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
       }
 
