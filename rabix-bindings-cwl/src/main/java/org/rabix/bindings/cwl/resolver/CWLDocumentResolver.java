@@ -99,8 +99,13 @@ public class CWLDocumentResolver {
       } else {
         file = new File(".");
       }
-      String input = JSONHelper.transformToJSON(URIHelper.getData(appUrlBase));
-      root = JSONHelper.readJsonNode(input);
+      String input = URIHelper.getData(appUrlBase);
+      try {
+        root = JSONHelper.readJsonNode(input);
+      } catch (Exception e) {
+        // try to parse YAML
+        root = JSONHelper.readJsonNode(JSONHelper.transformToJSON(input));
+      }
     } catch (IOException e) {
       throw new BindingException(e);
     }
