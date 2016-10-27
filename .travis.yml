@@ -11,3 +11,10 @@ script:
 cache:
   directories:
   - $HOME/.m2
+
+notifications:
+  email:
+    recipients:
+      - marko.vukobrat@sbgenomics.com
+    on_success: always
+    on_failure: always
