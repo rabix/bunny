@@ -17,7 +17,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
@@ -54,7 +53,6 @@ import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
 import org.rabix.executor.ExecutorModule;
-import org.rabix.executor.config.FileConfiguration;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
 import org.rabix.executor.pathmapper.InputFileMapper;
@@ -92,7 +90,7 @@ public class BackendCommandLine {
     List<String> commandLineArray = Arrays.asList(commandLineArguments);
     String[] inputArguments = null;
     if (commandLineArray.contains("--")) {
-      commandLineArguments = commandLineArray.subList(0,commandLineArray.indexOf("--")).toArray(new String[0]);
+      commandLineArguments = commandLineArray.subList(0, commandLineArray.indexOf("--")).toArray(new String[0]);
       inputArguments = commandLineArray.subList(commandLineArray.indexOf("--") + 1, commandLineArray.size()).toArray(new String[0]);
     }
 
@@ -134,7 +132,8 @@ public class BackendCommandLine {
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
         if (!executionDir.exists() || !executionDir.isDirectory()) {
-          System.out.println(String.format("Execution directory %s doesn't exist or is not a directory", executionDirPath));
+          System.out
+              .println(String.format("Execution directory %s doesn't exist or is not a directory", executionDirPath));
           System.exit(10);
         } else {
           configOverrides.put("backend.execution.directory", executionDir.getCanonicalPath());
@@ -148,7 +147,7 @@ public class BackendCommandLine {
         }
         configOverrides.put("backend.execution.directory", workingDir);
       }
-      if(commandLine.hasOption("no-container")) {
+      if (commandLine.hasOption("no-container")) {
         configOverrides.put("backend.docker.enabled", false);
       }
 
@@ -170,9 +169,8 @@ public class BackendCommandLine {
               bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
               bind(DownloadService.class).to(NoOpDownloadServiceImpl.class).in(Scopes.SINGLETON);
               bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
-              bind(ExecutorStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);;
+              bind(ExecutorStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
-              
               bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
               bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
             }
@@ -242,7 +240,7 @@ public class BackendCommandLine {
       for (ApplicationPort schemaInput : application.getInputs()) {
         String id = schemaInput.getId().replaceFirst("^#", "");
 
-        if (schemaInput.isRequired() && schemaInput.getDefaultValue()==null && !inputs.containsKey(id)) {
+        if (schemaInput.isRequired() && schemaInput.getDefaultValue() == null && !inputs.containsKey(id)) {
           missingRequiredFields.add(id);
         }
       }
@@ -251,42 +249,36 @@ public class BackendCommandLine {
         System.exit(10);
       }
 
-      Configuration configuration = configModule.provideConfig();
-      Boolean conformance = configuration.getString(FileConfiguration.RABIX_CONFORMANCE) != null;    
-      
       Resources resources = null;
       Map<String, Object> contextConfig = null;
 
-      if(conformance) {
-        BindingsFactory.setProtocol(configuration.getString(FileConfiguration.RABIX_CONFORMANCE));
-        resources = extractResources(inputs, BindingsFactory.protocol);
-        if(resources != null) {
-          contextConfig = new HashMap<String, Object>();
-          if(resources.getCpu() != null) {
-            contextConfig.put("allocatedResources.cpu", resources.getCpu().toString());
-          }
-          if(resources.getMemMB() != null) {
-            contextConfig.put("allocatedResources.mem", resources.getMemMB().toString());
-          }
+      resources = extractResources(inputs, bindings.getProtocolType());
+      if (resources != null) {
+        contextConfig = new HashMap<String, Object>();
+        if (resources.getCpu() != null) {
+          contextConfig.put("allocatedResources.cpu", resources.getCpu().toString());
+        }
+        if (resources.getMemMB() != null) {
+          contextConfig.put("allocatedResources.mem", resources.getMemMB().toString());
         }
       }
-      
+
       final JobService jobService = injector.getInstance(JobService.class);
       final BackendService backendService = injector.getInstance(BackendService.class);
       final ExecutorService executorService = injector.getInstance(ExecutorService.class);
-      
+
       BackendLocal backendLocal = new BackendLocal();
       backendLocal = backendService.create(backendLocal);
       executorService.initialize(backendLocal);
-      
+
       final Job job = jobService.start(new Job(appUrl, inputs), contextConfig);
-      
+
       Thread checker = new Thread(new Runnable() {
         @Override
         public void run() {
           Job rootJob = jobService.get(job.getId());
-          
-          while(!Job.isFinished(rootJob)) {
+
+          while (!Job.isFinished(rootJob)) {
             try {
               Thread.sleep(1000);
               rootJob = jobService.get(job.getId());
@@ -340,7 +332,7 @@ public class BackendCommandLine {
     options.addOption("b", "basedir", true, "execution directory");
     options.addOption("c", "configuration-dir", true, "configuration directory");
     options.addOption("t", "conformance-test", false, "conformance test");
-    options.addOption(null, "no-container",  false, "don't use containers");
+    options.addOption(null, "no-container", false, "don't use containers");
     options.addOption(null, "tmp-outdir-prefix", true, "doesn't do anything");
     options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");
     options.addOption(null, "outdir", true, "doesn't do anything");
@@ -367,6 +359,7 @@ public class BackendCommandLine {
     new HelpFormatter().printHelp("rabix <tool> <job> [OPTION]...", options);
     System.exit(10);
   }
+
   private static void printAppUsageAndExit(Options options) {
     HelpFormatter h = new HelpFormatter();
     h.setSyntaxPrefix("");
@@ -385,7 +378,7 @@ public class BackendCommandLine {
       }
     }
     File config = new File(new File(BackendCommandLine.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParentFile().getParentFile() + "/config");
-    
+
     logger.debug("Config path: " + config.getCanonicalPath());
     if (config.exists() && config.isDirectory()) {
       logger.debug("Configuration directory found localy.");
@@ -400,19 +393,19 @@ public class BackendCommandLine {
     }
     return config;
   }
-  
+
   @SuppressWarnings("unchecked")
   private static Resources extractResources(Map<String, Object> inputs, ProtocolType protocol) {
-    switch(protocol) {
+    switch (protocol) {
     case DRAFT2: {
-      if(inputs.containsKey("allocatedResources")) {
+      if (inputs.containsKey("allocatedResources")) {
         Map<String, Object> allocatedResources = (Map<String, Object>) inputs.get("allocatedResources");
         Long cpu = ((Integer) allocatedResources.get("cpu")).longValue();
         Long mem = ((Integer) allocatedResources.get("mem")).longValue();
         return new Resources(cpu, mem, null, false, null, null);
       }
     }
-    case DRAFT3: 
+    case DRAFT3:
       return null;
     default:
       return null;

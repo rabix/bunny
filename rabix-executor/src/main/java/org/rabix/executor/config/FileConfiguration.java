@@ -6,8 +6,6 @@ import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import com.google.inject.Inject;
 
 public class FileConfiguration {
-
-  public static final String RABIX_CONFORMANCE = "rabix.conformance";
   
   public static final String CALCULATE_FILE_CHECKSUM = "rabix.calculate_file_checksum";
   public static final String CHECKSUM_ALGORITHM = "rabix.checksum_algorithm";

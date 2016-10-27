@@ -78,8 +78,7 @@ public class JobServiceImpl implements JobService {
     deleteFilesUponExecution = configuration.getBoolean("rabix.delete_files_upon_execution", false);
     
     isLocalBackend = configuration.getBoolean("local.backend", false);
-    boolean isConformance = configuration.getString("rabix.conformance") != null;
-    this.eventProcessor.start(null, new EngineStatusCallbackImpl(isLocalBackend, isLocalBackend, isConformance));
+    this.eventProcessor.start(null, new EngineStatusCallbackImpl(isLocalBackend, isLocalBackend));
   }
   
   @Override
@@ -188,7 +187,6 @@ public class JobServiceImpl implements JobService {
 
     private boolean stopOnFail;
     private boolean setResources;
-    private boolean conformance;
     
     private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
     
@@ -197,24 +195,24 @@ public class JobServiceImpl implements JobService {
 
     private Set<String> stoppingRootIds = new HashSet<>();
     
-    public EngineStatusCallbackImpl(boolean setResources, boolean stopOnFail, boolean conformance) {
+    public EngineStatusCallbackImpl(boolean setResources, boolean stopOnFail) {
       this.stopOnFail = stopOnFail;
       this.setResources = setResources;
-      this.conformance = conformance;
     }
     
     @Override
     public void onJobReady(Job job) {
-      if (setResources && !conformance) {
-        long numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
-        long memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
-        
-        Resources resources = new Resources(numberOfCores, memory, null, true, null, null);
-        job = Job.cloneWithResources(job, resources);
-      }
-      else if (conformance && job.getConfig() != null) {
-        long numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : null;
-        long memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : null;
+      if (setResources) {
+        long numberOfCores;
+        long memory;
+        if(job.getConfig() != null) {
+          numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : SystemEnvironmentHelper.getNumberOfCores();
+          memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+        }
+        else {
+          numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
+          memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+        }
         Resources resources = new Resources(numberOfCores, memory, null, true, null, null);
         job = Job.cloneWithResources(job, resources);
       }
