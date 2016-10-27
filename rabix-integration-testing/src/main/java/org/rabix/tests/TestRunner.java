@@ -174,14 +174,11 @@ public class TestRunner {
 
       int exitCode = process.waitFor();
       
-      InputStream error = process.getErrorStream();
-      
       if (0 != exitCode) {
-    	  logger.error("Stderr Output:");
-    	  for (int i = 0; i < error.available(); i++) {
-    		   System.out.println("" + error.read());
-    	  }
-          throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
+    	  File resultFile = new File(resultPath);
+		  String stdErr = readFile(resultFile.getAbsolutePath(), Charset.defaultCharset());
+		  logger.error(stdErr);
+    	  throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
       }
 
     } catch (Exception e) {
