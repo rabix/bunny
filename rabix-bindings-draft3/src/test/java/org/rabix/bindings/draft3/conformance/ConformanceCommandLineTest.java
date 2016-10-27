@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.draft3.Draft3Bindings;
+import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
+import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.helper.ResourceHelper;
@@ -81,7 +83,7 @@ public class ConformanceCommandLineTest {
       String inputsStr = ResourceHelper.readResource(this.getClass(), "cat-job.json");
       Map<String, Object> inputs = JSONHelper.readMap(inputsStr);
       
-      String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat1-tool.cwl");
+      String commandLineToolStr = URIHelper.createDataURI(ResourceHelper.readResource(this.getClass(), "cat1-tool.cwl"));
       
       List<Object> expectedList = new LinkedList<Object>();
       expectedList.add("cat");
@@ -103,7 +105,7 @@ public class ConformanceCommandLineTest {
       String inputsStr = ResourceHelper.readResource(this.getClass(), "cat-n-job.json");
       Map<String, Object> inputs = JSONHelper.readMap(inputsStr);
       
-      String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat1-tool.cwl");
+      String commandLineToolStr = URIHelper.createDataURI(ResourceHelper.readResource(this.getClass(), "cat1-tool.cwl"));
       
       List<Object> expectedList = new LinkedList<Object>();
       expectedList.add("cat");
@@ -126,7 +128,7 @@ public class ConformanceCommandLineTest {
       String inputsStr = ResourceHelper.readResource(this.getClass(), "cat-job.json");
       Map<String, Object> inputs = JSONHelper.readMap(inputsStr);
       
-      String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat2-tool.cwl");
+      String commandLineToolStr = URIHelper.createDataURI(ResourceHelper.readResource(this.getClass(), "cat2-tool.cwl"));
       
       List<Object> expectedList = new LinkedList<Object>();
       expectedList.add("cat");
@@ -147,7 +149,7 @@ public class ConformanceCommandLineTest {
       String inputsStr = ResourceHelper.readResource(this.getClass(), "cat-job.json");
       Map<String, Object> inputs = JSONHelper.readMap(inputsStr);
       
-      String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat3-tool.cwl");
+      String commandLineToolStr = URIHelper.createDataURI(ResourceHelper.readResource(this.getClass(), "cat3-tool.cwl"));
       
       Job job = new Job(commandLineToolStr, inputs);
       String cmdLine = new Draft3Bindings().buildCommandLine(job, null, null);
@@ -164,7 +166,7 @@ public class ConformanceCommandLineTest {
       String inputsStr = ResourceHelper.readResource(this.getClass(), "cat-job.json");
       Map<String, Object> inputs = JSONHelper.readMap(inputsStr);
       
-      String commandLineToolStr = ResourceHelper.readResource(this.getClass(), "cat4-tool.cwl");
+      String commandLineToolStr = URIHelper.createDataURI(ResourceHelper.readResource(this.getClass(), "cat4-tool.cwl"));
       
       Job job = new Job(commandLineToolStr, inputs);
       String cmdLine = new Draft3Bindings().buildCommandLine(job, null, null);
