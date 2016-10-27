@@ -252,20 +252,20 @@ public class BackendCommandLine {
       }
 
       Configuration configuration = configModule.provideConfig();
-      Boolean conformance = configuration.getString(FileConfiguration.RABIX_CONFORMANCE) != null;    
+      String conformanceType = configuration.getString(FileConfiguration.RABIX_CONFORMANCE);
+      Boolean conformance = conformanceType != null;    
       
       Resources resources = null;
       Map<String, Object> contextConfig = null;
 
-      if(conformance) {
-        BindingsFactory.setProtocol(configuration.getString(FileConfiguration.RABIX_CONFORMANCE));
-        resources = extractResources(inputs, BindingsFactory.protocol);
-        if(resources != null) {
+      if (conformance) {
+        resources = extractResources(inputs, ProtocolType.create(conformanceType));
+        if (resources != null) {
           contextConfig = new HashMap<String, Object>();
-          if(resources.getCpu() != null) {
+          if (resources.getCpu() != null) {
             contextConfig.put("allocatedResources.cpu", resources.getCpu().toString());
           }
-          if(resources.getMemMB() != null) {
+          if (resources.getMemMB() != null) {
             contextConfig.put("allocatedResources.mem", resources.getMemMB().toString());
           }
         }

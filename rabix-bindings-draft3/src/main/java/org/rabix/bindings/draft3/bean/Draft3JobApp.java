@@ -75,6 +75,12 @@ public abstract class Draft3JobApp extends Application {
     return cwlVersion;
   }
   
+  @Override
+  @JsonIgnore
+  public String getVersion() {
+    return getCwlVersion();
+  }
+  
   public List<Integer> getSuccessCodes() {
     return successCodes;
   }

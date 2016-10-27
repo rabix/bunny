@@ -85,6 +85,12 @@ public abstract class CWLJobApp extends Application {
     return cwlVersion;
   }
   
+  @Override
+  @JsonIgnore
+  public String getVersion() {
+    return getCwlVersion();
+  }
+  
   public List<Integer> getSuccessCodes() {
     return successCodes;
   }

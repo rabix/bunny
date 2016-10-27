@@ -73,6 +73,16 @@ public abstract class SBJobApp extends Application {
   public List<Integer> getSuccessCodes() {
     return successCodes;
   }
+  
+  public String getCwlVersion() {
+    return cwlVersion;
+  }
+  
+  @Override
+  @JsonIgnore
+  public String getVersion() {
+    return getCwlVersion();
+  }
 
   @JsonIgnore
   public List<Map<String, Object>> getSchemaDefs() {
