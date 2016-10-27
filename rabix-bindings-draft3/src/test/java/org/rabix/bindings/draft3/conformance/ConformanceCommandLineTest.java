@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.draft3.Draft3Bindings;
-import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.JSONHelper;
