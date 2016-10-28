@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.model.FileValue;
+import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.CloneHelper;
 
 import com.google.common.base.Preconditions;
@@ -443,30 +444,20 @@ public class SBSchemaHelper extends SBBeanHelper {
     return ret;
   }
 
-  public static Object updateFileValues(Object input, Map<?, ?> replacements) {
-    if (input instanceof List) {
+  public static Object updateFileValues(Object input, FileTransformer fileTransformer) {
+    if (SBSchemaHelper.isFileFromValue(input)) {
+      FileValue origFile = SBFileValueHelper.createFileValue(input);
+      return SBFileValueHelper.createFileRaw(fileTransformer.transform(origFile));
+    } else if (input instanceof List) {
       List<Object> ret = new ArrayList<>();
       for (Object o : (List) input) {
-        ret.add(updateFileValues(o, replacements));
+        ret.add(updateFileValues(o, fileTransformer));
       }
       return ret;
-    } else if (SBSchemaHelper.isFileFromValue(input)) {
-      FileValue origFile = SBFileValueHelper.createFileValue(input);
-
-      // Try to replace entire FileValue
-      Object replacementValue = replacements.get(origFile);
-      if (replacementValue != null)
-        return SBFileValueHelper.createFileRaw((FileValue)replacementValue);
-
-      // Try to replace only path attribute
-      replacementValue = replacements.get(origFile.getPath());
-      if (replacementValue != null)
-        return SBFileValueHelper.createFileRaw(FileValue.cloneWithPath(origFile, (String)replacementValue));
-
     } else if (input instanceof Map) {
       Map<Object, Object> ret = new HashMap<>();
       for (Object key: ((Map)input).keySet()) {
-        ret.put(key, updateFileValues(((Map)input).get(key), replacements));
+        ret.put(key, updateFileValues(((Map)input).get(key), fileTransformer));
       }
       return ret;
     }

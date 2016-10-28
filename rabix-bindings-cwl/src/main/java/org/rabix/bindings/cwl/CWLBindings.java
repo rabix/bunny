@@ -214,13 +214,9 @@ public class CWLBindings implements Bindings {
     return CWLSchemaHelper.getFilesFromValue(input);
   }
 
-  @Override
-  public Object updateFileValues(Object input, Map<FileValue, FileValue> files) {
-    return CWLSchemaHelper.updateFileValues(input, files);
-  }
 
   @Override
-  public Object updateFilePaths(Object input, Map<String, String> paths) {
-    return CWLSchemaHelper.updateFileValues(input, paths);
+  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
+    return CWLSchemaHelper.updateFileValues(input, fileTransformer);
   }
 }

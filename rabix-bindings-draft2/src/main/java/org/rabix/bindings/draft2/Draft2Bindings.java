@@ -203,12 +203,7 @@ public class Draft2Bindings implements Bindings {
   }
 
   @Override
-  public Object updateFileValues(Object input, Map<FileValue, FileValue> files) {
-    return Draft2SchemaHelper.updateFileValues(input, files);
-  }
-
-  @Override
-  public Object updateFilePaths(Object input, Map<String, String> paths) {
-    return Draft2SchemaHelper.updateFileValues(input, paths);
+  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
+    return Draft2SchemaHelper.updateFileValues(input, fileTransformer);
   }
 }

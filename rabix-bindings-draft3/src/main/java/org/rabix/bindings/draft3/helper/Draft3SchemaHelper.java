@@ -12,6 +12,7 @@ import org.apache.avro.Schema;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.model.FileValue;
+import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.JSONHelper;
 
@@ -678,30 +679,20 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
     return ret;
   }
 
-  public static Object updateFileValues(Object input, Map<?, ?> replacements) {
-    if (input instanceof List) {
+  public static Object updateFileValues(Object input, FileTransformer fileTransformer) {
+    if (Draft3SchemaHelper.isFileFromValue(input)) {
+      FileValue origFile = Draft3FileValueHelper.createFileValue(input);
+      return Draft3FileValueHelper.createFileRaw(fileTransformer.transform(origFile));
+    } else if (input instanceof List) {
       List<Object> ret = new ArrayList<>();
       for (Object o : (List) input) {
-        ret.add(updateFileValues(o, replacements));
+        ret.add(updateFileValues(o, fileTransformer));
       }
       return ret;
-    } else if (Draft3SchemaHelper.isFileFromValue(input)) {
-      FileValue origFile = Draft3FileValueHelper.createFileValue(input);
-
-      // Try to replace entire FileValue
-      Object replacementValue = replacements.get(origFile);
-      if (replacementValue != null)
-        return Draft3FileValueHelper.createFileRaw((FileValue)replacementValue);
-
-      // Try to replace only path attribute
-      replacementValue = replacements.get(origFile.getPath());
-      if (replacementValue != null)
-        return Draft3FileValueHelper.createFileRaw(FileValue.cloneWithPath(origFile, (String)replacementValue));
-
     } else if (input instanceof Map) {
       Map<Object, Object> ret = new HashMap<>();
       for (Object key: ((Map)input).keySet()) {
-        ret.put(key, updateFileValues(((Map)input).get(key), replacements));
+        ret.put(key, updateFileValues(((Map)input).get(key), fileTransformer));
       }
       return ret;
     }

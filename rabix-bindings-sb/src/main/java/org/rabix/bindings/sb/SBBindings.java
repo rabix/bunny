@@ -203,12 +203,8 @@ public class SBBindings implements Bindings {
   }
 
   @Override
-  public Object updateFileValues(Object input, Map<FileValue, FileValue> files) {
-    return SBSchemaHelper.updateFileValues(input, files);
-  }
+  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
 
-  @Override
-  public Object updateFilePaths(Object input, Map<String, String> paths) {
-    return SBSchemaHelper.updateFileValues(input, paths);
+    return SBSchemaHelper.updateFileValues(input, fileTransformer);
   }
 }
