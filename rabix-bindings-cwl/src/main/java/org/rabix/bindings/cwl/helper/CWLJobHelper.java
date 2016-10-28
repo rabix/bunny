@@ -7,14 +7,13 @@ import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.resolver.CWLDocumentResolver;
 import org.rabix.bindings.model.Job;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 
 public class CWLJobHelper {
 
   public static CWLJob getCWLJob(Job job) throws BindingException {
     String resolvedAppStr = CWLDocumentResolver.resolve(job.getApp());
-    CWLJobApp app = BeanSerializer.deserialize(JSONHelper.transformToJSON(resolvedAppStr), CWLJobApp.class);
+    CWLJobApp app = BeanSerializer.deserialize(resolvedAppStr, CWLJobApp.class);
     CWLJob cwlJob =  new CWLJobProcessor().process(new CWLJob(job.getName(), app, job.getInputs(), job.getOutputs()));
     
     if (job.getResources() != null) {

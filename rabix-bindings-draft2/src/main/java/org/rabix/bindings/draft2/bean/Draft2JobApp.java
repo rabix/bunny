@@ -239,6 +239,16 @@ public abstract class Draft2JobApp extends Application {
     }
     return null;
   }
+  
+  @Override
+  @JsonIgnore
+  public String getVersion() {
+    return getCwlVersion();
+  }
+  
+  public String getCwlVersion() {
+    return cwlVersion;
+  }
 
   public String getContext() {
     return context;

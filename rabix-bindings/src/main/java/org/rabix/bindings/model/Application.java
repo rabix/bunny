@@ -39,8 +39,11 @@ public abstract class Application {
   @JsonIgnore
   public abstract List<? extends ApplicationPort> getOutputs();
 
+  @JsonIgnore
+  public abstract String getVersion();
+  
   protected Map<String, Object> raw = new HashMap<>();
-
+  
   @JsonAnySetter
   public void add(String key, Object value) {
     raw.put(key, value);

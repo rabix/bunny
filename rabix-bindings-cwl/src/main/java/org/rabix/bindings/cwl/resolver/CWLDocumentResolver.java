@@ -85,17 +85,27 @@ public class CWLDocumentResolver {
       return cache.get(appUrl);
     }
     
+    String appUrlBase = appUrl;
+    if (!URIHelper.isData(appUrl)) {
+      appUrlBase = URIHelper.extractBase(appUrl);
+    }
+    
     File file = null;
     JsonNode root = null;
     try {
-      boolean isFile = URIHelper.isFile(appUrl);
+      boolean isFile = URIHelper.isFile(appUrlBase);
       if (isFile) {
-        file = new File(URIHelper.getURIInfo(appUrl));
+        file = new File(URIHelper.getURIInfo(appUrlBase));
       } else {
         file = new File(".");
       }
-      String input = JSONHelper.transformToJSON(URIHelper.getData(appUrl));
-      root = JSONHelper.readJsonNode(input);
+      String input = URIHelper.getData(appUrlBase);
+      try {
+        root = JSONHelper.readJsonNode(input);
+      } catch (Exception e) {
+        // try to parse YAML
+        root = JSONHelper.readJsonNode(JSONHelper.transformToJSON(input));
+      }
     } catch (IOException e) {
       throw new BindingException(e);
     }
