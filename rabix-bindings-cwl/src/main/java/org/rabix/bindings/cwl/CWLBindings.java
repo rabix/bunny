@@ -208,4 +208,15 @@ public class CWLBindings implements Bindings {
   public DataType getDataTypeFromValue(Object input) {
     return CWLSchemaHelper.getDataTypeFromValue(input);
   }
+
+  @Override
+  public List<FileValue> getFilesFromValue(Object input) {
+    return CWLSchemaHelper.getFilesFromValue(input);
+  }
+
+
+  @Override
+  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
+    return CWLSchemaHelper.updateFileValues(input, fileTransformer);
+  }
 }

@@ -196,4 +196,15 @@ public class SBBindings implements Bindings {
   public DataType getDataTypeFromValue(Object input) {
     return SBSchemaHelper.getDataTypeFromValue(input);
   }
+
+  @Override
+  public List<FileValue> getFilesFromValue(Object input) {
+    return SBSchemaHelper.getFilesFromValue(input);
+  }
+
+  @Override
+  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
+
+    return SBSchemaHelper.updateFileValues(input, fileTransformer);
+  }
 }

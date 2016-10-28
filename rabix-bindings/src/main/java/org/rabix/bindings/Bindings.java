@@ -263,4 +263,19 @@ public interface Bindings {
    * @return DataType object that represents input's type
    */
   public DataType getDataTypeFromValue(Object input);
+
+  /**
+   * Parses raw input values and extracts all elements that represent file inputs
+   * @param input raw input
+   * @return List of recognized file inputs
+   */
+  public List<FileValue> getFilesFromValue(Object input);
+
+  /**
+   * Creates copy of raw input in which all file paths are updated using fileTransformer
+   * @param input raw input
+   * @param fileTransformer
+   * @return copy of input with replaced file inputs
+   */
+  public Object updateFileValues(Object input, FileTransformer fileTransformer);
 }

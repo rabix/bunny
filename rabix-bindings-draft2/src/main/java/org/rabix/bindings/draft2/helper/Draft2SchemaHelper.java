@@ -5,6 +5,8 @@ import java.util.*;
 import org.apache.avro.Schema;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.DataType;
+import org.rabix.bindings.model.FileValue;
+import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.JSONHelper;
 
@@ -556,5 +558,41 @@ public class Draft2SchemaHelper extends Draft2BeanHelper {
     }
 
     return new DataType(DataType.Type.ANY);
+  }
+
+  public static List<FileValue> getFilesFromValue(Object input) {
+    List<FileValue> ret = new ArrayList<>();
+    if (input instanceof List) {
+      for (Object o : (List) input) {
+        ret.addAll(getFilesFromValue(o));
+      }
+    } else if (Draft2SchemaHelper.isFileFromValue(input)) {
+      ret.add(Draft2FileValueHelper.createFileValue(input));
+    } else if (input instanceof Map) {
+      for (Object key: ((Map)input).keySet()) {
+        ret.addAll(getFilesFromValue(((Map)input).get(key)));
+      }
+    }
+    return ret;
+  }
+
+  public static Object updateFileValues(Object input, FileTransformer fileTransformer) {
+    if (Draft2SchemaHelper.isFileFromValue(input)) {
+      FileValue origFile = Draft2FileValueHelper.createFileValue(input);
+      return Draft2FileValueHelper.createFileRaw(fileTransformer.transform(origFile));
+    } else if (input instanceof List) {
+      List<Object> ret = new ArrayList<>();
+      for (Object o : (List) input) {
+        ret.add(updateFileValues(o, fileTransformer));
+      }
+      return ret;
+    } else if (input instanceof Map) {
+      Map<Object, Object> ret = new HashMap<>();
+      for (Object key: ((Map)input).keySet()) {
+        ret.put(key, updateFileValues(((Map)input).get(key), fileTransformer));
+      }
+      return ret;
+    }
+    return CloneHelper.deepCopy(input);
   }
 }
