@@ -20,5 +20,23 @@ public class DirectoryValue extends FileValue {
   public String toString() {
     return "DirectoryValue [listing=" + listing + ", size=" + size + ", path=" + path + ", location=" + location + ", checksum=" + checksum + ", secondaryFiles=" + secondaryFiles + ", properties=" + properties + "]";
   }
-  
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+
+    DirectoryValue that = (DirectoryValue) o;
+
+    return listing != null ? listing.equals(that.listing) : that.listing == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (listing != null ? listing.hashCode() : 0);
+    return result;
+  }
 }

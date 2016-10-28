@@ -66,52 +66,31 @@ public class FileValue {
   }
 
   @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((checksum == null) ? 0 : checksum.hashCode());
-    result = prime * result + ((path == null) ? 0 : path.hashCode());
-    result = prime * result + ((properties == null) ? 0 : properties.hashCode());
-    result = prime * result + ((secondaryFiles == null) ? 0 : secondaryFiles.hashCode());
-    result = prime * result + ((size == null) ? 0 : size.hashCode());
-    return result;
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    FileValue fileValue = (FileValue) o;
+
+    if (size != null ? !size.equals(fileValue.size) : fileValue.size != null) return false;
+    if (path != null ? !path.equals(fileValue.path) : fileValue.path != null) return false;
+    if (location != null ? !location.equals(fileValue.location) : fileValue.location != null) return false;
+    if (name != null ? !name.equals(fileValue.name) : fileValue.name != null) return false;
+    if (checksum != null ? !checksum.equals(fileValue.checksum) : fileValue.checksum != null) return false;
+    if (secondaryFiles != null ? !secondaryFiles.equals(fileValue.secondaryFiles) : fileValue.secondaryFiles != null)
+      return false;
+    return properties != null ? properties.equals(fileValue.properties) : fileValue.properties == null;
+
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    FileValue other = (FileValue) obj;
-    if (checksum == null) {
-      if (other.checksum != null)
-        return false;
-    } else if (!checksum.equals(other.checksum))
-      return false;
-    if (path == null) {
-      if (other.path != null)
-        return false;
-    } else if (!path.equals(other.path))
-      return false;
-    if (properties == null) {
-      if (other.properties != null)
-        return false;
-    } else if (!properties.equals(other.properties))
-      return false;
-    if (secondaryFiles == null) {
-      if (other.secondaryFiles != null)
-        return false;
-    } else if (!secondaryFiles.equals(other.secondaryFiles))
-      return false;
-    if (size == null) {
-      if (other.size != null)
-        return false;
-    } else if (!size.equals(other.size))
-      return false;
-    return true;
+  public int hashCode() {
+    int result = size != null ? size.hashCode() : 0;
+    result = 31 * result + (path != null ? path.hashCode() : 0);
+    result = 31 * result + (location != null ? location.hashCode() : 0);
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
+    return result;
   }
 
   @Override
