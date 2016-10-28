@@ -201,4 +201,18 @@ public class Draft3Bindings implements Bindings {
     return Draft3SchemaHelper.getDataTypeFromValue(input);
   }
 
+  @Override
+  public List<FileValue> getFilesFromValue(Object input) {
+    return Draft3SchemaHelper.getFilesFromValue(input);
+  }
+
+  @Override
+  public Object updateFileValues(Object input, Map<FileValue, FileValue> files) {
+    return Draft3SchemaHelper.updateFileValues(input, files);
+  }
+
+  @Override
+  public Object updateFilePaths(Object input, Map<String, String> paths) {
+    return Draft3SchemaHelper.updateFileValues(input, paths);
+  }
 }

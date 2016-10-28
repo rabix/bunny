@@ -196,4 +196,19 @@ public class SBBindings implements Bindings {
   public DataType getDataTypeFromValue(Object input) {
     return SBSchemaHelper.getDataTypeFromValue(input);
   }
+
+  @Override
+  public List<FileValue> getFilesFromValue(Object input) {
+    return SBSchemaHelper.getFilesFromValue(input);
+  }
+
+  @Override
+  public Object updateFileValues(Object input, Map<FileValue, FileValue> files) {
+    return SBSchemaHelper.updateFileValues(input, files);
+  }
+
+  @Override
+  public Object updateFilePaths(Object input, Map<String, String> paths) {
+    return SBSchemaHelper.updateFileValues(input, paths);
+  }
 }

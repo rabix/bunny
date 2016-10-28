@@ -196,4 +196,19 @@ public class Draft2Bindings implements Bindings {
   public DataType getDataTypeFromValue(Object input) {
     return Draft2SchemaHelper.getDataTypeFromValue(input);
   }
+
+  @Override
+  public List<FileValue> getFilesFromValue(Object input) {
+    return Draft2SchemaHelper.getFilesFromValue(input);
+  }
+
+  @Override
+  public Object updateFileValues(Object input, Map<FileValue, FileValue> files) {
+    return Draft2SchemaHelper.updateFileValues(input, files);
+  }
+
+  @Override
+  public Object updateFilePaths(Object input, Map<String, String> paths) {
+    return Draft2SchemaHelper.updateFileValues(input, paths);
+  }
 }

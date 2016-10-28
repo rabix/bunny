@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.avro.Schema;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.DataType;
+import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.JSONHelper;
 
@@ -659,5 +660,51 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
     }
 
     return new DataType(DataType.Type.ANY);
+  }
+
+  public static List<FileValue> getFilesFromValue(Object input) {
+    List<FileValue> ret = new ArrayList<>();
+    if (input instanceof List) {
+      for (Object o : (List) input) {
+        ret.addAll(getFilesFromValue(o));
+      }
+    } else if (Draft3SchemaHelper.isFileFromValue(input)) {
+      ret.add(Draft3FileValueHelper.createFileValue(input));
+    } else if (input instanceof Map) {
+      for (Object key: ((Map)input).keySet()) {
+        ret.addAll(getFilesFromValue(((Map)input).get(key)));
+      }
+    }
+    return ret;
+  }
+
+  public static Object updateFileValues(Object input, Map<?, ?> replacements) {
+    if (input instanceof List) {
+      List<Object> ret = new ArrayList<>();
+      for (Object o : (List) input) {
+        ret.add(updateFileValues(o, replacements));
+      }
+      return ret;
+    } else if (Draft3SchemaHelper.isFileFromValue(input)) {
+      FileValue origFile = Draft3FileValueHelper.createFileValue(input);
+
+      // Try to replace entire FileValue
+      Object replacementValue = replacements.get(origFile);
+      if (replacementValue != null)
+        return Draft3FileValueHelper.createFileRaw((FileValue)replacementValue);
+
+      // Try to replace only path attribute
+      replacementValue = replacements.get(origFile.getPath());
+      if (replacementValue != null)
+        return Draft3FileValueHelper.createFileRaw(FileValue.cloneWithPath(origFile, (String)replacementValue));
+
+    } else if (input instanceof Map) {
+      Map<Object, Object> ret = new HashMap<>();
+      for (Object key: ((Map)input).keySet()) {
+        ret.put(key, updateFileValues(((Map)input).get(key), replacements));
+      }
+      return ret;
+    }
+    return CloneHelper.deepCopy(input);
   }
 }
