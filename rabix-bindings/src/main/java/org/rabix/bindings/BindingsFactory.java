@@ -30,7 +30,11 @@ public class BindingsFactory {
         if (clazz == null) {
           continue;
         }
-        bindings.add((Bindings) clazz.newInstance());
+        try {
+          bindings.add((Bindings) clazz.newInstance());
+        } catch (Exception e) {
+          logger.debug("Failed to find class " + clazz);
+        }
       }
     } catch (Exception e) {
       logger.error("Failed to initialize bindings", e);
