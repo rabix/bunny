@@ -24,8 +24,8 @@ public class BindingsFactory {
   });
 
   static {
-    try {
       for (ProtocolType type : ProtocolType.values()) {
+        try { 
         Class<?> clazz = Class.forName(type.bindingsClass);
         if (clazz == null) {
           continue;
@@ -35,10 +35,9 @@ public class BindingsFactory {
         } catch (Exception e) {
           logger.debug("Failed to find class " + clazz);
         }
+      } catch (Exception e) {
+        logger.error("Failed to initialize bindings", e);
       }
-    } catch (Exception e) {
-      logger.error("Failed to initialize bindings", e);
-      throw new RuntimeException("Failed to initialize bindings", e);
     }
   }
 
