@@ -116,7 +116,7 @@
 			<dependencies>
 				<dependency>
 					<groupId>org.rabix</groupId>
-					<artifactId>rabix-bindings-draft-sb</artifactId>
+					<artifactId>rabix-bindings-sb</artifactId>
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
