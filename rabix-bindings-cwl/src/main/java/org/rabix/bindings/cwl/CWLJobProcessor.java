@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.ftpserver.command.Command;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLDataLink;
 import org.rabix.bindings.cwl.bean.CWLInputPort;
@@ -204,15 +205,23 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       if (job.getApp().isCommandLineTool() && port instanceof CWLOutputPort) {
         Object type = port.getSchema();
         if (CWLSchemaHelper.TYPE_JOB_FILE.equals(type)) {
-          
+          CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
           Object outputBinding = ((CWLOutputPort) port).getOutputBinding();
           if (outputBinding != null) {
             Object glob = CWLBindingHelper.getGlob(outputBinding);
             if (outputBinding != null && glob != null && glob instanceof String) {
               if (((String) glob).startsWith(CWLCommandLineTool.RANDOM_STDOUT_PREFIX)) {
-                ((CWLCommandLineTool) job.getApp()).setStdout(glob);
+                if (commandLineTool.getStdoutRaw() != null) {
+                  CWLBindingHelper.setGlob(commandLineTool.getStdoutRaw(), outputBinding);
+                } else {
+                  commandLineTool.setStdout(glob);
+                }
               } else if (((String) glob).startsWith(CWLCommandLineTool.RANDOM_STDERR_PREFIX)) {
-                ((CWLCommandLineTool) job.getApp()).setStderr(glob);
+                if (commandLineTool.getStderrRaw() != null) {
+                  CWLBindingHelper.setGlob(commandLineTool.getStderrRaw(), outputBinding);
+                } else {
+                  commandLineTool.setStderr(glob);
+                }
               }
             }
           }

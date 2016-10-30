@@ -36,7 +36,7 @@ public class BindingsFactory {
           logger.debug("Failed to find class " + clazz);
         }
       } catch (Exception e) {
-        logger.error("Failed to initialize bindings", e);
+        // ignore
       }
     }
   }

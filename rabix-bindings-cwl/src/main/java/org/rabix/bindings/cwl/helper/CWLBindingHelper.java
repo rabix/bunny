@@ -36,6 +36,10 @@ public class CWLBindingHelper extends CWLBeanHelper {
     return getValue(KEY_GLOB, binding);
   }
   
+  public static void setGlob(Object glob, Object binding) {
+    setValue(KEY_GLOB, glob, binding);
+  }
+  
   public static String getId(Object binding) {
     return getValue(KEY_ID, binding);
   }

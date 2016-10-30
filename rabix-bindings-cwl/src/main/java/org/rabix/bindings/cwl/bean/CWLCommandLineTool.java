@@ -67,6 +67,11 @@ public class CWLCommandLineTool extends CWLJobApp {
     String evaluatedStdout = CWLExpressionResolver.resolve(stdout, job, null);
     return evaluatedStdout != null ? evaluatedStdout : null;
   }
+  
+  @JsonIgnore
+  public Object getStdoutRaw() {
+    return stdout;
+  }
 
   public void setStdout(Object stdout) {
     this.stdout = stdout;
@@ -79,6 +84,11 @@ public class CWLCommandLineTool extends CWLJobApp {
   
   public void setStderr(Object stderr) {
     this.stderr = stderr;
+  }
+  
+  @JsonIgnore
+  public Object getStderrRaw() {
+    return stderr;
   }
   
   @SuppressWarnings("unchecked")
