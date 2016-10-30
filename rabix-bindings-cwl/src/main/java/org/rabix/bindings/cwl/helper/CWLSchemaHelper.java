@@ -132,7 +132,7 @@ public class CWLSchemaHelper extends CWLBeanHelper {
       }
       if (clonedSchema instanceof List<?>) {
         for (Object subschema : ((List<Object>) clonedSchema)) {
-          if (subschema == null) {
+          if (subschema == null || SCHEMA_NULL.equals(subschema)) {
             return false;
           }
         }
@@ -541,7 +541,7 @@ public class CWLSchemaHelper extends CWLBeanHelper {
     // UNION
     if (schema instanceof List) {
       List<?> schemaList = (List<?>) schema;
-      int numberOfTypes = schemaList.size() - (schemaList.contains("null") ? 1 : 0);
+      int numberOfTypes = schemaList.size() - (schemaList.contains(SCHEMA_NULL) ? 1 : 0);
       if (numberOfTypes > 1 ) {
         Set<DataType> types = new HashSet<>();
         for (Object subschema : schemaList) {
