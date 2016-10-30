@@ -427,6 +427,7 @@ public class CWLProcessor implements ProtocolProcessor {
         }
       } else if (expr instanceof Map) {
         secondaryFileMap = (Map<String, Object>) expr;
+        postprocessToolCreatedResults(secondaryFileMap, hashAlgorithm);
       }
       if(!secondaryFileMap.isEmpty()) {
         secondaryFileMaps.add(secondaryFileMap);
