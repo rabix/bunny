@@ -11,6 +11,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -53,7 +55,7 @@ public class CWLGlobServiceImpl implements CWLGlobService {
       globs.add((String) glob);
     }
     
-    final Set<File> files = new TreeSet<File>();
+    final Set<File> files = new LinkedHashSet<>();
     for (String singleGlob : globs) {
       if (singleGlob.equals(".")) { // TODO fix this
         singleGlob = workingDir.getName();
