@@ -331,7 +331,6 @@ public class BackendCommandLine {
     options.addOption("v", "verbose", false, "verbose");
     options.addOption("b", "basedir", true, "execution directory");
     options.addOption("c", "configuration-dir", true, "configuration directory");
-    options.addOption("t", "conformance-test", false, "conformance test");
     options.addOption(null, "no-container", false, "don't use containers");
     options.addOption(null, "tmp-outdir-prefix", true, "doesn't do anything");
     options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");
