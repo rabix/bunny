@@ -24,8 +24,8 @@ public class BindingsFactory {
   });
 
   static {
-      for (ProtocolType type : ProtocolType.values()) {
-        try { 
+    for (ProtocolType type : ProtocolType.values()) {
+      try {
         Class<?> clazz = Class.forName(type.bindingsClass);
         if (clazz == null) {
           continue;
