@@ -666,14 +666,14 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
   public static List<FileValue> getFilesFromValue(Object input) {
     List<FileValue> ret = new ArrayList<>();
     if (input instanceof List) {
-      for (Object o : (List) input) {
+      for (Object o : (List<?>) input) {
         ret.addAll(getFilesFromValue(o));
       }
     } else if (Draft3SchemaHelper.isFileFromValue(input)) {
       ret.add(Draft3FileValueHelper.createFileValue(input));
     } else if (input instanceof Map) {
-      for (Object key: ((Map)input).keySet()) {
-        ret.addAll(getFilesFromValue(((Map)input).get(key)));
+      for (Object key : ((Map<?, ?>) input).keySet()) {
+        ret.addAll(getFilesFromValue(((Map<?, ?>) input).get(key)));
       }
     }
     return ret;
@@ -685,14 +685,14 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
       return Draft3FileValueHelper.createFileRaw(fileTransformer.transform(origFile));
     } else if (input instanceof List) {
       List<Object> ret = new ArrayList<>();
-      for (Object o : (List) input) {
+      for (Object o : (List<?>) input) {
         ret.add(updateFileValues(o, fileTransformer));
       }
       return ret;
     } else if (input instanceof Map) {
       Map<Object, Object> ret = new HashMap<>();
-      for (Object key: ((Map)input).keySet()) {
-        ret.put(key, updateFileValues(((Map)input).get(key), fileTransformer));
+      for (Object key : ((Map<?, ?>) input).keySet()) {
+        ret.put(key, updateFileValues(((Map<?, ?>) input).get(key), fileTransformer));
       }
       return ret;
     }
