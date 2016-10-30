@@ -106,7 +106,7 @@ public class BackendCommandLine {
       String appPath = commandLine.getArgList().get(0);
       File appFile = new File(URIHelper.extractBase(appPath));
       if (!appFile.exists()) {
-        System.out.println(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));
+        VerboseLogger.log(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));
         printUsageAndExit(posixOptions);
       }
 
@@ -115,7 +115,7 @@ public class BackendCommandLine {
         String inputsPath = commandLine.getArgList().get(1);
         inputsFile = new File(inputsPath);
         if (!inputsFile.exists()) {
-          System.out.println(String.format("Inputs file %s does not exist.", inputsFile.getCanonicalPath()));
+          VerboseLogger.log(String.format("Inputs file %s does not exist.", inputsFile.getCanonicalPath()));
           printUsageAndExit(posixOptions);
         }
       }
@@ -123,7 +123,7 @@ public class BackendCommandLine {
       File configDir = getConfigDir(commandLine, posixOptions);
 
       if (!configDir.exists() || !configDir.isDirectory()) {
-        System.out.println(String.format("Config directory %s doesn't exist or is not a directory.", configDir.getCanonicalPath()));
+        VerboseLogger.log(String.format("Config directory %s doesn't exist or is not a directory.", configDir.getCanonicalPath()));
         printUsageAndExit(posixOptions);
       }
 
@@ -132,8 +132,7 @@ public class BackendCommandLine {
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
         if (!executionDir.exists() || !executionDir.isDirectory()) {
-          System.out
-              .println(String.format("Execution directory %s doesn't exist or is not a directory", executionDirPath));
+          VerboseLogger.log(String.format("Execution directory %s doesn't exist or is not a directory", executionDirPath));
           System.exit(10);
         } else {
           configOverrides.put("backend.execution.directory", executionDir.getCanonicalPath());
@@ -200,7 +199,7 @@ public class BackendCommandLine {
         System.exit(10);
       }
       if (application == null) {
-        System.out.println("Error reading the app file");
+        VerboseLogger.log("Error reading the app file");
         System.exit(10);
       }
 
@@ -245,7 +244,7 @@ public class BackendCommandLine {
         }
       }
       if (!missingRequiredFields.isEmpty()) {
-        System.out.println("Required inputs missing: " + StringUtils.join(missingRequiredFields, ", "));
+        VerboseLogger.log("Required inputs missing: " + StringUtils.join(missingRequiredFields, ", "));
         System.exit(10);
       }
       
@@ -347,7 +346,7 @@ public class BackendCommandLine {
     if (commandLine.getArgList().size() == 2 || (hasInputArguments && commandLine.getArgList().size() == 1)) {
       return true;
     }
-    System.out.println("Invalid number of arguments\n");
+    VerboseLogger.log("Invalid number of arguments\n");
     return false;
   }
 
