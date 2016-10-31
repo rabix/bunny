@@ -47,9 +47,11 @@ public class CWLFilePropertiesProcessorCallback implements CWLPortProcessorCallb
       
       if (CWLSchemaHelper.isDirectoryFromValue(clonedValue)) {
         List<Object> listing = new ArrayList<>();
-        
-        for (File childFile : file.listFiles()) {
-          listing.add(formFileValue(childFile));
+        File[] list = file.listFiles();
+        if(list != null) {
+          for (File childFile : file.listFiles()) {
+            listing.add(formFileValue(childFile));
+          }
         }
         CWLDirectoryValueHelper.setListing(listing, clonedValue);
       }
