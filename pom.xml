@@ -18,6 +18,10 @@
 		<module>rabix-backend-local</module>
 		<module>rabix-transport</module>
 		<module>rabix-integration-testing</module>
+		<module>rabix-bindings-cwl</module>
+		<module>rabix-bindings-draft2</module>
+		<module>rabix-bindings-draft3</module>
+		<module>rabix-bindings-sb</module>
 	</modules>
 	
 	<properties>
