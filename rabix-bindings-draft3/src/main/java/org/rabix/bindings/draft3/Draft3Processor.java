@@ -161,10 +161,13 @@ public class Draft3Processor implements ProtocolProcessor {
       }
       Draft3FileValueHelper.setSize(file.length(), value);
       
-      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
-      if (checksum != null) {
-        Draft3FileValueHelper.setChecksum(checksum, value);
+      if(hashAlgorithm != null) {
+        String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+        if (checksum != null) {
+          Draft3FileValueHelper.setChecksum(checksum, value);
+        }
       }
+      
       List<Map<String, Object>> secondaryFiles = Draft3FileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {
         for (Object secondaryFile : secondaryFiles) {
