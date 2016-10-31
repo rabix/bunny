@@ -32,7 +32,7 @@ public class SBEnvVarRequirement extends SBResource {
   }
 
   @Override
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.ENV_VAR_REQUIREMENT;
   }
 

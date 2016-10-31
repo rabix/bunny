@@ -32,7 +32,7 @@ public class Draft2EnvVarRequirement extends Draft2Resource {
   }
 
   @Override
-  public Draft2ResourceType getType() {
+  public Draft2ResourceType getTypeEnum() {
     return Draft2ResourceType.ENV_VAR_REQUIREMENT;
   }
 

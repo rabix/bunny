@@ -5,32 +5,36 @@ import java.util.Map;
 
 public class FileValue {
 
-  private final Long size;
-  private final String path;
+  protected final Long size;
+  protected final String path;
+  protected final String location;
   
-  private final String checksum;
-  private final List<FileValue> secondaryFiles;
-  private final Map<String, Object> properties;
+  protected final String name;
+  protected final String checksum;
+  protected final List<FileValue> secondaryFiles;
+  protected final Map<String, Object> properties;
   
-  public FileValue(Long size, String path, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties) {
+  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties, String name) {
     super();
     this.size = size;
     this.path = path;
+    this.name = name;
+    this.location = location;
     this.checksum = checksum;
     this.secondaryFiles = secondaryFiles;
     this.properties = properties;
   }
   
   public static FileValue cloneWithPath(FileValue fileValue, String path) {
-    return new FileValue(fileValue.size, path, fileValue.checksum, fileValue.secondaryFiles, fileValue.properties);
+    return new FileValue(fileValue.size, path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles, fileValue.properties, fileValue.name);
   }
   
   public static FileValue cloneWithProperties(FileValue fileValue, Map<String, Object> properties) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.checksum, fileValue.secondaryFiles, properties);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles, properties, fileValue.name);
   }
   
   public static FileValue cloneWithSecondaryFiles(FileValue fileValue, List<FileValue> secondaryFiles) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.checksum, secondaryFiles, fileValue.properties);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, secondaryFiles, fileValue.properties, fileValue.name);
   }
 
   public Long getSize() {
@@ -39,6 +43,14 @@ public class FileValue {
 
   public String getPath() {
     return path;
+  }
+  
+  public String getName() {
+    return name;
+  }
+  
+  public String getLocation() {
+    return location;
   }
   
   public String getChecksum() {
@@ -54,57 +66,36 @@ public class FileValue {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    FileValue fileValue = (FileValue) o;
+
+    if (size != null ? !size.equals(fileValue.size) : fileValue.size != null) return false;
+    if (path != null ? !path.equals(fileValue.path) : fileValue.path != null) return false;
+    if (location != null ? !location.equals(fileValue.location) : fileValue.location != null) return false;
+    if (name != null ? !name.equals(fileValue.name) : fileValue.name != null) return false;
+    if (checksum != null ? !checksum.equals(fileValue.checksum) : fileValue.checksum != null) return false;
+    if (secondaryFiles != null ? !secondaryFiles.equals(fileValue.secondaryFiles) : fileValue.secondaryFiles != null)
+      return false;
+    return properties != null ? properties.equals(fileValue.properties) : fileValue.properties == null;
+
+  }
+
+  @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((checksum == null) ? 0 : checksum.hashCode());
-    result = prime * result + ((path == null) ? 0 : path.hashCode());
-    result = prime * result + ((properties == null) ? 0 : properties.hashCode());
-    result = prime * result + ((secondaryFiles == null) ? 0 : secondaryFiles.hashCode());
-    result = prime * result + ((size == null) ? 0 : size.hashCode());
+    int result = size != null ? size.hashCode() : 0;
+    result = 31 * result + (path != null ? path.hashCode() : 0);
+    result = 31 * result + (location != null ? location.hashCode() : 0);
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
     return result;
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    FileValue other = (FileValue) obj;
-    if (checksum == null) {
-      if (other.checksum != null)
-        return false;
-    } else if (!checksum.equals(other.checksum))
-      return false;
-    if (path == null) {
-      if (other.path != null)
-        return false;
-    } else if (!path.equals(other.path))
-      return false;
-    if (properties == null) {
-      if (other.properties != null)
-        return false;
-    } else if (!properties.equals(other.properties))
-      return false;
-    if (secondaryFiles == null) {
-      if (other.secondaryFiles != null)
-        return false;
-    } else if (!secondaryFiles.equals(other.secondaryFiles))
-      return false;
-    if (size == null) {
-      if (other.size != null)
-        return false;
-    } else if (!size.equals(other.size))
-      return false;
-    return true;
-  }
-
-  @Override
   public String toString() {
-    return "FileValue [size=" + size + ", path=" + path + ", checksum=" + checksum + ", secondaryFiles=" + secondaryFiles + ", properties=" + properties + "]";
+    return "FileValue [size=" + size + ", path=" + path + ", location=" + location + ", checksum=" + checksum + ", secondaryFiles=" + secondaryFiles + ", properties=" + properties + "]";
   }
   
 }

@@ -74,7 +74,11 @@ public class Draft3FileValueProcessorCallback implements Draft3PortProcessorCall
                 }
                 secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
               }
-              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null));
+              String secondaryFilename = null;
+              if (secondaryFilePath.contains("/")) {
+                secondaryFilename = secondaryFilePath.substring(secondaryFilePath.lastIndexOf("/") + 1);
+              }
+              secondaryFileValues.add(new FileValue(null, secondaryFilePath, null, null, null, null, secondaryFilename));
             }
             fileValue = FileValue.cloneWithSecondaryFiles(fileValue, secondaryFileValues);
           }

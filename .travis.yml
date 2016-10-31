@@ -5,6 +5,19 @@ services:
   - docker
 
 script:
-  - mvn clean install package
+  - mvn clean install package -P draft-sb
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -e -X
  
+cache:
+  directories:
+  - $HOME/.m2
+
+notifications:
+  email:
+    recipients:
+      - marko.vukobrat@sbgenomics.com
+      - janko.simonovic@sbgenomics.com
+      - sinisa.ivkovic@sbgenomics.com
+    on_success: always
+    on_failure: always
+

@@ -1,6 +1,7 @@
 package org.rabix.bindings.sb.bean;
 
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -41,9 +42,10 @@ public class SBInputPort extends ApplicationPort {
   protected final String stageInput;
 
   @JsonCreator
-  public SBInputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema, 
-      @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("scatter") Boolean scatter, @JsonProperty("sbg:stageInput") String stageInput, @JsonProperty("linkMerge") String linkMerge) {
-    super(id, defaultValue, schema, scatter, linkMerge);
+  public SBInputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema,
+      @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("scatter") Boolean scatter, @JsonProperty("sbg:stageInput") String stageInput, @JsonProperty("linkMerge") String linkMerge,
+                     @JsonProperty("description") String description) {
+    super(id, defaultValue, schema, scatter, linkMerge, description);
     this.stageInput = stageInput;
     this.inputBinding = inputBinding;
   }
@@ -67,4 +69,18 @@ public class SBInputPort extends ApplicationPort {
     return "InputPort [inputBinding=" + inputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter=" + getScatter() + "]";
   }
 
+  @Override
+  protected void readDataType() {
+    dataType = SBSchemaHelper.readDataType(schema);
+  }
+
+  @Override
+  public boolean isRequired() {
+    return SBSchemaHelper.isRequired(schema);
+  }
+
+  @Override
+  public DataType getDataTypeFromValue(Object input) {
+    return SBSchemaHelper.getDataTypeFromValue(input);
+  }
 }

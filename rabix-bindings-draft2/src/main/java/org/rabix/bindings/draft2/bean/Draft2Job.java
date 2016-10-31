@@ -86,9 +86,11 @@ public final class Draft2Job {
     processPortDefaults();
   }
   
-  public Draft2Job(Draft2JobApp app, Map<String, Object> inputs) {
+  public Draft2Job(String id, Draft2JobApp app, Map<String, Object> inputs, Map<String, Object> outputs) {
+    this.id = id;
     this.app = app;
     this.inputs = inputs;
+    this.outputs = outputs;
     processPortDefaults();
   }
 

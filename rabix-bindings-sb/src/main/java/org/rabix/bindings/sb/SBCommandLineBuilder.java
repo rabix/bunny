@@ -1,5 +1,6 @@
 package org.rabix.bindings.sb;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.sb.bean.SBCommandLineTool;
 import org.rabix.bindings.sb.bean.SBInputPort;
@@ -35,21 +37,21 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   private final static Logger logger = LoggerFactory.getLogger(SBCommandLineBuilder.class);
 
   @Override
-  public String buildCommandLine(Job job) throws BindingException {
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     if (sbJob.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(sbJob);
+    return buildCommandLine(sbJob, workingDir, filePathMapper);
   }
   
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     if (!sbJob.getApp().isCommandLineTool()) {
       return null;
     }
-    return Lists.transform(buildCommandLineParts(sbJob), new Function<Object, String>() {
+    return Lists.transform(buildCommandLineParts(sbJob, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
@@ -59,10 +61,10 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Builds command line string with both STDIN and STDOUT
    */
-  public String buildCommandLine(SBJob job) throws BindingException {
+  public String buildCommandLine(SBJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     SBCommandLineTool commandLineTool = (SBCommandLineTool) job.getApp();
     
-    List<Object> commandLineParts = buildCommandLineParts(job);
+    List<Object> commandLineParts = buildCommandLineParts(job, workingDir, filePathMapper);
     StringBuilder builder = new StringBuilder();
     for (Object commandLinePart : commandLineParts) {
       builder.append(commandLinePart).append(PART_SEPARATOR);
@@ -105,7 +107,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Build command line arguments
    */
-  public List<Object> buildCommandLineParts(SBJob job) throws BindingException {
+  public List<Object> buildCommandLineParts(SBJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     logger.info("Building command line parts...");
 
     SBCommandLineTool commandLineTool = (SBCommandLineTool) job.getApp();

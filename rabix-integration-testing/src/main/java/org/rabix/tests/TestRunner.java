@@ -1,8 +1,10 @@
 package org.rabix.tests;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -162,7 +164,7 @@ public class TestRunner {
 
   public static void command(final String cmdline, final String directory) throws RabixTestException {
     try {
-      Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).redirectErrorStream(true)
+      Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
           .directory(new File(directory)).start();
 
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -171,8 +173,12 @@ public class TestRunner {
         logger.info(line);
 
       int exitCode = process.waitFor();
+      
       if (0 != exitCode) {
-        throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
+    	  File resultFile = new File(resultPath);
+		  String stdErr = readFile(resultFile.getAbsolutePath(), Charset.defaultCharset());
+		  logger.error(stdErr);
+    	  throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
       }
 
     } catch (Exception e) {

@@ -1,5 +1,6 @@
 package org.rabix.bindings.draft3;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
 import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
 import org.rabix.bindings.draft3.helper.Draft3JobHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,21 +46,21 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   }
   
   @Override
-  public String buildCommandLine(Job job) throws BindingException {
-    Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
-    if (draft2Job.getApp().isExpressionTool()) {
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
+    if (draft3Job.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(draft2Job);
+    return buildCommandLine(draft3Job, workingDir, filePathMapper);
   }
   
   @Override
-  public List<String> buildCommandLineParts(Job job) throws BindingException {
-    Draft3Job draft2Job = Draft3JobHelper.getDraft3Job(job);
-    if (!draft2Job.getApp().isCommandLineTool()) {
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
+    if (!draft3Job.getApp().isCommandLineTool()) {
       return null;
     }
-    return Lists.transform(buildCommandLineParts(draft2Job), new Function<Object, String>() {
+    return Lists.transform(buildCommandLineParts(draft3Job, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
@@ -68,10 +70,10 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Builds command line string with both STDIN and STDOUT
    */
-  public String buildCommandLine(Draft3Job job) throws BindingException {
+  public String buildCommandLine(Draft3Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) job.getApp();
     
-    List<Object> commandLineParts = buildCommandLineParts(job);
+    List<Object> commandLineParts = buildCommandLineParts(job, workingDir, filePathMapper);
     StringBuilder builder = new StringBuilder();
     for (Object commandLinePart : commandLineParts) {
       builder.append(commandLinePart).append(PART_SEPARATOR);
@@ -114,7 +116,8 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Build command line arguments
    */
-  public List<Object> buildCommandLineParts(Draft3Job job) throws BindingException {
+  @SuppressWarnings("rawtypes")
+  public List<Object> buildCommandLineParts(Draft3Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     logger.info("Building command line parts...");
 
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) job.getApp();
@@ -149,10 +152,16 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
       for (Draft3InputPort inputPort : inputPorts) {
         String key = inputPort.getId();
         Object schema = inputPort.getSchema();
-
-        Draft3CommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(Draft3SchemaHelper.normalizeId(key)), schema, key);
-        if (part != null) {
-          commandLineParts.add(part);
+        
+        if(schema instanceof Map && ((Map) schema).get("type").equals("record") && inputPort.getInputBinding() == null) {
+          List<Draft3CommandLinePart> parts = buildRecordCommandLinePart(job, job.getInputs().get(Draft3SchemaHelper.normalizeId(key)), schema);
+          commandLineParts.addAll(parts);
+        }
+        else {
+          Draft3CommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(Draft3SchemaHelper.normalizeId(key)), schema, key);
+          if (part != null) {
+            commandLineParts.add(part);
+          }
         }
       }
       Collections.sort(commandLineParts, new Draft3CommandLinePart.CommandLinePartComparator());
@@ -166,6 +175,26 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     } catch (Draft3ExpressionException e) {
       logger.error("Failed to build command line.", e);
       throw new BindingException("Failed to build command line.", e);
+    }
+    return result;
+  }
+  
+  
+  @SuppressWarnings("rawtypes")
+  private List<Draft3CommandLinePart> buildRecordCommandLinePart(Draft3Job job, Object value, Object schema) throws BindingException {
+    List<Draft3CommandLinePart> result = new ArrayList<Draft3CommandLinePart>();
+    for(Object sch: (List)((Map) schema).get("fields")) {
+      if(sch instanceof Map && ((Map) sch).get("type").equals("record") && ((Map) sch).get("inputBinding") == null) {
+        result.addAll(buildRecordCommandLinePart(job, value, sch));
+      }
+      else {
+        Object inputBinding = Draft3SchemaHelper.getInputBinding(sch);
+        Object key = Draft3SchemaHelper.getName(sch);
+        if (inputBinding == null) {
+          continue;
+        }
+        result.add(buildCommandLinePart(job, null, inputBinding,((Map) value).get(key), sch, (String) key));
+      }
     }
     return result;
   }
@@ -189,7 +218,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     Object valueFrom = Draft3BindingHelper.getValueFrom(inputBinding);
     if (valueFrom != null) {
       try {
-        value = Draft3ExpressionResolver.resolve(valueFrom, job, null);
+        value = Draft3ExpressionResolver.resolve(valueFrom, job, value);
       } catch (Draft3ExpressionException e) {
         throw new BindingException(e);
       }
@@ -248,7 +277,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
       commandLinePartBuilder.keyValue(keyValue);
       
       for (Object item : ((List<?>) value)) {
-        Object arrayItemSchema = Draft3SchemaHelper.getSchemaForArrayItem(commandLineTool.getSchemaDefs(), schema);
+        Object arrayItemSchema = Draft3SchemaHelper.getSchemaForArrayItem(item, commandLineTool.getSchemaDefs(), schema);
         Object arrayItemInputBinding = new HashMap<>();
         if (schema != null && Draft3SchemaHelper.getInputBinding(schema) != null) {
           arrayItemInputBinding = (Map<String, Object>) Draft3SchemaHelper.getInputBinding(schema);
@@ -279,8 +308,9 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
         return new Draft3CommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(flattenedValues).build();
       }
       List<Object> prefixedValues = new ArrayList<>();
+      prefixedValues.add(prefix);
       for (Object arrayItem : flattenedValues) {
-        prefixedValues.add(prefix + separator + arrayItem);
+        prefixedValues.add(arrayItem);
       }
       return new Draft3CommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(prefixedValues).build();
     }

@@ -33,10 +33,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	@Type(value = SBCommandLineTool.class, name = "CommandLineTool"),
 	@Type(value = SBExpressionTool.class, name = "ExpressionTool"),
     @Type(value = SBWorkflow.class, name = "Workflow"),
-    @Type(value = SBWagnerPythonTool.class, name = "WagnerPythonTool")})
+    @Type(value = SBPythonTool.class, name = "PythonTool")})
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class SBJobApp implements Application {
+public abstract class SBJobApp extends Application {
 
   @JsonProperty("id")
   protected String id;
@@ -72,6 +72,16 @@ public abstract class SBJobApp implements Application {
   
   public List<Integer> getSuccessCodes() {
     return successCodes;
+  }
+  
+  public String getCwlVersion() {
+    return cwlVersion;
+  }
+  
+  @Override
+  @JsonIgnore
+  public String getVersion() {
+    return getCwlVersion();
   }
 
   @JsonIgnore
@@ -157,7 +167,7 @@ public abstract class SBJobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (SBResource requirement : requirements) {
-      if (type.equals(requirement.getType())) {
+      if (type.equals(requirement.getTypeEnum())) {
         result.add(clazz.cast(requirement));
       }
     }
@@ -171,7 +181,7 @@ public abstract class SBJobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (SBResource hint : hints) {
-      if (type.equals(hint.getType())) {
+      if (type.equals(hint.getTypeEnum())) {
         result.add(clazz.cast(hint));
       }
     }

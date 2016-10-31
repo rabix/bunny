@@ -13,13 +13,21 @@ public class Resources {
   private final Long diskSpaceMB;
   @JsonProperty("networkAccess")
   private final Boolean networkAccess;
-  
+  @JsonProperty("workingDir")
+  private final String workingDir;
+  @JsonProperty("tmpDir")
+  private final String tmpDir;
+
   @JsonCreator
-  public Resources(@JsonProperty("cpu") Long cpu, @JsonProperty("memMB") Long memMB, @JsonProperty("diskSpaceMB") Long diskSpaceMB, @JsonProperty("networkAccess") Boolean networkAccess) {
+  public Resources(@JsonProperty("cpu") Long cpu, @JsonProperty("memMB") Long memMB,
+      @JsonProperty("diskSpaceMB") Long diskSpaceMB, @JsonProperty("networkAccess") Boolean networkAccess,
+      @JsonProperty("workingDir") String workingDir, @JsonProperty("tmpDir") String tmpDir) {
     this.cpu = cpu;
     this.memMB = memMB;
     this.diskSpaceMB = diskSpaceMB;
     this.networkAccess = networkAccess;
+    this.workingDir = workingDir;
+    this.tmpDir = tmpDir;
   }
 
   public Long getCpu() {
@@ -38,6 +46,14 @@ public class Resources {
     return networkAccess;
   }
 
+  public String getWorkingDir() {
+    return workingDir;
+  }
+
+  public String getTmpDir() {
+    return tmpDir;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -46,6 +62,8 @@ public class Resources {
     result = prime * result + ((diskSpaceMB == null) ? 0 : diskSpaceMB.hashCode());
     result = prime * result + ((memMB == null) ? 0 : memMB.hashCode());
     result = prime * result + ((networkAccess == null) ? 0 : networkAccess.hashCode());
+    result = prime * result + ((tmpDir == null) ? 0 : tmpDir.hashCode());
+    result = prime * result + ((workingDir == null) ? 0 : workingDir.hashCode());
     return result;
   }
 
@@ -78,12 +96,23 @@ public class Resources {
         return false;
     } else if (!networkAccess.equals(other.networkAccess))
       return false;
+    if (tmpDir == null) {
+      if (other.tmpDir != null)
+        return false;
+    } else if (!tmpDir.equals(other.tmpDir))
+      return false;
+    if (workingDir == null) {
+      if (other.workingDir != null)
+        return false;
+    } else if (!workingDir.equals(other.workingDir))
+      return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "Resources [cpu=" + cpu + ", memMB=" + memMB + ", diskSpaceMB=" + diskSpaceMB + ", networkAccess=" + networkAccess + "]";
+    return "Resources [cpu=" + cpu + ", memMB=" + memMB + ", diskSpaceMB=" + diskSpaceMB + ", networkAccess="
+        + networkAccess + ", workingDir=" + workingDir + ", tmpDir=" + tmpDir + "]";
   }
 
 }

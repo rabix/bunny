@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
@@ -63,6 +67,9 @@ public class DockerContainerHandler implements ContainerHandler {
   private static final String dockerHubServer = "https://index.docker.io/v1/";
 
   public static final String DIRECTORY_MAP_MODE = "rw";
+
+  public static final String HOME_ENV_VAR = "HOME";
+  public static final String TMPDIR_ENV_VAR = "TMPDIR";
   
   private String containerId;
   private DockerClientLockDecorator dockerClient;
@@ -78,7 +85,9 @@ public class DockerContainerHandler implements ContainerHandler {
 
   private StorageConfiguration storageConfig;
   private ExecutorStatusCallback statusCallback;
-
+  
+  private String commandLine;
+  
   public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, ExecutorStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
     this.dockerClient = dockerClient;
@@ -149,26 +158,45 @@ public class DockerContainerHandler implements ContainerHandler {
       builder.hostConfig(hostConfig);
 
       Bindings bindings = BindingsFactory.create(job);
-      String commandLine = bindings.buildCommandLine(job);
+      commandLine = bindings.buildCommandLine(job, workingDir, new FilePathMapper() {
+        @Override
+        public String map(String path, Map<String, Object> config) throws FileMappingException {
+          return path;
+        }
+      });
 
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success
         return;
       }
 
-      File commandLineFile = new File(workingDir, JobHandler.COMMAND_LOG);
-      FileUtils.writeStringToFile(commandLineFile, commandLine);
-      builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("sh", "-c", commandLine);
+      if (commandLine.startsWith("/bin/bash -c")) {
+        commandLine = commandLine.replace("/bin/bash -c", "");
+        builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/bash", "-c", commandLine);
+      } else if (commandLine.startsWith("/bin/sh -c")) {
+        commandLine = commandLine.replace("/bin/sh -c", "");
+        builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
+      } else {
+        builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
+      }
 
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
 
-      EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements,
-          EnvironmentVariableRequirement.class);
-      if (environmentVariableResource != null) {
-        builder.env(transformEnvironmentVariables(environmentVariableResource.getVariables()));
+      EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
+      Map<String, String> environmentVariables = environmentVariableResource != null ? environmentVariableResource.getVariables() : new HashMap<String, String>();
+      Resources resources = job.getResources();
+      if(resources != null) {
+        if(resources.getWorkingDir() != null) {
+          environmentVariables.put(HOME_ENV_VAR, resources.getWorkingDir());
+        }
+        if(resources.getTmpDir() != null) {
+          environmentVariables.put(TMPDIR_ENV_VAR, resources.getTmpDir());
+        }
       }
+      
+      builder.env(transformEnvironmentVariables(environmentVariables));
       ContainerCreation creation = null;
       try {
         VerboseLogger.log(String.format("Running command line: %s", commandLine));
@@ -185,9 +213,6 @@ public class DockerContainerHandler implements ContainerHandler {
         throw new ContainerException("Failed to start Docker container " + containerId);
       }
       logger.info("Docker container {} has started.", containerId);
-    } catch (IOException e) {
-      logger.error("Failed to create cmd.log file.", e);
-      throw new ContainerException("Failed to create cmd.log file.");
     } catch (Exception e) {
       logger.error("Failed to start container.", e);
       throw new ContainerException("Failed to start container.", e);
@@ -361,14 +386,25 @@ public class DockerContainerHandler implements ContainerHandler {
       this.dockerClient = createDockerClient(configuration);
     }
 
-    @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true, sleepTimeMillis = SLEEP_TIME)
+    @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = false, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image) throws DockerException, InterruptedException {
-      dockerClient.pull(image);
+      try {
+        dockerClient.pull(image);
+      } catch (Throwable e) {
+        VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
+        throw e;
+      }
+        
     }
     
-    @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true, sleepTimeMillis = SLEEP_TIME)
+    @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = false, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException {
-      dockerClient.pull(image, authConfig);
+      try {
+        dockerClient.pull(image, authConfig);
+      } catch (Throwable e) {
+        VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
+        throw e;
+      }
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
@@ -404,8 +440,10 @@ public class DockerContainerHandler implements ContainerHandler {
     public static DockerClient createDockerClient(Configuration configuration) throws ContainerException {
       DockerClient docker = null;
       try {
-        DefaultDockerClient.Builder dockerClientBuilder = DefaultDockerClient.fromEnv()
-            .connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5)).readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
+        DefaultDockerClient.Builder dockerClientBuilder = DefaultDockerClient
+            .fromEnv()
+            .connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5))
+            .readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
 
         boolean isConfigAuthEnabled = configuration.getBoolean("docker.override.auth.enabled", false);
         if (isConfigAuthEnabled) {
@@ -423,6 +461,17 @@ public class DockerContainerHandler implements ContainerHandler {
       return docker;
     }
 
+  }
+
+  @Override
+  public void dumpCommandLine() throws ContainerException {
+    try {
+      File commandLineFile = new File(workingDir, JobHandler.COMMAND_LOG);
+      FileUtils.writeStringToFile(commandLineFile, commandLine);
+    } catch (IOException e) {
+      logger.error("Failed to dump command line into " + JobHandler.COMMAND_LOG);
+      throw new ContainerException(e);
+    }
   }
 
 }

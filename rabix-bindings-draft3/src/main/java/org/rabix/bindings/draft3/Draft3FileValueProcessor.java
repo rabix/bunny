@@ -73,29 +73,4 @@ public class Draft3FileValueProcessor implements ProtocolFileValueProcessor {
     }
   }
 
-  @Override
-  public Set<FileValue> getFlattenedInputFiles(Job job) throws BindingException {
-    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
-    try {
-      return new Draft3PortProcessorHelper(draft3Job).flattenInputFiles(job.getInputs());
-    } catch (Draft3PortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-  @Override
-  public Set<FileValue> getFlattenedOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
-    try {
-      Set<String> visiblePorts = null;
-      if (onlyVisiblePorts) {
-        visiblePorts = job.getVisiblePorts();
-      }
-      return new Draft3PortProcessorHelper(draft3Job).flattenOutputFiles(job.getOutputs(), visiblePorts);
-    } catch (Draft3PortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-
 }

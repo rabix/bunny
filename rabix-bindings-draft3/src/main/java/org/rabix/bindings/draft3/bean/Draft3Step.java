@@ -1,9 +1,11 @@
 package org.rabix.bindings.draft3.bean;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.draft3.bean.resource.Draft3Resource;
 import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 
@@ -32,6 +34,12 @@ public class Draft3Step {
   
   @JsonProperty("scatterMethod")
   private String scatterMethod;
+  
+  @JsonProperty("hints")
+  protected List<Draft3Resource> hints = new ArrayList<>();
+  
+  @JsonProperty("requirements")
+  protected List<Draft3Resource> requirements = new ArrayList<>();
   
   @JsonIgnore
   private Draft3Job job;
@@ -81,10 +89,9 @@ public class Draft3Step {
     for (Map<String, Object> port : portList) {
       String id = Draft3SchemaHelper.getLastInputId(Draft3BindingHelper.getId(port));
       id = Draft3SchemaHelper.normalizeId(id);
-      Object value = Draft3BindingHelper.getDefault(port);
-      if (value != null) {
-        portMap.put(id, value);
-      }
+      Object defaultValue = Draft3BindingHelper.getDefault(port);
+      Object valueFrom = Draft3BindingHelper.getValueFrom(port);
+      portMap.put(id, new Draft3StepInputs(defaultValue, valueFrom));
     }
     return portMap;
   }
@@ -115,6 +122,22 @@ public class Draft3Step {
   
   public String getScatterMethod() {
     return scatterMethod;
+  }
+  
+  public List<Draft3Resource> getHints() {
+    return hints;
+  }
+
+  public void setHints(List<Draft3Resource> hints) {
+    this.hints = hints;
+  }
+
+  public List<Draft3Resource> getRequirements() {
+    return requirements;
+  }
+
+  public void setRequirements(List<Draft3Resource> requirements) {
+    this.requirements = requirements;
   }
 
   @JsonIgnore

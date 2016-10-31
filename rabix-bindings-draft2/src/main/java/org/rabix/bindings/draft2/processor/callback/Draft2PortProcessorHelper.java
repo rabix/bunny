@@ -46,67 +46,6 @@ public class Draft2PortProcessorHelper {
     return callback.getFileValues();
   }
   
-  public Set<String> flattenInputFilePaths(Map<String, Object> inputs) throws Draft2PortProcessorException {
-    Draft2FilePathFlattenProcessorCallback callback = new Draft2FilePathFlattenProcessorCallback();
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (Draft2PortProcessorException e) {
-      throw new Draft2PortProcessorException("Failed to flatten input file paths.", e);
-    }
-    return callback.getFlattenedPaths();
-  }
-
-  public Set<FileValue> flattenInputFiles(Map<String, Object> inputs) throws Draft2PortProcessorException {
-    Draft2FileValueFlattenProcessorCallback callback = new Draft2FileValueFlattenProcessorCallback(null);
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (Draft2PortProcessorException e) {
-      throw new Draft2PortProcessorException("Failed to flatten input file paths.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<FileValue> flattenOutputFiles(Map<String, Object> outputs, Set<String> visiblePorts) throws Draft2PortProcessorException {
-    Draft2FileValueFlattenProcessorCallback callback = new Draft2FileValueFlattenProcessorCallback(visiblePorts);
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (Draft2PortProcessorException e) {
-      throw new Draft2PortProcessorException("Failed to flatten outputs file paths.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<String> flattenOutputFilePaths(Map<String, Object> outputs) throws Draft2PortProcessorException {
-    Draft2FilePathFlattenProcessorCallback callback = new Draft2FilePathFlattenProcessorCallback();
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (Draft2PortProcessorException e) {
-      throw new Draft2PortProcessorException("Failed to flatten output file paths.", e);
-    }
-    return callback.getFlattenedPaths();
-  }
-
-  public Set<Map<String, Object>> flattenInputFileData(Map<String, Object> inputs) throws Draft2PortProcessorException {
-    Draft2FileDataFlattenProcessorCallback callback = new Draft2FileDataFlattenProcessorCallback();
-    try {
-      portProcessor.processInputs(inputs, callback);
-    } catch (Draft2PortProcessorException e) {
-      throw new Draft2PortProcessorException("Failed to flatten input file data.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-
-  public Set<Map<String, Object>> flattenOutputFileData(Map<String, Object> outputs)
-      throws Draft2PortProcessorException {
-    Draft2FileDataFlattenProcessorCallback callback = new Draft2FileDataFlattenProcessorCallback();
-    try {
-      portProcessor.processOutputs(outputs, callback);
-    } catch (Draft2PortProcessorException e) {
-      throw new Draft2PortProcessorException("Failed to flatten output file data.", e);
-    }
-    return callback.getFlattenedFileData();
-  }
-  
   public Map<String, Object> setFileSize(Map<String, Object> inputs) throws Draft2PortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new Draft2FileSizeProcessorCallback());

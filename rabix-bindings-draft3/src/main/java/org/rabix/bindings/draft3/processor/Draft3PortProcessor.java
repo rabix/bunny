@@ -48,16 +48,13 @@ public class Draft3PortProcessor {
       Object value = entry.getValue();
 
       ApplicationPort port = job.getApp().getPort(Draft3SchemaHelper.normalizeId(id), clazz);
-      if (port == null) {
-        throw new Draft3PortProcessorException("Port with ID=" + Draft3SchemaHelper.normalizeId(id) + " doesn't exist.");
-      }
-      Object mappedValue = null;
-      try {
-        mappedValue = processValue(value, port, port.getSchema(), Draft3SchemaHelper.normalizeId(id), portProcessor);
-      } catch (Exception e) {
-        throw new Draft3PortProcessorException("Failed to process value " + value, e);
-      }
-      if (mappedValue != null) {
+      if (port != null) {
+        Object mappedValue = null;
+        try {
+          mappedValue = processValue(value, port, port.getSchema(), Draft3SchemaHelper.normalizeId(id), portProcessor);
+        } catch (Exception e) {
+          throw new Draft3PortProcessorException("Failed to process value " + value, e);
+        }
         mappedValues.put(entry.getKey(), mappedValue);
       }
     }
@@ -96,7 +93,7 @@ public class Draft3PortProcessor {
           continue;
         }
 
-        Object singleResult = processValue(entry.getValue(), port, schema, entry.getKey(), portProcessor);
+        Object singleResult = processValue(entry.getValue(), port, Draft3SchemaHelper.getType(field), entry.getKey(), portProcessor);
         result.put(entry.getKey(), singleResult);
       }
       return result;
@@ -106,7 +103,7 @@ public class Draft3PortProcessor {
       List<Object> result = new LinkedList<>();
 
       for (Object item : ((List<?>) value)) {
-        Object arrayItemSchema = Draft3SchemaHelper.getSchemaForArrayItem(job.getApp().getSchemaDefs(), schema);
+        Object arrayItemSchema = Draft3SchemaHelper.getSchemaForArrayItem(item, job.getApp().getSchemaDefs(), schema);
         Object singleResult = processValue(item, port, arrayItemSchema, key, portProcessor);
         result.add(singleResult);
       }

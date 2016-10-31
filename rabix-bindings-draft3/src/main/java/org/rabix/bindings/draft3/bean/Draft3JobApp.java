@@ -32,10 +32,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	@Type(value = Draft3CommandLineTool.class, name = "CommandLineTool"),
 	@Type(value = Draft3ExpressionTool.class, name = "ExpressionTool"),
     @Type(value = Draft3Workflow.class, name = "Workflow"),
-    @Type(value = Draft3WagnerPythonTool.class, name = "WagnerPythonTool")})
+    @Type(value = Draft3PythonTool.class, name = "PythonTool")})
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class Draft3JobApp implements Application {
+public abstract class Draft3JobApp extends Application {
 
   public static final String DRAFT_3_VERSION = "cwl:draft-3";
   
@@ -73,6 +73,12 @@ public abstract class Draft3JobApp implements Application {
   
   public String getCwlVersion() {
     return cwlVersion;
+  }
+  
+  @Override
+  @JsonIgnore
+  public String getVersion() {
+    return getCwlVersion();
   }
   
   public List<Integer> getSuccessCodes() {
@@ -126,6 +132,56 @@ public abstract class Draft3JobApp implements Application {
     return lookForResource(Draft3ResourceType.ENV_VAR_REQUIREMENT, Draft3EnvVarRequirement.class);
   }
 
+  public <T extends Draft3Resource> T getRequirement(Draft3ResourceType type, Class<T> clazz) {
+    List<T> resources = getRequirements(type, clazz);
+    if (resources != null && !resources.isEmpty()) {
+      return resources.get(0);
+    }
+    return null;
+  }
+  
+  public <T extends Draft3Resource> T getHint(Draft3ResourceType type, Class<T> clazz) {
+    List<T> resources = getHints(type, clazz);
+    if(resources != null && !resources.isEmpty()) {
+      return resources.get(0);
+    }
+    return null;
+  }
+  
+  @JsonIgnore
+  public void setHint(Draft3Resource resource) {
+    boolean add = true;
+    for (Draft3Resource hint : hints) {
+      if (resource.getType().equals(hint.getType())) {
+        add = false;
+        break;
+      }
+    }
+    if(add) {
+      hints.add(resource);
+    }
+  }
+  
+  @JsonIgnore
+  public void setRequirement(Draft3Resource resource) {
+    boolean add = true;
+    for (Draft3Resource requirement : requirements) {
+      if (resource.getTypeEnum().equals(requirement.getTypeEnum())) {
+        add = false;
+        break;
+      }
+    }
+    if(add) {
+      requirements.add(resource);
+      for (Draft3Resource hint : hints) {
+        if (resource.getType().equals(hint.getType())) {
+          hints.remove(hint);
+          break;
+        }
+      }
+    }
+  }
+  
   @JsonIgnore
   public Draft3CreateFileRequirement getCreateFileRequirement() {
     return lookForResource(Draft3ResourceType.CREATE_FILE_REQUIREMENT, Draft3CreateFileRequirement.class);
@@ -157,7 +213,7 @@ public abstract class Draft3JobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (Draft3Resource requirement : requirements) {
-      if (type.equals(requirement.getType())) {
+      if (type.equals(requirement.getTypeEnum())) {
         result.add(clazz.cast(requirement));
       }
     }
@@ -171,7 +227,7 @@ public abstract class Draft3JobApp implements Application {
     }
     List<T> result = new ArrayList<>();
     for (Draft3Resource hint : hints) {
-      if (type.equals(hint.getType())) {
+      if (type.equals(hint.getTypeEnum())) {
         result.add(clazz.cast(hint));
       }
     }

@@ -15,11 +15,13 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = SBResource.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = SBResource.class, visible = true)
 @JsonSubTypes({ @Type(value = SBDockerResource.class, name = "DockerRequirement"),
     @Type(value = SBExpressionEngineRequirement.class, name = "ExpressionEngineRequirement"),
     @Type(value = SBIORequirement.class, name = "IORequirement"),
@@ -30,6 +32,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(value = SBCpuResource.class, name = "sbg:CPURequirement") })
 @JsonInclude(Include.NON_NULL)
 public class SBResource {
+  
+  @JsonProperty("class")
+  protected String type;
   protected Map<String, Object> raw = new HashMap<>();
 
   public SBResource() {
@@ -57,10 +62,15 @@ public class SBResource {
   }
 
   @JsonIgnore
-  public SBResourceType getType() {
+  public SBResourceType getTypeEnum() {
     return SBResourceType.OTHER;
   }
 
+  @JsonTypeId
+  public String getType() {
+    return type;
+  }
+  
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -88,6 +98,7 @@ public class SBResource {
 
   @Override
   public String toString() {
-    return "Hint [" + raw + "]";
+    return "SBResource [type=" + type + ", raw=" + raw + "]";
   }
+  
 }

@@ -50,12 +50,8 @@
 									<resource>META-INF/services/javax.ws.rs.ext.MessageBodyReader</resource>
 								</transformer>
 								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+										implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/services/javax.ws.rs.ext.MessageBodyWriter</resource>
-								</transformer>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.rabix.backend.local.BackendCommandLine</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
@@ -89,23 +85,77 @@
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
-			<artifactId>rabix-bindings-draft2</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
-			<artifactId>rabix-bindings-draft3</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
-			<artifactId>rabix-bindings-sb</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
 			<artifactId>rabix-engine-rest</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>draft-2</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-draft2</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>draft-3</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-draft3</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>draft-sb</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-sb</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>cwl</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-cwl</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>all</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-draft2</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-draft3</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-sb</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-cwl</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
+	
 </project>
