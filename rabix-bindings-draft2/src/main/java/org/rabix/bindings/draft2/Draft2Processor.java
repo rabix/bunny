@@ -148,10 +148,13 @@ public class Draft2Processor implements ProtocolProcessor {
       }
       Draft2FileValueHelper.setSize(file.length(), value);
       
-      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
-      if (checksum != null) {
-        Draft2FileValueHelper.setChecksum(checksum, value);
+      if(hashAlgorithm != null) {
+        String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+        if (checksum != null) {
+          Draft2FileValueHelper.setChecksum(checksum, value);
+        }
       }
+      
       List<Map<String, Object>> secondaryFiles = Draft2FileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {
         for (Object secondaryFile : secondaryFiles) {
