@@ -11,7 +11,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -53,7 +53,7 @@ public class Draft3GlobServiceImpl implements Draft3GlobService {
       globs.add((String) glob);
     }
     
-    final Set<File> files = new HashSet<>();
+    final Set<File> files = new LinkedHashSet<>();
     for (String singleGlob : globs) {
       final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + singleGlob);
       try {

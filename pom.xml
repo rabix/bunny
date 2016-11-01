@@ -18,8 +18,12 @@
 		<module>rabix-backend-local</module>
 		<module>rabix-transport</module>
 		<module>rabix-integration-testing</module>
+		<module>rabix-bindings-cwl</module>
+		<module>rabix-bindings-draft2</module>
+		<module>rabix-bindings-draft3</module>
+		<module>rabix-bindings-sb</module>
 	</modules>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<logback.version>1.1.2</logback.version>
@@ -34,43 +38,6 @@
 		<commons-collections.version>3.2.1</commons-collections.version>
 		<commons-codec.version>1.9</commons-codec.version>
 	</properties>
-
-	<profiles>
-		<profile>
-			<id>draft-2</id>
-			<modules>
-				<module>rabix-bindings-draft2</module>
-			</modules>
-		</profile>
-		<profile>
-			<id>draft-3</id>
-			<modules>
-				<module>rabix-bindings-draft3</module>
-			</modules>
-		</profile>
-		<profile>
-			<id>draft-sb</id>
-			<modules>
-				<module>rabix-bindings-sb</module>
-			</modules>
-		</profile>
-		<profile>
-			<id>cwl</id>
-			<modules>
-				<module>rabix-bindings-cwl</module>
-			</modules>
-		</profile>
-
-		<profile>
-			<id>all</id>
-			<modules>
-				<module>rabix-bindings-draft2</module>
-				<module>rabix-bindings-draft3</module>
-				<module>rabix-bindings-sb</module>
-				<module>rabix-bindings-cwl</module>
-			</modules>
-		</profile>
-	</profiles>
 
 	<build>
 		<plugins>

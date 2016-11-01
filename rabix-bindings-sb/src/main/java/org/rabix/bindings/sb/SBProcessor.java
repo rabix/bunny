@@ -148,10 +148,13 @@ public class SBProcessor implements ProtocolProcessor {
       }
       SBFileValueHelper.setSize(file.length(), value);
       
-      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
-      if (checksum != null) {
-        SBFileValueHelper.setChecksum(checksum, value);
+      if(hashAlgorithm != null) {
+        String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+        if (checksum != null) {
+          SBFileValueHelper.setChecksum(checksum, value);
+        }
       }
+      
       List<Map<String, Object>> secondaryFiles = SBFileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {
         for (Object secondaryFile : secondaryFiles) {

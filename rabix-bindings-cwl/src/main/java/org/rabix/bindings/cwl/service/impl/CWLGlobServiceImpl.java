@@ -11,11 +11,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
