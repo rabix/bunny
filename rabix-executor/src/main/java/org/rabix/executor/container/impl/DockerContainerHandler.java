@@ -1,11 +1,14 @@
 package org.rabix.executor.container.impl;
 
+import static java.lang.System.getProperty;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,9 +44,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Optional;
+import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerCertificateException;
+import com.spotify.docker.client.DockerCertificates;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.LogsParam;
 import com.spotify.docker.client.DockerException;
@@ -379,6 +385,14 @@ public class DockerContainerHandler implements ContainerHandler {
     public final static long DEFAULT_DOCKER_CLIENT_TIMEOUT = 1000 * SECOND;
     public final static long SLEEP_TIME = 30 * SECOND;
     
+    public static final String DOCKER_HOST_ENVVAR = "DOCKER_HOST";
+    public static final String DOCKER_HOST_CONFIG = "docker.host";
+    public static final String DOCKER_CERT_PATH_CONFIG = "docker.certpath";
+    public static final String DEFAULT_DOCKER_HOST = "unix:///var/run/docker.sock";
+    
+    private static final String UNIX_SCHEME = "unix";
+    
+    
     private DockerClient dockerClient;
 
     @Inject
@@ -436,15 +450,10 @@ public class DockerContainerHandler implements ContainerHandler {
     public synchronized ContainerExit waitContainer(String containerId) throws DockerException, InterruptedException {
       return dockerClient.waitContainer(containerId);
     }
-
+    
     public static DockerClient createDockerClient(Configuration configuration) throws ContainerException {
       DockerClient docker = null;
-      try {
-        DefaultDockerClient.Builder dockerClientBuilder = DefaultDockerClient
-            .fromEnv()
-            .connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5))
-            .readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
-
+        DefaultDockerClient.Builder dockerClientBuilder = dockerClientBuilder(configuration);
         boolean isConfigAuthEnabled = configuration.getBoolean("docker.override.auth.enabled", false);
         if (isConfigAuthEnabled) {
           String username = configuration.getString("docker.username");
@@ -454,14 +463,72 @@ public class DockerContainerHandler implements ContainerHandler {
           dockerClientBuilder.authConfig(authConfig);
         }
         docker = dockerClientBuilder.build();
-      } catch (DockerCertificateException e) {
-        logger.error("Failed to create Docker client", e);
-        throw new ContainerException("Failed to create Docker client", e);
-      }
       return docker;
+    }
+    
+    public static DefaultDockerClient.Builder dockerClientBuilder(Configuration configuration) throws ContainerException {
+      DefaultDockerClient.Builder dockerClientBuilder = null;
+      if(System.getenv().containsKey(DOCKER_HOST_ENVVAR)) {
+        try {
+          dockerClientBuilder = DefaultDockerClient
+              .fromEnv()
+              .connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5))
+              .readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
+          return dockerClientBuilder;
+        } catch (DockerCertificateException e) {
+          logger.debug("Failed to create Docker client from environment variables", e);
+        }
+      }
+      else if(configuration.containsKey(DOCKER_HOST_CONFIG)) {
+        String endpoint = configuration.getString(DOCKER_HOST_CONFIG);
+        String dockerCertPath = configuration.containsKey(DOCKER_CERT_PATH_CONFIG) ? configuration.getString(DOCKER_CERT_PATH_CONFIG) : defaultCertPath();
+        try {
+          dockerClientBuilder = buildDockerClientBuilder(endpoint, dockerCertPath);
+          dockerClientBuilder.connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5)).readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
+          return dockerClientBuilder;
+        } catch (DockerCertificateException e) {
+          logger.error("Failed to create Docker client from configuration", e);
+        }
+      }
+      else {
+        try {
+          dockerClientBuilder = buildDockerClientBuilder(DEFAULT_DOCKER_HOST, defaultCertPath());
+        } catch (DockerCertificateException e) {
+          logger.error("Failed to create Docker client", e);
+          throw new ContainerException("Failed to create Docker client", e);
+        }
+      }
+      return dockerClientBuilder;
+    }
+    
+    private static DefaultDockerClient.Builder buildDockerClientBuilder(String endpoint, String dockerCertPath) throws DockerCertificateException {
+      DefaultDockerClient.Builder dockerClientBuilder = DefaultDockerClient.builder();
+      final Optional<DockerCertificates> certs = DockerCertificates.builder().dockerCertPath(Paths.get(dockerCertPath)).build();
+      
+      if (endpoint.startsWith(UNIX_SCHEME + "://")) {
+        dockerClientBuilder.uri(endpoint);
+      } else {
+        final String stripped = endpoint.replaceAll(".*://", "");
+        final HostAndPort hostAndPort = HostAndPort.fromString(stripped);
+        final String hostText = hostAndPort.getHostText();
+        final String scheme = certs.isPresent() ? "https" : "http";
+
+        final int port = hostAndPort.getPort();
+        final String address = hostText;
+        dockerClientBuilder.uri(scheme + "://" + address + ":" + port);
+      }
+      if (certs.isPresent()) {
+        dockerClientBuilder.dockerCertificates(certs.get());
+      }
+      return dockerClientBuilder;
+    }
+    
+    private static String defaultCertPath() {
+      return Paths.get(getProperty("user.home"), ".docker").toString();
     }
 
   }
+  
 
   @Override
   public void dumpCommandLine() throws ContainerException {

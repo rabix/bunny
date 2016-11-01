@@ -135,7 +135,7 @@ public class Draft3Processor implements ProtocolProcessor {
     if (resultFile.exists()) {
       String resultStr = FileUtils.readFileToString(resultFile);
       Map<String, Object> result = JSONHelper.readMap(resultStr);
-      postprocessToolCreatedResults(result, hashAlgorithm);
+      postprocessCreatedResults(result, hashAlgorithm);
       BeanSerializer.serializePartial(resultFile, result);
       return result;
     }
@@ -150,7 +150,7 @@ public class Draft3Processor implements ProtocolProcessor {
     return result;
   }
   
-  private void postprocessToolCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
+  private void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
     if (value == null) {
       return;
     }
@@ -161,23 +161,26 @@ public class Draft3Processor implements ProtocolProcessor {
       }
       Draft3FileValueHelper.setSize(file.length(), value);
       
-      String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
-      if (checksum != null) {
-        Draft3FileValueHelper.setChecksum(checksum, value);
+      if(hashAlgorithm != null) {
+        String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+        if (checksum != null) {
+          Draft3FileValueHelper.setChecksum(checksum, value);
+        }
       }
+      
       List<Map<String, Object>> secondaryFiles = Draft3FileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {
         for (Object secondaryFile : secondaryFiles) {
-          postprocessToolCreatedResults(secondaryFile, hashAlgorithm);
+          postprocessCreatedResults(secondaryFile, hashAlgorithm);
         }
       }
     } else if (value instanceof List<?>) {
       for (Object subvalue : (List<?>) value) {
-        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+        postprocessCreatedResults(subvalue, hashAlgorithm);
       }
     } else if (value instanceof Map<?, ?>) {
       for (Object subvalue : ((Map<?, ?>) value).values()) {
-        postprocessToolCreatedResults(subvalue, hashAlgorithm);
+        postprocessCreatedResults(subvalue, hashAlgorithm);
       }
     }
   }
@@ -386,6 +389,7 @@ public class Draft3Processor implements ProtocolProcessor {
         }
       } else if (expr instanceof Map) {
         secondaryFileMap = (Map<String, Object>) expr;
+        postprocessCreatedResults(secondaryFileMap, hashAlgorithm);
       }
       if(!secondaryFileMap.isEmpty()) {
         secondaryFileMaps.add(secondaryFileMap);
