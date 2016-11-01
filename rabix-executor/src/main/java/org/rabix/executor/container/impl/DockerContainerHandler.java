@@ -377,13 +377,13 @@ public class DockerContainerHandler implements ContainerHandler {
 
   public static class DockerClientLockDecorator {
 
-    public final static int RETRY_TIMES = 5;
+    public final static int RETRY_TIMES = 100;
     
     public final static long SECOND = 1000L;
     public final static long MINUTE = 60 * SECOND;
     public final static long METHOD_TIMEOUT = 10 * MINUTE; // maximize time (it's mostly because of big Docker images)
     public final static long DEFAULT_DOCKER_CLIENT_TIMEOUT = 1000 * SECOND;
-    public final static long SLEEP_TIME = 30 * SECOND;
+    public final static long SLEEP_TIME = 1 * SECOND;
     
     public static final String DOCKER_HOST_ENVVAR = "DOCKER_HOST";
     public static final String DOCKER_HOST_CONFIG = "docker.host";
@@ -391,7 +391,6 @@ public class DockerContainerHandler implements ContainerHandler {
     public static final String DEFAULT_DOCKER_HOST = "unix:///var/run/docker.sock";
     
     private static final String UNIX_SCHEME = "unix";
-    
     
     private DockerClient dockerClient;
 
@@ -453,16 +452,16 @@ public class DockerContainerHandler implements ContainerHandler {
     
     public static DockerClient createDockerClient(Configuration configuration) throws ContainerException {
       DockerClient docker = null;
-        DefaultDockerClient.Builder dockerClientBuilder = dockerClientBuilder(configuration);
-        boolean isConfigAuthEnabled = configuration.getBoolean("docker.override.auth.enabled", false);
-        if (isConfigAuthEnabled) {
-          String username = configuration.getString("docker.username");
-          String password = configuration.getString("docker.password");
+      DefaultDockerClient.Builder dockerClientBuilder = dockerClientBuilder(configuration);
+      boolean isConfigAuthEnabled = configuration.getBoolean("docker.override.auth.enabled", false);
+      if (isConfigAuthEnabled) {
+        String username = configuration.getString("docker.username");
+        String password = configuration.getString("docker.password");
 
-          AuthConfig authConfig = AuthConfig.builder().username(username).password(password).build();
-          dockerClientBuilder.authConfig(authConfig);
-        }
-        docker = dockerClientBuilder.build();
+        AuthConfig authConfig = AuthConfig.builder().username(username).password(password).build();
+        dockerClientBuilder.authConfig(authConfig);
+      }
+      docker = dockerClientBuilder.build();
       return docker;
     }
     
@@ -470,10 +469,7 @@ public class DockerContainerHandler implements ContainerHandler {
       DefaultDockerClient.Builder dockerClientBuilder = null;
       if(System.getenv().containsKey(DOCKER_HOST_ENVVAR)) {
         try {
-          dockerClientBuilder = DefaultDockerClient
-              .fromEnv()
-              .connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5))
-              .readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
+          dockerClientBuilder = DefaultDockerClient.fromEnv().connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5)).readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
           return dockerClientBuilder;
         } catch (DockerCertificateException e) {
           logger.debug("Failed to create Docker client from environment variables", e);
@@ -493,6 +489,7 @@ public class DockerContainerHandler implements ContainerHandler {
       else {
         try {
           dockerClientBuilder = buildDockerClientBuilder(DEFAULT_DOCKER_HOST, defaultCertPath());
+          dockerClientBuilder.connectTimeoutMillis(TimeUnit.MINUTES.toMillis(5)).readTimeoutMillis(TimeUnit.MINUTES.toMillis(5));
         } catch (DockerCertificateException e) {
           logger.error("Failed to create Docker client", e);
           throw new ContainerException("Failed to create Docker client", e);
