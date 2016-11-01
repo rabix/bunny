@@ -33,8 +33,9 @@ public class CWLFileValueUpdateProcessorCallback implements CWLPortProcessorCall
         fileValue = fileTransformer.transform(CWLFileValueHelper.createFileValue(clonedValue));
         clonedValue = CWLFileValueHelper.createFileRaw(fileValue);
       } else {
-        fileValue = fileTransformer.transform(CWLDirectoryValueHelper.createDirectoryValue(clonedValue));
-        clonedValue = CWLDirectoryValueHelper.createDirectoryRaw((DirectoryValue) fileValue);
+        DirectoryValue directoryValue = (DirectoryValue) fileTransformer.transform(CWLDirectoryValueHelper.createDirectoryValue(clonedValue));
+        clonedValue = CWLDirectoryValueHelper.createDirectoryRaw(directoryValue);
+        fileValue = directoryValue;
       }
 
       if (fileValue.getSecondaryFiles() != null) {

@@ -213,20 +213,21 @@ public class JobHandlerImpl implements JobHandler {
         }
         return null;
       }
-      
+
       private FileValue cloneWithPath(String path, FileValue fileValue) {
-        if (fileValue instanceof FileValue) {
-          return FileValue.cloneWithPath(fileValue, path);
+        if (fileValue instanceof DirectoryValue) {
+          return DirectoryValue.cloneWithPath((DirectoryValue) fileValue, path);
         }
-        return DirectoryValue.cloneWithPath(fileValue, path);
+        return FileValue.cloneWithPath(fileValue, path);
       }
-      
+
       private FileValue cloneWithSecondaryFiles(List<FileValue> secondaryFiles, FileValue fileValue) {
-        if (fileValue instanceof FileValue) {
-          return FileValue.cloneWithSecondaryFiles(fileValue, secondaryFiles);
+        if (fileValue instanceof DirectoryValue) {
+          return DirectoryValue.cloneWithSecondaryFiles((DirectoryValue) fileValue, secondaryFiles);
         }
-        return DirectoryValue.cloneWithSecondaryFiles(fileValue, secondaryFiles);
+        return FileValue.cloneWithSecondaryFiles(fileValue, secondaryFiles);
       }
+
     });
   }
   
