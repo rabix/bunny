@@ -593,7 +593,7 @@ public class CWLSchemaHelper extends CWLBeanHelper {
     if (isTypeFromSchema(schema, "double")) {
       return new DataType(DataType.Type.DOUBLE);
     }
-    if (isTypeFromSchema(schema, "null")) {
+    if (isTypeFromSchema(schema, SCHEMA_NULL)) {
       return new DataType(DataType.Type.NULL);
     }
 

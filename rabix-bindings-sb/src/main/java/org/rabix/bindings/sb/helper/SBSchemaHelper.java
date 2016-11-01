@@ -340,7 +340,7 @@ public class SBSchemaHelper extends SBBeanHelper {
     // UNION
     if (schema instanceof List) {
       List<?> schemaList = (List<?>) schema;
-      int numberOfTypes = schemaList.size() - (schemaList.contains("null") ? 1 : 0);
+      int numberOfTypes = schemaList.size() - (schemaList.contains(SCHEMA_NULL) ? 1 : 0);
       if (numberOfTypes > 1 ) {
         Set<DataType> types = new HashSet<>();
         for (Object subschema : schemaList) {
@@ -392,7 +392,7 @@ public class SBSchemaHelper extends SBBeanHelper {
     if (isTypeFromSchema(schema, "double")) {
       return new DataType(DataType.Type.DOUBLE);
     }
-    if (isTypeFromSchema(schema, "null")) {
+    if (isTypeFromSchema(schema, SCHEMA_NULL)) {
       return new DataType(DataType.Type.NULL);
     }
 
