@@ -17,6 +17,7 @@ import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
+import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
@@ -25,10 +26,12 @@ import org.rabix.bindings.model.requirement.FileRequirement.SingleFileRequiremen
 import org.rabix.bindings.model.requirement.FileRequirement.SingleInputDirectoryRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
+import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.bindings.model.requirement.LocalContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.service.download.DownloadService;
+import org.rabix.common.service.download.DownloadService.DownloadResource;
 import org.rabix.common.service.download.DownloadServiceException;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.UploadServiceException;
@@ -167,16 +170,64 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   private void downloadInputFiles(final Job job, final Bindings bindings) throws BindingException, DownloadServiceException {
-    if (storageConfiguration.getBackendStore().equals(BackendStore.LOCAL)) {
-      return;
-    }
     Set<FileValue> fileValues = flattenFiles(bindings.getInputFiles(job));
     
-    Set<String> paths = new HashSet<>();
+    final Set<DownloadResource> downloadRecources = new HashSet<>();
     for (FileValue fileValue : fileValues) {
-      paths.add(fileValue.getPath());
+      downloadRecources.add(new DownloadResource(fileValue.getLocation(), fileValue.getPath(), fileValue.getName(), fileValue instanceof DirectoryValue));
+      if (fileValue.getSecondaryFiles() != null) {
+        for (FileValue secondaryFileValue : fileValue.getSecondaryFiles()) {
+          downloadRecources.add(new DownloadResource(secondaryFileValue.getLocation(), secondaryFileValue.getPath(), secondaryFileValue.getName(), secondaryFileValue instanceof DirectoryValue));
+        }
+      }
     }
-    downloadService.download(workingDir, paths, job.getConfig());
+    downloadService.download(workingDir, downloadRecources, job.getConfig());
+    
+    // TODO refactor ASAP
+    bindings.updateInputFiles(job, new FileTransformer() {
+      @Override
+      public FileValue transform(FileValue fileValue) {
+        FileValue newFileValue = fileValue;
+        if (fileValue.getLocation() != null) {
+          DownloadResource downloadResource = findByLocation(fileValue.getLocation(), downloadRecources);
+          if (downloadResource != null) {
+            newFileValue = cloneWithPath(downloadResource.getPath(), newFileValue);
+          }
+          if (fileValue.getSecondaryFiles() != null) {
+            List<FileValue> secondaryFiles = new ArrayList<>();
+            for (FileValue secondaryFile : fileValue.getSecondaryFiles()) {
+              FileValue newSecondaryFile = transform(secondaryFile);
+              secondaryFiles.add(newSecondaryFile);
+            }
+            newFileValue = cloneWithSecondaryFiles(secondaryFiles, newFileValue);
+          }
+        }
+        return newFileValue;
+      }
+      
+      private DownloadResource findByLocation(String location, Set<DownloadResource> downloadResources) {
+        for (DownloadResource downloadResource : downloadRecources) {
+          if (location.equals(downloadResource.getLocation())) {
+            return downloadResource;
+          }
+        }
+        return null;
+      }
+      
+      private FileValue cloneWithPath(String path, FileValue fileValue) {
+        if (fileValue instanceof FileValue) {
+          return FileValue.cloneWithPath(fileValue, path);
+        }
+        return DirectoryValue.cloneWithPath(fileValue, path);
+      }
+      
+      private FileValue cloneWithSecondaryFiles(List<FileValue> secondaryFiles, FileValue fileValue) {
+        if (fileValue instanceof FileValue) {
+          return FileValue.cloneWithSecondaryFiles(fileValue, secondaryFiles);
+        }
+        return DirectoryValue.cloneWithSecondaryFiles(fileValue, secondaryFiles);
+      }
+    });
   }
   
   private void stageFileRequirements(List<Requirement> requirements) throws ExecutorException, FileMappingException {
