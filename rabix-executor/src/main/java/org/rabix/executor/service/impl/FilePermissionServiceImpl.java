@@ -1,6 +1,8 @@
 package org.rabix.executor.service.impl;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,8 +38,8 @@ public class FilePermissionServiceImpl implements FilePermissionService {
     this.dockerClient = dockerClient;
     this.storageConfig = storageConfiguration;
     
-    this.permissionUID = configuration.getString("executor.permission.uid");
-    this.permissionGID = configuration.getString("executor.permission.gid");
+    this.permissionUID = configuration.containsKey("executor.permission.uid") ? configuration.getString("executor.permission.uid") : getUid();
+    this.permissionGID = configuration.containsKey("executor.permission.gid") ? configuration.getString("executor.permission.gid") : getGid();
   }
 
   @Override
@@ -94,5 +96,66 @@ public class FilePermissionServiceImpl implements FilePermissionService {
     }
     return "chown -R " + permissionUID + ":" + permissionGID + " \"" + workingDirPath + "\"/*";
   }
-
+  
+  public static String getUid() {
+    String uid = "";;
+    String userName = System.getProperty("user.name");
+    String command = "id -u " + userName;
+    Process child;
+    try {
+      child = Runtime.getRuntime().exec(command);
+    } catch (IOException e) {
+      logger.error("Failed to get UID for user", e);
+      return null;
+    }
+    InputStream in = child.getInputStream();;
+    try {
+      int c;
+      while ((c = in.read()) != -1) {
+        uid += (char) c;
+      }
+      return uid.replace(System.getProperty("line.separator"), "");
+    } catch (IOException e){
+      logger.error("Failed to get UID for user" + userName, e);
+      return null;
+    }
+    finally {
+      try {
+        in.close();
+      } catch (IOException e) {
+        logger.error("Failed to get UID for user" + userName, e);
+      }
+    }
+  }
+  
+  public static String getGid() {
+    String uid = "";;
+    String userName = System.getProperty("user.name");
+    String command = "id -g " + userName;
+    Process child;
+    try {
+      child = Runtime.getRuntime().exec(command);
+    } catch (IOException e) {
+      logger.error("Failed to get UID for user", e);
+      return null;
+    }
+    InputStream in = child.getInputStream();;
+    try {
+      int c;
+      while ((c = in.read()) != -1) {
+        uid += (char) c;
+      }
+      return uid.replace(System.getProperty("line.separator"), "");
+    } catch (IOException e){
+      logger.error("Failed to get UID for user" + userName, e);
+      return null;
+    }
+    finally {
+      try {
+        in.close();
+      } catch (IOException e) {
+        logger.error("Failed to get UID for user" + userName, e);
+      }
+    }
+  }
 }
