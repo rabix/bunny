@@ -12,6 +12,14 @@ public class DirectoryValue extends FileValue {
     this.listing = listing;
   }
 
+  public static DirectoryValue cloneWithPath(DirectoryValue fileValue, String path) {
+    return new DirectoryValue(fileValue.size, path, fileValue.location, fileValue.checksum, fileValue.listing, fileValue.secondaryFiles, fileValue.properties, fileValue.name);
+  }
+  
+  public static DirectoryValue cloneWithSecondaryFiles(DirectoryValue fileValue, List<FileValue> secondaryFiles) {
+    return new DirectoryValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, fileValue.listing, secondaryFiles, fileValue.properties, fileValue.name);
+  }
+  
   public List<FileValue> getListing() {
     return listing;
   }

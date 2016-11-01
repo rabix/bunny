@@ -214,7 +214,6 @@ public class CWLBindings implements Bindings {
     return CWLSchemaHelper.getFilesFromValue(input);
   }
 
-
   @Override
   public Object updateFileValues(Object input, FileTransformer fileTransformer) {
     return CWLSchemaHelper.updateFileValues(input, fileTransformer);
