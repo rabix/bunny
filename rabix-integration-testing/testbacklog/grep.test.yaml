@@ -47,7 +47,15 @@ test6:
       class: File
       name: out.txt
       size: 13
-#test7:
+test7:
+  app: testbacklog/inheritmeta.cwl.yaml
+  inputs: testbacklog/inheritmeta.inputs.yaml
+  expected:
+    outfile:
+      class: File
+      name: output.txt
+      size: 0
+#test8:
 #  app: testbacklog/samtools.cwl.yaml
 #  inputs: testbacklog/samtools.inputs.yaml
 #  expected:
