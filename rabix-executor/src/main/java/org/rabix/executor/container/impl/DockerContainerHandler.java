@@ -77,6 +77,9 @@ public class DockerContainerHandler implements ContainerHandler {
   public static final String HOME_ENV_VAR = "HOME";
   public static final String TMPDIR_ENV_VAR = "TMPDIR";
   
+  private static final String TAG_SEPARATOR = ":";
+  private static final String LATEST = "latest";
+  
   private String containerId;
   private DockerClientLockDecorator dockerClient;
 
@@ -143,10 +146,14 @@ public class DockerContainerHandler implements ContainerHandler {
     }
     return image.substring(0, image.indexOf("/"));
   }
+  
+  private String checkTagOrAddLatest(String image) {
+    return image.contains(TAG_SEPARATOR) ? image : image + TAG_SEPARATOR + LATEST;
+  }
 
   @Override
   public void start() throws ContainerException {
-    String dockerPull = dockerResource.getDockerPull();
+    String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
 
     try {
       pull(dockerPull);
