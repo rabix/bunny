@@ -377,7 +377,7 @@ public class DockerContainerHandler implements ContainerHandler {
 
   public static class DockerClientLockDecorator {
 
-    public final static int RETRY_TIMES = 100;
+    public final static int RETRY_TIMES = 5;
     
     public final static long SECOND = 1000L;
     public final static long MINUTE = 60 * SECOND;
