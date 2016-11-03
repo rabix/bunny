@@ -40,7 +40,7 @@ public class SimpleFTPClient implements DownloadService, UploadService {
     this.password = FTPConfig.getPassword(configuration);
   }
 
-  public void download(File workingDir, String remotePath, Map<String, Object> config) throws DownloadServiceException {
+  public void download(File workingDir, DownloadResource remotePath, Map<String, Object> config) throws DownloadServiceException {
     FTPClient ftpClient = new FTPClient();
     try {
       ftpClient.connect(host, port);
@@ -49,7 +49,7 @@ public class SimpleFTPClient implements DownloadService, UploadService {
       ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
       File localWorkingDir = workingDir;
-      String[] parts = remotePath.split(File.separator);
+      String[] parts = remotePath.getPath().split(File.separator);
       for (int i = 0; i < parts.length - 1; i++) {
         if (parts[i].isEmpty()) {
           continue;
@@ -62,7 +62,7 @@ public class SimpleFTPClient implements DownloadService, UploadService {
       }
       File file = new File(localWorkingDir, parts[parts.length - 1]);
       OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
-      boolean success = ftpClient.retrieveFile(remotePath, os);
+      boolean success = ftpClient.retrieveFile(remotePath.getPath(), os);
       os.close();
 
       if (success) {
@@ -83,8 +83,8 @@ public class SimpleFTPClient implements DownloadService, UploadService {
   }
 
   @Override
-  public void download(File workingDir, Set<String> remotePaths, Map<String, Object> config) throws DownloadServiceException {
-    for (String path : remotePaths) {
+  public void download(File workingDir, Set<DownloadResource> remotePaths, Map<String, Object> config) throws DownloadServiceException {
+    for (DownloadResource path : remotePaths) {
       download(workingDir, path, config);
     }
   }

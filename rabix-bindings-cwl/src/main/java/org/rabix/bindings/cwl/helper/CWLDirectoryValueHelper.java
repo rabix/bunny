@@ -59,7 +59,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     setValue(KEY_LISTING, listing, raw);
   }
 
-  public static void setSize(long size, Object raw) {
+  public static void setSize(Long size, Object raw) {
     setValue(KEY_SIZE, size, raw);
   }
 
@@ -162,14 +162,16 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     
     List<Object> listing = getListing(value);
     List<FileValue> listingFileValues = new ArrayList<>();
-    for (Object listingObj : listing) {
-      if (CWLSchemaHelper.isFileFromValue(listingObj)) {
-        listingFileValues.add(CWLFileValueHelper.createFileValue(listingObj));
-        continue;
-      }
-      if (CWLSchemaHelper.isDirectoryFromValue(listingObj)) {
-        listingFileValues.add(createDirectoryValue(listingObj));
-        continue;
+    if (listing != null) {
+      for (Object listingObj : listing) {
+        if (CWLSchemaHelper.isFileFromValue(listingObj)) {
+          listingFileValues.add(CWLFileValueHelper.createFileValue(listingObj));
+          continue;
+        }
+        if (CWLSchemaHelper.isDirectoryFromValue(listingObj)) {
+          listingFileValues.add(createDirectoryValue(listingObj));
+          continue;
+        }
       }
     }
     return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties, name);
