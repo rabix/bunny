@@ -120,7 +120,7 @@ public class DockerContainerHandler implements ContainerHandler {
           String serverAddress = extractServerName(image);
           AuthConfig authConfig = AuthConfig.fromDockerConfig(serverAddress).build();
           this.dockerClient.pull(image, authConfig);
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
           logger.debug("Can't find docker config file", e);
           dockerClient.pull(image);
         }
