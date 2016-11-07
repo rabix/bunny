@@ -32,12 +32,13 @@ public class TestRunner {
 
   public static void main(String[] commandLineArguments) {
     try {
-      logger.info("Integration testing started...");	
+      logger.info("Integration testing: started");	
       PropertiesConfiguration configuration = getConfig();
       testDirPath = getStringFromConfig(configuration, "testDirPath");
       cmdPrefix = getStringFromConfig(configuration, "cmdPrefix");
       buildFile = getStringFromConfig(configuration, "buildFile");
       startTestExecution();
+      logger.info("Integration testing: finished");
     } catch (RabixTestException e) {
       logger.error("Error occuerred!", e);
       System.exit(-1);
@@ -74,6 +75,7 @@ public class TestRunner {
       if (!child.getPath().endsWith(".test.yaml"))
         continue;
       try {
+    	logger.info("Executing test suite: " + child.getPath());  
         String currentTest = readFile(child.getAbsolutePath(), Charset.defaultCharset());
         Map<String, Object> inputSuite = JSONHelper.readMap(JSONHelper.transformToJSON(currentTest));
         Iterator entries = inputSuite.entrySet().iterator();
