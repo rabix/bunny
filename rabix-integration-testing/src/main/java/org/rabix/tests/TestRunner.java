@@ -73,14 +73,14 @@ public class TestRunner {
           Entry thisEntry = (Entry) entries.next();
           Object testName = thisEntry.getKey();
           Object test = thisEntry.getValue();
-
+          logger.info(" --- ");
           logger.info("Running test: " + testName + " with given parameters:");
           @SuppressWarnings({ "rawtypes", "unchecked" })
           Map<String, Map<String, LinkedHashMap>> mapTest = (Map<String, Map<String, LinkedHashMap>>) test;
           logger.info("  app: " + mapTest.get("app"));
           logger.info("  inputs: " + mapTest.get("inputs"));
           logger.info("  expected: " + mapTest.get("expected"));
-          String cmd = cmdPrefix + " " + mapTest.get("app") + " " + mapTest.get("inputs") + " -v > result.yaml";
+          String cmd = cmdPrefix + " " + mapTest.get("app") + " " + mapTest.get("inputs") + " > result.yaml";
           logger.info("->Running cmd: " + cmd);
           command(cmd, workingdir);
 
