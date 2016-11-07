@@ -25,16 +25,18 @@ import org.slf4j.LoggerFactory;
 public class TestRunner {
   private static String testDirPath;
   private static String cmdPrefix;
+  private static String buildFile;
   private static String resultPath = "./rabix-backend-local/target/result.yaml";
   private static String workingdir = "./rabix-backend-local/target/";
   private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
   public static void main(String[] commandLineArguments) {
     try {
-      logger.info("Testing started...");	
+      logger.info("Integration testing started...");	
       PropertiesConfiguration configuration = getConfig();
       testDirPath = getStringFromConfig(configuration, "testDirPath");
       cmdPrefix = getStringFromConfig(configuration, "cmdPrefix");
+      buildFile = getStringFromConfig(configuration, "buildFile");
       startTestExecution();
     } catch (RabixTestException e) {
       logger.error("Error occuerred!", e);
@@ -56,9 +58,12 @@ public class TestRunner {
     if (directoryListing == null) {
       logger.error("Problem with provided test directory: Test directory is empty.");
     }
-    logger.info("Extracting jar file");
-    command("tar -zxvf " + System.getProperty("user.dir")
-        + "/rabix-backend-local/target/rabix-backend-local-0.6.1-SNAPSHOT-id3.tar.gz", workingdir);
+    
+    logger.info("Extracting build file started...");
+    String commandUntarBuildFile = "tar -zxvf "+ System.getProperty("user.dir") + buildFile;
+    logger.info("Extracting build file command: " + commandUntarBuildFile);
+    command(commandUntarBuildFile, workingdir);
+    logger.info("Extracting build file ended...");
     
     command("cp -a " + System.getProperty("user.dir") + "/rabix-integration-testing/testbacklog .", workingdir);
 
