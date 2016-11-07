@@ -26,6 +26,7 @@ public class TestRunner {
   private static String testDirPath;
   private static String cmdPrefix;
   private static String buildFile;
+  private static String currentTestSuite;
   private static String resultPath = "./rabix-backend-local/target/result.yaml";
   private static String workingdir = "./rabix-backend-local/target/";
   private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
@@ -75,7 +76,8 @@ public class TestRunner {
       if (!child.getPath().endsWith(".test.yaml"))
         continue;
       try {
-    	logger.info("Executing test suite: " + child.getPath());  
+    	currentTestSuite =  child.getPath();
+    	logger.info("Executing test suite: " + currentTestSuite);  
         String currentTest = readFile(child.getAbsolutePath(), Charset.defaultCharset());
         Map<String, Object> inputSuite = JSONHelper.readMap(JSONHelper.transformToJSON(currentTest));
         Iterator entries = inputSuite.entrySet().iterator();
@@ -114,15 +116,17 @@ public class TestRunner {
         }
 
       } catch (IOException e) {
-        logger.error("Test suite execution failed. ", e);
+        logger.error("Test suite: "+ currentTestSuite + ", execution failed. ", e);
         System.exit(-1);
       }
     }
 
     if (allTestsPassed) {
-      logger.info("Test suite passed successfully.");
+      logger.info(" ### ");		
+      logger.info("Test suite: " + currentTestSuite + ", passed successfully.");
     } else {
-      logger.info("Test suite failed.");
+      logger.info(" ### ");	
+      logger.info("Test suite " + currentTestSuite + ", failed:");
       logger.info("Failed test number: " + failedTests.size());
       logger.info("Failed tests:");
       for (Object test : failedTests) {
