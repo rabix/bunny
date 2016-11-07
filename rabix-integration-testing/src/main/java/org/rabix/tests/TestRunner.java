@@ -59,14 +59,17 @@ public class TestRunner {
       logger.error("Problem with provided test directory: Test directory is empty.");
     }
     
-    logger.info("Extracting build file started...");
+    logger.info("Extracting build file: started");
     String commandUntarBuildFile = "tar -zxvf "+ System.getProperty("user.dir") + buildFile;
     logger.info("Extracting build file command: " + commandUntarBuildFile);
     command(commandUntarBuildFile, workingdir);
-    logger.info("Extracting build file ended...");
+    logger.info("Extracting build file: done");
     
-    command("cp -a " + System.getProperty("user.dir") + "/rabix-integration-testing/testbacklog .", workingdir);
-
+    String commandCopyTestbacklog = "cp -a "+ System.getProperty("user.dir") + "/rabix-integration-testing/testbacklog .";
+    command(commandCopyTestbacklog, workingdir);
+    logger.info("Copying testbacklog command: " + commandCopyTestbacklog);
+    logger.info("Copying testbacklog dir: done ");
+    
     for (File child : directoryListing) {
       if (!child.getPath().endsWith(".test.yaml"))
         continue;
