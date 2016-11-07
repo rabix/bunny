@@ -99,7 +99,7 @@ public class BackendCommandLine {
       if (commandLine.hasOption("h")) {
         printUsageAndExit(posixOptions);
       }
-      if (!checkCommandLine(commandLine, inputArguments != null && inputArguments.length > 0)) {
+      if (!checkCommandLine(commandLine)) {
         printUsageAndExit(posixOptions);
       }
 
@@ -177,14 +177,6 @@ public class BackendCommandLine {
 
       String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
 
-      Map<String, Object> inputs;
-      if (inputsFile != null) {
-        String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
-        inputs = JSONHelper.readMap(JSONHelper.transformToJSON(inputsText));
-      } else {
-        inputs = new HashMap<>();
-      }
-
       // Load app from JSON
       Bindings bindings = null;
       Application application = null;
@@ -195,7 +187,7 @@ public class BackendCommandLine {
         logger.error("Not implemented feature");
         System.exit(33);
       } catch (BindingException e) {
-        logger.error("Failed to create Bindings for application " + appUrl, e);
+        logger.error("Error: " + appUrl + " is not a valid app!");
         System.exit(10);
       }
       if (application == null) {
@@ -203,21 +195,33 @@ public class BackendCommandLine {
         System.exit(10);
       }
 
+      Options appInputOptions = new Options();
+
+      // Create appInputOptions for parser
+      for (ApplicationPort schemaInput : application.getInputs()) {
+        boolean hasArg = !schemaInput.getDataType().isType(DataType.Type.BOOLEAN);
+        appInputOptions.addOption(null, schemaInput.getId().replaceFirst("^#", ""), hasArg, schemaInput.getDescription());
+      }
+
+      Map<String, Object> inputs;
+      if (inputsFile != null) {
+        String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
+        inputs = JSONHelper.readMap(JSONHelper.transformToJSON(inputsText));
+      } else {
+        inputs = new HashMap<>();
+        // No inputs file. If we didn't provide -- at the end, just print app help and exit
+        if (!commandLineArray.contains("--"))
+          printAppUsageAndExit(appInputOptions);
+      }
+
+
       if (inputArguments != null) {
-        Options inputOptions = new Options();
-
-        // Create inputOptions for parser
-        for (ApplicationPort schemaInput : application.getInputs()) {
-          boolean hasArg = !schemaInput.getDataType().isType(DataType.Type.BOOLEAN);
-          inputOptions.addOption(null, schemaInput.getId().replaceFirst("^#", ""), hasArg, schemaInput.getDescription());
-        }
-
         // Parse input values and update inputs map with them
         try {
-          CommandLine commandLineInputs = commandLineParser.parse(inputOptions, inputArguments);
+          CommandLine commandLineInputs = commandLineParser.parse(appInputOptions, inputArguments);
 
           if (commandLineInputs.getArgList().size() > 0) {
-            printAppUsageAndExit(inputOptions);
+            printAppInvalidUsageAndExit(appInputOptions);
           }
 
           for (ApplicationPort schemaInput : application.getInputs()) {
@@ -226,15 +230,41 @@ public class BackendCommandLine {
             if (!commandLineInputs.hasOption(id))
               continue;
 
-            inputs.put(id, createInputValue(commandLineInputs.getOptionValues(id), schemaInput.getDataType(), bindings));
+            String[] values = commandLineInputs.getOptionValues(id);
+            if (!schemaInput.getDataType().isArray() && values.length>1) {
+              VerboseLogger.log(String.format("Input port %s doesn't accept multiple values", id));
+              System.exit(10);
+            }
+
+            if (schemaInput.getDataType().isFile() ||
+                (schemaInput.getDataType().isArray() && schemaInput.getDataType().getSubtype().isFile())) {
+              String[] remappedValues = new String[values.length];
+
+              for (int i = 0; i < values.length; i++) {
+                File file = new File(values[i]);
+
+                try {
+                  remappedValues[i] = file.getCanonicalPath();
+                  if (!file.exists()) {
+                    VerboseLogger.log(String.format("File %s doesn't exist", file.getCanonicalPath()));
+                    System.exit(10);
+                  }
+                } catch (IOException e) {
+                  VerboseLogger.log(String.format("Can't access file %s.", values[i]));
+                  System.exit(10);
+                }
+              }
+              values = remappedValues;
+            }
+
+            inputs.put(id, createInputValue(values, schemaInput.getDataType(), bindings));
           }
         } catch (ParseException e) {
-          printAppUsageAndExit(inputOptions);
+          printAppInvalidUsageAndExit(appInputOptions);
         }
       }
 
       // Check for required inputs
-
       List<String> missingRequiredFields = new ArrayList<>();
       for (ApplicationPort schemaInput : application.getInputs()) {
         String id = schemaInput.getId().replaceFirst("^#", "");
@@ -245,7 +275,7 @@ public class BackendCommandLine {
       }
       if (!missingRequiredFields.isEmpty()) {
         VerboseLogger.log("Required inputs missing: " + StringUtils.join(missingRequiredFields, ", "));
-        System.exit(10);
+        printAppUsageAndExit(appInputOptions);
       }
       
       Resources resources = null;
@@ -342,8 +372,8 @@ public class BackendCommandLine {
   /**
    * Check for missing options
    */
-  private static boolean checkCommandLine(CommandLine commandLine, boolean hasInputArguments) {
-    if (commandLine.getArgList().size() == 2 || (hasInputArguments && commandLine.getArgList().size() == 1)) {
+  private static boolean checkCommandLine(CommandLine commandLine) {
+    if (commandLine.getArgList().size() == 1 || commandLine.getArgList().size() == 2) {
       return true;
     }
     VerboseLogger.log("Invalid number of arguments\n");
@@ -354,11 +384,18 @@ public class BackendCommandLine {
    * Prints command line usage
    */
   private static void printUsageAndExit(Options options) {
-    new HelpFormatter().printHelp("rabix <tool> <job> [OPTION]...", options);
+    new HelpFormatter().printHelp("rabix <tool> <job> [OPTION] [-- {inputs}...]", options);
     System.exit(10);
   }
 
   private static void printAppUsageAndExit(Options options) {
+    HelpFormatter h = new HelpFormatter();
+    h.setSyntaxPrefix("");
+    h.printHelp("Inputs for selected tool are: ", options);
+    System.exit(10);
+  }
+
+  private static void printAppInvalidUsageAndExit(Options options) {
     HelpFormatter h = new HelpFormatter();
     h.setSyntaxPrefix("");
     h.printHelp("You have invalid inputs for the tool you provided. Valid inputs are: ", options);
@@ -411,7 +448,7 @@ public class BackendCommandLine {
   }
 
   private static Object createInputValue(String[] value, DataType inputType, Bindings bindings) {
-    if (value.length > 1 || inputType.isArray()) {
+    if (inputType.isArray()) {
       if (inputType.getSubtype().isFile()) {
         List<Map<String, Object>> ret = new ArrayList<>();
         for (String s : value) {
