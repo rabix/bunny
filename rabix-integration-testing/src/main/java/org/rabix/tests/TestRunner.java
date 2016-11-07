@@ -79,6 +79,7 @@ public class TestRunner {
 			try {
 
 				currentTestSuite = child.getPath();
+				logger.info(" ### ")
 				logger.info("Executing test suite: " + currentTestSuite);
 				String currentTest = readFile(child.getAbsolutePath(), Charset.defaultCharset());
 				Map<String, Object> inputSuite = JSONHelper.readMap(JSONHelper.transformToJSON(currentTest));
@@ -119,7 +120,7 @@ public class TestRunner {
 				}
 
 				if (allTestsPassed) {
-					logger.info(" ### ");
+					logger.info("");
 					logger.info("Test suite: " + currentTestSuite + ", passed successfully.");
 				} else {
 					logger.info(" ### ");
