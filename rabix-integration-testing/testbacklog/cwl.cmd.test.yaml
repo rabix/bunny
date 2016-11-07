@@ -1,0 +1,146 @@
+test1:
+  app: testbacklog/grep.cwl.yaml
+  inputs: testbacklog/grep.inputs.yaml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 37
+#cwl_test1:
+#  app: 
+#  inputs: 
+#  runtime: 
+#  expected:
+#    outfile:
+#      class: 
+#      name: 
+#      size:
+#cwl_test2:
+#  app: 
+#  inputs: testbacklog/inputs/grep.inputs.yaml
+#  runtime:
+#  expected:
+#    outfile:
+#      class:
+#      name: 
+#      size:
+#cwl_test3:
+#  app: testbacklog/inputs/empty_tool_file.cwl.yaml
+#  inputs: testbacklog/inputs/grep.inputs.yaml
+#  runtime: 60
+#  expected:
+#    outfile:
+#      class: File
+#      name: out.txt
+#      size: 37
+#cwl_test4:
+#  app: testbacklog/inputs/empty_tool_file.cwl.yaml
+#  inputs:
+#  runtime:
+#  expected:
+#    outfile:
+#      class:
+#      name: 
+#      size:
+#cwl_test5:
+#  app: testbacklog/inputs/random_text_incorrect_tool.cwl.yaml
+#  inputs: testbacklog/inputs/grep.inputs.yaml
+#  runtime: 
+#  expected:
+#    outfile:
+#      class: 
+#      name: 
+#      size: 
+#cwl_test6:
+#  app: testbacklog/inputs/grep.cwl.yaml
+#  inputs: 
+#  runtime: 
+#  expected:
+#    outfile:
+#      class: 
+#      name: 
+#      size:
+#cwl_test7:
+#  app: testbacklog/inputs/grep.cwl.yaml
+#  inputs: testbacklog/inputs/empty_job_file.inputs.yaml
+#  runtime:
+#  expected:
+#    outfile:
+#      class:
+#      name: 
+#      size: 
+#cwl_test8:
+#  app: testbacklog/inputs/grep.cwl.yaml
+#  inputs: testbacklog/inputs/random_text_incorrect_job.inputs.yaml
+#  runtime:
+#  expected:
+#    outfile:
+#      class:
+#      name: 
+#      size: 
+#cwl_test9:
+#  app: testbacklog/inputs/grep.inputs.yaml
+#  inputs: testbacklog/inputs/grep.cwl.yaml
+#  runtime:
+#  expected:
+#    outfile:
+#      class:
+#      name: 
+#      size:
+#cwl_test10:
+#  app: testbacklog/inputs/grep.cwl.yaml
+#  inputs: testbacklog/inputs/grep.cwl.yaml
+#  runtime:
+#  expected:
+#    outfile:
+#      class:
+#      name: 
+#      size:
+#cwl_test11:
+#  app: testbacklog/inputs/grep.inputs.yaml
+#  inputs: testbacklog/inputs/grep.inputs.yaml
+#  runtime:
+#  expected:
+#    outfile:
+#      class:
+#      name: 
+#      size:
+#cwl_test11:
+#  app: testbacklog/inputs/grep.inputs.yaml
+#  inputs: testbacklog/inputs/grep.cwl.yaml testbacklog/inputs/grep.inputs.yaml
+#  runtime:
+#  expected:
+#    outfile:
+#      class:
+#      name: 
+#      size:
+#cwl_test7:
+#  app: testbacklog/inputs/inheritmeta.cwl.yaml
+#  inputs: testbacklog/inputs/inheritmeta_job.inputs.yaml
+#  runtime: 
+#  expected:
+#    outfile:
+#      class: File
+#      name: output.txt
+#      size: 0
+
+
+#cwl_test7 stage input test:
+#  app: testbacklog/inputs/stageinput.cwl.yaml
+#  inputs: testbacklog/inputs/stageinput.inputs.yaml
+#  runtime: 
+#  expected:
+#    outfile:
+#      class: File
+#      name: out.txt
+#      size: 24
+#cwl_test7:
+#  app: testbacklog/inputs/grep.cwl.yaml
+#  inputs: testbacklog/inputs/empty_input.inputs.yaml
+#  runtime: 
+#  expected:
+#    outfile:
+#      class: 
+#      name: 
+#      size: 
