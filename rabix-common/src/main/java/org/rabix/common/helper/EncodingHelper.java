@@ -18,17 +18,17 @@ public class EncodingHelper {
   }
   
   public static Object shellQuote(Object argument) {
-    if (argument == null) {
-      return null;
-    }
-    if (!(argument instanceof String)) {
-      return argument;
-    }
-    String argumentStr = (String) argument;
-    if (argumentStr.contains("'")) {
-      argumentStr = argumentStr.replace("'", "\\'");
-      return "'" + argumentStr + "'";
-    }
+//    if (argument == null) {
+//      return null;
+//    }
+//    if (!(argument instanceof String)) {
+//      return argument;
+//    }
+//    String argumentStr = (String) argument;
+//    if (argumentStr.contains("'")) {
+//      argumentStr = argumentStr.replace("'", "\\'");
+//      return "'" + argumentStr + "'";
+//    }
     return argument;
   }
   
