@@ -22,7 +22,6 @@ public class CWLRuntime {
   @JsonProperty("tmpdirSize")
   private final Long tmpdirSize;
   
-  
   @JsonCreator
   public CWLRuntime(@JsonProperty("cores") Long cores, @JsonProperty("ram") Long ram,
       @JsonProperty("outdir") String outdir, @JsonProperty("tmpdir") String tmpdir,

@@ -86,13 +86,13 @@ public class CWLResourceRequirement extends CWLResource {
   }
   
   @JsonIgnore
-  public CWLRuntime build(CWLJob job) throws CWLExpressionException {
+  public CWLRuntime build(CWLJob job, CWLRuntime runtime) throws CWLExpressionException {
     Long coresMin = getCoresMin(job);
     Long coresMax = getCoresMax(job);
 
     Long cores = coresMin != null ? coresMin : coresMax;
     if (cores == null) {
-      cores = CORES_MIN_DEFAULT;
+      cores = runtime != null ? runtime.getCores() : CORES_MIN_DEFAULT;
     }
 
     Long ramMin = getRamMin(job);
@@ -100,7 +100,7 @@ public class CWLResourceRequirement extends CWLResource {
 
     Long ram = ramMin != null ? ramMin : ramMax;
     if (ram == null) {
-      ram = RAM_MIN_DEFAULT;
+      ram = runtime != null? runtime.getRam() : RAM_MIN_DEFAULT;
     }
 
     Long tmpdirMin = getTmpdirMin(job);
@@ -108,7 +108,7 @@ public class CWLResourceRequirement extends CWLResource {
 
     Long tmpDir = tmpdirMin != null ? tmpdirMin : tmpdirMax;
     if (tmpDir == null) {
-      tmpDir = TMPDIR_MIN_DEFAULT;
+      tmpDir = runtime != null ? runtime.getTmpdirSize() : TMPDIR_MIN_DEFAULT;
     }
 
     Long outdirMin = getOutdirMin(job);
@@ -116,7 +116,7 @@ public class CWLResourceRequirement extends CWLResource {
 
     Long outDir = outdirMin != null ? outdirMin : outdirMax;
     if (outDir == null) {
-      outDir = OUTDIR_MIN_DEFAULT;
+      outDir = runtime != null ? runtime.getOutdirSize() : OUTDIR_MIN_DEFAULT;
     }
     return new CWLRuntime(cores, ram, null, null, tmpDir, outDir);
   }
