@@ -5,6 +5,7 @@ import org.rabix.bindings.cwl.CWLJobProcessor;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.bean.CWLRuntime;
+import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.resolver.CWLDocumentResolver;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.json.BeanSerializer;
@@ -19,6 +20,13 @@ public class CWLJobHelper {
     if (job.getResources() != null) {
       CWLRuntime cwlRuntime = new CWLRuntime(job.getResources().getCpu(), job.getResources().getMemMB(), job.getResources().getWorkingDir(), job.getResources().getWorkingDir(), job.getResources().getDiskSpaceMB(), job.getResources().getDiskSpaceMB());
       cwlJob.setRuntime(cwlRuntime);
+    }
+    CWLRuntime runtime = null;
+    try {
+      runtime = CWLRuntimeHelper.createRuntime(cwlJob);
+      cwlJob.setRuntime(runtime);
+    } catch (CWLExpressionException e) {
+      throw new BindingException(e);
     }
     return cwlJob;
   }
