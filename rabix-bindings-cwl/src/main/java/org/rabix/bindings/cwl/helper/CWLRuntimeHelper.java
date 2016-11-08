@@ -18,6 +18,9 @@ public class CWLRuntimeHelper {
         runtime = resourceRequirement.build(job);
       }
     }    
+    if(runtime == null) {
+      runtime = new CWLRuntime(null, null, null, null, null, null);
+    }
     return runtime;
   }
   
