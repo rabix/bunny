@@ -58,7 +58,7 @@ public class CWLExpressionResolver {
       if (inlineJavascriptRequirement != null) {
         expressionLibs = inlineJavascriptRequirement.getExpressionLib();
       }
-      return (T) CWLExpressionJavascriptResolver.evaluate(job.getInputs(), self, script, expressionLibs);
+      return (T) CWLExpressionJavascriptResolver.evaluate(job.getInputs(), self, script, job.getRuntime(), expressionLibs);
     }
     if (expression instanceof String) {
       if (job.isInlineJavascriptEnabled()) {
@@ -67,7 +67,7 @@ public class CWLExpressionResolver {
         if (inlineJavascriptRequirement != null) {
           expressionLibs = inlineJavascriptRequirement.getExpressionLib();
         }
-        return (T) javascriptInterpolate(job, self, (String) expression, expressionLibs);
+        return (T) javascriptInterpolate(job, self, (String) expression, job.getRuntime(), expressionLibs);
       } else {
         Map<String, Object> vars = new HashMap<>();
         vars.put("inputs", job.getInputs());
@@ -144,7 +144,7 @@ public class CWLExpressionResolver {
     return ex;
   }
   
-  private static Object javascriptInterpolate(CWLJob job, Object self, String expression, List<String> engineConfigs) throws CWLExpressionException {
+  private static Object javascriptInterpolate(CWLJob job, Object self, String expression, CWLRuntime runtime, List<String> engineConfigs) throws CWLExpressionException {
     expression = expression.trim();
 
     List<Object> parts = new ArrayList<>();
@@ -159,7 +159,7 @@ public class CWLExpressionResolver {
         if(job != null) {
           inputs = job.getInputs();
         }
-        Object evaluated = CWLExpressionJavascriptResolver.evaluate(inputs, self, expression.substring(scanned[0] + 1, scanned[1]), engineConfigs);
+        Object evaluated = CWLExpressionJavascriptResolver.evaluate(inputs, self, expression.substring(scanned[0] + 1, scanned[1]), runtime, engineConfigs);
         if (scanned[0] == 0 && scanned[1] == expression.length()) {
           return evaluated;
         }

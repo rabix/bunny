@@ -10,6 +10,7 @@ import org.mozilla.javascript.NativeJSON;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
+import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
@@ -22,6 +23,7 @@ public class CWLExpressionJavascriptResolver {
 
   public final static String EXPR_CONTEXT_NAME = "inputs";
   public final static String EXPR_SELF_NAME = "self";
+  public final static String EXPR_RUNTIME_NAME = "runtime";
 
   public final static int OPTIMIZATION_LEVEL = -1;
   public final static int MAX_STACK_DEPTH = 10;
@@ -29,7 +31,7 @@ public class CWLExpressionJavascriptResolver {
   /**
    * Evaluate JS script (function or statement)
    */
-  public static Object evaluate(Object context, Object self, String expr, List<String> engineConfigs) throws CWLExpressionException {
+  public static Object evaluate(Object context, Object self, String expr, CWLRuntime runtime, List<String> engineConfigs) throws CWLExpressionException {
     String trimmedExpr = StringUtils.trim(expr);
     if (trimmedExpr.startsWith("$")) {
       trimmedExpr = trimmedExpr.substring(1);
@@ -58,6 +60,7 @@ public class CWLExpressionJavascriptResolver {
 
       putToScope(EXPR_CONTEXT_NAME, context, cx, globalScope);
       putToScope(EXPR_SELF_NAME, self, cx, globalScope);
+      putToScope(EXPR_RUNTIME_NAME, runtime, cx, globalScope);
 
       Scriptable resultScope = cx.newObject(globalScope);
       resultScope.setPrototype(globalScope);

@@ -66,12 +66,15 @@ public class CWLProcessor implements ProtocolProcessor {
   public Job preprocess(final Job job, final File workingDir) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
 
-    CWLRuntime runtime;
-    try {
-      runtime = CWLRuntimeHelper.createRuntime(cwlJob);
-    } catch (CWLExpressionException e1) {
-      throw new BindingException(e1);
+    CWLRuntime runtime = cwlJob.getRuntime();
+    if (runtime == null) {
+      try {
+        runtime = CWLRuntimeHelper.createRuntime(cwlJob);
+      } catch (CWLExpressionException e1) {
+        throw new BindingException(e1);
+      }
     }
+    
     runtime = CWLRuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());
     runtime = CWLRuntimeHelper.setTmpdir(runtime, workingDir.getAbsolutePath());
     cwlJob.setRuntime(runtime);
@@ -121,7 +124,7 @@ public class CWLProcessor implements ProtocolProcessor {
       if (cwlJob.getApp().isExpressionTool()) {
         CWLExpressionTool expressionTool = (CWLExpressionTool) cwlJob.getApp();
         try {
-          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), null);
+          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), cwlJob.getRuntime(), null);
         } catch (CWLExpressionException e) {
           throw new BindingException("Failed to populate outputs", e);
         }
