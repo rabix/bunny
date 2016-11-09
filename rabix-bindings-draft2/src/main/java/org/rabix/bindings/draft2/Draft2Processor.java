@@ -59,16 +59,12 @@ public class Draft2Processor implements ProtocolProcessor {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     Draft2PortProcessorHelper portProcessorHelper = new Draft2PortProcessorHelper(draft2Job);
     try {
-      File jobFile = new File(workingDir, JOB_FILE);
-      String serializedJob = BeanSerializer.serializePartial(Draft2JobHelper.getDraft2Job(job));
-      FileUtils.writeStringToFile(jobFile, serializedJob);
-      
       Map<String, Object> inputs = job.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       return Job.cloneWithInputs(job, inputs);
-    } catch (Draft2PortProcessorException | IOException e) {
+    } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }
   }

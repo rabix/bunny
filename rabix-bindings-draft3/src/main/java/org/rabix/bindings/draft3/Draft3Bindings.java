@@ -1,11 +1,13 @@
 package org.rabix.bindings.draft3;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.ProtocolAppProcessor;
@@ -17,6 +19,7 @@ import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
+import org.rabix.bindings.draft3.helper.Draft3JobHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -28,6 +31,7 @@ import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
+import org.rabix.common.json.BeanSerializer;
 
 public class Draft3Bindings implements Bindings {
 
@@ -72,6 +76,17 @@ public class Draft3Bindings implements Bindings {
   @Override
   public Job preprocess(Job job, File workingDir) throws BindingException {
     return processor.preprocess(job, workingDir);
+  }
+  
+  @Override
+  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
+    File jobFile = new File(workingDir, Draft3Processor.JOB_FILE);
+    String serializedJob = BeanSerializer.serializePartial(Draft3JobHelper.getDraft3Job(job));
+    try {
+      FileUtils.writeStringToFile(jobFile, serializedJob);
+    } catch (IOException e) {
+      throw new BindingException(e);
+    }
   }
   
   @Override
@@ -204,5 +219,13 @@ public class Draft3Bindings implements Bindings {
   @Override
   public Object updateFileValues(Object input, FileTransformer fileTransformer) {
     return Draft3SchemaHelper.updateFileValues(input, fileTransformer);
+  }
+
+  @Override public DataType getDataTypeFromSchema(Object schema) {
+    return Draft3SchemaHelper.readDataType(schema);
+  }
+
+  @Override public boolean isRequiredFromSchema(Object schema) {
+    return Draft3SchemaHelper.isRequired(schema);
   }
 }

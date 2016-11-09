@@ -121,7 +121,8 @@ public class CWLProcessor implements ProtocolProcessor {
       if (cwlJob.getApp().isExpressionTool()) {
         CWLExpressionTool expressionTool = (CWLExpressionTool) cwlJob.getApp();
         try {
-          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), null);
+          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), cwlJob.getRuntime(), null);
+          postprocessCreatedResults(outputs, hashAlgorithm);
         } catch (CWLExpressionException e) {
           throw new BindingException("Failed to populate outputs", e);
         }
@@ -160,6 +161,14 @@ public class CWLProcessor implements ProtocolProcessor {
       return;
     }
     if ((CWLSchemaHelper.isFileFromValue(value)) || CWLSchemaHelper.isDirectoryFromValue(value)) {
+      if (CWLFileValueHelper.isFileLiteral(value)) {
+        String contents = CWLFileValueHelper.getContents(value);
+        CWLFileValueHelper.setSize(new Long(contents.length()), value);
+        String checksum = ChecksumHelper.checksum(contents, hashAlgorithm);
+        CWLFileValueHelper.setChecksum(checksum, value);
+        return;
+      }
+      
       File file = new File(CWLFileValueHelper.getPath(value));
       if (!file.exists()) {
         return;

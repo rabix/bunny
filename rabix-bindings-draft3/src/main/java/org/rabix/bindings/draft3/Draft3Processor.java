@@ -73,16 +73,12 @@ public class Draft3Processor implements ProtocolProcessor {
     draft3Job.setRuntime(runtime);
     Draft3PortProcessorHelper portProcessorHelper = new Draft3PortProcessorHelper(draft3Job);
     try {
-      File jobFile = new File(workingDir, JOB_FILE);
-      String serializedJob = BeanSerializer.serializePartial(Draft3JobHelper.getDraft3Job(job));
-      FileUtils.writeStringToFile(jobFile, serializedJob);
-      
       Map<String, Object> inputs = job.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       Job newJob = Job.cloneWithResources(job, Draft3RuntimeHelper.convertToResources(runtime));
       return Job.cloneWithInputs(newJob, inputs);
-    } catch (Draft3PortProcessorException | IOException e) {
+    } catch (Draft3PortProcessorException e) {
       throw new BindingException(e);
     }
   }
