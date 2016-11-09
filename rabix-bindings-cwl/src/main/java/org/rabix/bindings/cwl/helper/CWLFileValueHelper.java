@@ -271,4 +271,13 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
     return raw;
   }
+  
+  public static boolean isFileLiteral(Object fileRaw) {
+    if (fileRaw == null) {
+      return false;
+    }
+    String location = getLocation(fileRaw);
+    String path = getPath(fileRaw);
+    return location == null && path == null;
+  }
 }
