@@ -79,7 +79,7 @@ public class Draft3Bindings implements Bindings {
   }
   
   @Override
-  public void dumpProtocolFilesBeforeStart(Job job, File workingDir) throws BindingException {
+  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
     File jobFile = new File(workingDir, Draft3Processor.JOB_FILE);
     String serializedJob = BeanSerializer.serializePartial(Draft3JobHelper.getDraft3Job(job));
     try {

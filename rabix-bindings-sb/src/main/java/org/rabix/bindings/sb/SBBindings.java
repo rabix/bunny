@@ -79,7 +79,7 @@ public class SBBindings implements Bindings {
   }
   
   @Override
-  public void dumpProtocolFilesBeforeStart(Job job, File workingDir) throws BindingException {
+  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
     File jobFile = new File(workingDir, SBProcessor.JOB_FILE);
     String serializedJob = BeanSerializer.serializePartial(SBJobHelper.getSBJob(job));
     try {

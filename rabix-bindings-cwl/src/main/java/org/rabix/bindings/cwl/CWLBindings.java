@@ -79,7 +79,7 @@ public class CWLBindings implements Bindings {
   }
   
   @Override
-  public void dumpProtocolFilesBeforeStart(Job job, File workingDir) throws BindingException {
+  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
     // do nothing
   }
   

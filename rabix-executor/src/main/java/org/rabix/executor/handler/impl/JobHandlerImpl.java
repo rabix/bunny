@@ -146,7 +146,7 @@ public class JobHandlerImpl implements JobHandler {
       
       job = bindings.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir);
-      bindings.dumpProtocolFilesBeforeStart(job, workingDir);
+      bindings.dumpProtocolFilesBeforeExecution(job, workingDir);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));

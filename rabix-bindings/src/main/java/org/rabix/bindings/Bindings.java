@@ -73,7 +73,7 @@ public interface Bindings {
    * @param workingDir  Working directory
    * @throws BindingException
    */
-  void dumpProtocolFilesBeforeStart(Job job, File workingDir) throws BindingException;
+  void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException;
   
   /**
    * Post-process the {@link Job}
