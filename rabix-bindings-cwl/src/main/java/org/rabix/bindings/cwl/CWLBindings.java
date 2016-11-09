@@ -79,6 +79,11 @@ public class CWLBindings implements Bindings {
   }
   
   @Override
+  public void dumpProtocolFilesBeforeStart(Job job, File workingDir) throws BindingException {
+    // do nothing
+  }
+  
+  @Override
   public boolean isSuccessful(Job job, int statusCode) throws BindingException {
     return processor.isSuccessful(job, statusCode);
   }
@@ -218,4 +223,5 @@ public class CWLBindings implements Bindings {
   public Object updateFileValues(Object input, FileTransformer fileTransformer) {
     return CWLSchemaHelper.updateFileValues(input, fileTransformer);
   }
+
 }
