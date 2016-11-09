@@ -205,4 +205,12 @@ public class Draft3Bindings implements Bindings {
   public Object updateFileValues(Object input, FileTransformer fileTransformer) {
     return Draft3SchemaHelper.updateFileValues(input, fileTransformer);
   }
+
+  @Override public DataType getDataTypeFromSchema(Object schema) {
+    return Draft3SchemaHelper.readDataType(schema);
+  }
+
+  @Override public boolean isRequiredFromSchema(Object schema) {
+    return Draft3SchemaHelper.isRequired(schema);
+  }
 }
