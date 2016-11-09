@@ -79,6 +79,11 @@ public class CWLBindings implements Bindings {
   }
   
   @Override
+  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
+    // do nothing
+  }
+  
+  @Override
   public boolean isSuccessful(Job job, int statusCode) throws BindingException {
     return processor.isSuccessful(job, statusCode);
   }

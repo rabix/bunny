@@ -1,11 +1,13 @@
 package org.rabix.bindings.sb;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.ProtocolAppProcessor;
@@ -25,9 +27,11 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.sb.helper.SBFileValueHelper;
+import org.rabix.bindings.sb.helper.SBJobHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
+import org.rabix.common.json.BeanSerializer;
 
 public class SBBindings implements Bindings {
 
@@ -72,6 +76,17 @@ public class SBBindings implements Bindings {
   @Override
   public Job preprocess(Job job, File workingDir) throws BindingException {
     return processor.preprocess(job, workingDir);
+  }
+  
+  @Override
+  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
+    File jobFile = new File(workingDir, SBProcessor.JOB_FILE);
+    String serializedJob = BeanSerializer.serializePartial(SBJobHelper.getSBJob(job));
+    try {
+      FileUtils.writeStringToFile(jobFile, serializedJob);
+    } catch (IOException e) {
+      throw new BindingException(e);
+    }
   }
   
   @Override

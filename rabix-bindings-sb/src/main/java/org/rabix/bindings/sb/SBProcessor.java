@@ -59,16 +59,12 @@ public class SBProcessor implements ProtocolProcessor {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     SBPortProcessorHelper portProcessorHelper = new SBPortProcessorHelper(sbJob);
     try {
-      File jobFile = new File(workingDir, JOB_FILE);
-      String serializedJob = BeanSerializer.serializePartial(SBJobHelper.getSBJob(job));
-      FileUtils.writeStringToFile(jobFile, serializedJob);
-      
       Map<String, Object> inputs = job.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       return Job.cloneWithInputs(job, inputs);
-    } catch (SBPortProcessorException | IOException e) {
+    } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }
   }

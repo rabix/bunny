@@ -56,19 +56,28 @@ public interface Bindings {
   boolean isSuccessful(Job job, int statusCode) throws BindingException;
 
   /**
-   * Pre process the {@link Job}.
+   * Pre-process the {@link Job}.
    * Note: Call pre process before Job execution
    *
    * @param job         Job object
    * @param workingDir  Working directory
-   * @return            Pre processed Job object
+   * @return            Pre-processed Job object
    * @throws BindingException
    */
   Job preprocess(Job job, File workingDir) throws BindingException;
   
   /**
-   * Post process the {@link Job}
-   * Note: Call post process after successfull or failed Job execution
+   * Dump protocol specific files into working directory before execution
+   * 
+   * @param job         Job object
+   * @param workingDir  Working directory
+   * @throws BindingException
+   */
+  void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException;
+  
+  /**
+   * Post-process the {@link Job}
+   * Note: Call post process after successful or failed Job execution
    *
    * @param job             Job object
    * @param workingDir      Working directory

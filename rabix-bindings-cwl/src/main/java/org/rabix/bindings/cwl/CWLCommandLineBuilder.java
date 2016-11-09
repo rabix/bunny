@@ -144,7 +144,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Get shellQuote flag 
    */
-  @SuppressWarnings("unused")
   private boolean getShellQuote(Object input) {
     return CWLBeanHelper.getValue(SHELL_QUOTE_KEY, input);
   }
@@ -183,14 +182,19 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       if (commandLineTool.hasArguments()) {
         for (int i = 0; i < commandLineTool.getArguments().size(); i++) {
           int position = 0;
+          boolean shellQuote = false;
           Object argBinding = commandLineTool.getArguments().get(i);
           if (isShellQuote(argBinding)) {
             position = getShellQuotePosition(argBinding);
+            shellQuote = getShellQuote(argBinding);
             argBinding = getShellQuoteValue(argBinding);
           }
           if (argBinding instanceof String) {
             Object arg = CWLExpressionResolver.resolve(argBinding, job, null);
-            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(position, false).part(EncodingHelper.shellQuote(arg)).keyValue("").build();
+            if (shellQuote) {
+              arg = EncodingHelper.shellQuote(arg);
+            }
+            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(position, false).part(arg).keyValue("").build();
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
             continue;
@@ -270,7 +274,9 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     String itemSeparator = CWLBindingHelper.getItemSeparator(inputBinding);
     String keyValue = inputPort != null ? inputPort.getId() : "";
 
+    boolean shellQuote = false;
     if (isShellQuote(value)) {
+      shellQuote = getShellQuote(value);
       value = getShellQuoteValue(value);
     }
     
@@ -374,7 +380,9 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(prefixedValues).build();
     }
 
-    value = EncodingHelper.shellQuote(value);
+    if (shellQuote) {
+      value = EncodingHelper.shellQuote(value);
+    }
     
     if (prefix == null) {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(value).build();
