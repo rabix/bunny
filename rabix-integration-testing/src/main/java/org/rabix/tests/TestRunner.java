@@ -123,7 +123,7 @@ public class TestRunner {
 					logger.info("");
 					logger.info("Test suite: " + currentTestSuite + ", passed successfully.");
 				} else {
-					logger.info(" ### ");
+					logger.info("");
 					logger.info("Test suite " + currentTestSuite + ", failed:");
 					logger.info("Failed test number: " + failedTests.size());
 					logger.info("Failed tests:");
