@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
@@ -122,6 +123,7 @@ public class CWLProcessor implements ProtocolProcessor {
         CWLExpressionTool expressionTool = (CWLExpressionTool) cwlJob.getApp();
         try {
           outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), cwlJob.getRuntime(), null);
+          postprocessCreatedResults(outputs, hashAlgorithm);
         } catch (CWLExpressionException e) {
           throw new BindingException("Failed to populate outputs", e);
         }
@@ -155,18 +157,30 @@ public class CWLProcessor implements ProtocolProcessor {
     return result;
   }
   
-  private void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
+  private void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm) throws IOException {
     if (value == null) {
       return;
     }
     if ((CWLSchemaHelper.isFileFromValue(value)) || CWLSchemaHelper.isDirectoryFromValue(value)) {
+      if (CWLFileValueHelper.isFileLiteral(value)) {
+        String contents = CWLFileValueHelper.getContents(value);
+        CWLFileValueHelper.setSize(new Long(contents.length()), value);
+
+        File tmpFile = File.createTempFile("file_literal_", "txt");
+        FileUtils.writeStringToFile(tmpFile, contents);
+        String checksum = ChecksumHelper.checksum(tmpFile, hashAlgorithm);
+        CWLFileValueHelper.setChecksum(checksum, value);
+        tmpFile.delete();
+        return;
+      }
+      
       File file = new File(CWLFileValueHelper.getPath(value));
       if (!file.exists()) {
         return;
       }
       CWLFileValueHelper.setSize(file.length(), value);
       
-      if(hashAlgorithm != null) {
+      if (hashAlgorithm != null) {
         String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
         if (checksum != null) {
           CWLFileValueHelper.setChecksum(checksum, value);
@@ -386,7 +400,7 @@ public class CWLProcessor implements ProtocolProcessor {
    * Gets secondary files (absolute paths)
    */
   @SuppressWarnings("unchecked")
-  private List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object secondaryFilesObj) throws CWLExpressionException {
+  private List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object secondaryFilesObj) throws CWLExpressionException, IOException {
     if (secondaryFilesObj == null) {
       return null;
     }
