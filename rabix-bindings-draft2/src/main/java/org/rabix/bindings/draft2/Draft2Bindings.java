@@ -221,4 +221,12 @@ public class Draft2Bindings implements Bindings {
   public Object updateFileValues(Object input, FileTransformer fileTransformer) {
     return Draft2SchemaHelper.updateFileValues(input, fileTransformer);
   }
+
+  @Override public DataType getDataTypeFromSchema(Object schema) {
+    return Draft2SchemaHelper.readDataType(schema);
+  }
+
+  @Override public boolean isRequiredFromSchema(Object schema) {
+    return Draft2SchemaHelper.isRequired(schema);
+  }
 }

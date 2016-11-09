@@ -222,4 +222,12 @@ public class SBBindings implements Bindings {
 
     return SBSchemaHelper.updateFileValues(input, fileTransformer);
   }
+
+  @Override public DataType getDataTypeFromSchema(Object schema) {
+    return SBSchemaHelper.readDataType(schema);
+  }
+
+  @Override public boolean isRequiredFromSchema(Object schema) {
+    return SBSchemaHelper.isRequired(schema);
+  }
 }

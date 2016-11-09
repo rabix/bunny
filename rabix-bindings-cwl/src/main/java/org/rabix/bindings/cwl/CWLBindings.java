@@ -224,4 +224,11 @@ public class CWLBindings implements Bindings {
     return CWLSchemaHelper.updateFileValues(input, fileTransformer);
   }
 
+  @Override public DataType getDataTypeFromSchema(Object schema) {
+    return CWLSchemaHelper.readDataType(schema);
+  }
+
+  @Override public boolean isRequiredFromSchema(Object schema) {
+    return CWLSchemaHelper.isRequired(schema);
+  }
 }

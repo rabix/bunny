@@ -274,6 +274,22 @@ public interface Bindings {
   public DataType getDataTypeFromValue(Object input);
 
   /**
+   * Reads the type from schema
+   * @param schema
+   * @return DataType object that represents schema's type
+   */
+  public DataType getDataTypeFromSchema(Object schema);
+
+  /**
+   * Determines if the input described with schema is required
+   * @param schema
+   * @return
+   */
+  public boolean isRequiredFromSchema(Object schema);
+
+
+
+  /**
    * Parses raw input values and extracts all elements that represent file inputs
    * @param input raw input
    * @return List of recognized file inputs
