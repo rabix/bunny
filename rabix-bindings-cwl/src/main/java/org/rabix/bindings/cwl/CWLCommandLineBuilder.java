@@ -25,6 +25,7 @@ import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
+import org.rabix.common.helper.EncodingHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,7 +190,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
           }
           if (argBinding instanceof String) {
             Object arg = CWLExpressionResolver.resolve(argBinding, job, null);
-            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(position, false).part(arg).keyValue("").build();
+            CWLCommandLinePart commandLinePart = new CWLCommandLinePart.Builder(position, false).part(EncodingHelper.shellQuote(arg)).keyValue("").build();
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
             continue;
@@ -373,6 +374,8 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(prefixedValues).build();
     }
 
+    value = EncodingHelper.shellQuote(value);
+    
     if (prefix == null) {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(value).build();
     }

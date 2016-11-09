@@ -121,7 +121,7 @@ public class CWLProcessor implements ProtocolProcessor {
       if (cwlJob.getApp().isExpressionTool()) {
         CWLExpressionTool expressionTool = (CWLExpressionTool) cwlJob.getApp();
         try {
-          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), null);
+          outputs = (Map<String, Object>) CWLExpressionJavascriptResolver.evaluate(cwlJob.getInputs(), null, (String) expressionTool.getScript(), cwlJob.getRuntime(), null);
         } catch (CWLExpressionException e) {
           throw new BindingException("Failed to populate outputs", e);
         }

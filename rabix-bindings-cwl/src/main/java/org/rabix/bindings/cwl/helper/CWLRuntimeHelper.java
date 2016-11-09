@@ -12,13 +12,11 @@ public class CWLRuntimeHelper {
 
   public static CWLRuntime createRuntime(CWLJob job) throws CWLExpressionException {
     CWLRuntime runtime = job.getRuntime();
+    CWLResourceRequirement resourceRequirement = job.getApp().getResourceRequirement();
+    if (resourceRequirement != null) {
+      runtime = resourceRequirement.build(job, runtime);
+    }
     if (runtime == null) {
-      CWLResourceRequirement resourceRequirement = job.getApp().getResourceRequirement();
-      if(resourceRequirement != null) {
-        runtime = resourceRequirement.build(job);
-      }
-    }    
-    if(runtime == null) {
       runtime = new CWLRuntime(null, null, null, null, null, null);
     }
     return runtime;
