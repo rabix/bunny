@@ -29,7 +29,10 @@ public class CWLFileLiteralProcessorCallback implements CWLPortProcessorCallback
         if (StringUtils.isEmpty(contents)) {
           throw new CWLPortProcessorException("Cannot process file literal for port " + port.getId());
         }
-        String name = "file_literal_" + UUID.randomUUID().toString();
+        String name = CWLFileValueHelper.getName(value);
+        if (StringUtils.isEmpty(name)) {
+          name = "file_literal_" + UUID.randomUUID().toString();          
+        }
         File file = new File(workingDir, name);
         FileUtils.writeStringToFile(file, contents);
         
