@@ -5,9 +5,12 @@ services:
   - docker
 
 before_install:
-  - pwd
+  - cd rabix-integration-testing
   - git clone https://github.com/rabix/common-workflow-language.git
   - pwd
+  - ls -ltra
+  - cd rabix-integration-testing
+  - ls -ltra
 
 script:
   - mvn clean install package -P draft-sb
