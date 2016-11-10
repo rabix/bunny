@@ -9,8 +9,6 @@ before_install:
   - git clone https://github.com/rabix/common-workflow-language.git
   - pwd
   - ls -ltra
-  - cd rabix-integration-testing
-  - ls -ltra
 
 script:
   - mvn clean install package -P draft-sb
