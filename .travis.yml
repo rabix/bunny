@@ -1,12 +1,12 @@
 sudo: required
 language: java
-python:
-  - 2.7
 
 services:
   - docker
 
 before_install:
+  - sudo apt-get update
+  - sudo apt-get install python3
   - cd rabix-integration-testing
   - git clone https://github.com/rabix/common-workflow-language.git
   - cd ..
@@ -19,7 +19,8 @@ script:
   - ls -ltra
   - mvn clean install package -P draft-sb
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -e -X
- 
+  - pwd
+ # - cd rabix-integration-testing
 cache:
   directories:
   - $HOME/.m2
