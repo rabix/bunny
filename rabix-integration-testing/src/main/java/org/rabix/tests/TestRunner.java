@@ -33,13 +33,13 @@ public class TestRunner {
 
 	public static void main(String[] commandLineArguments) {
 		try {
-			logger.info("Integration testing: started");
-			PropertiesConfiguration configuration = getConfig();
-			testDirPath = getStringFromConfig(configuration, "testDirPath");
-			cmdPrefix = getStringFromConfig(configuration, "cmdPrefix");
-			buildFile = getStringFromConfig(configuration, "buildFile");
-			startTestExecution();
-			logger.info("Integration testing: finished");
+//			logger.info("Integration testing: started");
+//			PropertiesConfiguration configuration = getConfig();
+//			testDirPath = getStringFromConfig(configuration, "testDirPath");
+//			cmdPrefix = getStringFromConfig(configuration, "cmdPrefix");
+//			buildFile = getStringFromConfig(configuration, "buildFile");
+//			startTestExecution();
+//			logger.info("Integration testing: finished");
 			
 			logger.info("Conformance testing: started");
 			startConformanceTests();
