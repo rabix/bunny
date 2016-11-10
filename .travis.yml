@@ -4,11 +4,10 @@ language: java
 services:
   - docker
 
-#before_install:
- # - cd rabix-integration-testing
- # - git clone https://github.com/rabix/common-workflow-language.git
- # - pwd
- # - ls -ltra
+before_install:
+  - cd rabix-integration-testing
+  - git clone https://github.com/rabix/common-workflow-language.git
+  - cd ..
 
 script:
   - mvn clean install package -P draft-sb
