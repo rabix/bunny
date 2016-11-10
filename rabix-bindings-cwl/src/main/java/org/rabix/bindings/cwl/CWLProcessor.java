@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
@@ -79,7 +78,7 @@ public class CWLProcessor implements ProtocolProcessor {
     
     CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
-      Map<String, Object> inputs = job.getInputs();
+      Map<String, Object> inputs = cwlJob.getInputs();
       
       inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
       inputs = portProcessorHelper.setPathsToInputs(inputs);
@@ -87,7 +86,10 @@ public class CWLProcessor implements ProtocolProcessor {
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
-      return Job.cloneWithInputs(newJob, inputs);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(newJob, commonInputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -130,7 +132,7 @@ public class CWLProcessor implements ProtocolProcessor {
       } else {
         outputs = collectOutputs(cwlJob, workingDir, hashAlgorithm);
       }
-      return Job.cloneWithOutputs(job, outputs);
+      return Job.cloneWithOutputs(job, (Map<String, Object>) CWLValueTranslator.translateToCommon(outputs));
     } catch (CWLGlobException | CWLExpressionException | IOException e) {
       throw new BindingException(e);
     }

@@ -19,7 +19,7 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
   public Set<FileValue> getInputFiles(Job job) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
-      return new CWLPortProcessorHelper(cwlJob).getInputFiles(job.getInputs(), null, null);
+      return new CWLPortProcessorHelper(cwlJob).getInputFiles(cwlJob.getInputs(), null, null);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -29,7 +29,7 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
-      return new CWLPortProcessorHelper(cwlJob).getInputFiles(job.getInputs(), fileMapper, job.getConfig());
+      return new CWLPortProcessorHelper(cwlJob).getInputFiles(cwlJob.getInputs(), fileMapper, job.getConfig());
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -43,7 +43,7 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
       if (onlyVisiblePorts) {
         visiblePorts = job.getVisiblePorts();
       }
-      return new CWLPortProcessorHelper(cwlJob).getOutputFiles(job.getOutputs(), visiblePorts);
+      return new CWLPortProcessorHelper(cwlJob).getOutputFiles(cwlJob.getOutputs(), visiblePorts);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -54,7 +54,7 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     Map<String, Object> inputs;
     try {
-      inputs = new CWLPortProcessorHelper(cwlJob).updateInputFiles(job.getInputs(), fileTransformer);
+      inputs = new CWLPortProcessorHelper(cwlJob).updateInputFiles(cwlJob.getInputs(), fileTransformer);
       return Job.cloneWithInputs(job, inputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
@@ -66,7 +66,7 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     Map<String, Object> outputs;
     try {
-      outputs = new CWLPortProcessorHelper(cwlJob).updateOutputFiles(job.getOutputs(), fileTransformer);
+      outputs = new CWLPortProcessorHelper(cwlJob).updateOutputFiles(cwlJob.getOutputs(), fileTransformer);
       return Job.cloneWithOutputs(job, outputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);

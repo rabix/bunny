@@ -59,11 +59,14 @@ public class SBProcessor implements ProtocolProcessor {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     SBPortProcessorHelper portProcessorHelper = new SBPortProcessorHelper(sbJob);
     try {
-      Map<String, Object> inputs = job.getInputs();
+      Map<String, Object> inputs = sbJob.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-      return Job.cloneWithInputs(job, inputs);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) SBValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }

@@ -21,8 +21,11 @@ public class SBFilePathMapper implements ProtocolFilePathMapper {
     SBPortProcessor sbPortProcessor = new SBPortProcessor(sbJob);
     try {
       Map<String, Object> config = job.getConfig();
-      Map<String, Object> inputs = sbPortProcessor.processInputs(job.getInputs(), new SBFilePathMapProcessorCallback(fileMapper, config));
-      return Job.cloneWithInputs(job, inputs);
+      Map<String, Object> inputs = sbPortProcessor.processInputs(sbJob.getInputs(), new SBFilePathMapProcessorCallback(fileMapper, config));
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) SBValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -35,8 +38,11 @@ public class SBFilePathMapper implements ProtocolFilePathMapper {
     SBPortProcessor sbPortProcessor = new SBPortProcessor(sbJob);
     try {
       Map<String, Object> config = job.getConfig();
-      Map<String, Object> outputs = sbPortProcessor.processOutputs(job.getOutputs(), new SBFilePathMapProcessorCallback(fileMapper, config));
-      return Job.cloneWithOutputs(job, outputs);
+      Map<String, Object> outputs = sbPortProcessor.processOutputs(sbJob.getOutputs(), new SBFilePathMapProcessorCallback(fileMapper, config));
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) SBValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }

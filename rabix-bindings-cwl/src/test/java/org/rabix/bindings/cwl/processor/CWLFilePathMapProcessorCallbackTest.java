@@ -38,7 +38,7 @@ public class CWLFilePathMapProcessorCallbackTest {
         }
       });
       
-      Assert.assertNotNull(job.getInputs());
+      Assert.assertNotNull(cwlJob.getInputs());
       Assert.assertEquals(((Map<String, Object>) job.getInputs().get("src")).get("path"), "Hello.java.temp");
       Assert.assertEquals(((Map<String, Object>) job.getInputs().get("dir")).get("path"), "hello_directory.temp");
       System.out.println(job.getInputs());

@@ -231,4 +231,14 @@ public class CWLBindings implements Bindings {
   @Override public boolean isRequiredFromSchema(Object schema) {
     return CWLSchemaHelper.isRequired(schema);
   }
+
+  @Override
+  public Object translateToSpecific(Object commonValue) throws BindingException {
+    return CWLValueTranslator.translateToSpecific(commonValue);
+  }
+
+  @Override
+  public Object translateToCommon(Object nativeValue) throws BindingException {
+    return CWLValueTranslator.translateToCommon(nativeValue);
+  }
 }
