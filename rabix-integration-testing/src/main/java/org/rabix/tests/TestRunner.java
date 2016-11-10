@@ -62,8 +62,11 @@ public class TestRunner {
 		logger.info("work dir check2:");
 		command("pwd", cwltestWorkingDir);
 		
+		logger.info("debugging draft-2 test dir:");
+		command("pwd", cwltestWorkingDir);
+		
 		logger.info("Executing cwltest command: " + commandCwlTest);
-		command(commandCwlTest, cwltestWorkingDir);
+		command("cd "+ cwltestWorkingDir, cwltestWorkingDir);
 	
 	}
 
