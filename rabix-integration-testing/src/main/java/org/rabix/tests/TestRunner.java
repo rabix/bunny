@@ -63,10 +63,10 @@ public class TestRunner {
 		command("pwd", cwltestWorkingDir);
 		
 		logger.info("debugging draft-2 test dir:");
-		command("pwd", cwltestWorkingDir);
+		command("ls -ltra ", cwltestWorkingDir);
 		
 		logger.info("Executing cwltest command: " + commandCwlTest);
-		command("cd "+ cwltestWorkingDir, cwltestWorkingDir);
+		command(commandCwlTest, cwltestWorkingDir);
 	
 	}
 
