@@ -266,6 +266,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
+    setName(fileValue.getName(), raw);
     setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);

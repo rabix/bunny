@@ -159,7 +159,7 @@ public class CWLProcessor implements ProtocolProcessor {
     return result;
   }
   
-  private void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm) throws IOException {
+  private void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, File workingDir) throws IOException {
     if (value == null) {
       return;
     }
@@ -168,7 +168,7 @@ public class CWLProcessor implements ProtocolProcessor {
         String contents = CWLFileValueHelper.getContents(value);
         CWLFileValueHelper.setSize(new Long(contents.length()), value);
 
-        File tmpFile = File.createTempFile("file_literal_", "txt");
+        File tmpFile = new File(workingDir, CWLFileValueHelper.getName(value));
         FileUtils.writeStringToFile(tmpFile, contents);
         String checksum = ChecksumHelper.checksum(tmpFile, hashAlgorithm);
         CWLFileValueHelper.setChecksum(checksum, value);

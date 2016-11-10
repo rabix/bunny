@@ -79,6 +79,10 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     String contents = loadContents(raw);
     setValue(KEY_CONTENTS, contents, raw);
   }
+  
+  private static void setContents(String contents, Map<String, Object> raw) {
+    setValue(KEY_CONTENTS, contents, raw);
+  }
 
   public static String getContents(Object raw) {
     return getValue(KEY_CONTENTS, raw);
@@ -205,8 +209,11 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
+    setName(fileValue.getName(), raw);
+    setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
+    setContents(fileValue.getContents(), raw);
     
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {
@@ -223,4 +230,5 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     }
     return raw;
   }
+
 }
