@@ -40,10 +40,27 @@ public class TestRunner {
 			buildFile = getStringFromConfig(configuration, "buildFile");
 			startTestExecution();
 			logger.info("Integration testing: finished");
+			
+			logger.info("Conformance testing: started");
+			startConformanceTests();
+			logger.info("Conformance testing: finished");
+			
 		} catch (RabixTestException e) {
 			logger.error("Error occuerred!", e);
 			System.exit(-1);
 		}
+	}
+
+	private static void startConformanceTests() throws RabixTestException {
+		String commandCwlTest = "cwltest --test conformance_test_draft-2.yaml --tool " + System.getProperty("user.dir")
+		+ "/rabix-backend-local/target/rabix-backend-local-0.6.1-SNAPSHOT-id3/rabix -j 4";
+		
+		logger.info("Executing cwltest command: " + commandCwlTest);
+		
+		String cwltestWorkingDir = System.getProperty("user.dir") + "/rabix-integration-testing/common-workflow-language/draft-2";
+		
+		command(commandCwlTest, cwltestWorkingDir);
+	
 	}
 
 	private static void startTestExecution() throws RabixTestException {
