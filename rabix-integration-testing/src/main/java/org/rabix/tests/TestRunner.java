@@ -55,10 +55,14 @@ public class TestRunner {
 		String commandCwlTest = "cwltest --test conformance_test_draft-2.yaml --tool " + System.getProperty("user.dir")
 		+ "/rabix-backend-local/target/rabix-backend-local-0.6.1-SNAPSHOT-id3/rabix -j 4";
 		
-		logger.info("Executing cwltest command: " + commandCwlTest);
-		
 		String cwltestWorkingDir = System.getProperty("user.dir") + "/rabix-integration-testing/common-workflow-language/draft-2";
 		
+		logger.info("work dir check1:");
+		command("pwd", workingdir);
+		logger.info("work dir check2:");
+		command("pwd", cwltestWorkingDir);
+		
+		logger.info("Executing cwltest command: " + commandCwlTest);
 		command(commandCwlTest, cwltestWorkingDir);
 	
 	}
