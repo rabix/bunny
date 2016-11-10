@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.ValueTranslator;
 import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.DirectoryValue;
@@ -31,8 +30,8 @@ public class Draft3ValueTranslator {
       Map<String, Object> map = new HashMap<>();
       for (Entry<String, Object> entry : ((Map<String, Object>) commonValue).entrySet()) {
         map.put(entry.getKey(), translateToSpecific(entry.getValue()));
-        return map;
       }
+      return map;
     }
     if (commonValue instanceof DirectoryValue) {
       throw new BindingException("Failed to translate DirectoryValue " + commonValue);
@@ -62,8 +61,8 @@ public class Draft3ValueTranslator {
       Map<String, Object> map = new HashMap<>();
       for (Entry<String, Object> entry : ((Map<String, Object>) nativeValue).entrySet()) {
         map.put(entry.getKey(), translateToCommon(entry.getValue()));
-        return map;
       }
+      return map;
     }
     return nativeValue;
   }

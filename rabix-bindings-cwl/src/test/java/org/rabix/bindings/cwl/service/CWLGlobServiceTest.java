@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.cwl.CWLBindings;
+import org.rabix.bindings.cwl.CWLValueTranslator;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Job;
@@ -43,12 +44,15 @@ public class CWLGlobServiceTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testCommandLineTool() throws Exception {
     String inputJson = ResourceHelper.readResource(CWLGlobServiceTest.class, "cwl-glob-test-json.json");
 
     CWLJob cwlJob = BeanSerializer.deserialize(inputJson, CWLJob.class);
     String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(cwlJob.getApp()));
-    Job job = new Job("id", "id", "id", "id", encodedApp, null, null, cwlJob.getInputs(), null, null, null, null);
+    
+    Map<String, Object> inputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(cwlJob.getInputs());
+    Job job = new Job("id", "id", "id", "id", encodedApp, null, null, inputs, null, null, null, null);
 
     Bindings bindings = new CWLBindings();
     job = bindings.postprocess(job, workingDir, null);

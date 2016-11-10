@@ -2,10 +2,12 @@ package org.rabix.bindings.cwl.bean;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.cwl.CWLBindings;
+import org.rabix.bindings.cwl.CWLValueTranslator;
 import org.rabix.bindings.cwl.helper.CWLRuntimeHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Job;
@@ -21,6 +23,7 @@ import org.testng.annotations.Test;
 public class CWLInitialWorkDirRequirementTest {
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testInitialWorkDirRequirement() throws IOException {
     String inputJson = ResourceHelper.readResource(this.getClass(), "1st-tool.cwl");
 
@@ -29,7 +32,8 @@ public class CWLInitialWorkDirRequirementTest {
 
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(cwlJob.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, cwlJob.getInputs(), null, null, null, null);
+      Map<String, Object> inputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(cwlJob.getInputs());
+      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, inputs, null, null, null, null);
       job = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       Bindings bindings = new CWLBindings();
       

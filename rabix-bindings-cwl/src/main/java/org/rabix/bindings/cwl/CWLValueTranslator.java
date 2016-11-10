@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.rabix.bindings.ValueTranslator;
 import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
@@ -31,8 +30,8 @@ public class CWLValueTranslator {
       Map<String, Object> map = new HashMap<>();
       for (Entry<String, Object> entry : ((Map<String, Object>) commonValue).entrySet()) {
         map.put(entry.getKey(), translateToSpecific(entry.getValue()));
-        return map;
       }
+      return map;
     }
     if (commonValue instanceof DirectoryValue) {
       return CWLDirectoryValueHelper.createDirectoryRaw((DirectoryValue) commonValue);
@@ -65,8 +64,8 @@ public class CWLValueTranslator {
       Map<String, Object> map = new HashMap<>();
       for (Entry<String, Object> entry : ((Map<String, Object>) nativeValue).entrySet()) {
         map.put(entry.getKey(), translateToCommon(entry.getValue()));
-        return map;
       }
+      return map;
     }
     return nativeValue;
   }

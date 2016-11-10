@@ -30,8 +30,8 @@ public class Draft2ValueTranslator {
       Map<String, Object> map = new HashMap<>();
       for (Entry<String, Object> entry : ((Map<String, Object>) commonValue).entrySet()) {
         map.put(entry.getKey(), translateToSpecific(entry.getValue()));
-        return map;
       }
+      return map;
     }
     if (commonValue instanceof DirectoryValue) {
       throw new BindingException("Failed to translate DirectoryValue " + commonValue);
@@ -61,8 +61,8 @@ public class Draft2ValueTranslator {
       Map<String, Object> map = new HashMap<>();
       for (Entry<String, Object> entry : ((Map<String, Object>) nativeValue).entrySet()) {
         map.put(entry.getKey(), translateToCommon(entry.getValue()));
-        return map;
       }
+      return map;
     }
     return nativeValue;
   }
