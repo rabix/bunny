@@ -53,6 +53,7 @@ public class TestRunner {
 	}
 
 	private static void startConformanceTests() throws RabixTestException {
+		
 		String commandCwlTest = "cwltest --test conformance_test_draft-2.yaml --tool " + System.getProperty("user.dir")
 		+ "/rabix-backend-local/target/rabix-backend-local-0.6.1-SNAPSHOT-id3/rabix";
 		
