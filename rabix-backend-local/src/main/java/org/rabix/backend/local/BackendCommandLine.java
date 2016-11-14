@@ -331,7 +331,7 @@ public class BackendCommandLine {
             try {
               try {
                 Map<String, Object> outputs = (Map<String, Object>) finalBindings.translateToSpecific(rootJob.getOutputs());
-                System.out.println(JSONHelper.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
+                System.out.println(JSONHelper.mapperWithoutNulls.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
                 System.exit(0);
               } catch (BindingException e) {
                 logger.error("Failed to translate common outputs to native", e);
