@@ -54,10 +54,16 @@ public class TestRunner {
 
 	private static void startConformanceTests() throws RabixTestException {
 		
+		
+		
 		String commandCwlTest = "cwltest --test conformance_test_draft-2.yaml --tool " + System.getProperty("user.dir")
 		+ "/rabix-backend-local/target/rabix-backend-local-0.6.1-SNAPSHOT-id3/rabix";
 		
 		String cwltestWorkingDir = System.getProperty("user.dir") + "/rabix-integration-testing/common-workflow-language/draft-2";
+		
+		command("virtualenv env", cwltestWorkingDir);
+		command("source env/bin/activate", cwltestWorkingDir);
+		command("pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest", cwltestWorkingDir);
 		
 		logger.info("work dir check1:");
 		command("pwd", workingdir);
