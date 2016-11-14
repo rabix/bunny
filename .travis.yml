@@ -21,12 +21,6 @@ install:
   - pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest
   - pwd
   - ls -ltra
-  - cd src
-  - ls -ltra
-  - cd cwltest
-  - ls -ltra
-  - cd ..
-  - cd ..
 
 script:
   - pwd
