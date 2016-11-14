@@ -95,6 +95,7 @@ public class TestRunner {
 		}
 
 		logger.info("Extracting build file: started");
+		command("ls -ltra", "./rabix-backend-local/target");
 		String commandUntarBuildFile = "tar -zxvf " + System.getProperty("user.dir") + buildFile;
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
 		command(commandUntarBuildFile, workingdir);
