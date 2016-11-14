@@ -95,11 +95,18 @@ public class TestRunner {
 		}
 
 		logger.info("Extracting build file: started");
-		command("pwd", ".");
 		
 		String commandUntarBuildFile = "tar -zxvf " + System.getProperty("user.dir") + buildFile;
+		
+		File extractDir = new File(System.getProperty("user.dir") + buildFile);
+
+		if (!extractDir.isDirectory()) {
+			logger.error("Problem with extract directory path: Test extract directory path is not valid directory path.");
+			System.exit(-1);
+		}
+		
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
-		command(commandUntarBuildFile, workingdir);
+		command(commandUntarBuildFile, System.getProperty("user.dir") + "/rabix-backend-local/target/");
 		logger.info("Extracting build file: done");
 
 		String commandCopyTestbacklog = "cp -a " + System.getProperty("user.dir")
