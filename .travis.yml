@@ -23,6 +23,11 @@ script:
   - pwd
   - ls -ltra
   - mvn clean install package -P draft-2
+  - cd rabix-backend-local/target
+  - ls -ltra
+  - cd ..
+  - cd ..
+  - pwd
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -e -X
 
 cache:
