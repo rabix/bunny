@@ -187,7 +187,11 @@ public class CWLProcessor implements ProtocolProcessor {
         if (listing != null) {
           for (Object listingObj : listing) {
             if (CWLSchemaHelper.isFileFromValue(listingObj)) {
-              FileUtils.copyFile(new File(CWLFileValueHelper.getPath(listingObj)), new File(workingDir, CWLFileValueHelper.getName(listingObj)));
+              File destinationFile = new File(workingDir, CWLFileValueHelper.getName(listingObj));
+              FileUtils.copyFile(new File(CWLFileValueHelper.getPath(listingObj)), destinationFile);
+              String checksum = ChecksumHelper.checksum(destinationFile, hashAlgorithm);
+              CWLFileValueHelper.setChecksum(checksum, listingObj);
+              CWLFileValueHelper.setLocation(destinationFile.getAbsolutePath(), listingObj);
             } else {
               FileUtils.copyDirectory(new File(CWLDirectoryValueHelper.getPath(listingObj)), new File(workingDir, CWLDirectoryValueHelper.getName(listingObj)));
             }
