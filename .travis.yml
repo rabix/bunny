@@ -5,22 +5,22 @@ services:
   - docker
 
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install python3
   - cd rabix-integration-testing
   - git clone https://github.com/rabix/common-workflow-language.git
   - pwd
-  - ls -ltra	
+  - ls -ltra
+  - virtualenv env	
   - cd ..
-  - virtualenv env
 
 install:
   - pwd
   - ls -ltra
+  - cd rabix-integration-testing
   - source env/bin/activate
   - pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest
   - pwd
   - ls -ltra
+  - cd ..
 
 script:
   - pwd
