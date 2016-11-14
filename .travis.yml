@@ -21,6 +21,10 @@ install:
   - ls -ltra
   - cd src
   - ls -ltra
+  - cd cwltest
+  - ls -ltra
+  - cd
+
 script:
   - pwd
   - ls -ltra
