@@ -98,10 +98,15 @@ public class TestRunner {
 		
 		String commandUntarBuildFile = "tar -zxvf " + System.getProperty("user.dir") + buildFile;
 		
-		File extractDir = new File(System.getProperty("user.dir") + buildFile);
+		File extractDir = new File(System.getProperty("user.dir") + "/rabix-backend-local/target/");
+		File fileToExtract= new File(System.getProperty("user.dir") + buildFile);
 
 		if (!extractDir.isDirectory()) {
 			logger.error("Problem with extract directory path: Test extract directory path is not valid directory path.");
+			System.exit(-1);
+		}
+		if (!fileToExtract.isFile()) {
+			logger.error("Problem with extract file path: Test extract file path is not valid directory path.");
 			System.exit(-1);
 		}
 		
