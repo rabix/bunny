@@ -14,8 +14,11 @@ before_install:
   - cd ..
 
 install:
+  - pwd
+  - ls -ltra
   - pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest
-
+  - pwd
+  - ls -ltra
 script:
   - pwd
   - ls -ltra
