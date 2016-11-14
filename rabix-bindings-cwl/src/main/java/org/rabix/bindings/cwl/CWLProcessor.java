@@ -164,19 +164,35 @@ public class CWLProcessor implements ProtocolProcessor {
       return;
     }
     if ((CWLSchemaHelper.isFileFromValue(value)) || CWLSchemaHelper.isDirectoryFromValue(value)) {
+      // TODO discuss File literal processing
       if (CWLFileValueHelper.isFileLiteral(value)) {
         String contents = CWLFileValueHelper.getContents(value);
         CWLFileValueHelper.setSize(new Long(contents.length()), value);
 
-        File tmpFile = new File(workingDir, CWLFileValueHelper.getName(value));
-        FileUtils.writeStringToFile(tmpFile, contents);
-        String checksum = ChecksumHelper.checksum(tmpFile, hashAlgorithm);
+        File file = new File(workingDir, CWLFileValueHelper.getName(value));
+        FileUtils.writeStringToFile(file, contents);
+        String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
         CWLFileValueHelper.setChecksum(checksum, value);
-        tmpFile.delete();
+        CWLFileValueHelper.setLocation(file.getAbsolutePath(), value);
         return;
       }
       
+      // TODO discuss Directory literal processing
       if (CWLDirectoryValueHelper.isDirectoryLiteral(value)) {
+        File directory = new File(workingDir, CWLDirectoryValueHelper.getName(value));
+        directory.mkdirs();
+        CWLDirectoryValueHelper.setLocation(directory.getAbsolutePath(), value);
+        
+        List<Object> listing = CWLDirectoryValueHelper.getListing(value);
+        if (listing != null) {
+          for (Object listingObj : listing) {
+            if (CWLSchemaHelper.isFileFromValue(listingObj)) {
+              FileUtils.copyFile(new File(CWLFileValueHelper.getPath(listingObj)), new File(workingDir, CWLFileValueHelper.getName(listingObj)));
+            } else {
+              FileUtils.copyDirectory(new File(CWLDirectoryValueHelper.getPath(listingObj)), new File(workingDir, CWLDirectoryValueHelper.getName(listingObj)));
+            }
+          }
+        }
         return;
       }
       
