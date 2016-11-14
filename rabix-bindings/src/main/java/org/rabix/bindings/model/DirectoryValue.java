@@ -49,7 +49,7 @@ public class DirectoryValue extends FileValue {
   
   @JsonProperty("$type")
   public FileType getType() {
-    return FileType.DIRECTORY;
+    return FileType.Directory;
   }
 
   @SuppressWarnings("unchecked")
@@ -58,7 +58,7 @@ public class DirectoryValue extends FileValue {
       return false;
     }
     if (value instanceof Map<?, ?>) {
-      return ((Map<String, Object>) value).containsKey("$type") && ((Map<String, Object>) value).get("$type").equals("DIRECTORY");
+      return ((Map<String, Object>) value).containsKey("$type") && ((Map<String, Object>) value).get("$type").equals(FileType.Directory.toString());
     }
     return false;
   }

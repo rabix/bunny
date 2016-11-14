@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public class FileValue implements Serializable {
 
   public static enum FileType {
-    FILE, DIRECTORY
+    File, Directory
   }
   
   /**
@@ -160,7 +160,7 @@ public class FileValue implements Serializable {
 
   @JsonProperty("$type")
   public FileType getType() {
-    return FileType.FILE;
+    return FileType.File;
   }
 
   @Override
@@ -209,7 +209,7 @@ public class FileValue implements Serializable {
       return false;
     }
     if (value instanceof Map<?, ?>) {
-      return ((Map<String, Object>) value).containsKey("$type") && ((Map<String, Object>) value).get("$type").equals("FILE");
+      return ((Map<String, Object>) value).containsKey("$type") && ((Map<String, Object>) value).get("$type").equals(FileType.File.toString());
     }
     return false;
   }
