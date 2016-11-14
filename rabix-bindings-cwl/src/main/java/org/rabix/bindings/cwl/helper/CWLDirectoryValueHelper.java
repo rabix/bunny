@@ -187,6 +187,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     
     setDirectoryType(raw);
     setPath(fileValue.getPath(), raw);
+    setName(fileValue.getName(), raw);
     setSize(fileValue.getSize(), raw);
     setFormat(fileValue.getFormat(), raw);
     
