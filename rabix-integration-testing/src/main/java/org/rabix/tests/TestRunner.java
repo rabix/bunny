@@ -232,7 +232,7 @@ public class TestRunner {
 
 	public static void command(final String cmdline, final String directory) throws RabixTestException {
 		try {
-			Process process = new ProcessBuilder(new String[] {cmdline }).inheritIO()
+			Process process = new ProcessBuilder(new String[] {"bash", "-c", cmdline }).inheritIO()
 					.directory(new File(directory)).start();
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
