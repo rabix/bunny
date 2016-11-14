@@ -20,6 +20,7 @@ before_install:
  # - cd ..
 
 script:
+  - which bash
   - pwd
   - ls -ltra
   - mvn clean install package -P draft-2
