@@ -64,7 +64,8 @@ public class TestRunner {
 		command("virtualenv env", cwltestWorkingDir);
 		command("source env/bin/activate", cwltestWorkingDir);
 		command("pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest", cwltestWorkingDir);
-		
+		command("env", ".");
+		command("pwd", ".");
 		
 		logger.info("work dir check1:");
 		command("pwd", workingdir);
