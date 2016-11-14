@@ -14,7 +14,7 @@ before_install:
   - cd ..
 
 install:
-  - pip install -e git+https://github.com/bosonogi/cwltest.git@parallel-test-execution#egg=cwltest
+  - pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest
 
 script:
   - pwd
