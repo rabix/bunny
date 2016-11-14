@@ -9,6 +9,8 @@ before_install:
   - sudo apt-get install python3
   - cd rabix-integration-testing
   - git clone https://github.com/rabix/common-workflow-language.git
+  - pwd
+  - ls -ltra	
   - cd ..
 
 install:
