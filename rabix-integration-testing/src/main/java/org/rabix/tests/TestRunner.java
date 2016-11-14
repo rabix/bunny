@@ -42,42 +42,14 @@ public class TestRunner {
 			startTestExecution();
 			logger.info("Integration testing: finished");
 			
-			logger.info("Conformance testing: started");
-			startConformanceTests();
-			logger.info("Conformance testing: finished");
+//			logger.info("Conformance testing: started");
+//			startConformanceTests();
+//			logger.info("Conformance testing: finished");
 			
 		} catch (RabixTestException e) {
 			logger.error("Error occuerred:", e);
 			System.exit(-1);
 		}
-	}
-
-	private static void startConformanceTests() throws RabixTestException {
-		
-		
-		
-		String commandCwlTest = "cwltest --test conformance_test_draft-2.yaml --tool " + System.getProperty("user.dir")
-		+ "/rabix-backend-local/target/rabix-backend-local-0.6.1-SNAPSHOT-id3/rabix";
-		
-		String cwltestWorkingDir = System.getProperty("user.dir") + "/rabix-integration-testing/common-workflow-language/draft-2";
-		
-		command("virtualenv env", cwltestWorkingDir);
-		command("source env/bin/activate", cwltestWorkingDir);
-		command("pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest", cwltestWorkingDir);
-		command("env", ".");
-		command("pwd", ".");
-		
-		logger.info("work dir check1:");
-		command("pwd", workingdir);
-		logger.info("work dir check2:");
-		command("pwd", cwltestWorkingDir);
-		
-		logger.info("debugging draft-2 test dir:");
-		command("ls -ltra ", cwltestWorkingDir);
-		
-		logger.info("Executing cwltest command: " + commandCwlTest);
-		command(commandCwlTest, cwltestWorkingDir);
-	
 	}
 
 	private static void startTestExecution() throws RabixTestException {
