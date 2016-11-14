@@ -101,10 +101,12 @@ public class TestRunner {
 		File extractDir = new File(System.getProperty("user.dir") + "/rabix-backend-local/target/");
 		File fileToExtract= new File(System.getProperty("user.dir") + buildFile);
 
+		logger.info("Checking extract dir path: " + extractDir.getAbsolutePath());
 		if (!extractDir.isDirectory()) {
 			logger.error("Problem with extract directory path: Test extract directory path is not valid directory path.");
 			System.exit(-1);
 		}
+		logger.info("Checking extract file path: " + fileToExtract.getAbsolutePath());
 		if (!fileToExtract.isFile()) {
 			logger.error("Problem with extract file path: Test extract file path is not valid directory path.");
 			System.exit(-1);
