@@ -65,6 +65,7 @@ public class TestRunner {
 		command("source env/bin/activate", cwltestWorkingDir);
 		command("pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest", cwltestWorkingDir);
 		
+		
 		logger.info("work dir check1:");
 		command("pwd", workingdir);
 		logger.info("work dir check2:");
@@ -215,7 +216,7 @@ public class TestRunner {
 
 	public static void command(final String cmdline, final String directory) throws RabixTestException {
 		try {
-			Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
+			Process process = new ProcessBuilder(new String[] {cmdline }).inheritIO()
 					.directory(new File(directory)).start();
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
