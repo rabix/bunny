@@ -22,10 +22,16 @@ public class DirectoryValue extends FileValue {
     this.listing = listing;
   }
   
+  public DirectoryValue(Long size, String path, String location, String checksum, List<FileValue> listing, List<FileValue> secondaryFiles, Map<String, Object> properties, String name, String format) {
+    super(size, path, location, checksum, secondaryFiles, properties, name, format);
+    this.listing = listing;
+  }
+
+  
   @JsonCreator
   public DirectoryValue(@JsonProperty("size") Long size, @JsonProperty("path") String path, @JsonProperty("location") String location, @JsonProperty("name") String name, @JsonProperty("dirname") String dirname, @JsonProperty("nameroot") String nameroot, @JsonProperty("nameext") String nameext, @JsonProperty("contents") String contents, @JsonProperty("checksum") String checksum, @JsonProperty("secondaryFiles") List<FileValue> secondaryFiles, @JsonProperty("properties") Map<String, Object> properties,
-      @JsonProperty("listing") List<FileValue> listing) {
-    super(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties);
+      @JsonProperty("listing") List<FileValue> listing, @JsonProperty("format") String format) {
+    super(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, format);
     this.listing = listing;
   }
 
@@ -70,6 +76,7 @@ public class DirectoryValue extends FileValue {
     String path = (String) map.get("path");
     String location = (String) map.get("location");
     String name = (String) map.get("name");
+    String format = (String) map.get("format");
     String dirname = (String) map.get("dirname");
     String nameroot = (String) map.get("nameroot");
     String nameext = (String) map.get("nameext");
@@ -90,7 +97,7 @@ public class DirectoryValue extends FileValue {
         listing.add(fromMap(listingObj));
       }
     }
-    return new DirectoryValue(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, listing);
+    return new DirectoryValue(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, listing, format);
   }
   
   @Override

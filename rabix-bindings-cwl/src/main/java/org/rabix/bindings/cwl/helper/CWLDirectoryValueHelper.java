@@ -39,8 +39,12 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     setValue(CWLSchemaHelper.KEY_JOB_TYPE, CWLSchemaHelper.TYPE_JOB_DIRECTORY, raw);
   }
 
-  public static Object getFormat(Object raw) {
+  public static String getFormat(Object raw) {
     return getValue(KEY_FORMAT, raw);
+  }
+  
+  public static void setFormat(String format, Object raw) {
+    setValue(KEY_FORMAT, format, raw);
   }
   
   public static String getName(Object raw) {
@@ -138,6 +142,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
    */
   public static DirectoryValue createDirectoryValue(Object value) {
     String path = CWLFileValueHelper.getPath(value);
+    String format = CWLFileValueHelper.getFormat(value);
     String name = CWLFileValueHelper.getName(value);
     String location = CWLFileValueHelper.getLocation(value);
     Long size = CWLFileValueHelper.getSize(value);
@@ -174,7 +179,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
         }
       }
     }
-    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties, name);
+    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties, name, format);
   }
 
   public static Map<String, Object> createDirectoryRaw(DirectoryValue fileValue) {
@@ -183,6 +188,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     setDirectoryType(raw);
     setPath(fileValue.getPath(), raw);
     setSize(fileValue.getSize(), raw);
+    setFormat(fileValue.getFormat(), raw);
     
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {

@@ -47,7 +47,9 @@ public class FileValue implements Serializable {
   protected String nameext;
   @JsonProperty("contents")
   protected String contents;
-
+  @JsonProperty("format")
+  protected String format;
+  
   @JsonProperty("checksum")
   protected String checksum;
   @JsonProperty("secondaryFiles")
@@ -55,8 +57,7 @@ public class FileValue implements Serializable {
   @JsonProperty("properties")
   protected Map<String, Object> properties;
 
-  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles,
-      Map<String, Object> properties, String name) {
+  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties, String name) {
     super();
     this.size = size;
     this.path = path;
@@ -66,6 +67,11 @@ public class FileValue implements Serializable {
     this.secondaryFiles = secondaryFiles;
     this.properties = properties;
   }
+  
+  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties, String name, String format) {
+    this(size, path, location, checksum, secondaryFiles, properties, name);
+    this.format = format;
+  }
 
   @JsonCreator
   public FileValue(@JsonProperty("size") Long size, @JsonProperty("path") String path,
@@ -73,12 +79,13 @@ public class FileValue implements Serializable {
       @JsonProperty("dirname") String dirname, @JsonProperty("nameroot") String nameroot,
       @JsonProperty("nameext") String nameext, @JsonProperty("contents") String contents,
       @JsonProperty("checksum") String checksum, @JsonProperty("secondaryFiles") List<FileValue> secondaryFiles,
-      @JsonProperty("properties") Map<String, Object> properties) {
+      @JsonProperty("properties") Map<String, Object> properties, @JsonProperty("format") String format) {
     super();
     this.size = size;
     this.path = path;
     this.location = location;
     this.name = name;
+    this.format = format;
     this.dirname = dirname;
     this.nameroot = nameroot;
     this.nameext = nameext;
@@ -146,6 +153,10 @@ public class FileValue implements Serializable {
   public Map<String, Object> getProperties() {
     return properties;
   }
+  
+  public String getFormat() {
+    return format;
+  }
 
   @JsonProperty("$type")
   public FileType getType() {
@@ -211,6 +222,7 @@ public class FileValue implements Serializable {
     Map<String, Object> map = (Map<String, Object>) value;
     Long size = map.get("size") != null ? new Long((Integer) map.get("size")) : null;
     String path = (String) map.get("path");
+    String format = (String) map.get("format");
     String location = (String) map.get("location");
     String name = (String) map.get("name");
     String dirname = (String) map.get("dirname");
@@ -231,7 +243,7 @@ public class FileValue implements Serializable {
         }
       }
     }
-    return new FileValue(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties);
+    return new FileValue(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, format);
   }
   
 }

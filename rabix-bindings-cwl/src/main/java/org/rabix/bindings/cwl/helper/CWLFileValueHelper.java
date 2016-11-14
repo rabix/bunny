@@ -39,12 +39,16 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     setValue(CWLSchemaHelper.KEY_JOB_TYPE, CWLSchemaHelper.TYPE_JOB_FILE, raw);
   }
 
-  public static Object getFormat(Object raw) {
+  public static String getFormat(Object raw) {
     return getValue(KEY_FORMAT, raw);
   }
   
   public static void setNameroot(String nameroot, Object raw) {
     setValue(KEY_NAMEROOT, nameroot, raw);
+  }
+  
+  public static void setFormat(String format, Object raw) {
+    setValue(KEY_FORMAT, format, raw);
   }
   
   public static String getNameroot(Object raw) {
@@ -225,6 +229,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   public static FileValue createFileValue(Object value) {
     String path = CWLFileValueHelper.getPath(value);
     String name = CWLFileValueHelper.getName(value);
+    String format = CWLFileValueHelper.getFormat(value);
     String location = CWLFileValueHelper.getLocation(value);
     String checksum = CWLFileValueHelper.getChecksum(value);
     String dirname = CWLFileValueHelper.getDirname(value);
@@ -258,7 +263,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         }
       }
     }
-    return new FileValue(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties);
+    return new FileValue(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, format);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
@@ -267,6 +272,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
     setName(fileValue.getName(), raw);
+    setFormat(fileValue.getFormat(), raw);
     setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
