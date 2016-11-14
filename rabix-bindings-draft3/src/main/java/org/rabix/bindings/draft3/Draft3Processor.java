@@ -64,7 +64,7 @@ public class Draft3Processor implements ProtocolProcessor {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     Draft3Runtime runtime;
     try {
-      runtime = Draft3RuntimeHelper.createRuntime(draft3Job);
+      runtime = Draft3RuntimeHelper.createRuntime(draft3Job, job.getResources());
     } catch (Draft3ExpressionException e1) {
       throw new BindingException(e1);
     }
