@@ -9,11 +9,14 @@ public class DockerContainerRequirement extends Requirement {
   private final String dockerPull;
   @JsonProperty("dockerImageId")
   private final String dockerImageId;
+  @JsonProperty("dockerOutputDirectory")
+  private final String dockerOutputDirectory;
   
   @JsonCreator
-  public DockerContainerRequirement(String dockerPull, String dockerImageId) {
+  public DockerContainerRequirement(String dockerPull, String dockerImageId, String dockerOutputDirectory) {
     this.dockerPull = dockerPull;
     this.dockerImageId = dockerImageId;
+    this.dockerOutputDirectory = dockerOutputDirectory;
   }
 
   public String getDockerPull() {
@@ -22,6 +25,10 @@ public class DockerContainerRequirement extends Requirement {
 
   public String getDockerImageId() {
     return dockerImageId;
+  }
+  
+  public String getDockerOutputDirectory() {
+    return dockerOutputDirectory;
   }
 
   @Override
