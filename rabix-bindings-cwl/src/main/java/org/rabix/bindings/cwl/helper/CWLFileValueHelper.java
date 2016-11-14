@@ -305,8 +305,11 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     if (fileRaw == null) {
       return false;
     }
-    String location = getLocation(fileRaw);
-    String path = getPath(fileRaw);
-    return location == null && path == null;
+    if (CWLSchemaHelper.isFileFromValue(fileRaw)) {
+      String location = getLocation(fileRaw);
+      String path = getPath(fileRaw);
+      return location == null && path == null;
+    }
+    return false;
   }
 }

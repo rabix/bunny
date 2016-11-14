@@ -176,6 +176,10 @@ public class CWLProcessor implements ProtocolProcessor {
         return;
       }
       
+      if (CWLDirectoryValueHelper.isDirectoryLiteral(value)) {
+        return;
+      }
+      
       File file = new File(CWLFileValueHelper.getPath(value));
       if (!file.exists()) {
         return;
