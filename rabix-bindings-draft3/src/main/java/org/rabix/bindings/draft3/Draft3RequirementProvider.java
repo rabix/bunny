@@ -37,7 +37,7 @@ public class Draft3RequirementProvider implements ProtocolRequirementProvider {
     if (draft3DockerResource == null) {
       return null;
     }
-    return new DockerContainerRequirement(draft3DockerResource.getDockerPull(), draft3DockerResource.getImageId());
+    return new DockerContainerRequirement(draft3DockerResource.getDockerPull(), draft3DockerResource.getImageId(), draft3DockerResource.getDockerOutputDirectory());
   }
 
   private EnvironmentVariableRequirement getEnvironmentVariableRequirement(Draft3Job draft3Job,

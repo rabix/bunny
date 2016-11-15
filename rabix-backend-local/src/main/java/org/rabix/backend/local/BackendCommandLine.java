@@ -300,10 +300,21 @@ public class BackendCommandLine {
       backendLocal = backendService.create(backendLocal);
       executorService.initialize(backendLocal);
 
-      final Job job = jobService.start(new Job(appUrl, inputs), contextConfig);
+      Object commonInputs = null;
+      try {
+        commonInputs = bindings.translateToCommon(inputs);
+      } catch (BindingException e1) {
+        VerboseLogger.log("Failed to translate inputs to the common Rabix format");
+        System.exit(10);
+      }
+      
+      @SuppressWarnings("unchecked")
+      final Job job = jobService.start(new Job(appUrl, (Map<String, Object>) commonInputs), contextConfig);
 
+      final Bindings finalBindings = bindings;
       Thread checker = new Thread(new Runnable() {
         @Override
+        @SuppressWarnings("unchecked")
         public void run() {
           Job rootJob = jobService.get(job.getId());
 
@@ -318,8 +329,14 @@ public class BackendCommandLine {
           }
           if (rootJob.getStatus().equals(JobStatus.COMPLETED)) {
             try {
-              System.out.println(JSONHelper.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootJob.getOutputs()));
-              System.exit(0);
+              try {
+                Map<String, Object> outputs = (Map<String, Object>) finalBindings.translateToSpecific(rootJob.getOutputs());
+                System.out.println(JSONHelper.mapperWithoutNulls.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
+                System.exit(0);
+              } catch (BindingException e) {
+                logger.error("Failed to translate common outputs to native", e);
+                throw new RuntimeException(e);
+              }
             } catch (JsonProcessingException e) {
               logger.error("Failed to write outputs to standard out", e);
               System.exit(10);
