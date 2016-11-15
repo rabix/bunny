@@ -40,7 +40,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
     if (cwlDockerResource == null) {
       return null;
     }
-    return new DockerContainerRequirement(cwlDockerResource.getDockerPull(), cwlDockerResource.getImageId());
+    return new DockerContainerRequirement(cwlDockerResource.getDockerPull(), cwlDockerResource.getImageId(), cwlDockerResource.getDockerOutputDirectory());
   }
 
   private EnvironmentVariableRequirement getEnvironmentVariableRequirement(CWLJob cwlJob, CWLEnvVarRequirement envVarRequirement) throws BindingException {

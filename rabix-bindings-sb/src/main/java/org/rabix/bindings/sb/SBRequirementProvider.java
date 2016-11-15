@@ -36,7 +36,7 @@ public class SBRequirementProvider implements ProtocolRequirementProvider {
     if (sbDockerResource == null) {
       return null;
     }
-    return new DockerContainerRequirement(sbDockerResource.getDockerPull(), sbDockerResource.getImageId());
+    return new DockerContainerRequirement(sbDockerResource.getDockerPull(), sbDockerResource.getImageId(), null);
   }
 
   private EnvironmentVariableRequirement getEnvironmentVariableRequirement(SBJob sbJob, SBEnvVarRequirement envVarRequirement) throws BindingException {
