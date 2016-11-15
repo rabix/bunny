@@ -479,10 +479,10 @@ public class CWLProcessor implements ProtocolProcessor {
     Object result = null;
     try {
       result = CWLExpressionResolver.resolve(transform, cwlJob, value);
+      return CWLValueTranslator.translateToCommon(result);
     } catch (CWLExpressionException e) {
       throw new BindingException(e);
     }
-    return result;
   }
 
 }

@@ -410,10 +410,10 @@ public class Draft3Processor implements ProtocolProcessor {
     Object result = null;
     try {
       result = Draft3ExpressionResolver.resolve(transform, draft3Job, value);
+      return Draft3ValueTranslator.translateToCommon(result);
     } catch (Draft3ExpressionException e) {
       throw new BindingException(e);
     }
-    return result;
   }
   
 }
