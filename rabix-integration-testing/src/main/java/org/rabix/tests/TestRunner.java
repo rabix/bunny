@@ -42,12 +42,10 @@ public class TestRunner {
 			buildFile = getStringFromConfig(configuration, "buildFile");
 			startTestExecution();
 			logger.info("Integration testing: finished");
-
-			 logger.info("Conformance testing: started");
-			 logger.info("target check 2");
-				command("ls -ltra", "/home/travis/build/rabix/bunny/rabix-backend-local/target/");
-			 startConformanceTests();
-			 logger.info("Conformance testing: finished");
+//
+//			logger.info("Conformance testing: started");
+//			startConformanceTests();
+//			logger.info("Conformance testing: finished");
 
 		} catch (RabixTestException e) {
 			logger.error("Error occuerred:", e);
@@ -56,8 +54,6 @@ public class TestRunner {
 	}
 
 	private static void startConformanceTests() throws RabixTestException {
-		logger.info("target check 3");
-		command("ls -ltra", "/home/travis/build/rabix/bunny/rabix-backend-local/target/");
 		String commandCopyCwlTestRunner = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlteststarter.sh .";
 		command(commandCopyCwlTestRunner, cwlTestWorkingdir);
 		command("chmod +x cwlteststarter.sh", cwlTestWorkingdir);
@@ -169,8 +165,6 @@ public class TestRunner {
 					}
 
 				}
-				logger.info("target check 1");
-				command("ls -ltra", "/home/travis/build/rabix/bunny/rabix-backend-local/target/");
 
 			} catch (IOException e) {
 				logger.error("Test suite: " + currentTestSuite + ", execution failed. ", e);
