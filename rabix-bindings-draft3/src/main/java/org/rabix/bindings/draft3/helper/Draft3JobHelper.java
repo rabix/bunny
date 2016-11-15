@@ -8,6 +8,7 @@ import org.rabix.bindings.draft3.Draft3ValueTranslator;
 import org.rabix.bindings.draft3.bean.Draft3Job;
 import org.rabix.bindings.draft3.bean.Draft3JobApp;
 import org.rabix.bindings.draft3.bean.Draft3Runtime;
+import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
 import org.rabix.bindings.draft3.resolver.Draft3DocumentResolver;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.json.BeanSerializer;
@@ -24,9 +25,12 @@ public class Draft3JobHelper {
     
     Draft3Job draft3Job =  new Draft3JobProcessor().process(new Draft3Job(job.getName(), app, nativeInputs, nativeOutputs));
     
-    if (job.getResources() != null) {
-      Draft3Runtime draft3Runtime = new Draft3Runtime(job.getResources().getCpu(), job.getResources().getMemMB(), job.getResources().getWorkingDir(), job.getResources().getWorkingDir(), job.getResources().getDiskSpaceMB(), job.getResources().getDiskSpaceMB());
-      draft3Job.setRuntime(draft3Runtime);
+    Draft3Runtime runtime;
+    try {
+      runtime = Draft3RuntimeHelper.createRuntime(draft3Job, job.getResources());
+      draft3Job.setRuntime(runtime);
+    } catch (Draft3ExpressionException e) {
+      throw new BindingException(e);
     }
     return draft3Job;
   }

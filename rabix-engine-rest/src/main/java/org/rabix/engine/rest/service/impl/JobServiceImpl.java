@@ -213,7 +213,7 @@ public class JobServiceImpl implements JobService {
           numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
           memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
         }
-        Resources resources = new Resources(numberOfCores, memory, null, true, null, null);
+        Resources resources = new Resources(numberOfCores, memory, null, true, null, null, null, null);
         job = Job.cloneWithResources(job, resources);
       }
       jobDB.update(job);

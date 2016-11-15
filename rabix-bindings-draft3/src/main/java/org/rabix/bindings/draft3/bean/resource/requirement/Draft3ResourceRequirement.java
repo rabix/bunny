@@ -6,6 +6,7 @@ import org.rabix.bindings.draft3.bean.resource.Draft3Resource;
 import org.rabix.bindings.draft3.bean.resource.Draft3ResourceType;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
+import org.rabix.bindings.model.Resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -83,33 +84,33 @@ public class Draft3ResourceRequirement extends Draft3Resource {
   }
   
   @JsonIgnore
-  public Draft3Runtime build(Draft3Job job) throws Draft3ExpressionException {
-    Long coresMin = getCoresMin(job);
-    Long coresMax = getCoresMax(job);
+  public Draft3Runtime build(Draft3Job draft3job, Resources resources) throws Draft3ExpressionException {
+    Long coresMin = getCoresMin(draft3job);
+    Long coresMax = getCoresMax(draft3job);
 
     Long cores = coresMin != null ? coresMin : coresMax;
     if (cores == null) {
       cores = CORES_MIN_DEFAULT;
     }
 
-    Long ramMin = getRamMin(job);
-    Long ramMax = getRamMax(job);
+    Long ramMin = getRamMin(draft3job);
+    Long ramMax = getRamMax(draft3job);
 
     Long ram = ramMin != null ? ramMin : ramMax;
     if (ram == null) {
       ram = RAM_MIN_DEFAULT;
     }
 
-    Long tmpdirMin = getTmpdirMin(job);
-    Long tmpdirMax = getTmpdirMax(job);
+    Long tmpdirMin = getTmpdirMin(draft3job);
+    Long tmpdirMax = getTmpdirMax(draft3job);
 
     Long tmpDir = tmpdirMin != null ? tmpdirMin : tmpdirMax;
     if (tmpDir == null) {
       tmpDir = TMPDIR_MIN_DEFAULT;
     }
 
-    Long outdirMin = getOutdirMin(job);
-    Long outdirMax = getOutdirMax(job);
+    Long outdirMin = getOutdirMin(draft3job);
+    Long outdirMax = getOutdirMax(draft3job);
 
     Long outDir = outdirMin != null ? outdirMin : outdirMax;
     if (outDir == null) {

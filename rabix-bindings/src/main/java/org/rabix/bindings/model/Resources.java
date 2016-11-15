@@ -17,17 +17,25 @@ public class Resources {
   private final String workingDir;
   @JsonProperty("tmpDir")
   private final String tmpDir;
+  @JsonProperty("outDirSize")
+  private final Long outDirSize;
+  @JsonProperty("tmpDirSize")
+  private final Long tmpDirSize;
+
 
   @JsonCreator
   public Resources(@JsonProperty("cpu") Long cpu, @JsonProperty("memMB") Long memMB,
       @JsonProperty("diskSpaceMB") Long diskSpaceMB, @JsonProperty("networkAccess") Boolean networkAccess,
-      @JsonProperty("workingDir") String workingDir, @JsonProperty("tmpDir") String tmpDir) {
+      @JsonProperty("workingDir") String workingDir, @JsonProperty("tmpDir") String tmpDir,
+      @JsonProperty("outDirSize") Long outDirSize, @JsonProperty("tmpDirSize") Long tmpDirSize) {
     this.cpu = cpu;
     this.memMB = memMB;
     this.diskSpaceMB = diskSpaceMB;
     this.networkAccess = networkAccess;
     this.workingDir = workingDir;
     this.tmpDir = tmpDir;
+    this.outDirSize = outDirSize;
+    this.tmpDirSize = tmpDirSize;
   }
 
   public Long getCpu() {
@@ -52,6 +60,14 @@ public class Resources {
 
   public String getTmpDir() {
     return tmpDir;
+  }
+
+  public Long getOutDirSize() {
+    return outDirSize;
+  }
+
+  public Long getTmpDirSize() {
+    return tmpDirSize;
   }
 
   @Override

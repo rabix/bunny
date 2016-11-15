@@ -3,20 +3,22 @@ package org.rabix.bindings.cwl.helper;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
-
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.model.Resources;
 
 
 public class CWLRuntimeHelper {
 
-  public static CWLRuntime createRuntime(CWLJob job) throws CWLExpressionException {
-    CWLRuntime runtime = job.getRuntime();
-    CWLResourceRequirement resourceRequirement = job.getApp().getResourceRequirement();
+  public static CWLRuntime createRuntime(CWLJob cwlJob, Resources resources) throws CWLExpressionException {
+    CWLRuntime runtime;
+    CWLResourceRequirement resourceRequirement = cwlJob.getApp().getResourceRequirement();
     if (resourceRequirement != null) {
-      runtime = resourceRequirement.build(job, runtime);
+      runtime = resourceRequirement.build(cwlJob, resources);
     }
-    if (runtime == null) {
+    else if (resources != null) {
+      runtime = new CWLRuntime(resources.getCpu(), resources.getMemMB(), resources.getWorkingDir(), resources.getTmpDir(), resources.getOutDirSize(), resources.getTmpDirSize());
+    }
+    else {
       runtime = new CWLRuntime(null, null, null, null, null, null);
     }
     return runtime;
@@ -31,7 +33,7 @@ public class CWLRuntimeHelper {
   }
   
   public static Resources convertToResources(CWLRuntime runtime) {
-    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir(), runtime.getTmpdir());
+    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir(), runtime.getTmpdir(), runtime.getOutdirSize(), runtime.getTmpdirSize());
   }
 
 }
