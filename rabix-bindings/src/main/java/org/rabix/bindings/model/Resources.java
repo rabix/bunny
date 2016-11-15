@@ -27,7 +27,7 @@ public class Resources {
   public Resources(@JsonProperty("cpu") Long cpu, @JsonProperty("memMB") Long memMB,
       @JsonProperty("diskSpaceMB") Long diskSpaceMB, @JsonProperty("networkAccess") Boolean networkAccess,
       @JsonProperty("workingDir") String workingDir, @JsonProperty("tmpDir") String tmpDir,
-      @JsonProperty("outDirSize") Long outDirSize, @JsonProperty Long tmpDirSize) {
+      @JsonProperty("outDirSize") Long outDirSize, @JsonProperty("tmpDirSize") Long tmpDirSize) {
     this.cpu = cpu;
     this.memMB = memMB;
     this.diskSpaceMB = diskSpaceMB;
