@@ -29,11 +29,12 @@ public class TestRunner {
 	private static String currentTestSuite;
 	private static String resultPath = "./rabix-backend-local/target/result.yaml";
 	private static String workingdir = "./rabix-backend-local/target/";
+	private static String cwlTestWorkingdir = "./rabix-integration-testing/common-workflow-language/draft-2/";
 	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	public static void main(String[] commandLineArguments) {
 		try {
-			
+
 			logger.info("Integration testing: started");
 			PropertiesConfiguration configuration = getConfig();
 			testDirPath = getStringFromConfig(configuration, "testDirPath");
@@ -41,15 +42,23 @@ public class TestRunner {
 			buildFile = getStringFromConfig(configuration, "buildFile");
 			startTestExecution();
 			logger.info("Integration testing: finished");
-			
-//			logger.info("Conformance testing: started");
-//			startConformanceTests();
-//			logger.info("Conformance testing: finished");
-			
+
+			 logger.info("Conformance testing: started");
+			 startConformanceTests();
+			 logger.info("Conformance testing: finished");
+
 		} catch (RabixTestException e) {
 			logger.error("Error occuerred:", e);
 			System.exit(-1);
 		}
+	}
+
+	private static void startConformanceTests() throws RabixTestException {
+		String commandCopyCwlTestRunner = "cp cwlteststarter.sh .";
+		command(commandCopyCwlTestRunner, cwlTestWorkingdir);
+		command("chmod +x cwlteststarter.sh", cwlTestWorkingdir);
+		command("./cwlteststarter.sh", cwlTestWorkingdir);
+		
 	}
 
 	private static void startTestExecution() throws RabixTestException {
@@ -68,15 +77,16 @@ public class TestRunner {
 		}
 
 		logger.info("Extracting build file: started");
-		
+
 		String commandUntarBuildFile = "tar -zxvf " + System.getProperty("user.dir") + buildFile;
-		
+
 		File extractDir = new File(System.getProperty("user.dir") + "/rabix-backend-local/target/");
-		File fileToExtract= new File(System.getProperty("user.dir") + buildFile);
+		File fileToExtract = new File(System.getProperty("user.dir") + buildFile);
 
 		logger.info("Checking extract dir path: " + extractDir.getAbsolutePath());
 		if (!extractDir.isDirectory()) {
-			logger.error("Problem with extract directory path: Test extract directory path is not valid directory path.");
+			logger.error(
+					"Problem with extract directory path: Test extract directory path is not valid directory path.");
 			System.exit(-1);
 		}
 		logger.info("Checking extract file path: " + fileToExtract.getAbsolutePath());
@@ -84,7 +94,7 @@ public class TestRunner {
 			logger.error("Problem with extract file path: Test extract file path is not valid directory path.");
 			System.exit(-1);
 		}
-		
+
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
 		command(commandUntarBuildFile, System.getProperty("user.dir") + "/rabix-backend-local/target/");
 		logger.info("Extracting build file: done");
@@ -205,7 +215,7 @@ public class TestRunner {
 
 	public static void command(final String cmdline, final String directory) throws RabixTestException {
 		try {
-			Process process = new ProcessBuilder(new String[] {"bash", "-c", cmdline }).inheritIO()
+			Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
 					.directory(new File(directory)).start();
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
