@@ -68,7 +68,6 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
       result.put(key, value.toString());
     }
     return new EnvironmentVariableRequirement(result);
-
   }
 
   private FileRequirement getFileRequirement(CWLJob cwlJob, CWLInitialWorkDirRequirement initialWorkDirRequirement) throws BindingException {

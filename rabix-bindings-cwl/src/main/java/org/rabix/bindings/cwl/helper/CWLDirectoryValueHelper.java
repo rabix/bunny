@@ -39,8 +39,12 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     setValue(CWLSchemaHelper.KEY_JOB_TYPE, CWLSchemaHelper.TYPE_JOB_DIRECTORY, raw);
   }
 
-  public static Object getFormat(Object raw) {
+  public static String getFormat(Object raw) {
     return getValue(KEY_FORMAT, raw);
+  }
+  
+  public static void setFormat(String format, Object raw) {
+    setValue(KEY_FORMAT, format, raw);
   }
   
   public static String getName(Object raw) {
@@ -138,6 +142,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
    */
   public static DirectoryValue createDirectoryValue(Object value) {
     String path = CWLFileValueHelper.getPath(value);
+    String format = CWLFileValueHelper.getFormat(value);
     String name = CWLFileValueHelper.getName(value);
     String location = CWLFileValueHelper.getLocation(value);
     Long size = CWLFileValueHelper.getSize(value);
@@ -174,7 +179,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
         }
       }
     }
-    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties, name);
+    return new DirectoryValue(size, path, location, null, listingFileValues, secondaryFiles, properties, name, format);
   }
 
   public static Map<String, Object> createDirectoryRaw(DirectoryValue fileValue) {
@@ -182,7 +187,9 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     
     setDirectoryType(raw);
     setPath(fileValue.getPath(), raw);
+    setName(fileValue.getName(), raw);
     setSize(fileValue.getSize(), raw);
+    setFormat(fileValue.getFormat(), raw);
     
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {
@@ -193,10 +200,10 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     if (secondaryFileValues != null) {
       List<Map<String, Object>> secondaryFilesRaw = new ArrayList<>();
       for (FileValue secondaryFileValue : secondaryFileValues) {
-        if (CWLSchemaHelper.isFileFromValue(secondaryFileValue)) {
-          secondaryFilesRaw.add(CWLFileValueHelper.createFileRaw(secondaryFileValue));
-        } else {
+        if (secondaryFileValue instanceof DirectoryValue) {
           secondaryFilesRaw.add(createDirectoryRaw((DirectoryValue) secondaryFileValue));
+        } else {
+          secondaryFilesRaw.add(CWLFileValueHelper.createFileRaw(secondaryFileValue));          
         }
       }
       setSecondaryFiles(secondaryFilesRaw, raw);
@@ -206,15 +213,27 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     if (listingFiles != null) {
       List<Object> listingRaw = new ArrayList<>();
       for (FileValue listingFile : listingFiles) {
-        if (CWLSchemaHelper.isFileFromValue(listingFile)) {
-          listingRaw.add(CWLFileValueHelper.createFileRaw(listingFile));
-        } else {
+        if (listingFile instanceof DirectoryValue) {
           listingRaw.add(createDirectoryRaw((DirectoryValue) listingFile));
+        } else {
+          listingRaw.add(CWLFileValueHelper.createFileRaw(listingFile));          
         }
       }
       setListing(listingRaw, raw);
     }
     return raw;
+  }
+  
+  public static boolean isDirectoryLiteral(Object fileRaw) {
+    if (fileRaw == null) {
+      return false;
+    }
+    if (CWLSchemaHelper.isDirectoryFromValue(fileRaw)) {
+      String location = getLocation(fileRaw);
+      String path = getPath(fileRaw);
+      return location == null && path == null;
+    }
+    return false;
   }
   
   

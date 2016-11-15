@@ -79,6 +79,10 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
     return getValue(KEY_CONTENTS, raw);
   }
 
+  private static void setContents(String contents, Object raw) {
+    setValue(KEY_CONTENTS, contents, raw);
+  }
+  
   public static String getChecksum(Object raw) {
     return getValue(KEY_CHECKSUM, raw);
   }
@@ -178,6 +182,7 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
   public static FileValue createFileValue(Object value) {
     String path = Draft2FileValueHelper.getPath(value);
     String name = Draft2FileValueHelper.getName(value);
+    String contents = Draft2FileValueHelper.getContents(value);
     String location = Draft2FileValueHelper.getLocation(value);
     String checksum = Draft2FileValueHelper.getChecksum(value);
     Long size = Draft2FileValueHelper.getSize(value);
@@ -192,7 +197,7 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
@@ -200,8 +205,11 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
     
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
+    setName(fileValue.getName(), raw);
+    setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
+    setContents(fileValue.getContents(), raw);
     
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {
@@ -218,4 +226,5 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
     }
     return raw;
   }
+
 }

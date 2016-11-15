@@ -59,11 +59,14 @@ public class Draft2Processor implements ProtocolProcessor {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     Draft2PortProcessorHelper portProcessorHelper = new Draft2PortProcessorHelper(draft2Job);
     try {
-      Map<String, Object> inputs = job.getInputs();
+      Map<String, Object> inputs = draft2Job.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-      return Job.cloneWithInputs(job, inputs);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }

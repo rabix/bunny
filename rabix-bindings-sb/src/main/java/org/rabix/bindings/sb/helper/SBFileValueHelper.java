@@ -78,6 +78,10 @@ public class SBFileValueHelper extends SBBeanHelper {
   public static String getContents(Object raw) {
     return getValue(KEY_CONTENTS, raw);
   }
+  
+  private static void setContents(String contents, Map<String, Object> raw) {
+    setValue(KEY_CONTENTS, contents, raw);
+  }
 
   public static String getChecksum(Object raw) {
     return getValue(KEY_CHECKSUM, raw);
@@ -180,6 +184,7 @@ public class SBFileValueHelper extends SBBeanHelper {
     String name = SBFileValueHelper.getName(value);
     String location = SBFileValueHelper.getLocation(value);
     String checksum = SBFileValueHelper.getChecksum(value);
+    String contents = SBFileValueHelper.getContents(value);
     Long size = SBFileValueHelper.getSize(value);
     
     Map<String, Object> properties = new HashMap<>();
@@ -192,7 +197,7 @@ public class SBFileValueHelper extends SBBeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
@@ -200,8 +205,11 @@ public class SBFileValueHelper extends SBBeanHelper {
     
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
+    setName(fileValue.getName(), raw);
+    setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
+    setContents(fileValue.getContents(), raw);
 
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {
@@ -218,4 +226,5 @@ public class SBFileValueHelper extends SBBeanHelper {
     }
     return raw;
   }
+
 }

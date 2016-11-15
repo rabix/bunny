@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.rabix.bindings.json.JobValuesDeserializer;
 import org.rabix.common.helper.CloneHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -44,8 +46,10 @@ public class Job {
   @JsonProperty("config")
   private final Map<String, Object> config;
   @JsonProperty("inputs")
+  @JsonDeserialize(using = JobValuesDeserializer.class)
   private final Map<String, Object> inputs;
   @JsonProperty("outputs")
+  @JsonDeserialize(using = JobValuesDeserializer.class)
   private final Map<String, Object> outputs;
   @JsonProperty("resources")
   private final Resources resources;

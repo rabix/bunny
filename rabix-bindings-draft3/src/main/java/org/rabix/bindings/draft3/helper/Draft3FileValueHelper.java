@@ -79,6 +79,10 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     String contents = loadContents(raw);
     setValue(KEY_CONTENTS, contents, raw);
   }
+  
+  private static void setContents(String contents, Map<String, Object> raw) {
+    setValue(KEY_CONTENTS, contents, raw);
+  }
 
   public static String getContents(Object raw) {
     return getValue(KEY_CONTENTS, raw);
@@ -185,6 +189,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     String name = Draft3FileValueHelper.getName(value);
     String location = Draft3FileValueHelper.getLocation(value);
     String checksum = Draft3FileValueHelper.getChecksum(value);
+    String contents = Draft3FileValueHelper.getContents(value);
     Long size = Draft3FileValueHelper.getSize(value);
     
     Map<String, Object> properties = new HashMap<>();
@@ -197,7 +202,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
@@ -205,8 +210,11 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
+    setName(fileValue.getName(), raw);
+    setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
+    setContents(fileValue.getContents(), raw);
     
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {
@@ -223,4 +231,5 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     }
     return raw;
   }
+
 }
