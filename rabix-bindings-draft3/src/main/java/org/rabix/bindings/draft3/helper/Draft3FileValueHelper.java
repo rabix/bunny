@@ -34,8 +34,12 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     setValue(Draft3SchemaHelper.KEY_JOB_TYPE, Draft3SchemaHelper.TYPE_JOB_FILE, raw);
   }
 
-  public static Object getFormat(Object raw) {
+  public static String getFormat(Object raw) {
     return getValue(KEY_FORMAT, raw);
+  }
+  
+  public static void setFormat(String format, Object raw) {
+    setValue(KEY_FORMAT, format, raw);
   }
   
   public static String getName(Object raw) {
@@ -188,6 +192,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     String path = Draft3FileValueHelper.getPath(value);
     String name = Draft3FileValueHelper.getName(value);
     String location = Draft3FileValueHelper.getLocation(value);
+    String format = Draft3FileValueHelper.getFormat(value);
     String checksum = Draft3FileValueHelper.getChecksum(value);
     String contents = Draft3FileValueHelper.getContents(value);
     Long size = Draft3FileValueHelper.getSize(value);
@@ -202,7 +207,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name, format, contents);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
@@ -211,6 +216,7 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
     setName(fileValue.getName(), raw);
+    setFormat(fileValue.getFormat(), raw);
     setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
