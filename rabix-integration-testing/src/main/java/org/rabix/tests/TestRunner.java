@@ -42,10 +42,10 @@ public class TestRunner {
 			buildFile = getStringFromConfig(configuration, "buildFile");
 			startTestExecution();
 			logger.info("Integration testing: finished");
-//
-//			logger.info("Conformance testing: started");
-//			startConformanceTests();
-//			logger.info("Conformance testing: finished");
+
+			logger.info("Conformance testing: started");
+			startConformanceTests();
+			logger.info("Conformance testing: finished");
 
 		} catch (RabixTestException e) {
 			logger.error("Error occuerred:", e);
@@ -54,11 +54,11 @@ public class TestRunner {
 	}
 
 	private static void startConformanceTests() throws RabixTestException {
-		String commandCopyCwlTestRunner = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlteststarter.sh .";
+		String commandCopyCwlTestRunner = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlDraft2starter.sh .";
 		command(commandCopyCwlTestRunner, cwlTestWorkingdir);
-		command("chmod +x cwlteststarter.sh", cwlTestWorkingdir);
+		command("chmod +x cwlDraft2starter.sh", cwlTestWorkingdir);
 		command("pwd", ".");
-		command("./cwlteststarter.sh", cwlTestWorkingdir);
+		command("./cwlDraft2starter.sh", cwlTestWorkingdir);
 		
 	}
 
