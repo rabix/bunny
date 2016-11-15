@@ -40,7 +40,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
     if (cwlDockerResource == null) {
       return null;
     }
-    return new DockerContainerRequirement(cwlDockerResource.getDockerPull(), cwlDockerResource.getImageId());
+    return new DockerContainerRequirement(cwlDockerResource.getDockerPull(), cwlDockerResource.getImageId(), cwlDockerResource.getDockerOutputDirectory());
   }
 
   private EnvironmentVariableRequirement getEnvironmentVariableRequirement(CWLJob cwlJob, CWLEnvVarRequirement envVarRequirement) throws BindingException {
@@ -68,7 +68,6 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
       result.put(key, value.toString());
     }
     return new EnvironmentVariableRequirement(result);
-
   }
 
   private FileRequirement getFileRequirement(CWLJob cwlJob, CWLInitialWorkDirRequirement initialWorkDirRequirement) throws BindingException {

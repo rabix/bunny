@@ -228,4 +228,14 @@ public class Draft3Bindings implements Bindings {
   @Override public boolean isRequiredFromSchema(Object schema) {
     return Draft3SchemaHelper.isRequired(schema);
   }
+
+  @Override
+  public Object translateToSpecific(Object commonValue) throws BindingException {
+    return Draft3ValueTranslator.translateToSpecific(commonValue);
+  }
+
+  @Override
+  public Object translateToCommon(Object nativeValue) throws BindingException {
+    return Draft3ValueTranslator.translateToCommon(nativeValue);
+  }
 }

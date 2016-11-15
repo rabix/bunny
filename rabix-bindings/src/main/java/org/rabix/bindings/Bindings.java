@@ -287,8 +287,6 @@ public interface Bindings {
    */
   public boolean isRequiredFromSchema(Object schema);
 
-
-
   /**
    * Parses raw input values and extracts all elements that represent file inputs
    * @param input raw input
@@ -303,4 +301,21 @@ public interface Bindings {
    * @return copy of input with replaced file inputs
    */
   public Object updateFileValues(Object input, FileTransformer fileTransformer);
+  
+  /**
+   * Translates values from Bunny format to protocol specific format 
+   * @param commonValue Values in common format
+   * @return            Values in protocol specific format
+   * @throws BindingException
+   */
+  Object translateToSpecific(Object commonValue) throws BindingException;
+  
+  /**
+   * Translates values from protocol specific format to Bunny common format 
+   * @param specificValue   Values in protocol specific format
+   * @return                Values in common format
+   * @throws BindingException
+   */
+  Object translateToCommon(Object specificValue) throws BindingException;
+
 }

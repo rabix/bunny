@@ -167,6 +167,10 @@ public class DockerContainerHandler implements ContainerHandler {
 
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
       hostConfigBuilder.binds(physicalPath + ":" + physicalPath + ":" + DIRECTORY_MAP_MODE);
+      if(dockerResource.getDockerOutputDirectory() != null) {
+        volumes.add(dockerResource.getDockerOutputDirectory());
+        hostConfigBuilder.binds(workingDir + ":" + dockerResource.getDockerOutputDirectory() + ":" + DIRECTORY_MAP_MODE);
+      }
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
 

@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.lang3.ClassUtils;
 import org.yaml.snakeyaml.Yaml;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,11 +34,14 @@ public class JSONHelper {
 
   public static final Yaml yamlReader = new Yaml();
   public static final ObjectMapper mapper = new ObjectMapper();
+  public static final ObjectMapper mapperWithoutNulls = new ObjectMapper();
   public static final ObjectMapper mapperWithoutIdentation = new ObjectMapper();
   
   static {
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    mapperWithoutNulls.enable(SerializationFeature.INDENT_OUTPUT);
+    mapperWithoutNulls.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false).setSerializationInclusion(Include.NON_NULL).configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
     mapperWithoutIdentation.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
   }
 
@@ -133,7 +137,7 @@ public class JSONHelper {
       throw new IllegalStateException(e);
     }
   }
-
+  
   public static JsonNode readJsonNode(String json) {
     try {
       return mapper.readTree(json);
