@@ -54,7 +54,7 @@ public class TestRunner {
 	}
 
 	private static void startConformanceTests() throws RabixTestException {
-		String commandCopyCwlTestRunner = "cp ./rabix-integration-testing/cwlteststarter.sh .";
+		String commandCopyCwlTestRunner = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlteststarter.sh .";
 		command(commandCopyCwlTestRunner, cwlTestWorkingdir);
 		command("chmod +x cwlteststarter.sh", cwlTestWorkingdir);
 		command("./cwlteststarter.sh", cwlTestWorkingdir);
