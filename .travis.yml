@@ -7,6 +7,7 @@ services:
 before_install:
   - cd rabix-integration-testing
   - git clone https://github.com/rabix/common-workflow-language.git
+  - cd ..
 
 script:
   - mvn clean install package -P draft-2
