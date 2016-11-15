@@ -68,9 +68,10 @@ public class FileValue implements Serializable {
     this.properties = properties;
   }
   
-  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties, String name, String format) {
+  public FileValue(Long size, String path, String location, String checksum, List<FileValue> secondaryFiles, Map<String, Object> properties, String name, String format, String contents) {
     this(size, path, location, checksum, secondaryFiles, properties, name);
     this.format = format;
+    this.contents = contents;
   }
 
   @JsonCreator
@@ -96,18 +97,18 @@ public class FileValue implements Serializable {
   }
 
   public static FileValue cloneWithPath(FileValue fileValue, String path) {
-    return new FileValue(fileValue.size, path, fileValue.location, fileValue.checksum, fileValue.secondaryFiles,
-        fileValue.properties, fileValue.name);
+    return new FileValue(fileValue.size, path, fileValue.location, fileValue.name, fileValue.dirname, fileValue.nameroot, fileValue.nameext, fileValue.contents, fileValue.checksum, fileValue.secondaryFiles,
+        fileValue.properties, fileValue.format);
   }
 
   public static FileValue cloneWithProperties(FileValue fileValue, Map<String, Object> properties) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum,
-        fileValue.secondaryFiles, properties, fileValue.name);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.name, fileValue.dirname, fileValue.nameroot, fileValue.nameext, fileValue.contents, fileValue.checksum, fileValue.secondaryFiles,
+        properties, fileValue.format);
   }
 
   public static FileValue cloneWithSecondaryFiles(FileValue fileValue, List<FileValue> secondaryFiles) {
-    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, secondaryFiles,
-        fileValue.properties, fileValue.name);
+    return new FileValue(fileValue.size, fileValue.path, fileValue.location, fileValue.name, fileValue.dirname, fileValue.nameroot, fileValue.nameext, fileValue.contents, fileValue.checksum, secondaryFiles,
+        fileValue.properties, fileValue.format);
   }
 
   public Long getSize() {

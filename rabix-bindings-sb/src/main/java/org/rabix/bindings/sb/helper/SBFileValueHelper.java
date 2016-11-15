@@ -184,6 +184,7 @@ public class SBFileValueHelper extends SBBeanHelper {
     String name = SBFileValueHelper.getName(value);
     String location = SBFileValueHelper.getLocation(value);
     String checksum = SBFileValueHelper.getChecksum(value);
+    String contents = SBFileValueHelper.getContents(value);
     Long size = SBFileValueHelper.getSize(value);
     
     Map<String, Object> properties = new HashMap<>();
@@ -196,7 +197,7 @@ public class SBFileValueHelper extends SBBeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name);
+    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {

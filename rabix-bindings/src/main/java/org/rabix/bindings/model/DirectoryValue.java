@@ -17,30 +17,33 @@ public class DirectoryValue extends FileValue {
   @JsonProperty("listing")
   private List<FileValue> listing;
   
-  public DirectoryValue(Long size, String path, String location, String checksum, List<FileValue> listing, List<FileValue> secondaryFiles, Map<String, Object> properties, String name) {
-    super(size, path, location, checksum, secondaryFiles, properties, name);
-    this.listing = listing;
-  }
-  
   public DirectoryValue(Long size, String path, String location, String checksum, List<FileValue> listing, List<FileValue> secondaryFiles, Map<String, Object> properties, String name, String format) {
-    super(size, path, location, checksum, secondaryFiles, properties, name, format);
+    super(size, path, location, checksum, secondaryFiles, properties, name, format, null);
     this.listing = listing;
   }
-
   
   @JsonCreator
-  public DirectoryValue(@JsonProperty("size") Long size, @JsonProperty("path") String path, @JsonProperty("location") String location, @JsonProperty("name") String name, @JsonProperty("dirname") String dirname, @JsonProperty("nameroot") String nameroot, @JsonProperty("nameext") String nameext, @JsonProperty("contents") String contents, @JsonProperty("checksum") String checksum, @JsonProperty("secondaryFiles") List<FileValue> secondaryFiles, @JsonProperty("properties") Map<String, Object> properties,
-      @JsonProperty("listing") List<FileValue> listing, @JsonProperty("format") String format) {
+  public DirectoryValue(@JsonProperty("size") Long size, @JsonProperty("path") String path,
+      @JsonProperty("location") String location, @JsonProperty("name") String name,
+      @JsonProperty("dirname") String dirname, @JsonProperty("nameroot") String nameroot,
+      @JsonProperty("nameext") String nameext, @JsonProperty("contents") String contents,
+      @JsonProperty("checksum") String checksum, @JsonProperty("secondaryFiles") List<FileValue> secondaryFiles,
+      @JsonProperty("properties") Map<String, Object> properties, @JsonProperty("listing") List<FileValue> listing,
+      @JsonProperty("format") String format) {
     super(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, format);
     this.listing = listing;
   }
 
   public static DirectoryValue cloneWithPath(DirectoryValue fileValue, String path) {
-    return new DirectoryValue(fileValue.size, path, fileValue.location, fileValue.checksum, fileValue.listing, fileValue.secondaryFiles, fileValue.properties, fileValue.name);
+    return new DirectoryValue(fileValue.size, path, fileValue.location, fileValue.name, fileValue.dirname,
+        fileValue.nameroot, fileValue.nameext, fileValue.contents, fileValue.checksum, fileValue.secondaryFiles,
+        fileValue.properties, fileValue.listing, fileValue.format);
   }
-  
+
   public static DirectoryValue cloneWithSecondaryFiles(DirectoryValue fileValue, List<FileValue> secondaryFiles) {
-    return new DirectoryValue(fileValue.size, fileValue.path, fileValue.location, fileValue.checksum, fileValue.listing, secondaryFiles, fileValue.properties, fileValue.name);
+    return new DirectoryValue(fileValue.size, fileValue.path, fileValue.location, fileValue.name, fileValue.dirname,
+        fileValue.nameroot, fileValue.nameext, fileValue.contents, fileValue.checksum, secondaryFiles,
+        fileValue.properties, fileValue.listing, fileValue.format);
   }
   
   public List<FileValue> getListing() {
