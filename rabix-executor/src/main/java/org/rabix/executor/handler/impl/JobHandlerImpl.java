@@ -29,7 +29,6 @@ import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequir
 import org.rabix.bindings.model.requirement.LocalContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.transformer.FileTransformer;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.download.DownloadService.DownloadResource;
