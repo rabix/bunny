@@ -7,28 +7,9 @@ services:
 before_install:
   - cd rabix-integration-testing
   - git clone https://github.com/rabix/common-workflow-language.git
-  - pwd
-  - ls -ltra	
-  - cd ..
-
-#install:
- # - pwd
- # - ls -ltra
- #- pip install -e git+https://github.com/common-workflow-language/cwltest.git@master#egg=cwltest
- # - pwd
- # - ls -ltra
- # - cd ..
 
 script:
-  - which bash
-  - pwd
-  - ls -ltra
   - mvn clean install package -P draft-2
-  - cd rabix-backend-local/target
-  - ls -ltra
-  - cd ..
-  - cd ..
-  - pwd
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -e -X
 
 cache:
