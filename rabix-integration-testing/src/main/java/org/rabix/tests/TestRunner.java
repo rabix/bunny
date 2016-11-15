@@ -57,6 +57,7 @@ public class TestRunner {
 		String commandCopyCwlTestRunner = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlteststarter.sh .";
 		command(commandCopyCwlTestRunner, cwlTestWorkingdir);
 		command("chmod +x cwlteststarter.sh", cwlTestWorkingdir);
+		command("pwd", ".");
 		command("./cwlteststarter.sh", cwlTestWorkingdir);
 		
 	}
