@@ -1,5 +1,4 @@
 package org.rabix.bindings.draft3.helper;
-
 import org.rabix.bindings.draft3.bean.Draft3Job;
 import org.rabix.bindings.draft3.bean.Draft3Runtime;
 import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ResourceRequirement;
@@ -8,15 +7,16 @@ import org.rabix.bindings.model.Resources;
 
 public class Draft3RuntimeHelper {
   
-  public static Draft3Runtime createRuntime(Draft3Job job) throws Draft3ExpressionException {
-    Draft3Runtime runtime = job.getRuntime();
-    if (runtime == null) {
-      Draft3ResourceRequirement resourceRequirement = job.getApp().getResourceRequirement();
-      if(resourceRequirement != null) {
-        runtime = resourceRequirement.build(job);
-      }
-    }    
-    if(runtime == null) {
+  public static Draft3Runtime createRuntime(Draft3Job draft3Job, Resources resources) throws Draft3ExpressionException {
+    Draft3Runtime runtime;
+    Draft3ResourceRequirement resourceRequirement = draft3Job.getApp().getResourceRequirement();
+    if (resourceRequirement != null) {
+      runtime = resourceRequirement.build(draft3Job, resources);
+    }
+    else if (resources != null) {
+      runtime = new Draft3Runtime(resources.getCpu(), resources.getMemMB(), resources.getWorkingDir(), resources.getTmpDir(), resources.getOutDirSize(), resources.getTmpDirSize());
+    }
+    else {
       runtime = new Draft3Runtime(null, null, null, null, null, null);
     }
     return runtime;
@@ -31,7 +31,7 @@ public class Draft3RuntimeHelper {
   }
   
   public static Resources convertToResources(Draft3Runtime runtime) {
-    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir(), runtime.getTmpdir());
+    return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir(), runtime.getTmpdir(), runtime.getOutdirSize(), runtime.getTmpdirSize());
   }
 
 }

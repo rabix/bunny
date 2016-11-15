@@ -454,7 +454,7 @@ public class BackendCommandLine {
         Map<String, Object> allocatedResources = (Map<String, Object>) inputs.get("allocatedResources");
         Long cpu = ((Integer) allocatedResources.get("cpu")).longValue();
         Long mem = ((Integer) allocatedResources.get("mem")).longValue();
-        return new Resources(cpu, mem, null, false, null, null);
+        return new Resources(cpu, mem, null, false, null, null, null, null);
       }
     }
     case DRAFT3:

@@ -65,13 +65,7 @@ public class CWLProcessor implements ProtocolProcessor {
   @Override
   public Job preprocess(final Job job, final File workingDir) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-
-    CWLRuntime runtime;
-    try {
-      runtime = CWLRuntimeHelper.createRuntime(cwlJob);
-    } catch (CWLExpressionException e1) {
-      throw new BindingException(e1);
-    }
+    CWLRuntime runtime = cwlJob.getRuntime();
     runtime = CWLRuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());
     runtime = CWLRuntimeHelper.setTmpdir(runtime, workingDir.getAbsolutePath());
     cwlJob.setRuntime(runtime);
@@ -485,10 +479,10 @@ public class CWLProcessor implements ProtocolProcessor {
     Object result = null;
     try {
       result = CWLExpressionResolver.resolve(transform, cwlJob, value);
+      return CWLValueTranslator.translateToCommon(result);
     } catch (CWLExpressionException e) {
       throw new BindingException(e);
     }
-    return result;
   }
 
 }

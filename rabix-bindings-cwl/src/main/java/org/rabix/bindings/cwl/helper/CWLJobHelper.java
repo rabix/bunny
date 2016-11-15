@@ -19,19 +19,15 @@ public class CWLJobHelper {
   public static CWLJob getCWLJob(Job job) throws BindingException {
     String resolvedAppStr = CWLDocumentResolver.resolve(job.getApp());
     CWLJobApp app = BeanSerializer.deserialize(resolvedAppStr, CWLJobApp.class);
-    
+
     Map<String, Object> nativeInputs = (Map<String, Object>) CWLValueTranslator.translateToSpecific(job.getInputs());
     Map<String, Object> nativeOutputs = (Map<String, Object>) CWLValueTranslator.translateToSpecific(job.getOutputs());
     
     CWLJob cwlJob =  new CWLJobProcessor().process(new CWLJob(job.getName(), app, nativeInputs, nativeOutputs));
     
-    if (job.getResources() != null) {
-      CWLRuntime cwlRuntime = new CWLRuntime(job.getResources().getCpu(), job.getResources().getMemMB(), job.getResources().getWorkingDir(), job.getResources().getWorkingDir(), job.getResources().getDiskSpaceMB(), job.getResources().getDiskSpaceMB());
-      cwlJob.setRuntime(cwlRuntime);
-    }
     CWLRuntime runtime = null;
     try {
-      runtime = CWLRuntimeHelper.createRuntime(cwlJob);
+      runtime = CWLRuntimeHelper.createRuntime(cwlJob, job.getResources());
       cwlJob.setRuntime(runtime);
     } catch (CWLExpressionException e) {
       throw new BindingException(e);
