@@ -35,16 +35,16 @@ public class TestRunner {
 	public static void main(String[] commandLineArguments) {
 		try {
 
-			logger.info("Integration testing: started");
+			logger.info("Integration testing for " + commandLineArguments[0] + ": started");
 			PropertiesConfiguration configuration = getConfig();
 			testDirPath = getStringFromConfig(configuration, "testDirPath");
 			cmdPrefix = getStringFromConfig(configuration, "cmdPrefix");
 			buildFile = getStringFromConfig(configuration, "buildFile");
 			startTestExecution();
-			logger.info("Integration testing: finished");
+			logger.info("Integration testing " + commandLineArguments[0] + ": finished");
 
 			if (!commandLineArguments[0].equals("draft-sb")) {
-				logger.info("Conformance test " + commandLineArguments[0] + ": started");
+				logger.info("Conformance test for " + commandLineArguments[0] + ": started");
 				startConformanceTests(commandLineArguments[0]);
 				logger.info("Conformance test " + commandLineArguments[0] + ": finished");
 			}
