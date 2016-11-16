@@ -35,6 +35,7 @@ public class TestRunner {
 	public static void main(String[] commandLineArguments) {
 		try {
 
+			logger.info("Argument passed: " + commandLineArguments[0]);
 			logger.info("Integration testing: started");
 			PropertiesConfiguration configuration = getConfig();
 			testDirPath = getStringFromConfig(configuration, "testDirPath");
