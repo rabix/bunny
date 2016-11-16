@@ -60,7 +60,7 @@ public class TestRunner {
 		cwlTestWorkingdir = getStringFromConfig(configuration, draftName);
 		
 		String starterScriptName = draftName +"_starter.sh";
-		String commandCopyCwlStarter = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlstarter/" + starterScriptName;
+		String commandCopyCwlStarter = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlstarter/" + starterScriptName + ".";
 		
 		command(commandCopyCwlStarter, cwlTestWorkingdir);
 		
