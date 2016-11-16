@@ -55,7 +55,9 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
     Map<String, Object> inputs;
     try {
       inputs = new CWLPortProcessorHelper(cwlJob).updateInputFiles(cwlJob.getInputs(), fileTransformer);
-      return Job.cloneWithInputs(job, inputs);
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -67,7 +69,9 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
     Map<String, Object> outputs;
     try {
       outputs = new CWLPortProcessorHelper(cwlJob).updateOutputFiles(cwlJob.getOutputs(), fileTransformer);
-      return Job.cloneWithOutputs(job, outputs);
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }

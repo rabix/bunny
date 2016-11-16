@@ -29,7 +29,6 @@ import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequir
 import org.rabix.bindings.model.requirement.LocalContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.transformer.FileTransformer;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.download.DownloadService.DownloadResource;
@@ -283,7 +282,6 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Job postprocess(boolean isTerminal) throws ExecutorException {
     logger.debug("postprocess(id={})", job.getId());
     try {
@@ -291,7 +289,6 @@ public class JobHandlerImpl implements JobHandler {
       
       Map<String, Object> results = localMemoizationService.findResultsFromCachingDir(job);
       if (results != null) {
-        results = (Map<String, Object>) bindings.translateToCommon(results);
         job = Job.cloneWithOutputs(job, results);
         
         Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);
