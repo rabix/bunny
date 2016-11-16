@@ -78,8 +78,8 @@ public class Draft2Bindings implements Bindings {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
-    return processor.postprocess(job, workingDir, hashAlgorithm);
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.postprocess(job, workingDir, hashAlgorithm, logFilePathMapper);
   }
 
   @Override

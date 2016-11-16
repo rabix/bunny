@@ -125,7 +125,7 @@ public class Draft3Processor implements ProtocolProcessor {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     try {
       Map<String, Object> outputs = null;
@@ -138,7 +138,7 @@ public class Draft3Processor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(draft3Job, workingDir, hashAlgorithm);
+        outputs = collectOutputs(draft3Job, workingDir, hashAlgorithm, logFilePathMapper, job.getConfig());
       }
       return Job.cloneWithOutputs(job, outputs);
     } catch (Draft3GlobException | Draft3ExpressionException | IOException e) {
@@ -146,7 +146,7 @@ public class Draft3Processor implements ProtocolProcessor {
     }
   }
   
-  private Map<String, Object> collectOutputs(Draft3Job job, File workingDir, HashAlgorithm hashAlgorithm) throws Draft3GlobException, Draft3ExpressionException, IOException, BindingException {
+  private Map<String, Object> collectOutputs(Draft3Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper, Map<String, Object> config) throws Draft3GlobException, Draft3ExpressionException, IOException, BindingException {
     File resultFile = new File(workingDir, RESULT_FILENAME);
     
     if (resultFile.exists()) {
@@ -163,7 +163,18 @@ public class Draft3Processor implements ProtocolProcessor {
       Object singleResult = collectOutput(job, workingDir, hashAlgorithm, outputPort.getSchema(), outputPort.getOutputBinding(), outputPort);
       result.put(Draft3SchemaHelper.normalizeId(outputPort.getId()), singleResult);
     }
-    BeanSerializer.serializePartial(resultFile, result);
+    
+    if (logFilePathMapper != null) {
+      try {
+        Map<String, Object> mappedResult = new Draft3PortProcessor(job).processOutputs(result, new Draft3FilePathMapProcessorCallback(logFilePathMapper, config));
+        BeanSerializer.serializePartial(resultFile, mappedResult);
+      } catch (Draft3PortProcessorException e) {
+        logger.error("Failed to map outputs", e);
+        throw new Draft3GlobException(e);
+      }
+    } else {
+      BeanSerializer.serializePartial(resultFile, result);
+    }
     return result;
   }
   

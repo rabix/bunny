@@ -27,7 +27,9 @@ import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLRuntimeHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
+import org.rabix.bindings.cwl.processor.CWLPortProcessor;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorException;
+import org.rabix.bindings.cwl.processor.callback.CWLFilePathMapProcessorCallback;
 import org.rabix.bindings.cwl.processor.callback.CWLPortProcessorHelper;
 import org.rabix.bindings.cwl.service.CWLGlobException;
 import org.rabix.bindings.cwl.service.CWLGlobService;
@@ -111,7 +113,7 @@ public class CWLProcessor implements ProtocolProcessor {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
       Map<String, Object> outputs = null;
@@ -125,7 +127,7 @@ public class CWLProcessor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(cwlJob, workingDir, hashAlgorithm);
+        outputs = collectOutputs(cwlJob, workingDir, hashAlgorithm, logFilePathMapper, job.getConfig());
       }
       return Job.cloneWithOutputs(job, (Map<String, Object>) CWLValueTranslator.translateToCommon(outputs));
     } catch (CWLGlobException | CWLExpressionException | IOException e) {
@@ -133,7 +135,7 @@ public class CWLProcessor implements ProtocolProcessor {
     }
   }
   
-  private Map<String, Object> collectOutputs(CWLJob job, File workingDir, HashAlgorithm hashAlgorithm) throws CWLGlobException, CWLExpressionException, IOException, BindingException {
+  private Map<String, Object> collectOutputs(CWLJob job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper, Map<String, Object> config) throws CWLGlobException, CWLExpressionException, IOException, BindingException {
     File resultFile = new File(workingDir, RESULT_FILENAME);
     
     if (resultFile.exists()) {
@@ -150,7 +152,18 @@ public class CWLProcessor implements ProtocolProcessor {
       Object singleResult = collectOutput(job, workingDir, hashAlgorithm, outputPort.getSchema(), outputPort.getOutputBinding(), outputPort);
       result.put(CWLSchemaHelper.normalizeId(outputPort.getId()), singleResult);
     }
-    BeanSerializer.serializePartial(resultFile, result);
+    
+    if (logFilePathMapper != null) {
+      try {
+        Map<String, Object> mappedResult = new CWLPortProcessor(job).processOutputs(result, new CWLFilePathMapProcessorCallback(logFilePathMapper, config));
+        BeanSerializer.serializePartial(resultFile, mappedResult);
+      } catch (CWLPortProcessorException e) {
+        logger.error("Failed to map outputs", e);
+        throw new CWLGlobException(e);
+      }
+    } else {
+      BeanSerializer.serializePartial(resultFile, result);
+    }
     return result;
   }
   

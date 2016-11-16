@@ -10,7 +10,7 @@ public interface ProtocolProcessor {
 
   Job preprocess(Job job, File workingDir, FilePathMapper logFilesPathMapper) throws BindingException;
 
-  Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException;
+  Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException;
 
   Object transformInputs(Object value, Job job, Object transform) throws BindingException;
 

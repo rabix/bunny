@@ -317,7 +317,7 @@ public class JobHandlerImpl implements JobHandler {
       if (setPermissions) {
         filePermissionService.execute(job);
       }
-      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null);
+      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
       containerHandler.dumpCommandLine();
       
       statusCallback.onOutputFilesUploadStarted(job);

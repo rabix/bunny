@@ -127,7 +127,7 @@ public class ResultCacheServiceImpl implements ResultCacheService {
 
           Map<String, Object> inputs = JSONHelper.readMap(oldJobJsonNode.get("inputs"));
           Job newJob = Job.cloneWithInputs(job, inputs);
-          return bindings.postprocess(newJob, workingDir, null).getOutputs();
+          return bindings.postprocess(newJob, workingDir, null, null).getOutputs();
         }
         break;
       default:

@@ -70,13 +70,14 @@ public interface Bindings {
    * Post-process the {@link Job}
    * Note: Call post process after successful or failed Job execution
    *
-   * @param job             Job object
-   * @param workingDir      Working directory
-   * @param hashAlgorithm   Checksum hash algorithm
-   * @return                Post processed Job object
+   * @param job                 Job object
+   * @param workingDir          Working directory
+   * @param hashAlgorithm       Checksum hash algorithm
+   * @param logFilePathMapper   File path mapper for logging purposes
+   * @return                    Post processed Job object
    * @throws BindingException
    */
-  Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException;
+  Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException;
 
   /**
    * Builds command line as a string

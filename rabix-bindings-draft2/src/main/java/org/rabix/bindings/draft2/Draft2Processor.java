@@ -110,7 +110,7 @@ public class Draft2Processor implements ProtocolProcessor {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     try {
       Map<String, Object> outputs = null;
@@ -126,7 +126,18 @@ public class Draft2Processor implements ProtocolProcessor {
         outputs = collectOutputs(draft2Job, workingDir, hashAlgorithm);
       }
       outputs = new Draft2PortProcessorHelper(draft2Job).fixOutputMetadata(draft2Job.getInputs(), outputs);
-      BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
+      
+      if (logFilePathMapper != null) {
+        try {
+          Map<String, Object> mappedResult = new Draft2PortProcessor(draft2Job).processOutputs(outputs, new Draft2FilePathMapProcessorCallback(logFilePathMapper, job.getConfig()));
+          BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), mappedResult);
+        } catch (Draft2PortProcessorException e) {
+          logger.error("Failed to map outputs", e);
+          throw new BindingException(e);
+        }
+      } else {
+        BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
+      }
       return Job.cloneWithOutputs(job, outputs);
     } catch (Draft2GlobException | Draft2ExpressionException | IOException | Draft2PortProcessorException e) {
       throw new BindingException(e);

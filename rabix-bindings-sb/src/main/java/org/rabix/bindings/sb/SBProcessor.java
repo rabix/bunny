@@ -110,7 +110,7 @@ public class SBProcessor implements ProtocolProcessor {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     try {
       Map<String, Object> outputs = null;
@@ -126,7 +126,19 @@ public class SBProcessor implements ProtocolProcessor {
         outputs = collectOutputs(sbJob, workingDir, hashAlgorithm);
       }
       outputs = new SBPortProcessorHelper(sbJob).fixOutputMetadata(sbJob.getInputs(), outputs);
-      BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
+      
+      if (logFilePathMapper != null) {
+        try {
+          Map<String, Object> mappedResult = new SBPortProcessor(sbJob).processOutputs(outputs, new SBFilePathMapProcessorCallback(logFilePathMapper, job.getConfig()));
+          BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), mappedResult);
+        } catch (SBPortProcessorException e) {
+          logger.error("Failed to map outputs", e);
+          throw new BindingException(e);
+        }
+      } else {
+        BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
+      }
+      
       return Job.cloneWithOutputs(job, outputs);
     } catch (SBGlobException | SBExpressionException | IOException | SBPortProcessorException e) {
       throw new BindingException(e);
