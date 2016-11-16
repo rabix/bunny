@@ -282,7 +282,6 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Job postprocess(boolean isTerminal) throws ExecutorException {
     logger.debug("postprocess(id={})", job.getId());
     try {
@@ -290,7 +289,6 @@ public class JobHandlerImpl implements JobHandler {
       
       Map<String, Object> results = localMemoizationService.findResultsFromCachingDir(job);
       if (results != null) {
-        results = (Map<String, Object>) bindings.translateToCommon(results);
         job = Job.cloneWithOutputs(job, results);
         
         Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);

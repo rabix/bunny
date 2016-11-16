@@ -122,7 +122,8 @@ public class Draft3Processor implements ProtocolProcessor {
       } else {
         outputs = collectOutputs(draft3Job, workingDir, hashAlgorithm);
       }
-      return Job.cloneWithOutputs(job, outputs);
+      Map<String, Object> commonOutputs = (Map<String, Object>) Draft3ValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (Draft3GlobException | Draft3ExpressionException | IOException e) {
       throw new BindingException(e);
     }

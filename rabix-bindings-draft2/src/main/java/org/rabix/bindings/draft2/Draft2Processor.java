@@ -109,7 +109,10 @@ public class Draft2Processor implements ProtocolProcessor {
       }
       outputs = new Draft2PortProcessorHelper(draft2Job).fixOutputMetadata(draft2Job.getInputs(), outputs);
       BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
-      return Job.cloneWithOutputs(job, outputs);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (Draft2GlobException | Draft2ExpressionException | IOException | Draft2PortProcessorException e) {
       throw new BindingException(e);
     }
