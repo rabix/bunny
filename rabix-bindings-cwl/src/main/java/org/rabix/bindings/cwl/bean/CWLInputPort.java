@@ -94,8 +94,4 @@ public class CWLInputPort extends ApplicationPort {
     return CWLSchemaHelper.isRequired(schema);
   }
 
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return CWLSchemaHelper.getDataTypeFromValue(input);
-  }
 }

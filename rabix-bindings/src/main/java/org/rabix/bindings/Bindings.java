@@ -260,20 +260,6 @@ public interface Bindings {
   ProtocolType getProtocolType();
 
   /**
-   * Converts FileValue object into raw map format
-   * @param fileValue
-   * @return
-   */
-  Map<String, Object> translateFile(FileValue fileValue);
-
-  /**
-   * Reads the type of raw input value
-   * @param input
-   * @return DataType object that represents input's type
-   */
-  DataType getDataTypeFromValue(Object input);
-
-  /**
    * Reads the type from schema
    * @param schema
    * @return DataType object that represents schema's type
@@ -287,27 +273,6 @@ public interface Bindings {
    */
   boolean isRequiredFromSchema(Object schema);
 
-  /**
-   * Parses raw input values and extracts all elements that represent file inputs
-   * @param input raw input
-   * @return List of recognized file inputs
-   */
-  List<FileValue> getFilesFromValue(Object input);
-
-  /**
-   * Creates copy of raw input in which all file paths are updated using fileTransformer
-   * @param input raw input
-   * @param fileTransformer
-   * @return copy of input with replaced file inputs
-   */
-  Object updateFileValues(Object input, FileTransformer fileTransformer);
-  
-  /**
-   * Translates values from Bunny format to protocol specific format 
-   * @param commonValue Values in common format
-   * @return            Values in protocol specific format
-   * @throws BindingException
-   */
   Object translateToSpecific(Object commonValue) throws BindingException;
   
   /**

@@ -202,25 +202,6 @@ public class Draft3Bindings implements Bindings {
     return null;
   }
 
-  @Override
-  public Map<String, Object> translateFile(FileValue fileValue) {
-    return Draft3FileValueHelper.createFileRaw(fileValue);
-  }
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return Draft3SchemaHelper.getDataTypeFromValue(input);
-  }
-
-  @Override
-  public List<FileValue> getFilesFromValue(Object input) {
-    return Draft3SchemaHelper.getFilesFromValue(input);
-  }
-
-  @Override
-  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
-    return Draft3SchemaHelper.updateFileValues(input, fileTransformer);
-  }
-
   @Override public DataType getDataTypeFromSchema(Object schema) {
     return Draft3SchemaHelper.readDataType(schema);
   }

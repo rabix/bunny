@@ -79,8 +79,4 @@ public class Draft2InputPort extends ApplicationPort {
     return Draft2SchemaHelper.isRequired(schema);
   }
 
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return Draft2SchemaHelper.getDataTypeFromValue(input);
-  }
 }

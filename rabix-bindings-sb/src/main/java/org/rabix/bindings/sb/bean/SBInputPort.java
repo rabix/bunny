@@ -79,8 +79,4 @@ public class SBInputPort extends ApplicationPort {
     return SBSchemaHelper.isRequired(schema);
   }
 
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return SBSchemaHelper.getDataTypeFromValue(input);
-  }
 }

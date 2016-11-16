@@ -204,26 +204,6 @@ public class CWLBindings implements Bindings {
     return processor.transformInputs(value, job, transform);
   }
 
-  @Override
-  public Map<String, Object> translateFile(FileValue fileValue) {
-    return CWLFileValueHelper.createFileRaw(fileValue);
-  }
-
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return CWLSchemaHelper.getDataTypeFromValue(input);
-  }
-
-  @Override
-  public List<FileValue> getFilesFromValue(Object input) {
-    return CWLSchemaHelper.getFilesFromValue(input);
-  }
-
-  @Override
-  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
-    return CWLSchemaHelper.updateFileValues(input, fileTransformer);
-  }
-
   @Override public DataType getDataTypeFromSchema(Object schema) {
     return CWLSchemaHelper.readDataType(schema);
   }

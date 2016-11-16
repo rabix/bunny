@@ -202,27 +202,6 @@ public class SBBindings implements Bindings {
     return null;
   }
 
-  @Override
-  public Map<String, Object> translateFile(FileValue fileValue) {
-    return SBFileValueHelper.createFileRaw(fileValue);
-  }
-
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return SBSchemaHelper.getDataTypeFromValue(input);
-  }
-
-  @Override
-  public List<FileValue> getFilesFromValue(Object input) {
-    return SBSchemaHelper.getFilesFromValue(input);
-  }
-
-  @Override
-  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
-
-    return SBSchemaHelper.updateFileValues(input, fileTransformer);
-  }
-
   @Override public DataType getDataTypeFromSchema(Object schema) {
     return SBSchemaHelper.readDataType(schema);
   }
