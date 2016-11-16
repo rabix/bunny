@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.model.DataType;
-import org.rabix.bindings.model.FileValue;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.CloneHelper;
 
 import com.google.common.base.Preconditions;

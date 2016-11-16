@@ -34,6 +34,7 @@ import org.rabix.bindings.cwl.service.CWLGlobService;
 import org.rabix.bindings.cwl.service.CWLMetadataService;
 import org.rabix.bindings.cwl.service.impl.CWLGlobServiceImpl;
 import org.rabix.bindings.cwl.service.impl.CWLMetadataServiceImpl;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
@@ -63,7 +64,7 @@ public class CWLProcessor implements ProtocolProcessor {
   }
 
   @Override
-  public Job preprocess(final Job job, final File workingDir) throws BindingException {
+  public Job preprocess(final Job job, final File workingDir, FilePathMapper logFilesPathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     CWLRuntime runtime = cwlJob.getRuntime();
     runtime = CWLRuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());

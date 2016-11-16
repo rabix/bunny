@@ -22,13 +22,16 @@ import org.rabix.bindings.draft2.helper.Draft2BindingHelper;
 import org.rabix.bindings.draft2.helper.Draft2FileValueHelper;
 import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
+import org.rabix.bindings.draft2.processor.Draft2PortProcessor;
 import org.rabix.bindings.draft2.processor.Draft2PortProcessorException;
+import org.rabix.bindings.draft2.processor.callback.Draft2FilePathMapProcessorCallback;
 import org.rabix.bindings.draft2.processor.callback.Draft2PortProcessorHelper;
 import org.rabix.bindings.draft2.service.Draft2GlobException;
 import org.rabix.bindings.draft2.service.Draft2GlobService;
 import org.rabix.bindings.draft2.service.Draft2MetadataService;
 import org.rabix.bindings.draft2.service.impl.Draft2GlobServiceImpl;
 import org.rabix.bindings.draft2.service.impl.Draft2MetadataServiceImpl;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
@@ -55,7 +58,7 @@ public class Draft2Processor implements ProtocolProcessor {
   }
 
   @Override
-  public Job preprocess(final Job job, final File workingDir) throws BindingException {
+  public Job preprocess(final Job job, final File workingDir, FilePathMapper logFilesPathMapper) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     Draft2PortProcessorHelper portProcessorHelper = new Draft2PortProcessorHelper(draft2Job);
     try {
@@ -63,6 +66,21 @@ public class Draft2Processor implements ProtocolProcessor {
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
+
+      Map<String, Object> mappedInputs = inputs;
+      if (logFilesPathMapper != null) {
+        Map<String, Object> config = job.getConfig();
+        Draft2PortProcessor draft2PortProcessor = new Draft2PortProcessor(draft2Job);
+        mappedInputs = draft2PortProcessor.processInputs(inputs, new Draft2FilePathMapProcessorCallback(logFilesPathMapper, config));
+      }
+      
+      File jobFile = new File(workingDir, Draft2Processor.JOB_FILE);
+      String serializedJob = BeanSerializer.serializePartial(new Draft2Job(draft2Job.getId(), draft2Job.getApp(), mappedInputs, draft2Job.getOutputs()));
+      try {
+        FileUtils.writeStringToFile(jobFile, serializedJob);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
       
       @SuppressWarnings("unchecked")
       Map<String, Object> commonInputs = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(inputs);

@@ -3,7 +3,6 @@ package org.rabix.bindings.cwl;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.BindingException;
@@ -19,7 +18,6 @@ import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
-import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
@@ -74,13 +72,8 @@ public class CWLBindings implements Bindings {
   }
   
   @Override
-  public Job preprocess(Job job, File workingDir) throws BindingException {
-    return processor.preprocess(job, workingDir);
-  }
-  
-  @Override
-  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
-    // do nothing
+  public Job preprocess(Job job, File workingDir, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.preprocess(job, workingDir, logFilePathMapper);
   }
   
   @Override

@@ -27,13 +27,16 @@ import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
 import org.rabix.bindings.draft3.helper.Draft3JobHelper;
 import org.rabix.bindings.draft3.helper.Draft3RuntimeHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.draft3.processor.Draft3PortProcessor;
 import org.rabix.bindings.draft3.processor.Draft3PortProcessorException;
+import org.rabix.bindings.draft3.processor.callback.Draft3FilePathMapProcessorCallback;
 import org.rabix.bindings.draft3.processor.callback.Draft3PortProcessorHelper;
 import org.rabix.bindings.draft3.service.Draft3GlobException;
 import org.rabix.bindings.draft3.service.Draft3GlobService;
 import org.rabix.bindings.draft3.service.Draft3MetadataService;
 import org.rabix.bindings.draft3.service.impl.Draft3GlobServiceImpl;
 import org.rabix.bindings.draft3.service.impl.Draft3MetadataServiceImpl;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
@@ -60,7 +63,7 @@ public class Draft3Processor implements ProtocolProcessor {
   }
 
   @Override
-  public Job preprocess(final Job job, final File workingDir) throws BindingException {
+  public Job preprocess(final Job job, final File workingDir, FilePathMapper logFilesPathMapper) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     Draft3Runtime runtime;
     try {
@@ -77,6 +80,21 @@ public class Draft3Processor implements ProtocolProcessor {
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       Job newJob = Job.cloneWithResources(job, Draft3RuntimeHelper.convertToResources(runtime));
+      
+      Map<String, Object> mappedInputs = inputs;
+      if (logFilesPathMapper != null) {
+        Map<String, Object> config = job.getConfig();
+        Draft3PortProcessor draft3PortProcessor = new Draft3PortProcessor(draft3Job);
+        mappedInputs = draft3PortProcessor.processInputs(inputs, new Draft3FilePathMapProcessorCallback(logFilesPathMapper, config));
+      }
+      
+      File jobFile = new File(workingDir, Draft3Processor.JOB_FILE);
+      String serializedJob = BeanSerializer.serializePartial(new Draft3Job(draft3Job.getId(), draft3Job.getApp(), mappedInputs, draft3Job.getOutputs()));
+      try {
+        FileUtils.writeStringToFile(jobFile, serializedJob);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
       
       @SuppressWarnings("unchecked")
       Map<String, Object> commonInputs = (Map<String, Object>) Draft3ValueTranslator.translateToCommon(inputs);

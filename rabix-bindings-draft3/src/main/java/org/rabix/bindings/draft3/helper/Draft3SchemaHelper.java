@@ -11,8 +11,6 @@ import java.util.Set;
 import org.apache.avro.Schema;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.DataType;
-import org.rabix.bindings.model.FileValue;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.JSONHelper;
 

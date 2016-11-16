@@ -2,7 +2,6 @@ package org.rabix.bindings;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.mapper.FilePathMapper;
@@ -59,21 +58,13 @@ public interface Bindings {
    * Pre-process the {@link Job}.
    * Note: Call pre process before Job execution
    *
-   * @param job         Job object
-   * @param workingDir  Working directory
-   * @return            Pre-processed Job object
+   * @param job                 Job object
+   * @param workingDir          Working directory
+   * @param logFilePathMapper   File path mapper for logging purposes
+   * @return                    Pre-processed Job object
    * @throws BindingException
    */
-  Job preprocess(Job job, File workingDir) throws BindingException;
-  
-  /**
-   * Dump protocol specific files into working directory before execution
-   * 
-   * @param job         Job object
-   * @param workingDir  Working directory
-   * @throws BindingException
-   */
-  void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException;
+  Job preprocess(Job job, File workingDir, FilePathMapper logFilePathMapper) throws BindingException;
   
   /**
    * Post-process the {@link Job}

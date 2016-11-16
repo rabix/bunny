@@ -145,8 +145,7 @@ public class JobHandlerImpl implements JobHandler {
       statusCallback.onInputFilesDownloadCompleted(job);
       
       job = bindings.mapInputFilePaths(job, inputFileMapper);
-      job = bindings.preprocess(job, workingDir);
-      bindings.dumpProtocolFilesBeforeExecution(job, workingDir);
+      job = bindings.preprocess(job, workingDir, null);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
