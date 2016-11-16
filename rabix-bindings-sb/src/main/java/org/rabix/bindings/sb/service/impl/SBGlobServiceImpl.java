@@ -85,7 +85,9 @@ public class SBGlobServiceImpl implements SBGlobService {
               newGlobDirs.add(dir.getParentFile());
             }
             globDirs = newGlobDirs;
-          } else {
+          } 
+          else if(!splitGlob[i].equals(".")) {
+            // Handle absolute paths
             Set<File> newGlobDirs = listDir(splitGlob[i], true, globDirs);
             globDirs.clear();
             for(File dir: newGlobDirs) {
