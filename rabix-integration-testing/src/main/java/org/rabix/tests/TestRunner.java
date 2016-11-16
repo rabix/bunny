@@ -29,13 +29,12 @@ public class TestRunner {
 	private static String currentTestSuite;
 	private static String resultPath = "./rabix-backend-local/target/result.yaml";
 	private static String workingdir = "./rabix-backend-local/target/";
-	private static String cwlTestWorkingdir = "./rabix-integration-testing/common-workflow-language/draft-2/";
+	private static String cwlTestWorkingdir;
 	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	public static void main(String[] commandLineArguments) {
 		try {
 
-			logger.info("Argument passed: " + commandLineArguments[0]);
 			logger.info("Integration testing: started");
 			PropertiesConfiguration configuration = getConfig();
 			testDirPath = getStringFromConfig(configuration, "testDirPath");
@@ -44,9 +43,11 @@ public class TestRunner {
 			startTestExecution();
 			logger.info("Integration testing: finished");
 
-			logger.info("Conformance testing: started");
-			startConformanceTests();
-			logger.info("Conformance testing: finished");
+			if (!commandLineArguments[0].equals("draft-sb")) {
+				logger.info("Conformance test " + commandLineArguments[0] + ": started");
+				startConformanceTests(commandLineArguments[0]);
+				logger.info("Conformance test " + commandLineArguments[0] + ": finished");
+			}
 
 		} catch (RabixTestException e) {
 			logger.error("Error occuerred:", e);
@@ -54,12 +55,19 @@ public class TestRunner {
 		}
 	}
 
-	private static void startConformanceTests() throws RabixTestException {
-		String commandCopyCwlTestRunner = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlDraft2starter.sh .";
-		command(commandCopyCwlTestRunner, cwlTestWorkingdir);
-		command("chmod +x cwlDraft2starter.sh", cwlTestWorkingdir);
+	private static void startConformanceTests(String draftName) throws RabixTestException {
+		PropertiesConfiguration configuration = getConfig();
+		cwlTestWorkingdir = getStringFromConfig(configuration, draftName);
+		
+		String starterScriptName = draftName +"_starter.sh";
+		String commandCopyCwlStarter = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlstarter/" + starterScriptName;
+		
+		command(commandCopyCwlStarter, cwlTestWorkingdir);
+		
+		command("chmod +x " + starterScriptName , cwlTestWorkingdir);
 		command("pwd", ".");
-		command("./cwlDraft2starter.sh", cwlTestWorkingdir);
+		command("./" + starterScriptName, cwlTestWorkingdir);
+		
 		
 	}
 
