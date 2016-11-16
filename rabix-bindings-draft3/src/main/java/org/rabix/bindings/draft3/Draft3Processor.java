@@ -64,7 +64,7 @@ public class Draft3Processor implements ProtocolProcessor {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     Draft3Runtime runtime;
     try {
-      runtime = Draft3RuntimeHelper.createRuntime(draft3Job);
+      runtime = Draft3RuntimeHelper.createRuntime(draft3Job, job.getResources());
     } catch (Draft3ExpressionException e1) {
       throw new BindingException(e1);
     }
@@ -73,11 +73,14 @@ public class Draft3Processor implements ProtocolProcessor {
     draft3Job.setRuntime(runtime);
     Draft3PortProcessorHelper portProcessorHelper = new Draft3PortProcessorHelper(draft3Job);
     try {
-      Map<String, Object> inputs = job.getInputs();
+      Map<String, Object> inputs = draft3Job.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       Job newJob = Job.cloneWithResources(job, Draft3RuntimeHelper.convertToResources(runtime));
-      return Job.cloneWithInputs(newJob, inputs);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) Draft3ValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(newJob, commonInputs);
     } catch (Draft3PortProcessorException e) {
       throw new BindingException(e);
     }
@@ -407,10 +410,10 @@ public class Draft3Processor implements ProtocolProcessor {
     Object result = null;
     try {
       result = Draft3ExpressionResolver.resolve(transform, draft3Job, value);
+      return Draft3ValueTranslator.translateToCommon(result);
     } catch (Draft3ExpressionException e) {
       throw new BindingException(e);
     }
-    return result;
   }
   
 }

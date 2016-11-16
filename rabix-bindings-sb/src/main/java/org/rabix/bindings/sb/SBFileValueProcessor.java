@@ -19,7 +19,7 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
   public Set<FileValue> getInputFiles(Job job) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     try {
-      return new SBPortProcessorHelper(sbJob).getInputFiles(job.getInputs(), null, null);
+      return new SBPortProcessorHelper(sbJob).getInputFiles(sbJob.getInputs(), null, null);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -29,7 +29,7 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     try {
-      return new SBPortProcessorHelper(sbJob).getInputFiles(job.getInputs(), fileMapper, job.getConfig());
+      return new SBPortProcessorHelper(sbJob).getInputFiles(sbJob.getInputs(), fileMapper, job.getConfig());
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -43,7 +43,7 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
       if (onlyVisiblePorts) {
         visiblePorts = job.getVisiblePorts();
       }
-      return new SBPortProcessorHelper(sbJob).getOutputFiles(job.getOutputs(), visiblePorts);
+      return new SBPortProcessorHelper(sbJob).getOutputFiles(sbJob.getOutputs(), visiblePorts);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -54,8 +54,11 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     Map<String, Object> inputs;
     try {
-      inputs = new SBPortProcessorHelper(sbJob).updateInputFiles(job.getInputs(), fileTransformer);
-      return Job.cloneWithInputs(job, inputs);
+      inputs = new SBPortProcessorHelper(sbJob).updateInputFiles(sbJob.getInputs(), fileTransformer);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) SBValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -66,8 +69,11 @@ public class SBFileValueProcessor implements ProtocolFileValueProcessor {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     Map<String, Object> outputs;
     try {
-      outputs = new SBPortProcessorHelper(sbJob).updateOutputFiles(job.getOutputs(), fileTransformer);
-      return Job.cloneWithOutputs(job, outputs);
+      outputs = new SBPortProcessorHelper(sbJob).updateOutputFiles(sbJob.getOutputs(), fileTransformer);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) SBValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }

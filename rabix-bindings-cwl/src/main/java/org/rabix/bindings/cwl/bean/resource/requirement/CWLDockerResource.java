@@ -9,7 +9,8 @@ public class CWLDockerResource extends CWLResource {
 
   public static String KEY_DOCKER_PULL = "dockerPull";
   public static String KEY_DOCKER_IMAGE_ID = "dockerImageId";
-
+  public static String KEY_DOCKER_OUTPUT_DIR = "dockerOutputDirectory";
+  
   @JsonIgnore
   public String getDockerPull() {
     return getValue(KEY_DOCKER_PULL);
@@ -18,6 +19,11 @@ public class CWLDockerResource extends CWLResource {
   @JsonIgnore
   public String getImageId() {
     return getValue(KEY_DOCKER_IMAGE_ID);
+  }
+  
+  @JsonIgnore
+  public String getDockerOutputDirectory() {
+    return getValue(KEY_DOCKER_OUTPUT_DIR);
   }
 
   @Override

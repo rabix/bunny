@@ -230,4 +230,14 @@ public class SBBindings implements Bindings {
   @Override public boolean isRequiredFromSchema(Object schema) {
     return SBSchemaHelper.isRequired(schema);
   }
+
+  @Override
+  public Object translateToSpecific(Object commonValue) throws BindingException {
+    return SBValueTranslator.translateToSpecific(commonValue);
+  }
+
+  @Override
+  public Object translateToCommon(Object nativeValue) throws BindingException {
+    return SBValueTranslator.translateToCommon(nativeValue);
+  }
 }

@@ -21,8 +21,11 @@ public class CWLFilePathMapper implements ProtocolFilePathMapper {
     CWLPortProcessor cwlPortProcessor = new CWLPortProcessor(cwlJob);
     try {
       Map<String, Object> config = job.getConfig();
-      Map<String, Object> inputs = cwlPortProcessor.processInputs(job.getInputs(), new CWLFilePathMapProcessorCallback(fileMapper, config));
-      return Job.cloneWithInputs(job, inputs);
+      Map<String, Object> inputs = cwlPortProcessor.processInputs(cwlJob.getInputs(), new CWLFilePathMapProcessorCallback(fileMapper, config));
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -35,8 +38,11 @@ public class CWLFilePathMapper implements ProtocolFilePathMapper {
     CWLPortProcessor cwlPortProcessor = new CWLPortProcessor(cwlJob);
     try {
       Map<String, Object> config = job.getConfig();
-      Map<String, Object> outputs = cwlPortProcessor.processOutputs(job.getOutputs(), new CWLFilePathMapProcessorCallback(fileMapper, config));
-      return Job.cloneWithOutputs(job, outputs);
+      Map<String, Object> outputs = cwlPortProcessor.processOutputs(cwlJob.getOutputs(), new CWLFilePathMapProcessorCallback(fileMapper, config));
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }

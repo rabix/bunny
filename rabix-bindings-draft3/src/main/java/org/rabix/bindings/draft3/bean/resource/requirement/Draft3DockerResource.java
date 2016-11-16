@@ -9,6 +9,7 @@ public class Draft3DockerResource extends Draft3Resource {
 
   public static String KEY_DOCKER_PULL = "dockerPull";
   public static String KEY_DOCKER_IMAGE_ID = "dockerImageId";
+  public static String KEY_DOCKER_OUTPUT_DIR = "dockerOutputDirectory";
 
   @JsonIgnore
   public String getDockerPull() {
@@ -20,6 +21,10 @@ public class Draft3DockerResource extends Draft3Resource {
     return getValue(KEY_DOCKER_IMAGE_ID);
   }
 
+  public String getDockerOutputDirectory() {
+    return getValue(KEY_DOCKER_OUTPUT_DIR);
+  }
+  
   @Override
   @JsonIgnore
   public Draft3ResourceType getTypeEnum() {

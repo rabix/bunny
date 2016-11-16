@@ -36,7 +36,7 @@ public class Draft2RequirementProvider implements ProtocolRequirementProvider {
     if (draft2DockerResource == null) {
       return null;
     }
-    return new DockerContainerRequirement(draft2DockerResource.getDockerPull(), draft2DockerResource.getImageId());
+    return new DockerContainerRequirement(draft2DockerResource.getDockerPull(), draft2DockerResource.getImageId(), null);
   }
 
   private EnvironmentVariableRequirement getEnvironmentVariableRequirement(Draft2Job draft2Job, Draft2EnvVarRequirement envVarRequirement) throws BindingException {

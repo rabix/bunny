@@ -271,30 +271,28 @@ public interface Bindings {
    * @param input
    * @return DataType object that represents input's type
    */
-  public DataType getDataTypeFromValue(Object input);
+  DataType getDataTypeFromValue(Object input);
 
   /**
    * Reads the type from schema
    * @param schema
    * @return DataType object that represents schema's type
    */
-  public DataType getDataTypeFromSchema(Object schema);
+  DataType getDataTypeFromSchema(Object schema);
 
   /**
    * Determines if the input described with schema is required
    * @param schema
    * @return
    */
-  public boolean isRequiredFromSchema(Object schema);
-
-
+  boolean isRequiredFromSchema(Object schema);
 
   /**
    * Parses raw input values and extracts all elements that represent file inputs
    * @param input raw input
    * @return List of recognized file inputs
    */
-  public List<FileValue> getFilesFromValue(Object input);
+  List<FileValue> getFilesFromValue(Object input);
 
   /**
    * Creates copy of raw input in which all file paths are updated using fileTransformer
@@ -302,5 +300,22 @@ public interface Bindings {
    * @param fileTransformer
    * @return copy of input with replaced file inputs
    */
-  public Object updateFileValues(Object input, FileTransformer fileTransformer);
+  Object updateFileValues(Object input, FileTransformer fileTransformer);
+  
+  /**
+   * Translates values from Bunny format to protocol specific format 
+   * @param commonValue Values in common format
+   * @return            Values in protocol specific format
+   * @throws BindingException
+   */
+  Object translateToSpecific(Object commonValue) throws BindingException;
+  
+  /**
+   * Translates values from protocol specific format to Bunny common format 
+   * @param specificValue   Values in protocol specific format
+   * @return                Values in common format
+   * @throws BindingException
+   */
+  Object translateToCommon(Object specificValue) throws BindingException;
+
 }

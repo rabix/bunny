@@ -21,8 +21,11 @@ public class Draft2FilePathMapper implements ProtocolFilePathMapper {
     Draft2PortProcessor draft2PortProcessor = new Draft2PortProcessor(draft2Job);
     try {
       Map<String, Object> config = job.getConfig();
-      Map<String, Object> inputs = draft2PortProcessor.processInputs(job.getInputs(), new Draft2FilePathMapProcessorCallback(fileMapper, config));
-      return Job.cloneWithInputs(job, inputs);
+      Map<String, Object> inputs = draft2PortProcessor.processInputs(draft2Job.getInputs(), new Draft2FilePathMapProcessorCallback(fileMapper, config));
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }
@@ -35,8 +38,11 @@ public class Draft2FilePathMapper implements ProtocolFilePathMapper {
     Draft2PortProcessor draft2PortProcessor = new Draft2PortProcessor(draft2Job);
     try {
       Map<String, Object> config = job.getConfig();
-      Map<String, Object> outputs = draft2PortProcessor.processOutputs(job.getOutputs(), new Draft2FilePathMapProcessorCallback(fileMapper, config));
-      return Job.cloneWithOutputs(job, outputs);
+      Map<String, Object> outputs = draft2PortProcessor.processOutputs(draft2Job.getOutputs(), new Draft2FilePathMapProcessorCallback(fileMapper, config));
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }

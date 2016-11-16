@@ -19,7 +19,7 @@ public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
   public Set<FileValue> getInputFiles(Job job) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     try {
-      return new Draft2PortProcessorHelper(draft2Job).getInputFiles(job.getInputs(), null, null);
+      return new Draft2PortProcessorHelper(draft2Job).getInputFiles(draft2Job.getInputs(), null, null);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }
@@ -29,7 +29,7 @@ public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     try {
-      return new Draft2PortProcessorHelper(draft2Job).getInputFiles(job.getInputs(), fileMapper, job.getConfig());
+      return new Draft2PortProcessorHelper(draft2Job).getInputFiles(draft2Job.getInputs(), fileMapper, job.getConfig());
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }
@@ -43,7 +43,7 @@ public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
       if (onlyVisiblePorts) {
         visiblePorts = job.getVisiblePorts();
       }
-      return new Draft2PortProcessorHelper(draft2Job).getOutputFiles(job.getOutputs(), visiblePorts);
+      return new Draft2PortProcessorHelper(draft2Job).getOutputFiles(draft2Job.getOutputs(), visiblePorts);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }
@@ -54,8 +54,11 @@ public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     Map<String, Object> inputs;
     try {
-      inputs = new Draft2PortProcessorHelper(draft2Job).updateInputFiles(job.getInputs(), fileTransformer);
-      return Job.cloneWithInputs(job, inputs);
+      inputs = new Draft2PortProcessorHelper(draft2Job).updateInputFiles(draft2Job.getInputs(), fileTransformer);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }
@@ -66,8 +69,11 @@ public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     Map<String, Object> outputs;
     try {
-      outputs = new Draft2PortProcessorHelper(draft2Job).updateOutputFiles(job.getOutputs(), fileTransformer);
-      return Job.cloneWithOutputs(job, outputs);
+      outputs = new Draft2PortProcessorHelper(draft2Job).updateOutputFiles(draft2Job.getOutputs(), fileTransformer);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }

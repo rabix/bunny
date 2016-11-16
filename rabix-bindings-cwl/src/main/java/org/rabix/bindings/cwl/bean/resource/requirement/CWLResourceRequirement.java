@@ -1,17 +1,14 @@
 package org.rabix.bindings.cwl.bean.resource.requirement;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
+import org.rabix.bindings.model.Resources;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CWLResourceRequirement extends CWLResource {
   public final static Long CORES_MIN_DEFAULT = 1L;
@@ -86,13 +83,13 @@ public class CWLResourceRequirement extends CWLResource {
   }
   
   @JsonIgnore
-  public CWLRuntime build(CWLJob job, CWLRuntime runtime) throws CWLExpressionException {
+  public CWLRuntime build(CWLJob job, Resources resources) throws CWLExpressionException {
     Long coresMin = getCoresMin(job);
     Long coresMax = getCoresMax(job);
 
     Long cores = coresMin != null ? coresMin : coresMax;
     if (cores == null) {
-      cores = runtime != null ? runtime.getCores() : CORES_MIN_DEFAULT;
+      cores = resources != null ? resources.getCpu() : CORES_MIN_DEFAULT;
     }
 
     Long ramMin = getRamMin(job);
@@ -100,7 +97,7 @@ public class CWLResourceRequirement extends CWLResource {
 
     Long ram = ramMin != null ? ramMin : ramMax;
     if (ram == null) {
-      ram = runtime != null? runtime.getRam() : RAM_MIN_DEFAULT;
+      ram = resources != null? resources.getMemMB() : RAM_MIN_DEFAULT;
     }
 
     Long tmpdirMin = getTmpdirMin(job);
@@ -108,7 +105,7 @@ public class CWLResourceRequirement extends CWLResource {
 
     Long tmpDir = tmpdirMin != null ? tmpdirMin : tmpdirMax;
     if (tmpDir == null) {
-      tmpDir = runtime != null ? runtime.getTmpdirSize() : TMPDIR_MIN_DEFAULT;
+      tmpDir = resources != null ? resources.getTmpDirSize() : TMPDIR_MIN_DEFAULT;
     }
 
     Long outdirMin = getOutdirMin(job);
@@ -116,56 +113,10 @@ public class CWLResourceRequirement extends CWLResource {
 
     Long outDir = outdirMin != null ? outdirMin : outdirMax;
     if (outDir == null) {
-      outDir = runtime != null ? runtime.getOutdirSize() : OUTDIR_MIN_DEFAULT;
+      outDir = resources != null ? resources.getOutDirSize() : OUTDIR_MIN_DEFAULT;
     }
     return new CWLRuntime(cores, ram, null, null, tmpDir, outDir);
   }
-  
-  public static class Resources {
-    @JsonProperty("cores")
-    private final Long cores;
-    @JsonProperty("ram")
-    private final Long ram;
-    @JsonProperty("tmpdir")
-    private final Long tmpdir;
-    @JsonProperty("outdir")
-    private final Long outdir;
-    
-    public Resources(Long cores, Long ram, Long tmpdir, Long outdir) {
-      this.cores = cores;
-      this.ram = ram;
-      this.tmpdir = tmpdir;
-      this.outdir = outdir;
-    }
-    
-    public Long getCores() {
-      return cores;
-    }
-    
-    public Long getRam() {
-      return ram;
-    }
-
-    public Long getTmpdir() {
-      return tmpdir;
-    }
-
-    public Long getOutdir() {
-      return outdir;
-    }
-    
-    @JsonIgnore
-    public Map<String, Object> toMap() {
-      Map<String, Object> map = new HashMap<>();
-      map.put("cores", cores);
-      map.put("ram", ram);
-      map.put("tmpdir", tmpdir);
-      map.put("outdir", outdir);
-      return map;
-    }
-    
-  }
-  
   
   @Override
   public CWLResourceType getTypeEnum() {
