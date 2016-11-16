@@ -139,7 +139,10 @@ public class SBProcessor implements ProtocolProcessor {
         BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
       }
       
-      return Job.cloneWithOutputs(job, outputs);
+      
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) SBValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (SBGlobException | SBExpressionException | IOException | SBPortProcessorException e) {
       throw new BindingException(e);
     }
