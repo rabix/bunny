@@ -9,7 +9,6 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
-import org.rabix.bindings.ProtocolFilePathMapper;
 import org.rabix.bindings.ProtocolFileValueProcessor;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
@@ -36,14 +35,12 @@ public class Draft2Bindings implements Bindings {
   private final ProtocolFileValueProcessor fileValueProcessor;
   
   private final ProtocolProcessor processor;
-  private final ProtocolFilePathMapper filePathMapper;
   
   private final ProtocolCommandLineBuilder commandLineBuilder;
   private final ProtocolRequirementProvider requirementProvider;
   
   public Draft2Bindings() throws BindingException {
     this.protocolType = ProtocolType.DRAFT2;
-    this.filePathMapper = new Draft2FilePathMapper();
     this.processor = new Draft2Processor();
     this.commandLineBuilder = new Draft2CommandLineBuilder();
     this.fileValueProcessor = new Draft2FileValueProcessor();
@@ -135,16 +132,6 @@ public class Draft2Bindings implements Bindings {
     return files;
   }
   
-  @Override
-  public Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapInputFilePaths(job, fileMapper);
-  }
-
-  @Override
-  public Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapOutputFilePaths(job, fileMapper);
-  }
-
   @Override
   public List<Requirement> getRequirements(Job job) throws BindingException {
     return requirementProvider.getRequirements(job);

@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.DirectoryValue;
@@ -144,7 +145,7 @@ public class JobHandlerImpl implements JobHandler {
       }
       statusCallback.onInputFilesDownloadCompleted(job);
       
-      job = bindings.mapInputFilePaths(job, inputFileMapper);
+      job = new FileValueHelper().mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
@@ -299,7 +300,7 @@ public class JobHandlerImpl implements JobHandler {
           }
         }
         uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
-        return bindings.mapOutputFilePaths(job, outputFileMapper);
+        return new FileValueHelper().mapOutputFilePaths(job, outputFileMapper);
       }
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
@@ -322,7 +323,7 @@ public class JobHandlerImpl implements JobHandler {
       uploadOutputFiles(job, bindings);
       statusCallback.onOutputFilesUploadCompleted(job);
 
-      job = bindings.mapOutputFilePaths(job, outputFileMapper);
+      job = new FileValueHelper().mapOutputFilePaths(job, outputFileMapper);
       
       JobData jobData = jobDataService.find(job.getId(), job.getRootId());
       jobData = JobData.cloneWithResult(jobData, job.getOutputs());

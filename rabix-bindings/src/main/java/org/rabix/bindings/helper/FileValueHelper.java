@@ -1,16 +1,27 @@
 package org.rabix.bindings.helper;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.DataType;
+import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
+import org.rabix.bindings.model.Job;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.CloneHelper;
-
-import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileValueHelper {
 
+  private final static Logger logger = LoggerFactory.getLogger(FileValueHelper.class);
+  
   /**
    * Creates copy of value (in common format) in which all FileValues are updated using fileTransformer
    * @param value
@@ -96,12 +107,96 @@ public class FileValueHelper {
     return new DataType(DataType.Type.ANY);
   }
 
+  @SuppressWarnings("unchecked")
   public static Map<String, Object> translateFileToCommon(Bindings bindings, FileValue file) {
     try {
       return (Map<String, Object>) bindings.translateToCommon(file);
     } catch (BindingException e) {
       e.printStackTrace();
       return null;
+    }
+  }
+  
+  /**
+   * Maps input file paths using the particular {@link FilePathMapper}
+   *
+   * @param job         Job object
+   * @param fileMapper  FileMapper object
+   * @return            Updated Job object
+   * @throws BindingException
+   */
+  @SuppressWarnings("unchecked")
+  public Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
+    Map<String, Object> inputs = job.getInputs();
+    
+    Map<String, Object> clonedInputs = (Map<String, Object>) CloneHelper.deepCopy(inputs);
+    try {
+      mapValue(clonedInputs, fileMapper, job.getConfig());
+    } catch (FileMappingException e) {
+      logger.error("Failed to map file paths", e);
+      throw new BindingException(e);
+    }
+    return Job.cloneWithInputs(job, clonedInputs);
+  }
+
+  /**
+   * Maps output file paths using the particular {@link FilePathMapper}
+   *
+   * @param job         Job object
+   * @param fileMapper  FileMapper object
+   * @return            Updated Job object
+   * @throws BindingException
+   */
+  @SuppressWarnings("unchecked")
+  public Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
+    Map<String, Object> outputs = job.getOutputs();
+    
+    Map<String, Object> clonedOutputs = (Map<String, Object>) CloneHelper.deepCopy(outputs);
+    try {
+      mapValue(clonedOutputs, fileMapper, job.getConfig());
+    } catch (FileMappingException e) {
+      logger.error("Failed to map file paths", e);
+      throw new BindingException(e);
+    }
+    return Job.cloneWithOutputs(job, clonedOutputs);
+  }
+  
+  @SuppressWarnings("unchecked")
+  private void mapValue(Object value, FilePathMapper fileMapper, Map<String, Object> config) throws FileMappingException {
+    if (value instanceof FileValue || value instanceof DirectoryValue) {
+      FileValue fileValue = (FileValue) value;
+      if (fileValue.getPath() != null) {
+        fileValue.setPath(fileMapper.map(fileValue.getPath(), config));
+      }
+
+      List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();
+      if (secondaryFiles != null) {
+        for (FileValue secondaryFile : secondaryFiles) {
+          mapValue(secondaryFile, fileMapper, config);
+        }
+      }
+      if (value instanceof DirectoryValue) {
+        DirectoryValue directoryValue = (DirectoryValue) value;
+
+        List<FileValue> listing = directoryValue.getListing();
+        if (listing != null) {
+          for (FileValue listingFileValue : listing) {
+            mapValue(listingFileValue, fileMapper, config);
+          }
+        }
+      }
+      return;
+    }
+    if (value instanceof List<?>) {
+      for (Object singleValue : (List<?>) value) {
+        mapValue(singleValue, fileMapper, config);
+      }
+      return;
+    }
+    if (value instanceof Map<?, ?>) {
+      for (Object singleValue : ((Map<String, Object>) value).values()) {
+        mapValue(singleValue, fileMapper, config);
+      }
     }
   }
 

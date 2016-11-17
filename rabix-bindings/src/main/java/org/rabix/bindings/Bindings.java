@@ -172,26 +172,6 @@ public interface Bindings {
   Set<FileValue> getProtocolFiles(File workingDir) throws BindingException;
   
   /**
-   * Maps input file paths using the particular {@link FilePathMapper}
-   *
-   * @param job         Job object
-   * @param fileMapper  FileMapper object
-   * @return            Updated Job object
-   * @throws BindingException
-   */
-  Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException;
-
-  /**
-   * Maps output file paths using the particular {@link FilePathMapper}
-   *
-   * @param job         Job object
-   * @param fileMapper  FileMapper object
-   * @return            Updated Job object
-   * @throws BindingException
-   */
-  Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException;
-
-  /**
    * Gets list of requirements
    *
    * @param job         Job object

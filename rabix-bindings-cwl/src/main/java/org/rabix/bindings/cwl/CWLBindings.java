@@ -9,7 +9,6 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
-import org.rabix.bindings.ProtocolFilePathMapper;
 import org.rabix.bindings.ProtocolFileValueProcessor;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
@@ -40,14 +39,12 @@ public class CWLBindings implements Bindings {
   private final ProtocolFileValueProcessor fileValueProcessor;
   
   private final ProtocolProcessor processor;
-  private final ProtocolFilePathMapper filePathMapper;
   
   private final ProtocolCommandLineBuilder commandLineBuilder;
   private final ProtocolRequirementProvider requirementProvider;
   
   public CWLBindings() throws BindingException {
     this.protocolType = ProtocolType.CWL;
-    this.filePathMapper = new CWLFilePathMapper();
     this.processor = new CWLProcessor();
     this.commandLineBuilder = new CWLCommandLineBuilder();
     this.fileValueProcessor = new CWLFileValueProcessor();
@@ -152,16 +149,6 @@ public class CWLBindings implements Bindings {
     return files;
   }
   
-  @Override
-  public Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapInputFilePaths(job, fileMapper);
-  }
-
-  @Override
-  public Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapOutputFilePaths(job, fileMapper);
-  }
-
   @Override
   public List<Requirement> getRequirements(Job job) throws BindingException {
     return requirementProvider.getRequirements(job);

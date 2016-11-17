@@ -115,48 +115,96 @@ public class FileValue implements Serializable {
     return size;
   }
 
+  public void setSize(Long size) {
+    this.size = size;
+  }
+
   public String getPath() {
     return path;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
   }
 
   public String getLocation() {
     return location;
   }
 
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
   public String getName() {
     return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String getDirname() {
     return dirname;
   }
 
+  public void setDirname(String dirname) {
+    this.dirname = dirname;
+  }
+
   public String getNameroot() {
     return nameroot;
+  }
+
+  public void setNameroot(String nameroot) {
+    this.nameroot = nameroot;
   }
 
   public String getNameext() {
     return nameext;
   }
 
+  public void setNameext(String nameext) {
+    this.nameext = nameext;
+  }
+
   public String getContents() {
     return contents;
+  }
+
+  public void setContents(String contents) {
+    this.contents = contents;
+  }
+
+  public String getFormat() {
+    return format;
+  }
+
+  public void setFormat(String format) {
+    this.format = format;
   }
 
   public String getChecksum() {
     return checksum;
   }
 
+  public void setChecksum(String checksum) {
+    this.checksum = checksum;
+  }
+
   public List<FileValue> getSecondaryFiles() {
     return secondaryFiles;
+  }
+
+  public void setSecondaryFiles(List<FileValue> secondaryFiles) {
+    this.secondaryFiles = secondaryFiles;
   }
 
   public Map<String, Object> getProperties() {
     return properties;
   }
-  
-  public String getFormat() {
-    return format;
+
+  public void setProperties(Map<String, Object> properties) {
+    this.properties = properties;
   }
 
   @JsonProperty("$type")
