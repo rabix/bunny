@@ -16,34 +16,11 @@ import org.rabix.bindings.transformer.FileTransformer;
 
 public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
 
-  public Set<FileValue> getInputFiles(Job job) throws BindingException {
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    try {
-      return new CWLPortProcessorHelper(cwlJob).getInputFiles(cwlJob.getInputs(), null, null);
-    } catch (CWLPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-  
   @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
       return new CWLPortProcessorHelper(cwlJob).getInputFiles(cwlJob.getInputs(), fileMapper, job.getConfig());
-    } catch (CWLPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-  @Override
-  public Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    try {
-      Set<String> visiblePorts = null;
-      if (onlyVisiblePorts) {
-        visiblePorts = job.getVisiblePorts();
-      }
-      return new CWLPortProcessorHelper(cwlJob).getOutputFiles(cwlJob.getOutputs(), visiblePorts);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }

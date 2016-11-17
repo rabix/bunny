@@ -23,7 +23,6 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class SBBindings implements Bindings {
@@ -90,28 +89,8 @@ public class SBBindings implements Bindings {
   }
 
   @Override
-  public Set<FileValue> getInputFiles(Job job) throws BindingException {
-    return fileValueProcessor.getInputFiles(job);
-  }
-
-  @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     return fileValueProcessor.getInputFiles(job, fileMapper);
-  }
-  
-  @Override
-  public Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    return fileValueProcessor.getOutputFiles(job, onlyVisiblePorts);
-  }
-  
-  @Override
-  public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
-    return fileValueProcessor.updateInputFiles(job, fileTransformer);
-  }
-
-  @Override
-  public Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
-    return fileValueProcessor.updateOutputFiles(job, fileTransformer);
   }
   
   @Override

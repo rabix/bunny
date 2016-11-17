@@ -32,7 +32,7 @@ public class CWLFilePathMapProcessorCallbackTest {
     Map<String, Object> inputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(cwlJob.getInputs());
     Job job = new Job("id", "id", "id", "id", encodedApp, null, null, inputs, null, null, null, null);
     try {
-      job = new FileValueHelper().mapInputFilePaths(job, new FilePathMapper() {
+      job = FileValueHelper.mapInputFilePaths(job, new FilePathMapper() {
         @Override
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path + ".temp";

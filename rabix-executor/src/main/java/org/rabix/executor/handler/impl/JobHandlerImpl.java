@@ -145,7 +145,7 @@ public class JobHandlerImpl implements JobHandler {
       }
       statusCallback.onInputFilesDownloadCompleted(job);
       
-      job = new FileValueHelper().mapInputFilePaths(job, inputFileMapper);
+      job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
@@ -171,7 +171,7 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   private void downloadInputFiles(final Job job, final Bindings bindings) throws BindingException, DownloadServiceException {
-    Set<FileValue> fileValues = flattenFiles(bindings.getInputFiles(job));
+    Set<FileValue> fileValues = flattenFiles(FileValueHelper.getInputFiles(job));
     
     final Set<DownloadResource> downloadRecources = new HashSet<>();
     for (FileValue fileValue : fileValues) {
@@ -185,7 +185,7 @@ public class JobHandlerImpl implements JobHandler {
     downloadService.download(workingDir, downloadRecources, job.getConfig());
     
     // TODO refactor ASAP
-    bindings.updateInputFiles(job, new FileTransformer() {
+    FileValueHelper.updateInputFiles(job, new FileTransformer() {
       @Override
       public FileValue transform(FileValue fileValue) {
         FileValue newFileValue = fileValue;
@@ -300,7 +300,7 @@ public class JobHandlerImpl implements JobHandler {
           }
         }
         uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
-        return new FileValueHelper().mapOutputFilePaths(job, outputFileMapper);
+        return FileValueHelper.mapOutputFilePaths(job, outputFileMapper);
       }
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
@@ -323,7 +323,7 @@ public class JobHandlerImpl implements JobHandler {
       uploadOutputFiles(job, bindings);
       statusCallback.onOutputFilesUploadCompleted(job);
 
-      job = new FileValueHelper().mapOutputFilePaths(job, outputFileMapper);
+      job = FileValueHelper.mapOutputFilePaths(job, outputFileMapper);
       
       JobData jobData = jobDataService.find(job.getId(), job.getRootId());
       jobData = JobData.cloneWithResult(jobData, job.getOutputs());
@@ -350,7 +350,7 @@ public class JobHandlerImpl implements JobHandler {
     if (storageConfiguration.getBackendStore().equals(BackendStore.LOCAL)) {
       return;
     }
-    Set<FileValue> fileValues = flattenFiles(bindings.getOutputFiles(job, false));
+    Set<FileValue> fileValues = flattenFiles(FileValueHelper.getOutputFiles(job));
     fileValues.addAll(bindings.getProtocolFiles(workingDir));
     
     File cmdFile = new File(workingDir, COMMAND_LOG);

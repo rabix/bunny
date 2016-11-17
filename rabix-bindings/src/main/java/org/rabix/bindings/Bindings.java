@@ -12,7 +12,6 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public interface Bindings {
@@ -102,15 +101,6 @@ public interface Bindings {
   List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
 
   /**
-   * Gets a set of input {@link FileValue} objects with their secondary files
-   *
-   * @param job         Job object
-   * @return            FileValue objects
-   * @throws BindingException
-   */
-  Set<FileValue> getInputFiles(Job job) throws BindingException;
-  
-  /**
    * Gets a set of input {@link FileValue} objects with their secondary files mapped with a {@link FilePathMapper}
    *
    * @param job         Job object
@@ -121,25 +111,6 @@ public interface Bindings {
   @Deprecated
   Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException;
   
-  /**
-   * Gets a set of output {@link FileValue} objects with their secondary files
-   *
-   * @param job                 Job object
-   * @param onlyVisiblePorts    Returns only visible ports. Visible ports are global or terminal ports.
-   * @return                    FileValue objects
-   * @throws BindingException
-   */
-  Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException;
-
-  /**
-   * Updates input files
-   *
-   * @param job             Job object
-   * @param fileTransformer FileTransformer that transforms old file values into new ones
-   * @return                Updated Job object
-   * @throws BindingException
-   */
-  Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
   
   /**
    * Evaluates expression over the inputs
@@ -151,16 +122,6 @@ public interface Bindings {
    * @throws BindingException
    */
   Object transformInputs(Object value, Job job, Object transform) throws BindingException;
-  
-  /**
-   * Updates output files
-   *
-   * @param job             Job object
-   * @param fileTransformer FileTransformer that transforms old file values into new ones
-   * @return                Updated Job object
-   * @throws BindingException
-   */
-  Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
   
   /**
    * Returns files that are created by the protocol (CWL creates job.json, cwl.output.json)

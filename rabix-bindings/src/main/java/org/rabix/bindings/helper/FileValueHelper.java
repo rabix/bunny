@@ -2,8 +2,10 @@ package org.rabix.bindings.helper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
@@ -126,7 +128,7 @@ public class FileValueHelper {
    * @throws BindingException
    */
   @SuppressWarnings("unchecked")
-  public Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
+  public static Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
     Map<String, Object> inputs = job.getInputs();
     
     Map<String, Object> clonedInputs = (Map<String, Object>) CloneHelper.deepCopy(inputs);
@@ -148,7 +150,7 @@ public class FileValueHelper {
    * @throws BindingException
    */
   @SuppressWarnings("unchecked")
-  public Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
+  public static Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
     Map<String, Object> outputs = job.getOutputs();
     
     Map<String, Object> clonedOutputs = (Map<String, Object>) CloneHelper.deepCopy(outputs);
@@ -162,7 +164,7 @@ public class FileValueHelper {
   }
   
   @SuppressWarnings("unchecked")
-  private void mapValue(Object value, FilePathMapper fileMapper, Map<String, Object> config) throws FileMappingException {
+  private static void mapValue(Object value, FilePathMapper fileMapper, Map<String, Object> config) throws FileMappingException {
     if (value instanceof FileValue || value instanceof DirectoryValue) {
       FileValue fileValue = (FileValue) value;
       if (fileValue.getPath() != null) {
@@ -199,5 +201,79 @@ public class FileValueHelper {
       }
     }
   }
+  
+  /**
+   * Gets a set of input {@link FileValue} objects with their secondary files
+   *
+   * @param job         Job object
+   * @return            FileValue objects
+   * @throws BindingException
+   */
+  public static Set<FileValue> getInputFiles(Job job) throws BindingException {
+    return findFiles(job.getInputs());
+  }
 
+  /**
+   * Gets a set of output {@link FileValue} objects with their secondary files
+   *
+   * @param job                 Job object
+   * @param onlyVisiblePorts    Returns only visible ports. Visible ports are global or terminal ports.
+   * @return                    FileValue objects
+   * @throws BindingException
+   */
+  public static Set<FileValue> getOutputFiles(Job job) throws BindingException {
+    return findFiles(job.getOutputs());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Set<FileValue> findFiles(Object value) {
+    Set<FileValue> fileValues = new HashSet<>();
+    if (value instanceof FileValue || value instanceof DirectoryValue) {
+      fileValues.add((FileValue) value);
+      return fileValues;
+    }
+    if (value instanceof List<?>) {
+      for (Object singleValue : (List<?>) value) {
+        fileValues.addAll(findFiles(singleValue));
+      }
+      return fileValues;
+    }
+    if (value instanceof Map<?, ?>) {
+      for (Object singleValue : ((Map<String, Object>) value).values()) {
+        fileValues.addAll(findFiles(singleValue));
+      }
+      return fileValues;
+    }
+    return fileValues;
+  }
+  
+  /**
+   * Updates input files
+   *
+   * @param job             Job object
+   * @param fileTransformer FileTransformer that transforms old file values into new ones
+   * @return                Updated Job object
+   * @throws BindingException
+   */
+  @SuppressWarnings("unchecked")
+  public static Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
+    Map<String, Object> clonedInputs = (Map<String, Object>) CloneHelper.deepCopy(job.getInputs());
+    clonedInputs = (Map<String, Object>) updateFileValues(clonedInputs, fileTransformer);
+    return Job.cloneWithInputs(job, clonedInputs);
+  }
+  
+  /**
+   * Updates output files
+   *
+   * @param job             Job object
+   * @param fileTransformer FileTransformer that transforms old file values into new ones
+   * @return                Updated Job object
+   * @throws BindingException
+   */
+  @SuppressWarnings("unchecked")
+  public static Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
+    Map<String, Object> clonedOutputs = (Map<String, Object>) CloneHelper.deepCopy(job.getOutputs());
+    clonedOutputs = (Map<String, Object>) updateFileValues(clonedOutputs, fileTransformer);
+    return Job.cloneWithOutputs(job, clonedOutputs);
+  }
 }
