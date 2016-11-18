@@ -110,7 +110,7 @@ public class SBProcessor implements ProtocolProcessor {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper executionFilePathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     try {
       Map<String, Object> outputs = null;
@@ -123,23 +123,16 @@ public class SBProcessor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(sbJob, workingDir, hashAlgorithm);
+        outputs = collectOutputs(sbJob, workingDir, hashAlgorithm, executionFilePathMapper, job.getConfig());
+      }
+      
+      if (executionFilePathMapper != null) {
+        Map<String, Object> mappedInputs = new SBPortProcessor(sbJob).processInputs(sbJob.getInputs(), new SBFilePathMapProcessorCallback(executionFilePathMapper, job.getConfig()));
+        sbJob.setInputs(mappedInputs);
       }
       outputs = new SBPortProcessorHelper(sbJob).fixOutputMetadata(sbJob.getInputs(), outputs);
-      
-      if (logFilePathMapper != null) {
-        try {
-          Map<String, Object> mappedResult = new SBPortProcessor(sbJob).processOutputs(outputs, new SBFilePathMapProcessorCallback(logFilePathMapper, job.getConfig()));
-          BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), mappedResult);
-        } catch (SBPortProcessorException e) {
-          logger.error("Failed to map outputs", e);
-          throw new BindingException(e);
-        }
-      } else {
-        BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
-      }
-      
-      
+      BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
+
       @SuppressWarnings("unchecked")
       Map<String, Object> commonOutputs = (Map<String, Object>) SBValueTranslator.translateToCommon(outputs);
       return Job.cloneWithOutputs(job, commonOutputs);
@@ -148,7 +141,7 @@ public class SBProcessor implements ProtocolProcessor {
     }
   }
   
-  private Map<String, Object> collectOutputs(SBJob job, File workingDir, HashAlgorithm hashAlgorithm) throws SBGlobException, SBExpressionException, IOException, BindingException {
+  private Map<String, Object> collectOutputs(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper executionFilePathMapper, Map<String, Object> config) throws SBGlobException, SBExpressionException, IOException, BindingException, SBPortProcessorException {
     File resultFile = new File(workingDir, RESULT_FILENAME);
     
     if (resultFile.exists()) {
@@ -165,6 +158,9 @@ public class SBProcessor implements ProtocolProcessor {
       if (singleResult != null) {
         result.put(SBSchemaHelper.normalizeId(outputPort.getId()), singleResult);
       }
+    }
+    if (executionFilePathMapper != null) {
+      return new SBPortProcessor(job).processOutputs(result, new SBFilePathMapProcessorCallback(executionFilePathMapper, config));
     }
     return result;
   }
