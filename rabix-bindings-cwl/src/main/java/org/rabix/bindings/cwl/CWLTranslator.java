@@ -72,6 +72,7 @@ public class CWLTranslator implements ProtocolTranslator {
     return node;
   }
 
+  @SuppressWarnings("unchecked")
   private DAGNode transformToGeneric(String globalJobId, CWLJob job) throws BindingException {
     List<DAGLinkPort> inputPorts = new ArrayList<>();
     
@@ -82,11 +83,11 @@ public class CWLTranslator implements ProtocolTranslator {
         Object defaultValue = null;
         Object transform = null;
         if(value instanceof CWLStepInputs) {
-          defaultValue = ((CWLStepInputs) value).getDefaultValue();
+          defaultValue = CWLValueTranslator.translateToCommon(((CWLStepInputs) value).getDefaultValue());
           transform = ((CWLStepInputs) value).getValueFrom();
         }
         else {
-          defaultValue = value;
+          defaultValue = CWLValueTranslator.translateToCommon(value);
         }
         linkPort = new DAGLinkPort(CWLSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, defaultValue, transform);
       }
