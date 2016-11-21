@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
@@ -208,7 +209,12 @@ public class CWLProcessor implements ProtocolProcessor {
         return;
       }
       
-      File file = new File(CWLFileValueHelper.getPath(value));
+      String path = CWLFileValueHelper.getPath(value);
+      if (StringUtils.isEmpty(CWLFileValueHelper.getLocation(value))) {
+        CWLFileValueHelper.setLocation(path, value);
+      }
+      
+      File file = new File(path);
       if (!file.exists()) {
         return;
       }
