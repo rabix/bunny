@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.sb.bean.SBCommandLineTool;
 import org.rabix.bindings.sb.bean.SBExpressionTool;
@@ -23,7 +24,9 @@ import org.rabix.bindings.sb.helper.SBBindingHelper;
 import org.rabix.bindings.sb.helper.SBFileValueHelper;
 import org.rabix.bindings.sb.helper.SBJobHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
+import org.rabix.bindings.sb.processor.SBPortProcessor;
 import org.rabix.bindings.sb.processor.SBPortProcessorException;
+import org.rabix.bindings.sb.processor.callback.SBFilePathMapProcessorCallback;
 import org.rabix.bindings.sb.processor.callback.SBPortProcessorHelper;
 import org.rabix.bindings.sb.service.SBGlobException;
 import org.rabix.bindings.sb.service.SBGlobService;
@@ -55,7 +58,7 @@ public class SBProcessor implements ProtocolProcessor {
   }
 
   @Override
-  public Job preprocess(final Job job, final File workingDir) throws BindingException {
+  public Job preprocess(final Job job, final File workingDir, FilePathMapper logFilesPathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     SBPortProcessorHelper portProcessorHelper = new SBPortProcessorHelper(sbJob);
     try {
@@ -63,6 +66,21 @@ public class SBProcessor implements ProtocolProcessor {
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
+      
+      Map<String, Object> mappedInputs = inputs;
+      if (logFilesPathMapper != null) {
+        Map<String, Object> config = job.getConfig();
+        SBPortProcessor sbPortProcessor = new SBPortProcessor(sbJob);
+        mappedInputs = sbPortProcessor.processInputs(inputs, new SBFilePathMapProcessorCallback(logFilesPathMapper, config));
+      }
+      
+      File jobFile = new File(workingDir, SBProcessor.JOB_FILE);
+      String serializedJob = BeanSerializer.serializePartial(new SBJob(sbJob.getId(), sbJob.getApp(), mappedInputs, sbJob.getOutputs()));
+      try {
+        FileUtils.writeStringToFile(jobFile, serializedJob);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
       
       @SuppressWarnings("unchecked")
       Map<String, Object> commonInputs = (Map<String, Object>) SBValueTranslator.translateToCommon(inputs);
@@ -92,7 +110,7 @@ public class SBProcessor implements ProtocolProcessor {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper executionFilePathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     try {
       Map<String, Object> outputs = null;
@@ -105,17 +123,25 @@ public class SBProcessor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(sbJob, workingDir, hashAlgorithm);
+        outputs = collectOutputs(sbJob, workingDir, hashAlgorithm, executionFilePathMapper, job.getConfig());
+      }
+      
+      if (executionFilePathMapper != null) {
+        Map<String, Object> mappedInputs = new SBPortProcessor(sbJob).processInputs(sbJob.getInputs(), new SBFilePathMapProcessorCallback(executionFilePathMapper, job.getConfig()));
+        sbJob.setInputs(mappedInputs);
       }
       outputs = new SBPortProcessorHelper(sbJob).fixOutputMetadata(sbJob.getInputs(), outputs);
       BeanSerializer.serializePartial(new File(workingDir, RESULT_FILENAME), outputs);
-      return Job.cloneWithOutputs(job, outputs);
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) SBValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (SBGlobException | SBExpressionException | IOException | SBPortProcessorException e) {
       throw new BindingException(e);
     }
   }
   
-  private Map<String, Object> collectOutputs(SBJob job, File workingDir, HashAlgorithm hashAlgorithm) throws SBGlobException, SBExpressionException, IOException, BindingException {
+  private Map<String, Object> collectOutputs(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper executionFilePathMapper, Map<String, Object> config) throws SBGlobException, SBExpressionException, IOException, BindingException, SBPortProcessorException {
     File resultFile = new File(workingDir, RESULT_FILENAME);
     
     if (resultFile.exists()) {
@@ -132,6 +158,9 @@ public class SBProcessor implements ProtocolProcessor {
       if (singleResult != null) {
         result.put(SBSchemaHelper.normalizeId(outputPort.getId()), singleResult);
       }
+    }
+    if (executionFilePathMapper != null) {
+      return new SBPortProcessor(job).processOutputs(result, new SBFilePathMapProcessorCallback(executionFilePathMapper, config));
     }
     return result;
   }

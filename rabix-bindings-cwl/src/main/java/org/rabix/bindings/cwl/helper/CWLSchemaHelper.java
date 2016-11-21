@@ -1,13 +1,16 @@
 package org.rabix.bindings.cwl.helper;
 
-import org.rabix.bindings.model.DataType;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.avro.Schema;
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.model.FileValue;
-import org.rabix.bindings.transformer.FileTransformer;
+import org.rabix.bindings.model.DataType;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.JSONHelper;
 
@@ -600,73 +603,4 @@ public class CWLSchemaHelper extends CWLBeanHelper {
     return new DataType(DataType.Type.ANY);
   }
 
-
-  public static DataType getDataTypeFromValue(Object value) {
-    if (value==null)
-      return new DataType(DataType.Type.ANY);
-
-    // FILE
-    if (isFileFromValue(value))
-      return new DataType(DataType.Type.FILE);
-
-    //ARRAY
-    if (value instanceof List) {
-      DataType arrayType = getDataTypeFromValue(((List<?>)value).get(0));
-      return new DataType(DataType.Type.ARRAY, arrayType);
-    }
-
-    // RECORD
-    if (value instanceof Map) {
-      Map<String, DataType> subTypes = new HashMap<>();
-      Map<?, ?> valueMap = (Map<?, ?>) value;
-      for (Object key: valueMap.keySet()) {
-        subTypes.put((String)key, getDataTypeFromValue(valueMap.get(key)));
-      }
-      return new DataType(DataType.Type.RECORD, subTypes);
-    }
-
-    // PRIMITIVE
-    for (DataType.Type t : DataType.Type.values()) {
-      if (t.primitiveType !=null && t.primitiveType.isInstance(value))
-        return new DataType(t);
-    }
-
-    return new DataType(DataType.Type.ANY);
-  }
-
-  public static List<FileValue> getFilesFromValue(Object input) {
-    List<FileValue> ret = new ArrayList<>();
-    if (input instanceof List) {
-      for (Object o : (List<?>) input) {
-        ret.addAll(getFilesFromValue(o));
-      }
-    } else if (CWLSchemaHelper.isFileFromValue(input)) {
-      ret.add(CWLFileValueHelper.createFileValue(input));
-    } else if (input instanceof Map) {
-      for (Object key: ((Map<?,?>)input).keySet()) {
-        ret.addAll(getFilesFromValue(((Map<?,?>)input).get(key)));
-      }
-    }
-    return ret;
-  }
-
-  public static Object updateFileValues(Object input, FileTransformer fileTransformer) {
-    if (CWLSchemaHelper.isFileFromValue(input)) {
-      FileValue origFile = CWLFileValueHelper.createFileValue(input);
-      return CWLFileValueHelper.createFileRaw(fileTransformer.transform(origFile));
-    } else if (input instanceof List) {
-      List<Object> ret = new ArrayList<>();
-      for (Object o : (List<?>) input) {
-        ret.add(updateFileValues(o, fileTransformer));
-      }
-      return ret;
-    } else if (input instanceof Map) {
-      Map<Object, Object> ret = new HashMap<>();
-      for (Object key: ((Map<?,?>)input).keySet()) {
-        ret.put(key, updateFileValues(((Map<?,?>)input).get(key), fileTransformer));
-      }
-      return ret;
-    }
-    return CloneHelper.deepCopy(input);
-  }
 }

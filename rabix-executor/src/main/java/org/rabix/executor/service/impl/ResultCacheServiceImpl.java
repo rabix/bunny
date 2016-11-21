@@ -126,8 +126,10 @@ public class ResultCacheServiceImpl implements ResultCacheService {
           FileUtils.copyFile(resultFile, new File(storageConfig.getWorkingDir(job), "cwl.output.json"));
 
           Map<String, Object> inputs = JSONHelper.readMap(oldJobJsonNode.get("inputs"));
-          Job newJob = Job.cloneWithInputs(job, inputs);
-          return bindings.postprocess(newJob, workingDir, null).getOutputs();
+          @SuppressWarnings("unchecked")
+          Map<String, Object> commonInputs = (Map<String, Object>) bindings.translateToCommon(inputs);
+          Job newJob = Job.cloneWithInputs(job, commonInputs);
+          return bindings.postprocess(newJob, workingDir, null, null).getOutputs();
         }
         break;
       default:

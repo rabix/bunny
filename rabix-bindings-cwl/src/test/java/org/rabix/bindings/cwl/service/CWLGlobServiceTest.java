@@ -55,7 +55,7 @@ public class CWLGlobServiceTest {
     Job job = new Job("id", "id", "id", "id", encodedApp, null, null, inputs, null, null, null, null);
 
     Bindings bindings = new CWLBindings();
-    job = bindings.postprocess(job, workingDir, null);
+    job = bindings.postprocess(job, workingDir, null, null);
 
     System.out.println(JSONHelper.writeObject(job.getOutputs()));
     Assert.assertTrue(job.getOutputs() instanceof Map<?, ?>);

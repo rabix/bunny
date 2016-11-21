@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
-import org.rabix.bindings.model.DataType;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -79,8 +78,4 @@ public class Draft2InputPort extends ApplicationPort {
     return Draft2SchemaHelper.isRequired(schema);
   }
 
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return Draft2SchemaHelper.getDataTypeFromValue(input);
-  }
 }

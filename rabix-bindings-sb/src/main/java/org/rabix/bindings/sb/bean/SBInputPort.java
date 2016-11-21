@@ -1,7 +1,6 @@
 package org.rabix.bindings.sb.bean;
 
 import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -79,8 +78,4 @@ public class SBInputPort extends ApplicationPort {
     return SBSchemaHelper.isRequired(schema);
   }
 
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return SBSchemaHelper.getDataTypeFromValue(input);
-  }
 }

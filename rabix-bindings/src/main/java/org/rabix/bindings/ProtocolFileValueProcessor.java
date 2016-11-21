@@ -9,12 +9,8 @@ import org.rabix.bindings.transformer.FileTransformer;
 
 public interface ProtocolFileValueProcessor {
 
-  Set<FileValue> getInputFiles(Job job) throws BindingException;
-  
   Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException;
   
-  Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException;
- 
   Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException;
 
   Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException;

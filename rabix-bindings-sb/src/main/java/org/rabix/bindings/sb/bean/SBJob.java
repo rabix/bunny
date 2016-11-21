@@ -125,6 +125,10 @@ public final class SBJob {
   public void setId(String id) {
     this.id = id;
   }
+  
+  public void setInputs(Map<String, Object> inputs) {
+    this.inputs = inputs;
+  }
 
   public SBJobApp getApp() {
     return app;

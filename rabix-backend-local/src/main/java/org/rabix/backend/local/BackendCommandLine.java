@@ -24,6 +24,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
+import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -470,7 +471,7 @@ public class BackendCommandLine {
         List<Map<String, Object>> ret = new ArrayList<>();
         for (String s : value) {
           FileValue fileValue = new FileValue(null, s, null, null, null, null, null);
-          Map<String, Object> entry = bindings.translateFile(fileValue);
+          Map<String, Object> entry = FileValueHelper.translateFileToCommon(bindings, fileValue);
           ret.add(entry);
         }
         return ret;
@@ -481,7 +482,7 @@ public class BackendCommandLine {
 
     if (inputType.isFile()) {
       FileValue fileValue = new FileValue(null, value[0], null, null, null, null, null);
-      return bindings.translateFile(fileValue);
+      return FileValueHelper.translateFileToCommon(bindings, fileValue);
     } else {
       return value[0];
     }

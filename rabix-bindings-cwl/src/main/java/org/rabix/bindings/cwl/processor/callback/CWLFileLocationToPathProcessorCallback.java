@@ -19,7 +19,9 @@ public class CWLFileLocationToPathProcessorCallback implements CWLPortProcessorC
     }
     try {
       if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
-        CWLFileValueHelper.setPath(CWLFileValueHelper.getLocation(value), value);
+        if (CWLFileValueHelper.getPath(value) == null) {
+          CWLFileValueHelper.setPath(CWLFileValueHelper.getLocation(value), value);
+        }
         return new CWLPortProcessorResult(value, true);
       }
       return new CWLPortProcessorResult(value, false);

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.rabix.bindings.helper.FileValueHelper;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -68,11 +69,6 @@ public abstract class ApplicationPort {
   @JsonIgnore
   protected void readDataType() {
     dataType = new DataType(DataType.Type.ANY);
-  }
-
-  @JsonIgnore
-  public DataType getDataTypeFromValue(Object input) {
-    return new DataType(DataType.Type.ANY);
   }
 
   public void setId(String id) {
@@ -141,7 +137,7 @@ public abstract class ApplicationPort {
     if (in==null)
       return null;
 
-    DataType inDataType = getDataTypeFromValue(in);
+    DataType inDataType = FileValueHelper.getDataTypeFromValue(in);
     if (!getDataType().isCompatible(inDataType))
       return "Invalid Value for " + id + ".\n Expected: " + getDataType() + ".\n Received: " + inDataType;
     return null;

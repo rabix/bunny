@@ -16,15 +16,6 @@ import org.rabix.bindings.transformer.FileTransformer;
 
 public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
 
-  public Set<FileValue> getInputFiles(Job job) throws BindingException {
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    try {
-      return new CWLPortProcessorHelper(cwlJob).getInputFiles(cwlJob.getInputs(), null, null);
-    } catch (CWLPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-  
   @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
@@ -36,26 +27,14 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
   }
 
   @Override
-  public Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    try {
-      Set<String> visiblePorts = null;
-      if (onlyVisiblePorts) {
-        visiblePorts = job.getVisiblePorts();
-      }
-      return new CWLPortProcessorHelper(cwlJob).getOutputFiles(cwlJob.getOutputs(), visiblePorts);
-    } catch (CWLPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-  @Override
   public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     Map<String, Object> inputs;
     try {
       inputs = new CWLPortProcessorHelper(cwlJob).updateInputFiles(cwlJob.getInputs(), fileTransformer);
-      return Job.cloneWithInputs(job, inputs);
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonInputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(inputs);
+      return Job.cloneWithInputs(job, commonInputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
@@ -67,7 +46,9 @@ public class CWLFileValueProcessor implements ProtocolFileValueProcessor {
     Map<String, Object> outputs;
     try {
       outputs = new CWLPortProcessorHelper(cwlJob).updateOutputFiles(cwlJob.getOutputs(), fileTransformer);
-      return Job.cloneWithOutputs(job, outputs);
+      @SuppressWarnings("unchecked")
+      Map<String, Object> commonOutputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (CWLPortProcessorException e) {
       throw new BindingException(e);
     }
