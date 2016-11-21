@@ -104,7 +104,6 @@ public class CWLTranslator implements ProtocolTranslator {
     
     ScatterMethod scatterMethod = job.getScatterMethod() != null? ScatterMethod.valueOf(job.getScatterMethod()) : ScatterMethod.dotproduct;
     if (!job.getApp().isWorkflow()) {
-      @SuppressWarnings("unchecked")
       Map<String, Object> commonDefaults = (Map<String, Object>) CWLValueTranslator.translateToCommon(job.getInputs());
       return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults);
     }
@@ -147,7 +146,6 @@ public class CWLTranslator implements ProtocolTranslator {
       int position = dataLink.getPosition() != null ? dataLink.getPosition() : 1;
       links.add(new DAGLink(sourceLinkPort, destinationLinkPort, dataLink.getLinkMerge(), position));
     }
-    @SuppressWarnings("unchecked")
     Map<String, Object> commonDefaults = (Map<String, Object>) CWLValueTranslator.translateToCommon(job.getInputs());
     return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults);
   }
