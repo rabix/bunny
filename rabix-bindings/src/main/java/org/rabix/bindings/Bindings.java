@@ -206,6 +206,12 @@ public interface Bindings {
    */
   boolean isRequiredFromSchema(Object schema);
 
+  /**
+   * Translates values from common format to protocol specific format 
+   * @param commonValue     Values in common format
+   * @return                Values in protocol specific format
+   * @throws BindingException
+   */
   Object translateToSpecific(Object commonValue) throws BindingException;
   
   /**
