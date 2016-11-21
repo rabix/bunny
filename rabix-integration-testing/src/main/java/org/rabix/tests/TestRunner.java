@@ -35,13 +35,13 @@ public class TestRunner {
 	public static void main(String[] commandLineArguments) {
 		try {
 
-			logger.info("Integration testing started " + commandLineArguments[0]);
+			logger.info("Integration testing started: " + commandLineArguments[0]);
 			PropertiesConfiguration configuration = getConfig();
 			testDirPath = getStringFromConfig(configuration, "testDirPath");
 			cmdPrefix = getStringFromConfig(configuration, "cmdPrefix");
 			buildFile = getStringFromConfig(configuration, "buildFile");
 //			startTestExecution();
-			logger.info("Integration testing ended" + commandLineArguments[0]);
+			logger.info("Integration testing ended: " + commandLineArguments[0]);
 
 			if (!commandLineArguments[0].equals("draft-sb")) {
 				logger.info("Conformance tests started:  " + commandLineArguments[0]);
@@ -70,7 +70,7 @@ public class TestRunner {
 		
 		command("chmod +x " + starterScriptName , cwlTestWorkingdir);
 		command("pwd", ".");
-		command("./" + starterScriptName, cwlTestWorkingdir);
+		command("./" + starterScriptName + " > result.yaml", cwlTestWorkingdir);
 		
 		
 	}
@@ -240,7 +240,7 @@ public class TestRunner {
 			int exitCode = process.waitFor();
 
 			if (0 != exitCode) {
-				File resultFile = new File(resultPath);
+				File resultFile = new File("result.yaml");
 				String stdErr = readFile(resultFile.getAbsolutePath(), Charset.defaultCharset());
 				logger.error(stdErr);
 				throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
