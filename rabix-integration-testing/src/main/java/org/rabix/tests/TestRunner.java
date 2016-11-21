@@ -44,9 +44,9 @@ public class TestRunner {
 			logger.info("Integration testing " + commandLineArguments[0] + ": finished");
 
 			if (!commandLineArguments[0].equals("draft-sb")) {
-				logger.info("Conformance test for " + commandLineArguments[0] + ": started");
+				logger.info("Conformance tests started:  " + commandLineArguments[0]);
 				startConformanceTests(commandLineArguments[0]);
-				logger.info("Conformance test " + commandLineArguments[0] + ": finished");
+				logger.info("Conformance test ended: " + commandLineArguments[0]);
 			}
 
 		} catch (RabixTestException e) {
@@ -63,6 +63,10 @@ public class TestRunner {
 		String commandCopyCwlStarter = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlstarter/" + starterScriptName + " .";
 		
 		command(commandCopyCwlStarter, cwlTestWorkingdir);
+		
+		logger.info(" --- Running conformance tests: " + draftName);
+		logger.info(" --- Conformance working dir: " + cwlTestWorkingdir);
+		logger.info(" --- Conformance starter script: " + starterScriptName);
 		
 		command("chmod +x " + starterScriptName , cwlTestWorkingdir);
 		command("pwd", ".");
