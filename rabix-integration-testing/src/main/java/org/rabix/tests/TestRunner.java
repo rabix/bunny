@@ -91,12 +91,7 @@ public class TestRunner {
 		}
 
 		extractBuildFile();
-
-		String commandCopyTestbacklog = "cp -a " + System.getProperty("user.dir")
-				+ "/rabix-integration-testing/testbacklog .";
-		command(commandCopyTestbacklog, workingdir);
-		logger.info("Copying testbacklog command: " + commandCopyTestbacklog);
-		logger.info("Copying testbacklog dir: done ");
+		copyTestbacklog();
 
 		for (File child : directoryListing) {
 			if (!child.getPath().endsWith(".test.yaml"))
@@ -164,6 +159,14 @@ public class TestRunner {
 			}
 		}
 		logger.info("Integration tests ended:  " + draftName);
+	}
+
+	private static void copyTestbacklog() throws RabixTestException {
+		String commandCopyTestbacklog = "cp -a " + System.getProperty("user.dir")
+				+ "/rabix-integration-testing/testbacklog .";
+		command(commandCopyTestbacklog, workingdir);
+		logger.info("Copying testbacklog command: " + commandCopyTestbacklog);
+		logger.info("Copying testbacklog dir: done ");
 	}
 
 	private static void extractBuildFile() throws RabixTestException {
