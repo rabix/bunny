@@ -69,27 +69,25 @@ public class TestRunner {
 
 	private static void startIntegrationTests(String draftName) throws RabixTestException {
 		logger.info("Integration tests started:  " + draftName);
-		
+		boolean allTestsPassed = true;
+		boolean testPassed = false;
 		PropertiesConfiguration configuration = getConfig();
 		setupIntegrationTestDirPath(configuration);
 		setupIntegrationCommandPrefix(configuration);
 		setupBuildFilePath(configuration);
 		
-		boolean allTestsPassed = true;
-		boolean testPassed = false;
-		
 		File dir = new File(testDirPath);
-		File[] directoryListing = dir.listFiles();
-		ArrayList<Object> failedTests = new ArrayList<Object>();
-
 		if (!dir.isDirectory()) {
 			logger.error("Problem with test directory path: Test directory path is not valid directory path.");
 			System.exit(-1);
 		}
+		File[] directoryListing = dir.listFiles();
 		if (directoryListing == null) {
 			logger.error("Problem with provided test directory: Test directory is empty.");
 		}
-
+		
+		ArrayList<Object> failedTests = new ArrayList<Object>();
+		
 		extractBuildFile();
 		copyTestbacklog();
 
