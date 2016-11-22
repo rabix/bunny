@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.draft3.bean.Draft3CommandLineTool;
@@ -184,7 +185,12 @@ public class Draft3Processor implements ProtocolProcessor {
       return;
     }
     if ((Draft3SchemaHelper.isFileFromValue(value))) {
-      File file = new File(Draft3FileValueHelper.getPath(value));
+      String path = Draft3FileValueHelper.getPath(value);
+      if (StringUtils.isEmpty(Draft3FileValueHelper.getLocation(value))) {
+        Draft3FileValueHelper.setLocation(path, value);
+      }
+      
+      File file = new File(path);
       if (!file.exists()) {
         return;
       }
