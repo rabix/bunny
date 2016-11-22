@@ -476,7 +476,7 @@ public class BackendCommandLine {
         List<Map<String, Object>> ret = new ArrayList<>();
         for (String s : value) {
           FileValue fileValue = new FileValue(null, s, null, null, null, null, null);
-          Map<String, Object> entry = FileValueHelper.translateFileToCommon(bindings, fileValue);
+          Map<String, Object> entry = FileValueHelper.translateFileToSpecific(bindings, fileValue);
           ret.add(entry);
         }
         return ret;
@@ -487,7 +487,7 @@ public class BackendCommandLine {
 
     if (inputType.isFile()) {
       FileValue fileValue = new FileValue(null, value[0], null, null, null, null, null);
-      return FileValueHelper.translateFileToCommon(bindings, fileValue);
+      return FileValueHelper.translateFileToSpecific(bindings, fileValue);
     } else {
       return value[0];
     }
