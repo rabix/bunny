@@ -75,7 +75,7 @@ public class SBTranslator implements ProtocolTranslator {
     List<DAGLinkPort> inputPorts = new ArrayList<>();
     
     for (ApplicationPort port : job.getApp().getInputs()) {
-      Object defaultValue = job.getInputs().get(SBSchemaHelper.normalizeId(port.getId()));
+      Object defaultValue = SBValueTranslator.translateToCommon(job.getInputs().get(SBSchemaHelper.normalizeId(port.getId())));
       DAGLinkPort linkPort = new DAGLinkPort(SBSchemaHelper.normalizeId(port.getId()), job.getId(), LinkPortType.INPUT, LinkMerge.merge_nested, port.getScatter() != null ? port.getScatter() : false, defaultValue, null);
       inputPorts.add(linkPort);
     }

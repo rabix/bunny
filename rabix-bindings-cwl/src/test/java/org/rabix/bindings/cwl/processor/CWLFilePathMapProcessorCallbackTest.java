@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.Bindings;
-import org.rabix.bindings.cwl.CWLBindings;
 import org.rabix.bindings.cwl.CWLValueTranslator;
 import org.rabix.bindings.cwl.bean.CWLJob;
+import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
@@ -33,9 +32,7 @@ public class CWLFilePathMapProcessorCallbackTest {
     Map<String, Object> inputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(cwlJob.getInputs());
     Job job = new Job("id", "id", "id", "id", encodedApp, null, null, inputs, null, null, null, null);
     try {
-      Bindings bindings = new CWLBindings();
-      
-      job = bindings.mapInputFilePaths(job, new FilePathMapper() {
+      job = FileValueHelper.mapInputFilePaths(job, new FilePathMapper() {
         @Override
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path + ".temp";

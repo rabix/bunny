@@ -1,25 +1,19 @@
 package org.rabix.bindings.draft2;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
-import org.rabix.bindings.ProtocolFilePathMapper;
 import org.rabix.bindings.ProtocolFileValueProcessor;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.draft2.helper.Draft2FileValueHelper;
-import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -29,9 +23,7 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
-import org.rabix.common.json.BeanSerializer;
 
 public class Draft2Bindings implements Bindings {
 
@@ -42,14 +34,12 @@ public class Draft2Bindings implements Bindings {
   private final ProtocolFileValueProcessor fileValueProcessor;
   
   private final ProtocolProcessor processor;
-  private final ProtocolFilePathMapper filePathMapper;
   
   private final ProtocolCommandLineBuilder commandLineBuilder;
   private final ProtocolRequirementProvider requirementProvider;
   
   public Draft2Bindings() throws BindingException {
     this.protocolType = ProtocolType.DRAFT2;
-    this.filePathMapper = new Draft2FilePathMapper();
     this.processor = new Draft2Processor();
     this.commandLineBuilder = new Draft2CommandLineBuilder();
     this.fileValueProcessor = new Draft2FileValueProcessor();
@@ -74,19 +64,8 @@ public class Draft2Bindings implements Bindings {
   }
   
   @Override
-  public Job preprocess(Job job, File workingDir) throws BindingException {
-    return processor.preprocess(job, workingDir);
-  }
-  
-  @Override
-  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
-    File jobFile = new File(workingDir, Draft2Processor.JOB_FILE);
-    String serializedJob = BeanSerializer.serializePartial(Draft2JobHelper.getDraft2Job(job));
-    try {
-      FileUtils.writeStringToFile(jobFile, serializedJob);
-    } catch (IOException e) {
-      throw new BindingException(e);
-    }
+  public Job preprocess(Job job, File workingDir, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.preprocess(job, workingDir, logFilePathMapper);
   }
   
   @Override
@@ -95,8 +74,8 @@ public class Draft2Bindings implements Bindings {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
-    return processor.postprocess(job, workingDir, hashAlgorithm);
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.postprocess(job, workingDir, hashAlgorithm, logFilePathMapper);
   }
 
   @Override
@@ -110,30 +89,10 @@ public class Draft2Bindings implements Bindings {
   }
 
   @Override
-  public Set<FileValue> getInputFiles(Job job) throws BindingException {
-    return fileValueProcessor.getInputFiles(job);
-  }
-  
-  @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     return fileValueProcessor.getInputFiles(job, fileMapper);
   }
 
-  @Override
-  public Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    return fileValueProcessor.getOutputFiles(job, onlyVisiblePorts);
-  }
-  
-  @Override
-  public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
-    return fileValueProcessor.updateInputFiles(job, fileTransformer);
-  }
-
-  @Override
-  public Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
-    return fileValueProcessor.updateOutputFiles(job, fileTransformer);
-  }
-  
   @Override
   public Set<FileValue> getProtocolFiles(File workingDir) throws BindingException {
     Set<FileValue> files = new HashSet<>();
@@ -152,16 +111,6 @@ public class Draft2Bindings implements Bindings {
     return files;
   }
   
-  @Override
-  public Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapInputFilePaths(job, fileMapper);
-  }
-
-  @Override
-  public Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapOutputFilePaths(job, fileMapper);
-  }
-
   @Override
   public List<Requirement> getRequirements(Job job) throws BindingException {
     return requirementProvider.getRequirements(job);
@@ -200,26 +149,6 @@ public class Draft2Bindings implements Bindings {
   @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     return null;
-  }
-
-  @Override
-  public Map<String, Object> translateFile(FileValue fileValue) {
-    return Draft2FileValueHelper.createFileRaw(fileValue);
-  }
-
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return Draft2SchemaHelper.getDataTypeFromValue(input);
-  }
-
-  @Override
-  public List<FileValue> getFilesFromValue(Object input) {
-    return Draft2SchemaHelper.getFilesFromValue(input);
-  }
-
-  @Override
-  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
-    return Draft2SchemaHelper.updateFileValues(input, fileTransformer);
   }
 
   @Override public DataType getDataTypeFromSchema(Object schema) {

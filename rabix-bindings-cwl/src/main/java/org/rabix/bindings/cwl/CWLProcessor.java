@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
@@ -27,13 +28,16 @@ import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLRuntimeHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
+import org.rabix.bindings.cwl.processor.CWLPortProcessor;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorException;
+import org.rabix.bindings.cwl.processor.callback.CWLFilePathMapProcessorCallback;
 import org.rabix.bindings.cwl.processor.callback.CWLPortProcessorHelper;
 import org.rabix.bindings.cwl.service.CWLGlobException;
 import org.rabix.bindings.cwl.service.CWLGlobService;
 import org.rabix.bindings.cwl.service.CWLMetadataService;
 import org.rabix.bindings.cwl.service.impl.CWLGlobServiceImpl;
 import org.rabix.bindings.cwl.service.impl.CWLMetadataServiceImpl;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
@@ -63,7 +67,7 @@ public class CWLProcessor implements ProtocolProcessor {
   }
 
   @Override
-  public Job preprocess(final Job job, final File workingDir) throws BindingException {
+  public Job preprocess(final Job job, final File workingDir, FilePathMapper logFilesPathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     CWLRuntime runtime = cwlJob.getRuntime();
     runtime = CWLRuntimeHelper.setOutdir(runtime, workingDir.getAbsolutePath());
@@ -110,7 +114,7 @@ public class CWLProcessor implements ProtocolProcessor {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
       Map<String, Object> outputs = null;
@@ -124,7 +128,7 @@ public class CWLProcessor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(cwlJob, workingDir, hashAlgorithm);
+        outputs = collectOutputs(cwlJob, workingDir, hashAlgorithm, logFilePathMapper, job.getConfig());
       }
       return Job.cloneWithOutputs(job, (Map<String, Object>) CWLValueTranslator.translateToCommon(outputs));
     } catch (CWLGlobException | CWLExpressionException | IOException e) {
@@ -132,7 +136,7 @@ public class CWLProcessor implements ProtocolProcessor {
     }
   }
   
-  private Map<String, Object> collectOutputs(CWLJob job, File workingDir, HashAlgorithm hashAlgorithm) throws CWLGlobException, CWLExpressionException, IOException, BindingException {
+  private Map<String, Object> collectOutputs(CWLJob job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper, Map<String, Object> config) throws CWLGlobException, CWLExpressionException, IOException, BindingException {
     File resultFile = new File(workingDir, RESULT_FILENAME);
     
     if (resultFile.exists()) {
@@ -149,7 +153,18 @@ public class CWLProcessor implements ProtocolProcessor {
       Object singleResult = collectOutput(job, workingDir, hashAlgorithm, outputPort.getSchema(), outputPort.getOutputBinding(), outputPort);
       result.put(CWLSchemaHelper.normalizeId(outputPort.getId()), singleResult);
     }
-    BeanSerializer.serializePartial(resultFile, result);
+    
+    if (logFilePathMapper != null) {
+      try {
+        Map<String, Object> mappedResult = new CWLPortProcessor(job).processOutputs(result, new CWLFilePathMapProcessorCallback(logFilePathMapper, config));
+        BeanSerializer.serializePartial(resultFile, mappedResult);
+      } catch (CWLPortProcessorException e) {
+        logger.error("Failed to map outputs", e);
+        throw new CWLGlobException(e);
+      }
+    } else {
+      BeanSerializer.serializePartial(resultFile, result);
+    }
     return result;
   }
   
@@ -194,7 +209,12 @@ public class CWLProcessor implements ProtocolProcessor {
         return;
       }
       
-      File file = new File(CWLFileValueHelper.getPath(value));
+      String path = CWLFileValueHelper.getPath(value);
+      if (StringUtils.isEmpty(CWLFileValueHelper.getLocation(value))) {
+        CWLFileValueHelper.setLocation(path, value);
+      }
+      
+      File file = new File(path);
       if (!file.exists()) {
         return;
       }

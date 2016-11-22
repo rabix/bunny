@@ -3,14 +3,12 @@ package org.rabix.bindings.cwl;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
-import org.rabix.bindings.ProtocolFilePathMapper;
 import org.rabix.bindings.ProtocolFileValueProcessor;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
@@ -19,7 +17,6 @@ import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
-import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
@@ -30,7 +27,6 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLBindings implements Bindings {
@@ -42,14 +38,12 @@ public class CWLBindings implements Bindings {
   private final ProtocolFileValueProcessor fileValueProcessor;
   
   private final ProtocolProcessor processor;
-  private final ProtocolFilePathMapper filePathMapper;
   
   private final ProtocolCommandLineBuilder commandLineBuilder;
   private final ProtocolRequirementProvider requirementProvider;
   
   public CWLBindings() throws BindingException {
     this.protocolType = ProtocolType.CWL;
-    this.filePathMapper = new CWLFilePathMapper();
     this.processor = new CWLProcessor();
     this.commandLineBuilder = new CWLCommandLineBuilder();
     this.fileValueProcessor = new CWLFileValueProcessor();
@@ -74,13 +68,8 @@ public class CWLBindings implements Bindings {
   }
   
   @Override
-  public Job preprocess(Job job, File workingDir) throws BindingException {
-    return processor.preprocess(job, workingDir);
-  }
-  
-  @Override
-  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
-    // do nothing
+  public Job preprocess(Job job, File workingDir, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.preprocess(job, workingDir, logFilePathMapper);
   }
   
   @Override
@@ -89,8 +78,8 @@ public class CWLBindings implements Bindings {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
-    return processor.postprocess(job, workingDir, hashAlgorithm);
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.postprocess(job, workingDir, hashAlgorithm, logFilePathMapper);
   }
 
   @Override
@@ -104,30 +93,10 @@ public class CWLBindings implements Bindings {
   }
 
   @Override
-  public Set<FileValue> getInputFiles(Job job) throws BindingException {
-    return fileValueProcessor.getInputFiles(job);
-  }
-  
-  @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     return fileValueProcessor.getInputFiles(job, fileMapper);
   }
 
-  @Override
-  public Set<FileValue> getOutputFiles(Job job, boolean visiblePorts) throws BindingException {
-    return fileValueProcessor.getOutputFiles(job, visiblePorts);
-  }
-  
-  @Override
-  public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
-    return fileValueProcessor.updateInputFiles(job, fileTransformer);
-  }
-
-  @Override
-  public Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
-    return fileValueProcessor.updateOutputFiles(job, fileTransformer);
-  }
-  
   @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
@@ -159,16 +128,6 @@ public class CWLBindings implements Bindings {
     return files;
   }
   
-  @Override
-  public Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapInputFilePaths(job, fileMapper);
-  }
-
-  @Override
-  public Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapOutputFilePaths(job, fileMapper);
-  }
-
   @Override
   public List<Requirement> getRequirements(Job job) throws BindingException {
     return requirementProvider.getRequirements(job);
@@ -202,26 +161,6 @@ public class CWLBindings implements Bindings {
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
     return processor.transformInputs(value, job, transform);
-  }
-
-  @Override
-  public Map<String, Object> translateFile(FileValue fileValue) {
-    return CWLFileValueHelper.createFileRaw(fileValue);
-  }
-
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return CWLSchemaHelper.getDataTypeFromValue(input);
-  }
-
-  @Override
-  public List<FileValue> getFilesFromValue(Object input) {
-    return CWLSchemaHelper.getFilesFromValue(input);
-  }
-
-  @Override
-  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
-    return CWLSchemaHelper.updateFileValues(input, fileTransformer);
   }
 
   @Override public DataType getDataTypeFromSchema(Object schema) {
