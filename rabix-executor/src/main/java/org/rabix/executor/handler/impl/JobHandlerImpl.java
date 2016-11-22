@@ -259,7 +259,11 @@ public class JobHandlerImpl implements JobHandler {
           if (!file.exists()) {
             continue;
           }
-          Files.createLink(destinationFile.toPath(), file.toPath());
+          if (file.isFile()) {
+            Files.createLink(destinationFile.toPath(), file.toPath()); // use hard link
+          } else {
+            FileUtils.copyDirectory(file, destinationFile); // use copy
+          }
         }
       }
     } catch (IOException e) {
