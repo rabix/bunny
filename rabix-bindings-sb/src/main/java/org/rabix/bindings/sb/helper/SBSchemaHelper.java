@@ -344,51 +344,52 @@ public class SBSchemaHelper extends SBBeanHelper {
         for (Object subschema : schemaList) {
           types.add(readDataType(subschema));
         }
-        return new DataType(DataType.Type.UNION, types);
+        return new DataType(DataType.Type.UNION, types, !isRequired(schema));
       }
     }
 
     // FILE
     if (isFileFromSchema(schema))
-      return new DataType(DataType.Type.FILE);
+      return new DataType(DataType.Type.FILE, !isRequired(schema));
 
     //ARRAY
     if (isArrayFromSchema(schema)) {
       DataType arrayType = readDataType(getItems(schema));
-      return new DataType(DataType.Type.ARRAY, arrayType);
+      return new DataType(DataType.Type.ARRAY, arrayType, !isRequired(schema));
     }
 
     // RECORD
     if (isRecordFromSchema(schema)) {
       Map<String, DataType> subTypes = new HashMap<>();
       Object fields = getFields(schema);
-      if (fields instanceof Map<?, ?>) {
-        Map<String, Object> fieldsMap = (Map<String, Object>) fields;
-        for (String key: fieldsMap.keySet()) {
-          subTypes.put(key, readDataType(fieldsMap.get(key)));
+      if (fields instanceof List<?>) {
+        for (Object o : (List<Object>) fields) {
+          Map<String, Object> map = (Map<String, Object>) o;
+          subTypes.put((String) map.get("name"), readDataType(map.get("type")));
         }
       }
-      return new DataType(DataType.Type.RECORD, subTypes);
+      return new DataType(DataType.Type.RECORD, subTypes, !isRequired(schema));
     }
+
 
     // PRIMITIVES
     if (isTypeFromSchema(schema, "boolean")) {
-      return new DataType(DataType.Type.BOOLEAN);
+      return new DataType(DataType.Type.BOOLEAN, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, "string")) {
-      return new DataType(DataType.Type.STRING);
+      return new DataType(DataType.Type.STRING, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, "int")) {
-      return new DataType(DataType.Type.INT);
+      return new DataType(DataType.Type.INT, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, "long")) {
-      return new DataType(DataType.Type.LONG);
+      return new DataType(DataType.Type.LONG, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, "float")) {
-      return new DataType(DataType.Type.FLOAT);
+      return new DataType(DataType.Type.FLOAT, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, "double")) {
-      return new DataType(DataType.Type.DOUBLE);
+      return new DataType(DataType.Type.DOUBLE, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, SCHEMA_NULL)) {
       return new DataType(DataType.Type.NULL);

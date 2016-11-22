@@ -5,24 +5,26 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataType {
   public enum Type {
-    UNION, ARRAY, RECORD, FILE, DIRECTORY, ANY, NULL,
-    BOOLEAN(Boolean.class), STRING(String.class), INT(Integer.class),
-    LONG(Long.class), FLOAT(Float.class), DOUBLE(Double.class);
+    UNION, ARRAY, RECORD, FILE(null, "File"), DIRECTORY, ANY, NULL(null, "null"),
+    BOOLEAN(Boolean.class, "boolean"), STRING(String.class, "string"), INT(Integer.class, "int"),
+    LONG(Long.class, "long"), FLOAT(Float.class, "float"), DOUBLE(Double.class, "float");
 
     public final Class<?> primitiveType;
+    public final String avroType;
 
     Type() {
       primitiveType = null;
+      avroType = null;
     }
 
-    Type(Class<?> primitiveType) {
+    Type(Class<?> primitiveType, String avroType) {
       this.primitiveType = primitiveType;
+      this.avroType = avroType;
     }
   }
 
@@ -35,22 +37,39 @@ public class DataType {
     this.type = type;
   }
 
+  public DataType(Type type, Boolean nullable) {
+    this.type = type;
+    this.nullable = nullable;
+  }
+
   // Constructor for UNION
-  public DataType(Type type, Set<DataType> types) {
+  public DataType(Type type, Set<DataType> types, Boolean nullable) {
     this.type = type;
     this.types = types;
+    this.nullable = nullable;
+  }
+  public DataType(Type type, Set<DataType> types) {
+    this(type, types, null);
   }
 
   // Constructor for ARRAY
-  public DataType(Type type, DataType subtype) {
+  public DataType(Type type, DataType subtype, Boolean nullable) {
     this.type = type;
     this.subtype = subtype;
+    this.nullable = nullable;
+  }
+  public DataType(Type type, DataType subtype) {
+    this(type, subtype, null);
   }
 
   // Constructor for RECORD
-  public DataType(Type type, Map<String, DataType> subtypes) {
+  public DataType(Type type, Map<String, DataType> subtypes, Boolean nullable) {
     this.type = type;
     this.subtypes = subtypes;
+    this.nullable = nullable;
+  }
+  public DataType(Type type, Map<String, DataType> subtypes) {
+    this(type, subtypes, null);
   }
 
   @JsonProperty("type")
@@ -64,6 +83,13 @@ public class DataType {
 
   @JsonProperty("subtypes")
   private Map<String, DataType> subtypes;
+
+  @JsonProperty("nullable")
+  private Boolean nullable;
+
+  public Boolean isNullable() {
+    return nullable;
+  }
 
   public Type getType() {
     return type;
@@ -139,10 +165,53 @@ public class DataType {
     return type == value.getType();
   }
 
+  public Object toAvro() {
+    if (isArray()) {
+      Map<String, Object> ret = new HashMap<>();
+      ret.put("type", "array");
+      ret.put("items", subtype.toAvro());
+      return ret;
+    }
+
+    if (isRecord()) {
+      Map<String, Object> ret = new HashMap<>();
+      ret.put("type", "record");
+      List<Object> items = new ArrayList<>();
+
+      for (String s : subtypes.keySet()) {
+        Map<String, Object> record = new HashMap<>();
+        record.put("name", s);
+        record.put("type", subtypes.get(s).toAvro());
+        items.add(record);
+      }
+      ret.put("fields", items);
+      return ret;
+    }
+
+    if (isUnion()) {
+      Map<String, Object> ret = new HashMap<>();
+      List<Object> items = new ArrayList<>();
+      for (DataType dt: types)
+        items.add(dt.toAvro());
+      ret.put("type", items);
+      return ret;
+    }
+
+    if (nullable != null && nullable) {
+      List<Object> ret = new ArrayList<>();
+      ret.add("null");
+      ret.add(type.avroType);
+      return ret;
+    }
+
+    return type.avroType;
+  }
+
   @Override
   public String toString() {
     return "DataType{" + "type=" + type + (subtype != null ? ", subtype=" + subtype : "")
-        + (types != null ? ", types=" + types : "") + (subtypes != null ? ", subtypes=" + subtypes : "") + '}';
+        + (types != null ? ", types=" + types : "") + (subtypes != null ? ", subtypes=" + subtypes : "") +
+        (nullable != null ? ", nullable=" + nullable : "") + '}';
   }
 
   @Override public boolean equals(Object o) {
