@@ -114,9 +114,9 @@ public class FileValueHelper {
   }
 
   @SuppressWarnings("unchecked")
-  public static Map<String, Object> translateFileToCommon(Bindings bindings, FileValue file) {
+  public static Map<String, Object> translateFileToSpecific(Bindings bindings, FileValue file) {
     try {
-      return (Map<String, Object>) bindings.translateToCommon(file);
+      return (Map<String, Object>) bindings.translateToSpecific(file);
     } catch (BindingException e) {
       e.printStackTrace();
       return null;
