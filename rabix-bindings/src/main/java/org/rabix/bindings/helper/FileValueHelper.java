@@ -80,6 +80,10 @@ public class FileValueHelper {
     if (value==null)
       return new DataType(DataType.Type.ANY);
 
+    // DIRECTORY
+    if (value instanceof DirectoryValue)
+      return new DataType(DataType.Type.DIRECTORY);
+
     // FILE
     if (value instanceof FileValue)
       return new DataType(DataType.Type.FILE);
@@ -110,9 +114,9 @@ public class FileValueHelper {
   }
 
   @SuppressWarnings("unchecked")
-  public static Map<String, Object> translateFileToCommon(Bindings bindings, FileValue file) {
+  public static Map<String, Object> translateFileToSpecific(Bindings bindings, FileValue file) {
     try {
-      return (Map<String, Object>) bindings.translateToCommon(file);
+      return (Map<String, Object>) bindings.translateToSpecific(file);
     } catch (BindingException e) {
       e.printStackTrace();
       return null;
@@ -217,7 +221,6 @@ public class FileValueHelper {
    * Gets a set of output {@link FileValue} objects with their secondary files
    *
    * @param job                 Job object
-   * @param onlyVisiblePorts    Returns only visible ports. Visible ports are global or terminal ports.
    * @return                    FileValue objects
    * @throws BindingException
    */
