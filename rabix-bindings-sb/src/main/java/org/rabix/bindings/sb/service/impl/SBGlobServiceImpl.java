@@ -11,12 +11,14 @@ import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.expression.SBExpressionException;
 import org.rabix.bindings.sb.expression.helper.SBExpressionBeanHelper;
@@ -34,11 +36,11 @@ public class SBGlobServiceImpl implements SBGlobService {
   /**
    * Find all files that match GLOB inside the working directory 
    */
-  @SuppressWarnings("unchecked")
   public Set<File> glob(SBJob job, File workingDir, Object glob) throws SBGlobException {
     Preconditions.checkNotNull(job);
     Preconditions.checkNotNull(workingDir);
 
+    Set<File> files = new HashSet<File>();
     if (SBExpressionBeanHelper.isExpression(glob)) {
       try {
         glob = SBExpressionBeanHelper.<String> evaluate(job, glob);
@@ -50,56 +52,11 @@ public class SBGlobServiceImpl implements SBGlobService {
     if (glob == null) {
       return Collections.<File> emptySet();
     }
-
-    List<String> globs = new ArrayList<>();
-    if (glob instanceof List<?>) {
-      globs = (List<String>) glob;
-    } 
-    else if (glob instanceof String && ((String) glob).startsWith("{") && ((String) glob).endsWith("}")) {
-      // cover case when glob is in format {fil1,file2}
-      String globRemoveBracket = ((String) glob).substring(1, ((String) glob).length()-1);
-      for(String globItem: globRemoveBracket.split(",")) {
-        globs.add(globItem);
-      }
-    }
-    else {
-      globs.add((String) glob);
-    }
-
-    Set<File> files = new HashSet<File>();
-
-    for (String singleGlob : globs) {
-      List<File> globDirs = new ArrayList<File>();
-      if (singleGlob.startsWith("/")) {
-        File globDir = new File(singleGlob).getParentFile();
-        globDirs.add(globDir);
-        String globString = new File(singleGlob).getName();
-        files.addAll(listDir(globString, false, globDirs));
-      } else if (singleGlob.contains("/") && !(singleGlob.startsWith("/"))) {
-        String[] splitGlob = singleGlob.split("/");
-        globDirs.add(workingDir);
-        for (int i = 0; i < splitGlob.length - 1; i++) {
-          if (splitGlob[i].equals("..")) {
-            List<File> newGlobDirs = new ArrayList<File>();
-            for(File dir: globDirs) {
-              newGlobDirs.add(dir.getParentFile());
-            }
-            globDirs = newGlobDirs;
-          } else {
-            Set<File> newGlobDirs = listDir(splitGlob[i], true, globDirs);
-            globDirs.clear();
-            for(File dir: newGlobDirs) {
-              globDirs.add(dir);
-            }
-          }
-        }
-        files.addAll(listDir(splitGlob[splitGlob.length-1], false, globDirs));
-      }
-      else {
-        globDirs.add(workingDir);
-        files.addAll(listDir(singleGlob, false, globDirs));
-      }
-    }
+    
+    List<File> globDir = new ArrayList<File>();
+    globDir.add(workingDir);
+    
+    resolveGlob(glob, globDir, files);
     return files;
   }
 
@@ -124,8 +81,10 @@ public class SBGlobServiceImpl implements SBGlobService {
           
           @Override
           public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            if (matcher.matches(dir.getFileName()) && isDir) {
-              files.add(dir.toFile());
+            if(dir.getFileName() != null) {
+              if (matcher.matches(dir.getFileName()) && isDir) {
+                files.add(dir.toFile());
+              }
             }
             return super.preVisitDirectory(dir, attrs);
           }
@@ -138,5 +97,140 @@ public class SBGlobServiceImpl implements SBGlobService {
     }
     return files;
   }
-
+  
+  public String[] extractGlobParts(String glob) {
+    String[] globParts = glob.split("/");
+    if(globParts.length < 2) {
+      globParts = Arrays.copyOf(globParts, globParts.length+1);
+      globParts[globParts.length-1] = "*";
+    }
+    return globParts;
+  }
+  
+  @SuppressWarnings("unchecked")
+  public void resolveGlob(Object glob, List<File> globDirs, Set<File> result) throws SBGlobException {
+    if (glob == null) {
+      // do nothing
+      return;
+    }
+    else if (glob instanceof List) {
+      resolveListGlob((List<Object>) glob, globDirs, result);
+    }
+    else if (glob instanceof String && ((String) glob).startsWith("{") && ((String) glob).endsWith("}")) {
+      resolveMultiGlob((String) glob, globDirs, result);
+    }
+    else if (glob instanceof String && ((String) glob).contains("/")) {
+      resolveFullPathGlob((String) glob, globDirs, result); 
+    }
+    else if (glob instanceof String) {
+      resolveSimpleGlob((String) glob, globDirs, result);
+    }
+    else {
+      logger.debug("Not handled - should never happened");
+    }
+  }
+  
+  public void resolveFullPathGlob(String glob, List<File> globDirs, Set<File> result) throws SBGlobException {
+    if (glob.startsWith("/")) {
+      // handle absolute path
+      String[] globParts = glob.split("/");
+      String rootGlob = globParts[1];
+      File rootDir = new File("/");
+      
+      File.listRoots();
+      List<File> globDir = new ArrayList<File>();
+      globDir.add(rootDir);
+      if(globParts.length < 2) {
+        resolveGlob(rootGlob, globDir, result);
+      }
+      else {
+        Set<File> dirs = listDir(rootGlob, true, globDir);
+        String [] globRestParts = Arrays.copyOfRange(globParts, 2, globParts.length);
+        String globRest = StringUtils.join(globRestParts, "/");
+        List<File> listDirs = new ArrayList<File>();
+        listDirs.addAll(dirs);
+        resolveGlob(globRest, listDirs, result);
+      }
+    }
+    else {
+      // handle relative paths
+      String[] globParts = glob.split("/");
+      String rootGlob = globParts[0];
+      List<File> newGlobDirs;
+      if (rootGlob.equals("..")) {
+        newGlobDirs = new ArrayList<File>();
+        for(File dir: globDirs) {
+          newGlobDirs.add(dir.getParentFile());
+        }
+        if (globParts.length < 2) {
+          resolveGlob("*", newGlobDirs, result);
+        }
+        else {
+          String [] globRestParts = Arrays.copyOfRange(globParts, 1, globParts.length);
+          String globRest = StringUtils.join(globRestParts, "/");
+          resolveGlob(globRest, newGlobDirs, result);
+        }
+      }
+      else if (rootGlob.equals(".")) {
+        newGlobDirs = globDirs;
+        if (globParts.length < 2) {
+          resolveGlob("*", newGlobDirs, result);
+        }
+        else {
+          String [] globRestParts = Arrays.copyOfRange(globParts, 1, globParts.length);
+          String globRest = StringUtils.join(globRestParts, "/");
+          resolveGlob(globRest, newGlobDirs, result);
+        }
+      }
+      else {
+        Set<File> dirs = listDir(rootGlob, true, globDirs);
+        if(globParts.length < 2) {
+          resolveGlob(rootGlob, globDirs, result);
+        }
+        else {
+          String [] globRestParts = Arrays.copyOfRange(globParts, 1, globParts.length);
+          String globRest = StringUtils.join(globRestParts, "/");
+          List<File> listDirs = new ArrayList<File>();
+          listDirs.addAll(dirs);
+          resolveGlob(globRest, listDirs, result);
+        }
+      }
+    }
+  }
+  
+  public void resolveSimpleGlob(String glob, List<File> globDirs, Set<File> result) throws SBGlobException {
+    Set<File> dirs = listDir(glob, true, globDirs);
+    for(File dir: dirs) {
+      List<File> globDir = new ArrayList<File>();
+      globDir.add(dir);
+      result.addAll(listDir("*", false, globDir));
+    }
+    if(glob.startsWith("!(") && glob.endsWith(")")) {
+      Set<File> exclude = listDir(glob.substring(2, glob.length()-1), false, globDirs);
+      Set<File> all = listDir("*", false, globDirs);
+      all.removeAll(exclude);
+      result.addAll(all);
+    }
+    else {
+      result.addAll(listDir(glob, false, globDirs));
+    }
+  }
+  
+  public void resolveMultiGlob(String glob, List<File> globDirs, Set<File> result) throws SBGlobException {
+    List<Object> globs = new ArrayList<>();
+    String globRemoveBracket = ((String) glob).substring(1, ((String) glob).length()-1);
+    for(String globItem: globRemoveBracket.split(",")) {
+      globs.add(globItem);
+    }
+    for(Object singleGlob: globs) {
+      resolveGlob(singleGlob, globDirs, result);
+    }
+  }
+  
+  public void resolveListGlob(List<Object> globs, List<File> globDirs, Set<File> result) throws SBGlobException {
+    for(Object glob: globs) {
+      resolveGlob(glob, globDirs, result);
+    }
+  }
+  
 }
