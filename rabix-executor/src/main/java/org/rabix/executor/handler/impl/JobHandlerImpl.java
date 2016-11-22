@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.DirectoryValue;
@@ -144,9 +145,8 @@ public class JobHandlerImpl implements JobHandler {
       }
       statusCallback.onInputFilesDownloadCompleted(job);
       
-      job = bindings.mapInputFilePaths(job, inputFileMapper);
-      job = bindings.preprocess(job, workingDir);
-      bindings.dumpProtocolFilesBeforeExecution(job, workingDir);
+      job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
+      job = bindings.preprocess(job, workingDir, null);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -171,7 +171,7 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   private void downloadInputFiles(final Job job, final Bindings bindings) throws BindingException, DownloadServiceException {
-    Set<FileValue> fileValues = flattenFiles(bindings.getInputFiles(job));
+    Set<FileValue> fileValues = flattenFiles(FileValueHelper.getInputFiles(job));
     
     final Set<DownloadResource> downloadRecources = new HashSet<>();
     for (FileValue fileValue : fileValues) {
@@ -185,7 +185,7 @@ public class JobHandlerImpl implements JobHandler {
     downloadService.download(workingDir, downloadRecources, job.getConfig());
     
     // TODO refactor ASAP
-    bindings.updateInputFiles(job, new FileTransformer() {
+    FileValueHelper.updateInputFiles(job, new FileTransformer() {
       @Override
       public FileValue transform(FileValue fileValue) {
         FileValue newFileValue = fileValue;
@@ -282,7 +282,6 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Job postprocess(boolean isTerminal) throws ExecutorException {
     logger.debug("postprocess(id={})", job.getId());
     try {
@@ -290,7 +289,6 @@ public class JobHandlerImpl implements JobHandler {
       
       Map<String, Object> results = localMemoizationService.findResultsFromCachingDir(job);
       if (results != null) {
-        results = (Map<String, Object>) bindings.translateToCommon(results);
         job = Job.cloneWithOutputs(job, results);
         
         Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);
@@ -302,7 +300,7 @@ public class JobHandlerImpl implements JobHandler {
           }
         }
         uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
-        return bindings.mapOutputFilePaths(job, outputFileMapper);
+        return FileValueHelper.mapOutputFilePaths(job, outputFileMapper);
       }
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
@@ -318,14 +316,14 @@ public class JobHandlerImpl implements JobHandler {
       if (setPermissions) {
         filePermissionService.execute(job);
       }
-      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null);
+      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
       containerHandler.dumpCommandLine();
       
       statusCallback.onOutputFilesUploadStarted(job);
       uploadOutputFiles(job, bindings);
       statusCallback.onOutputFilesUploadCompleted(job);
 
-      job = bindings.mapOutputFilePaths(job, outputFileMapper);
+      job = FileValueHelper.mapOutputFilePaths(job, outputFileMapper);
       
       JobData jobData = jobDataService.find(job.getId(), job.getRootId());
       jobData = JobData.cloneWithResult(jobData, job.getOutputs());
@@ -352,7 +350,7 @@ public class JobHandlerImpl implements JobHandler {
     if (storageConfiguration.getBackendStore().equals(BackendStore.LOCAL)) {
       return;
     }
-    Set<FileValue> fileValues = flattenFiles(bindings.getOutputFiles(job, false));
+    Set<FileValue> fileValues = flattenFiles(FileValueHelper.getOutputFiles(job));
     fileValues.addAll(bindings.getProtocolFiles(workingDir));
     
     File cmdFile = new File(workingDir, COMMAND_LOG);

@@ -16,34 +16,11 @@ import org.rabix.bindings.transformer.FileTransformer;
 
 public class Draft2FileValueProcessor implements ProtocolFileValueProcessor {
 
-  public Set<FileValue> getInputFiles(Job job) throws BindingException {
-    Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
-    try {
-      return new Draft2PortProcessorHelper(draft2Job).getInputFiles(draft2Job.getInputs(), null, null);
-    } catch (Draft2PortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-  
   @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     try {
       return new Draft2PortProcessorHelper(draft2Job).getInputFiles(draft2Job.getInputs(), fileMapper, job.getConfig());
-    } catch (Draft2PortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-  @Override
-  public Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
-    try {
-      Set<String> visiblePorts = null;
-      if (onlyVisiblePorts) {
-        visiblePorts = job.getVisiblePorts();
-      }
-      return new Draft2PortProcessorHelper(draft2Job).getOutputFiles(draft2Job.getOutputs(), visiblePorts);
     } catch (Draft2PortProcessorException e) {
       throw new BindingException(e);
     }

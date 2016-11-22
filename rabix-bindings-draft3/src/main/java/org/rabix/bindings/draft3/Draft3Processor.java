@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.draft3.bean.Draft3CommandLineTool;
@@ -27,13 +28,16 @@ import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
 import org.rabix.bindings.draft3.helper.Draft3JobHelper;
 import org.rabix.bindings.draft3.helper.Draft3RuntimeHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.draft3.processor.Draft3PortProcessor;
 import org.rabix.bindings.draft3.processor.Draft3PortProcessorException;
+import org.rabix.bindings.draft3.processor.callback.Draft3FilePathMapProcessorCallback;
 import org.rabix.bindings.draft3.processor.callback.Draft3PortProcessorHelper;
 import org.rabix.bindings.draft3.service.Draft3GlobException;
 import org.rabix.bindings.draft3.service.Draft3GlobService;
 import org.rabix.bindings.draft3.service.Draft3MetadataService;
 import org.rabix.bindings.draft3.service.impl.Draft3GlobServiceImpl;
 import org.rabix.bindings.draft3.service.impl.Draft3MetadataServiceImpl;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
@@ -60,7 +64,7 @@ public class Draft3Processor implements ProtocolProcessor {
   }
 
   @Override
-  public Job preprocess(final Job job, final File workingDir) throws BindingException {
+  public Job preprocess(final Job job, final File workingDir, FilePathMapper logFilesPathMapper) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     Draft3Runtime runtime;
     try {
@@ -77,6 +81,21 @@ public class Draft3Processor implements ProtocolProcessor {
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       Job newJob = Job.cloneWithResources(job, Draft3RuntimeHelper.convertToResources(runtime));
+      
+      Map<String, Object> mappedInputs = inputs;
+      if (logFilesPathMapper != null) {
+        Map<String, Object> config = job.getConfig();
+        Draft3PortProcessor draft3PortProcessor = new Draft3PortProcessor(draft3Job);
+        mappedInputs = draft3PortProcessor.processInputs(inputs, new Draft3FilePathMapProcessorCallback(logFilesPathMapper, config));
+      }
+      
+      File jobFile = new File(workingDir, Draft3Processor.JOB_FILE);
+      String serializedJob = BeanSerializer.serializePartial(new Draft3Job(draft3Job.getId(), draft3Job.getApp(), mappedInputs, draft3Job.getOutputs()));
+      try {
+        FileUtils.writeStringToFile(jobFile, serializedJob);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
       
       @SuppressWarnings("unchecked")
       Map<String, Object> commonInputs = (Map<String, Object>) Draft3ValueTranslator.translateToCommon(inputs);
@@ -107,7 +126,7 @@ public class Draft3Processor implements ProtocolProcessor {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     try {
       Map<String, Object> outputs = null;
@@ -120,15 +139,16 @@ public class Draft3Processor implements ProtocolProcessor {
           throw new BindingException("Failed to populate outputs", e);
         }
       } else {
-        outputs = collectOutputs(draft3Job, workingDir, hashAlgorithm);
+        outputs = collectOutputs(draft3Job, workingDir, hashAlgorithm, logFilePathMapper, job.getConfig());
       }
-      return Job.cloneWithOutputs(job, outputs);
+      Map<String, Object> commonOutputs = (Map<String, Object>) Draft3ValueTranslator.translateToCommon(outputs);
+      return Job.cloneWithOutputs(job, commonOutputs);
     } catch (Draft3GlobException | Draft3ExpressionException | IOException e) {
       throw new BindingException(e);
     }
   }
   
-  private Map<String, Object> collectOutputs(Draft3Job job, File workingDir, HashAlgorithm hashAlgorithm) throws Draft3GlobException, Draft3ExpressionException, IOException, BindingException {
+  private Map<String, Object> collectOutputs(Draft3Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper, Map<String, Object> config) throws Draft3GlobException, Draft3ExpressionException, IOException, BindingException {
     File resultFile = new File(workingDir, RESULT_FILENAME);
     
     if (resultFile.exists()) {
@@ -145,7 +165,18 @@ public class Draft3Processor implements ProtocolProcessor {
       Object singleResult = collectOutput(job, workingDir, hashAlgorithm, outputPort.getSchema(), outputPort.getOutputBinding(), outputPort);
       result.put(Draft3SchemaHelper.normalizeId(outputPort.getId()), singleResult);
     }
-    BeanSerializer.serializePartial(resultFile, result);
+    
+    if (logFilePathMapper != null) {
+      try {
+        Map<String, Object> mappedResult = new Draft3PortProcessor(job).processOutputs(result, new Draft3FilePathMapProcessorCallback(logFilePathMapper, config));
+        BeanSerializer.serializePartial(resultFile, mappedResult);
+      } catch (Draft3PortProcessorException e) {
+        logger.error("Failed to map outputs", e);
+        throw new Draft3GlobException(e);
+      }
+    } else {
+      BeanSerializer.serializePartial(resultFile, result);
+    }
     return result;
   }
   
@@ -154,7 +185,12 @@ public class Draft3Processor implements ProtocolProcessor {
       return;
     }
     if ((Draft3SchemaHelper.isFileFromValue(value))) {
-      File file = new File(Draft3FileValueHelper.getPath(value));
+      String path = Draft3FileValueHelper.getPath(value);
+      if (StringUtils.isEmpty(Draft3FileValueHelper.getLocation(value))) {
+        Draft3FileValueHelper.setLocation(path, value);
+      }
+      
+      File file = new File(path);
       if (!file.exists()) {
         return;
       }

@@ -16,34 +16,11 @@ import org.rabix.bindings.transformer.FileTransformer;
 
 public class SBFileValueProcessor implements ProtocolFileValueProcessor {
 
-  public Set<FileValue> getInputFiles(Job job) throws BindingException {
-    SBJob sbJob = SBJobHelper.getSBJob(job);
-    try {
-      return new SBPortProcessorHelper(sbJob).getInputFiles(sbJob.getInputs(), null, null);
-    } catch (SBPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-  
   @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     try {
       return new SBPortProcessorHelper(sbJob).getInputFiles(sbJob.getInputs(), fileMapper, job.getConfig());
-    } catch (SBPortProcessorException e) {
-      throw new BindingException(e);
-    }
-  }
-
-  @Override
-  public Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    SBJob sbJob = SBJobHelper.getSBJob(job);
-    try {
-      Set<String> visiblePorts = null;
-      if (onlyVisiblePorts) {
-        visiblePorts = job.getVisiblePorts();
-      }
-      return new SBPortProcessorHelper(sbJob).getOutputFiles(sbJob.getOutputs(), visiblePorts);
     } catch (SBPortProcessorException e) {
       throw new BindingException(e);
     }

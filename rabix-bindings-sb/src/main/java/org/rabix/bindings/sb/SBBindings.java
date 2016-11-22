@@ -1,18 +1,14 @@
 package org.rabix.bindings.sb;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
-import org.rabix.bindings.ProtocolFilePathMapper;
 import org.rabix.bindings.ProtocolFileValueProcessor;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
@@ -26,12 +22,8 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
-import org.rabix.bindings.sb.helper.SBFileValueHelper;
-import org.rabix.bindings.sb.helper.SBJobHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
-import org.rabix.common.json.BeanSerializer;
 
 public class SBBindings implements Bindings {
 
@@ -42,14 +34,12 @@ public class SBBindings implements Bindings {
   private final ProtocolFileValueProcessor fileValueProcessor;
   
   private final ProtocolProcessor processor;
-  private final ProtocolFilePathMapper filePathMapper;
   
   private final ProtocolCommandLineBuilder commandLineBuilder;
   private final ProtocolRequirementProvider requirementProvider;
   
   public SBBindings() throws BindingException {
     this.protocolType = ProtocolType.SB;
-    this.filePathMapper = new SBFilePathMapper();
     this.processor = new SBProcessor();
     this.commandLineBuilder = new SBCommandLineBuilder();
     this.fileValueProcessor = new SBFileValueProcessor();
@@ -74,19 +64,8 @@ public class SBBindings implements Bindings {
   }
   
   @Override
-  public Job preprocess(Job job, File workingDir) throws BindingException {
-    return processor.preprocess(job, workingDir);
-  }
-  
-  @Override
-  public void dumpProtocolFilesBeforeExecution(Job job, File workingDir) throws BindingException {
-    File jobFile = new File(workingDir, SBProcessor.JOB_FILE);
-    String serializedJob = BeanSerializer.serializePartial(SBJobHelper.getSBJob(job));
-    try {
-      FileUtils.writeStringToFile(jobFile, serializedJob);
-    } catch (IOException e) {
-      throw new BindingException(e);
-    }
+  public Job preprocess(Job job, File workingDir, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.preprocess(job, workingDir, logFilePathMapper);
   }
   
   @Override
@@ -95,8 +74,8 @@ public class SBBindings implements Bindings {
   }
 
   @Override
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm) throws BindingException {
-    return processor.postprocess(job, workingDir, hashAlgorithm);
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.postprocess(job, workingDir, hashAlgorithm, logFilePathMapper);
   }
 
   @Override
@@ -110,28 +89,8 @@ public class SBBindings implements Bindings {
   }
 
   @Override
-  public Set<FileValue> getInputFiles(Job job) throws BindingException {
-    return fileValueProcessor.getInputFiles(job);
-  }
-
-  @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     return fileValueProcessor.getInputFiles(job, fileMapper);
-  }
-  
-  @Override
-  public Set<FileValue> getOutputFiles(Job job, boolean onlyVisiblePorts) throws BindingException {
-    return fileValueProcessor.getOutputFiles(job, onlyVisiblePorts);
-  }
-  
-  @Override
-  public Job updateInputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
-    return fileValueProcessor.updateInputFiles(job, fileTransformer);
-  }
-
-  @Override
-  public Job updateOutputFiles(Job job, FileTransformer fileTransformer) throws BindingException {
-    return fileValueProcessor.updateOutputFiles(job, fileTransformer);
   }
   
   @Override
@@ -152,16 +111,6 @@ public class SBBindings implements Bindings {
     return files;
   }
   
-  @Override
-  public Job mapInputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapInputFilePaths(job, fileMapper);
-  }
-
-  @Override
-  public Job mapOutputFilePaths(Job job, FilePathMapper fileMapper) throws BindingException {
-    return filePathMapper.mapOutputFilePaths(job, fileMapper);
-  }
-
   @Override
   public List<Requirement> getRequirements(Job job) throws BindingException {
     return requirementProvider.getRequirements(job);
@@ -200,27 +149,6 @@ public class SBBindings implements Bindings {
   @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     return null;
-  }
-
-  @Override
-  public Map<String, Object> translateFile(FileValue fileValue) {
-    return SBFileValueHelper.createFileRaw(fileValue);
-  }
-
-  @Override
-  public DataType getDataTypeFromValue(Object input) {
-    return SBSchemaHelper.getDataTypeFromValue(input);
-  }
-
-  @Override
-  public List<FileValue> getFilesFromValue(Object input) {
-    return SBSchemaHelper.getFilesFromValue(input);
-  }
-
-  @Override
-  public Object updateFileValues(Object input, FileTransformer fileTransformer) {
-
-    return SBSchemaHelper.updateFileValues(input, fileTransformer);
   }
 
   @Override public DataType getDataTypeFromSchema(Object schema) {
