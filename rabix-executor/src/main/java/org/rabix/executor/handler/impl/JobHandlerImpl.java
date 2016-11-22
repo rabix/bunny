@@ -2,6 +2,7 @@ package org.rabix.executor.handler.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -259,9 +260,9 @@ public class JobHandlerImpl implements JobHandler {
             continue;
           }
           if (file.isFile()) {
-            FileUtils.copyFile(file, destinationFile);
+            Files.createLink(destinationFile.toPath(), file.toPath()); // use hard link
           } else {
-            FileUtils.copyDirectory(file, destinationFile);
+            FileUtils.copyDirectory(file, destinationFile); // use copy
           }
         }
       }
