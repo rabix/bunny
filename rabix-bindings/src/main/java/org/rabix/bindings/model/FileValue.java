@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -293,6 +294,30 @@ public class FileValue implements Serializable {
       }
     }
     return new FileValue(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, format);
+  }
+  
+  @SuppressWarnings("unchecked")
+  public static Object deserialize(Object value) {
+    if (value instanceof Map<?, ?>) {
+      if (DirectoryValue.isDirectoryValue(value)) {
+        return DirectoryValue.fromMap(value);
+      }
+      if (FileValue.isFileValue(value)) {
+        return FileValue.fromMap(value);
+      }
+      for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+        entry.setValue(deserialize(entry.getValue()));
+      }
+      return value;
+    }
+    if (value instanceof List<?>) {
+      List<Object> newList = new ArrayList<>();
+      for (Object item : (List<?>) value) {
+        newList.add(deserialize(item));
+      }
+      return newList;
+    }
+    return value;
   }
   
 }

@@ -17,6 +17,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.local.download.LocalDownloadServiceImpl;
@@ -82,6 +83,7 @@ public class BackendCommandLine {
 
   private static final Logger logger = LoggerFactory.getLogger(BackendCommandLine.class);
   private static String configDir = "/.bunny/config";
+  
 
   public static void main(String[] commandLineArguments) {
     final CommandLineParser commandLineParser = new DefaultParser();
@@ -178,11 +180,14 @@ public class BackendCommandLine {
 
       String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
 
+      Configuration configuration = configModule.provideConfig();
+      Boolean multiProtocol = configuration.getBoolean(BindingsFactory.MULTIPROTOCOL_KEY, true);
       // Load app from JSON
       Bindings bindings = null;
       Application application = null;
+      
       try {
-        bindings = BindingsFactory.create(appUrl);
+        bindings = BindingsFactory.create(appUrl, multiProtocol);
         application = bindings.loadAppObject(appUrl);
       } catch (NotImplementedException e) {
         logger.error("Not implemented feature");
@@ -471,7 +476,7 @@ public class BackendCommandLine {
         List<Map<String, Object>> ret = new ArrayList<>();
         for (String s : value) {
           FileValue fileValue = new FileValue(null, s, null, null, null, null, null);
-          Map<String, Object> entry = FileValueHelper.translateFileToCommon(bindings, fileValue);
+          Map<String, Object> entry = FileValueHelper.translateFileToSpecific(bindings, fileValue);
           ret.add(entry);
         }
         return ret;
@@ -482,7 +487,7 @@ public class BackendCommandLine {
 
     if (inputType.isFile()) {
       FileValue fileValue = new FileValue(null, value[0], null, null, null, null, null);
-      return FileValueHelper.translateFileToCommon(bindings, fileValue);
+      return FileValueHelper.translateFileToSpecific(bindings, fileValue);
     } else {
       return value[0];
     }
