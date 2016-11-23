@@ -7,6 +7,15 @@ test1:
       class: File
       name: out.txt
       size: 37
+test2:
+  app: testbacklog/glob-test.cwl
+  inputs: testbacklog/glob-input.json
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 37
 #cwl_test1:
 #  app: 
 #  inputs: 
