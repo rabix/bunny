@@ -260,7 +260,7 @@ public class JobHandlerImpl implements JobHandler {
             continue;
           }
           if (file.isFile()) {
-            FileUtils.copyFile(file, destinationFile);
+            Files.createLink(destinationFile.toPath(), file.toPath()); // use hard link
           } else {
             FileUtils.copyDirectory(file, destinationFile); // use copy
           }
