@@ -270,7 +270,14 @@ public class FileValue implements Serializable {
       return null;
     }
     Map<String, Object> map = (Map<String, Object>) value;
-    Long size = map.get("size") != null ? new Long((Integer) map.get("size")) : null;
+    
+    Long size = null;
+    Number sizeFromMap = (Number) map.get("size");
+    if (sizeFromMap instanceof Integer) {
+      size = new Long((Integer) sizeFromMap);
+    } else {
+      size = (Long) sizeFromMap;
+    }
     String path = (String) map.get("path");
     String format = (String) map.get("format");
     String location = (String) map.get("location");
