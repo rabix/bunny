@@ -64,7 +64,7 @@ public class TestRunner {
 		
 		command("chmod +x " + starterScriptName , cwlTestWorkingdir);
 		
-		//executeConformanceSuite("export PATH=$PATH:`pwd`", "/home/travis/build/markosbg/debug/rabix-backend-local/target/");
+		//executeConformanceSuite("export PATH=$PATH:`pwd`", "/home/travis/build/rabix/bunny/rabix-backend-local/target/");
 		executeConformanceSuite("./" + starterScriptName, cwlTestWorkingdir);
 		logger.info("Conformance test ended: " + draftName);
 		
