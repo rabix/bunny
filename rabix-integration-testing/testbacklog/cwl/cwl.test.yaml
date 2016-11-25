@@ -1,0 +1,9 @@
+test1:
+  app: testbacklog/cwl/grep.tool.yaml
+  inputs: testbacklog/cwl/grep.inputs.yaml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 4

@@ -1,0 +1,9 @@
+test1:
+  app: testbacklog/draft-3/grep.tool.yaml
+  inputs: testbacklog/draft-3/grep.inputs.yaml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 4

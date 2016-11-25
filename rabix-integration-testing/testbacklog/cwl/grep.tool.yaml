@@ -1,0 +1,20 @@
+cwlVersion: v1.0
+class: CommandLineTool
+description: "Grep desired string from desired file"
+inputs:
+  stringPattern:
+    type: string
+    inputBinding:
+      position: 1
+  fileToGrep:
+    type: File
+    inputBinding:
+      position: 2 
+outputs:
+  output:
+    type: File
+    outputBinding:
+      glob: out.txt
+baseCommand: grep
+successCodes: [0,1]
+stdout: out.txt
