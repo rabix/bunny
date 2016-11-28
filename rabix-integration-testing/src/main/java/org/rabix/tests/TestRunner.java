@@ -3,6 +3,7 @@ package org.rabix.tests;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -292,8 +293,14 @@ public class TestRunner {
 
 			int exitCode = process.waitFor();
 			
-			InputStream lastError = process.getErrorStream();
-			logger.error("Last error: " + lastError.toString());
+			FileReader fileReader = new FileReader(errorLog);
+			BufferedReader bufferedReader =  new BufferedReader(fileReader);
+			String line = null;
+			logger.info("Error outputs:");
+			while((line = bufferedReader.readLine()) != null) {
+                System.out.println(line);
+            }   
+			bufferedReader.close(); 
 			
 
 			if (0 != exitCode) {
