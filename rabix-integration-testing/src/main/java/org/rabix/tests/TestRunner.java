@@ -282,7 +282,7 @@ public class TestRunner {
 		try {
 			Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
 					.directory(new File(directory)).start();
-
+			//												   TODO revert it to getInputStream()
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			String line = null;
 			while ((line = br.readLine()) != null)
