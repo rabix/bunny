@@ -7,7 +7,7 @@ services:
 before_install:
   - cd rabix-integration-testing
   - rm -rf common-workflow-language
-  - git clone https://github.com/rabix/common-workflow-language.git
+  - git clone https://github.com/common-workflow-language/common-workflow-language.git
   - cd common-workflow-language
   - git status
   - git fetch
