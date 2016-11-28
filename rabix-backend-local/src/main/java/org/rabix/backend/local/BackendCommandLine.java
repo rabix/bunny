@@ -263,7 +263,7 @@ public class BackendCommandLine {
               values = remappedValues;
             }
 
-            inputs.put(id, createInputValue(values, schemaInput.getDataType(), bindings));
+            inputs.put(id, createInputValue(values, schemaInput.getDataType()));
           }
         } catch (ParseException e) {
           printAppInvalidUsageAndExit(appInputOptions);
@@ -470,14 +470,12 @@ public class BackendCommandLine {
     }
   }
 
-  private static Object createInputValue(String[] value, DataType inputType, Bindings bindings) {
+  private static Object createInputValue(String[] value, DataType inputType) {
     if (inputType.isArray()) {
       if (inputType.getSubtype().isFile()) {
-        List<Map<String, Object>> ret = new ArrayList<>();
+        List<FileValue> ret = new ArrayList<>();
         for (String s : value) {
-          FileValue fileValue = new FileValue(null, s, null, null, null, null, null);
-          Map<String, Object> entry = FileValueHelper.translateFileToSpecific(bindings, fileValue);
-          ret.add(entry);
+          ret.add(new FileValue(null, s, null, null, null, null, null));
         }
         return ret;
       } else {
@@ -486,8 +484,7 @@ public class BackendCommandLine {
     }
 
     if (inputType.isFile()) {
-      FileValue fileValue = new FileValue(null, value[0], null, null, null, null, null);
-      return FileValueHelper.translateFileToSpecific(bindings, fileValue);
+      return new FileValue(null, value[0], null, null, null, null, null);
     } else {
       return value[0];
     }

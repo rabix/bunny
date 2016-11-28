@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.Bindings;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.DataType;
@@ -113,16 +112,6 @@ public class FileValueHelper {
     return new DataType(DataType.Type.ANY);
   }
 
-  @SuppressWarnings("unchecked")
-  public static Map<String, Object> translateFileToSpecific(Bindings bindings, FileValue file) {
-    try {
-      return (Map<String, Object>) bindings.translateToSpecific(file);
-    } catch (BindingException e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
-  
   /**
    * Maps input file paths using the particular {@link FilePathMapper}
    *
