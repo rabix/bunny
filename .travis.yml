@@ -10,7 +10,7 @@ before_install:
   - git status
   - git fetch
   - git pull
-  - git status
+  - git log
   - cd ..
 
 script:
