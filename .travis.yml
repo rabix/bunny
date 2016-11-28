@@ -7,6 +7,10 @@ services:
 before_install:
   - cd rabix-integration-testing
   - git clone https://github.com/rabix/common-workflow-language.git
+  - git status
+  - git fetch
+  - git pull
+  - git status
   - cd ..
 
 script:
