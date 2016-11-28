@@ -280,15 +280,21 @@ public class TestRunner {
 	
 	public static void executeConformanceSuite(final String cmdline, final String directory) throws RabixTestException {
 		try {
+			File errorLog = new File(directory + "errorConf.log");
 			Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
-					.directory(new File(directory)).start();
-			//												   TODO revert it to getInputStream()
-			BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-			String line = null;
-			while ((line = br.readLine()) != null)
-				logger.info(line);
+					.directory(new File(directory)).redirectError(errorLog).start();
+
+//			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//			
+//			String line = null;
+//			while ((line = br.readLine()) != null)
+//				logger.info(line);
 
 			int exitCode = process.waitFor();
+			
+			InputStream lastError = process.getErrorStream();
+			logger.error("Last error: " + lastError.toString());
+			
 
 			if (0 != exitCode) {
 				throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
