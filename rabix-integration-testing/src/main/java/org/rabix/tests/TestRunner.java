@@ -282,9 +282,13 @@ public class TestRunner {
 	public static void executeConformanceSuite(final String cmdline, final String directory) throws RabixTestException {
 		try {
 			File errorLog = new File(directory + "errorConf.log");
-			Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
-					.directory(new File(directory)).redirectError(errorLog).start();
+			ProcessBuilder processBuilder = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
+					.directory(new File(directory)).redirectError(errorLog);
 
+			Map<String, String> env = processBuilder.environment();
+			env.put("LC_ALL", "C");
+					
+			Process process = processBuilder.start();
 //			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 //			
 //			String line = null;
@@ -297,6 +301,7 @@ public class TestRunner {
 			BufferedReader bufferedReader =  new BufferedReader(fileReader);
 			String line = null;
 			logger.info("Error outputs:");
+			
 			while((line = bufferedReader.readLine()) != null) {
                 System.out.println(line);
             }   
