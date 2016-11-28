@@ -289,17 +289,17 @@ public class TestRunner {
 			env.put("LC_ALL", "C");
 					
 			Process process = processBuilder.start();
-//			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//			
-//			String line = null;
-//			while ((line = br.readLine()) != null)
-//				logger.info(line);
+			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			
+			String line = null;
+			while ((line = br.readLine()) != null)
+				logger.info(line);
 
 			int exitCode = process.waitFor();
 			
 			FileReader fileReader = new FileReader(errorLog);
 			BufferedReader bufferedReader =  new BufferedReader(fileReader);
-			String line = null;
+			line = null;
 			logger.info("Error outputs:");
 			
 			while((line = bufferedReader.readLine()) != null) {
