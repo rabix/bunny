@@ -7,6 +7,7 @@ test1:
       class: File
       name: out.txt
       size: 37
+      checksum: sha1$e86575e9ebb6a21bff86c0bf1bdf7257a73ae271
 #test2:
 #  app: testbacklog/draft-sb/glob-test.cwl
 #  inputs: testbacklog/draft-sb/glob-input.json
