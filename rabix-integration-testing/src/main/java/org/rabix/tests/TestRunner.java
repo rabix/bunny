@@ -234,6 +234,16 @@ public class TestRunner {
 		boolean fileClassesEqual = resultFileClass.equals(mapTest.get("expected").get("outfile").get("class"));
 		boolean fileChecksumsEqual = resultFileChecksum.equals(mapTest.get("expected").get("outfile").get("checksum"));
 
+		logger.info("Test validation:");
+		logger.info("result file name: " + resultFileName + ", expected file name: "
+				+ mapTest.get("expected").get("outfile").get("name"));
+		logger.info("result file size: " + resultFileSize + ", expected file size: "
+				+ mapTest.get("expected").get("outfile").get("size"));
+		logger.info("result file class: " + resultFileClass + ", expected file class: "
+				+ mapTest.get("expected").get("outfile").get("class"));
+		logger.info("result file checksum: " + resultFileChecksum + ", expected file checksum: "
+				+ mapTest.get("expected").get("outfile").get("checksum"));
+		
 		if (!fileNamesEqual) {
 			logger.error("result and expected file name are not equal!");
 		} else {
@@ -253,16 +263,6 @@ public class TestRunner {
 				}
 			}
 		}
-		
-		logger.info("Test validation:");
-		logger.info("result file name: " + resultFileName + ", expected file name: "
-				+ mapTest.get("expected").get("outfile").get("name"));
-		logger.info("result file size: " + resultFileSize + ", expected file size: "
-				+ mapTest.get("expected").get("outfile").get("size"));
-		logger.info("result file class: " + resultFileClass + ", expected file class: "
-				+ mapTest.get("expected").get("outfile").get("class"));
-		logger.info("result file checksum: " + resultFileChecksum + ", expected file checksum: "
-				+ mapTest.get("expected").get("outfile").get("checksum"));
 		
 		return false;
 	}
