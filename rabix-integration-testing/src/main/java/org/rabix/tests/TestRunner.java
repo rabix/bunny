@@ -213,6 +213,8 @@ public class TestRunner {
 		String resultFileName;
 		int resultFileSize;
 		String resultFileClass;
+		String resultFileChecksum;
+		
 		Map<String, Object> resultValues = null;
 		if(draftName.equals("draft-sb")) {
 			resultValues = ((Map<String, Object>) resultData.get("outfile"));
@@ -224,17 +226,12 @@ public class TestRunner {
 		resultFileName = resultFileName.split("/")[resultFileName.split("/").length - 1];
 		resultFileSize = (int) resultValues.get("size");
 		resultFileClass = resultValues.get("class").toString();
-		logger.info("Test validation:");
-		logger.info("result file name: " + resultFileName + ", expected file name: "
-				+ mapTest.get("expected").get("outfile").get("name"));
-		logger.info("result file size: " + resultFileSize + ", expected file size: "
-				+ mapTest.get("expected").get("outfile").get("size"));
-		logger.info("result file class: " + resultFileClass + ", expected file class: "
-				+ mapTest.get("expected").get("outfile").get("class"));
-
+		resultFileChecksum = (String) resultValues.get("checksum");
+		
 		boolean fileNamesEqual = resultFileName.equals(mapTest.get("expected").get("outfile").get("name"));
 		boolean fileSizesEqual = resultFileSize == (int) mapTest.get("expected").get("outfile").get("size");
 		boolean fileClassesEqual = resultFileClass.equals(mapTest.get("expected").get("outfile").get("class"));
+		boolean fileChecksumsEqual = resultFileChecksum.equals(mapTest.get("expected").get("outfile").get("checksum"));
 
 		if (!fileNamesEqual) {
 			logger.error("result and expected file name are not equal!");
@@ -245,12 +242,27 @@ public class TestRunner {
 				if (!fileClassesEqual) {
 					logger.error("result and expected file class are not equal!");
 				} else {
-					logger.info("Test case passed.");
-					return true;
+					if(!fileChecksumsEqual) {
+						logger.error("result and expected file checksums are not equal!");
+					} else {
+						logger.info("Test case passed.");
+						return true;	
+					}
+					
 				}
 			}
 		}
-
+		
+		logger.info("Test validation:");
+		logger.info("result file name: " + resultFileName + ", expected file name: "
+				+ mapTest.get("expected").get("outfile").get("name"));
+		logger.info("result file size: " + resultFileSize + ", expected file size: "
+				+ mapTest.get("expected").get("outfile").get("size"));
+		logger.info("result file class: " + resultFileClass + ", expected file class: "
+				+ mapTest.get("expected").get("outfile").get("class"));
+		logger.info("result file checksum: " + resultFileChecksum + ", expected file checksum: "
+				+ mapTest.get("expected").get("outfile").get("checksum"));
+		
 		return false;
 	}
 
