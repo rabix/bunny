@@ -89,7 +89,8 @@ public class FileValueHelper {
 
     //ARRAY
     if (value instanceof List) {
-      DataType arrayType = getDataTypeFromValue(((List<?>)value).get(0));
+      List list = (List<?>)value;
+      DataType arrayType = getDataTypeFromValue(list.isEmpty() ? null : list.get(0));
       return new DataType(DataType.Type.ARRAY, arrayType);
     }
 
