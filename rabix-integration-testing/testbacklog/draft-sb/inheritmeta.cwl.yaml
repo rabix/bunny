@@ -48,7 +48,7 @@
         "null",
         "File"
       ],
-      "id": "#outfile",
+      "id": "#output",
       "outputBinding": {
         "sbg:metadata": {
           "metaKey1": "metaValue1"
