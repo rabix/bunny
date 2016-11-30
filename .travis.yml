@@ -21,12 +21,12 @@ script:
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-sb" -e -X
 #  - mvn clean install package -P draft-1
 #  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-1" -e -X
-  - mvn clean install package -P draft-2
-  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-2" -e -X
-  - mvn clean install package -P draft-3
-  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-3" -e -X
-  - mvn clean install package -P cwl
-  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="cwl" -e -X
+#  - mvn clean install package -P draft-2
+#  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-2" -e -X
+#  - mvn clean install package -P draft-3
+#  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-3" -e -X
+#  - mvn clean install package -P cwl
+#  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="cwl" -e -X
 
  
 

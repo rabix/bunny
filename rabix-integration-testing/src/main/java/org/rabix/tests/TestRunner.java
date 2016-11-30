@@ -217,6 +217,7 @@ public class TestRunner {
 		String resultFileChecksum;
 		
 		Map<String, Object> resultValues = null;
+		
 		if(draftName.equals("draft-sb")) {
 			resultValues = ((Map<String, Object>) resultData.get("outfile"));
 		} else {

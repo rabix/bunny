@@ -42,7 +42,7 @@
                 "glob": "out.txt",
                 "sbg:metadata": {}
             },
-            "id": "#outfile"
+            "id": "#output"
         }
     ],
     "hints": [
