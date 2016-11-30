@@ -218,11 +218,8 @@ public class TestRunner {
 		
 		Map<String, Object> resultValues = null;
 		
-		if(draftName.equals("draft-sb")) {
-			resultValues = ((Map<String, Object>) resultData.get("outfile"));
-		} else {
-			resultValues = ((Map<String, Object>) resultData.get("output"));
-		}
+		resultValues = ((Map<String, Object>) resultData.get("output"));
+		
 		
 		resultFileName = resultValues.get("path").toString();
 		resultFileName = resultFileName.split("/")[resultFileName.split("/").length - 1];
