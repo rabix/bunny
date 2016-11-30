@@ -119,7 +119,7 @@ public class TestRunner {
 					logger.info("  inputs: " + mapTest.get("inputs"));
 					logger.info("  expected: " + mapTest.get("expected"));
 					
-					String cmd = cmdPrefix + " " + mapTest.get("app") + " " + mapTest.get("inputs") + " -v > result.yaml";
+					String cmd = cmdPrefix + " " + mapTest.get("app") + " " + mapTest.get("inputs") + " > result.yaml";
 					logger.info("->Running cmd: " + cmd);
 					command(cmd, workingdir);
 
