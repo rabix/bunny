@@ -220,7 +220,6 @@ public class TestRunner {
 		
 		resultValues = ((Map<String, Object>) resultData.get("output"));
 		
-		
 		resultFileName = resultValues.get("path").toString();
 		resultFileName = resultFileName.split("/")[resultFileName.split("/").length - 1];
 		resultFileSize = (int) resultValues.get("size");

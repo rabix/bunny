@@ -9,7 +9,7 @@ inputs:
     sbg:stageInput: link
     type: ["null", {"type": "array", "items": "File"}]
 outputs:
-  - id: "#outfile"
+  - id: "#output"
     type: File
     outputBinding:
       glob: out.txt
