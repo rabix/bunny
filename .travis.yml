@@ -5,6 +5,7 @@ services:
   - docker
 
 before_install:
+  - java -version
   - cd rabix-integration-testing
   - rm -rf common-workflow-language
   - git clone https://github.com/common-workflow-language/common-workflow-language.git
