@@ -1,0 +1,15 @@
+class: CommandLineTool
+baseCommand: [ls]
+stdout: "out.txt"
+inputs:
+  - id: "#infile"
+    sbg:stageInput: copy
+    type: ["null", "File"]
+  - id: "#infile_list"
+    sbg:stageInput: link
+    type: ["null", {"type": "array", "items": "File"}]
+outputs:
+  - id: "#outfile"
+    type: File
+    outputBinding:
+      glob: out.txt

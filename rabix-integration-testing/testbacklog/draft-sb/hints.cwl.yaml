@@ -1,0 +1,35 @@
+class: CommandLineTool
+baseCommand: [ls]
+requirements:
+  - class: sbg:CPURequirement
+    value: 
+      class: Expression
+      engine: "#cwl-js-engine"
+      script: "$job.inputs.x"
+      
+  - class: sbg:MemRequirement
+    value:
+      class: Expression
+      engine: "#cwl-js-engine"
+      script: "$job.inputs.x * 100"
+inputs:
+  - id: "#x"
+    type: int
+outputs:
+  - id: "#cpu"
+    type: int
+    outputBinding:
+#      glob: job.json
+      outputEval:
+        class: Expression
+        engine: "#cwl-js-engine"
+        script: "$job.allocatedResources.cpu >= $job.inputs.x"
+  - id: "#mem"
+    type: int
+    outputBinding:
+#      glob: job.json
+      outputEval:
+        class: Expression
+        engine: "#cwl-js-engine"
+        script: "$job.allocatedResources.mem >= $job.inputs.x * 100"
+     
