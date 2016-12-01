@@ -36,13 +36,17 @@ public class FileValueHelper {
     } else if (value instanceof List) {
       List<Object> ret = new ArrayList<>();
       for (Object o : (List<?>) value) {
-        ret.add(updateFileValues(o, fileTransformer));
+        Object newValue = updateFileValues(o, fileTransformer);
+        if (newValue != null)
+          ret.add(newValue);
       }
       return ret;
     } else if (value instanceof Map) {
       Map<Object, Object> ret = new HashMap<>();
       for (Object key : ((Map<?, ?>) value).keySet()) {
-        ret.put(key, updateFileValues(((Map<?, ?>) value).get(key), fileTransformer));
+        Object newValue = updateFileValues(((Map<?, ?>) value).get(key), fileTransformer);
+        if (newValue != null)
+          ret.put(key, newValue);
       }
       return ret;
     }
