@@ -134,9 +134,15 @@ public class DataType {
     }
     return false;
   }
-
   public boolean isCompatible(DataType value) {
+    return this.isCompatible(value, true);
+  }
+
+  public boolean isCompatible(DataType value, boolean allowAny) {
     if (value == null)
+      return false;
+
+    if (value.getType() == Type.ANY && !allowAny)
       return false;
 
     if (type == Type.ANY || value.getType() == Type.ANY)
@@ -144,20 +150,20 @@ public class DataType {
 
     if (isUnion()) {
       for (DataType dt : types) {
-        if (dt.isCompatible(value))
+        if (dt.isCompatible(value, allowAny))
           return true;
       }
       return false;
     }
 
     if (isArray())
-      return value.isArray() && subtype.isCompatible(value.getSubtype());
+      return value.isArray() && subtype.isCompatible(value.getSubtype(), allowAny);
 
     if (isRecord()) {
       if (!value.isRecord())
         return false;
       for (String s : subtypes.keySet()) {
-        if (!subtypes.get(s).isCompatible(value.getSubtypes().get(s)))
+        if (!subtypes.get(s).isCompatible(value.getSubtypes().get(s), allowAny))
           return false;
       }
       return true;
