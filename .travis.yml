@@ -16,6 +16,8 @@ before_install:
   - cd ..
   - cd ..
 
+install: true
+
 script:
   - java -version
   - mvn clean install package -P draft-sb
