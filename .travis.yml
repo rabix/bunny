@@ -4,6 +4,10 @@ language: java
 services:
   - docker
 
+before_install:
+  - source /opt/jdk_switcher/jdk_switcher.sh
+  - jdk_switcher use oraclejdk8	
+
 script:
   - mvn clean install package -P draft-sb
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -e -X
