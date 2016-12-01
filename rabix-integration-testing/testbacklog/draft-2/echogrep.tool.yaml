@@ -1,0 +1,33 @@
+class: Workflow
+description: "Simple WF with two tools: echo and grep tool"
+label: echogrep
+inputs:
+  - id: "#writeString"
+    type: string
+  - id: "#stringPattern"
+    type: string
+outputs:
+  - id: "#output"
+    type: File
+    source: "#greptool.output"
+    description: "The output file contains desired 'greped' string"
+
+steps:
+  - id: "#echotool"
+    inputs:
+      - id: "#echotool.writeString"
+        source: "#writeString"
+    outputs:
+      - id: "#echotool.output"
+    run: echotool.yml
+
+
+  - id: "#greptool"
+    inputs:
+      - id: "#greptool.stringPattern"
+        source: "#stringPattern"
+      - id: "#greptool.fileToGrep"
+        source: "#echotool.output"
+    outputs:
+      - id: "#greptool.output"
+    run: greptool.yml

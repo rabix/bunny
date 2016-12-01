@@ -1,0 +1,14 @@
+class: CommandLineTool
+stdout: echo.txt
+inputs:
+  - id: "#writeString"
+    type: string
+    inputBinding:
+      separate: true
+      position: 1
+baseCommand: echo
+outputs:
+  - id: "#output"
+    type: File
+    outputBinding:
+      glob: echo.txt
