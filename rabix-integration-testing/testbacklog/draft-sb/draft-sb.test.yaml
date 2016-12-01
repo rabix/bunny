@@ -28,3 +28,13 @@ test3:
       name: out.txt
       size: 26
       checksum: sha1$07dd2a122148b25972681ef85ed1e04e225f8d40
+test4:
+  app: testbacklog/draft-sb/stageinputs.cwl.yml
+  inputs: testbacklog/draft-sb/stageinputs.inputs.yaml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 71
+      checksum: sha1$9beb2e850a179252904a466279d5dab0c9b8fa03
