@@ -17,7 +17,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.local.download.LocalDownloadServiceImpl;
@@ -25,7 +24,6 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -180,14 +178,12 @@ public class BackendCommandLine {
 
       String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
 
-      Configuration configuration = configModule.provideConfig();
-      Boolean multiProtocol = configuration.getBoolean(BindingsFactory.MULTIPROTOCOL_KEY, true);
       // Load app from JSON
       Bindings bindings = null;
       Application application = null;
       
       try {
-        bindings = BindingsFactory.create(appUrl, multiProtocol);
+        bindings = BindingsFactory.create(appUrl);
         application = bindings.loadAppObject(appUrl);
       } catch (NotImplementedException e) {
         logger.error("Not implemented feature");

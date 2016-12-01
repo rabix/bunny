@@ -45,7 +45,7 @@ public class Draft2JobProcessor implements BeanProcessor<Draft2Job> {
   private Draft2Job process(Draft2Job parentJob, Draft2Job job) throws Draft2Exception {
     if (job.getId() == null) {
       String workflowId = parentJob != null ? parentJob.getId() : null;
-      String id = workflowId != null? workflowId + Draft2SchemaHelper.PORT_ID_SEPARATOR + InternalSchemaHelper.ROOT_NAME : InternalSchemaHelper.ROOT_NAME;
+      String id = workflowId != null? workflowId + Draft2SchemaHelper.PORT_ID_SEPARATOR + InternalSchemaHelper.ROOT_NAME : InternalSchemaHelper.ROOT_NAME; 
       job.setId(id);
     }
     processElements(null, job);

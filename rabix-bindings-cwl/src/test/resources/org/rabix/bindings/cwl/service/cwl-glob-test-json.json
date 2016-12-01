@@ -1,7 +1,8 @@
 {
-	"app": 
+	"app":
 	{
 		"id": "some_id",
+		"cwlVersion": "v1.0",
 		"class": "CommandLineTool",
 		"hints": 
 		[

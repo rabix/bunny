@@ -50,6 +50,9 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       String id = workflowId != null? workflowId + DOT_SEPARATOR + InternalSchemaHelper.ROOT_NAME : InternalSchemaHelper.ROOT_NAME;
       job.setId(id);
     }
+    if(job.getApp().getCwlVersion() == null && parentJob != null) {
+      job.getApp().setCwlVersion(parentJob.getApp().getCwlVersion());
+    }
     processElements(null, job);
 
     if (job.getApp().isWorkflow()) {

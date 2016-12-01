@@ -249,6 +249,10 @@ public abstract class Draft2JobApp extends Application {
   public String getCwlVersion() {
     return cwlVersion;
   }
+  
+  public void setCwlVersion(String cwlVersion) {
+    this.cwlVersion = cwlVersion;
+  }
 
   public String getContext() {
     return context;

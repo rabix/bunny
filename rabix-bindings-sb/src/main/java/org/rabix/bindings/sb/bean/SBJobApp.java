@@ -78,6 +78,10 @@ public abstract class SBJobApp extends Application {
     return cwlVersion;
   }
   
+  public void setCwlVersion(String cwlVersion) {
+    this.cwlVersion = cwlVersion;
+  }
+  
   @Override
   @JsonIgnore
   public String getVersion() {
