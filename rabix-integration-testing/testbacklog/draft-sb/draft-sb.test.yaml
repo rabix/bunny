@@ -8,6 +8,7 @@ test1:
       name: out.txt
       size: 37
       checksum: sha1$e86575e9ebb6a21bff86c0bf1bdf7257a73ae271
+      metadata: null
 test2:
   app: testbacklog/draft-sb/inheritmeta.cwl.yaml
   inputs: testbacklog/draft-sb/inheritmeta.inputs.yaml
@@ -18,6 +19,10 @@ test2:
       name: out.txt
       size: 0
       checksum: sha1$da39a3ee5e6b4b0d3255bfef95601890afd80709
+      metadata:
+        key0: value0
+        key1: value1
+        key2: value2
 test3:
   app: testbacklog/draft-sb/echogrep.tool.yml
   inputs: testbacklog/draft-sb/echogrep.inputs.yaml
@@ -28,6 +33,7 @@ test3:
       name: out.txt
       size: 26
       checksum: sha1$07dd2a122148b25972681ef85ed1e04e225f8d40
+      metadata: null
 test4:
   app: testbacklog/draft-sb/stageinputs.cwl.yml
   inputs: testbacklog/draft-sb/stageinputs.inputs.yaml
@@ -38,3 +44,4 @@ test4:
       name: out.txt
       size: 71
       checksum: sha1$9beb2e850a179252904a466279d5dab0c9b8fa03
+      metadata: null
