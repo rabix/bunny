@@ -5,8 +5,8 @@ services:
   - docker
 
 before_install:
- # - source /opt/jdk_switcher/jdk_switcher.sh
- # - jdk_switcher use oraclejdk8	
+  - source /opt/jdk_switcher/jdk_switcher.sh
+  - jdk_switcher use oraclejdk8	
   - cd rabix-integration-testing
   - rm -rf common-workflow-language
   - git clone https://github.com/common-workflow-language/common-workflow-language.git
@@ -23,10 +23,10 @@ script:
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-sb" -e -X
 #  - mvn clean install package -P draft-1
 #  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-1" -e -X
-#  - mvn clean install package -P draft-2
-#  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-2" -e -X
-#  - mvn clean install package -P draft-3
-#  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-3" -e -X
+  - mvn clean install package -P draft-2
+  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-2" -e -X
+  - mvn clean install package -P draft-3
+  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="draft-3" -e -X
 #  - mvn clean install package -P cwl
 #  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -Dexec.args="cwl" -e -X
 
