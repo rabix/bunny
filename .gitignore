@@ -65,3 +65,4 @@ result.yaml
 rabix-integration-testing/common-workflow-language/
 # For local debugging
 rabix-integration-testing/src/main/java/org/rabix/tests/TestRunnerLocal.java
+rabix-integration-testing/config/test/localcore.properties 

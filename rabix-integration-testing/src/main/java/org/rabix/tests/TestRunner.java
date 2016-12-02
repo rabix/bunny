@@ -1,11 +1,9 @@
 package org.rabix.tests;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -15,7 +13,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -24,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestRunner {
+	
 	private static String testDirPath;
 	private static String cmdPrefix;
 	private static String buildFile;
@@ -38,7 +36,7 @@ public class TestRunner {
 		try {
 			draftName = commandLineArguments[0];
 			startIntegrationTests(draftName);
-			
+
 			if (!draftName.equals("draft-sb")) {
 				startConformanceTests(draftName);
 			}
@@ -53,25 +51,26 @@ public class TestRunner {
 		logger.info("Conformance tests started:  " + draftName);
 		PropertiesConfiguration configuration = getConfig();
 		cwlTestWorkingdir = getStringFromConfig(configuration, draftName);
-		
-		String starterScriptName = draftName +"_starter.sh";
-		String commandCopyCwlStarter = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlstarter/" + starterScriptName + " .";
-		
+
+		String starterScriptName = draftName + "_starter.sh";
+		String commandCopyCwlStarter = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/cwlstarter/"
+				+ starterScriptName + " .";
+
 		command(commandCopyCwlStarter, cwlTestWorkingdir);
+
+		logger.info("Runnig tests for build: " + draftName);
+		logger.info("Conformance working dir: " + cwlTestWorkingdir);
+		logger.info("Conformance starter script: " + starterScriptName);
+
+		command("chmod +x " + starterScriptName, cwlTestWorkingdir);
 		
-		logger.info(" --- Runnig tests over build: " + draftName);
-		logger.info(" --- Conformance working dir: " + cwlTestWorkingdir);
-		logger.info(" --- Conformance starter script: " + starterScriptName);
-		
-		command("chmod +x " + starterScriptName , cwlTestWorkingdir);
-		
-		//executeConformanceSuite("export PATH=$PATH:`pwd`", "/home/travis/build/rabix/bunny/rabix-backend-local/target/");
 		executeConformanceSuite("./" + starterScriptName, cwlTestWorkingdir);
 		logger.info("Conformance test ended: " + draftName);
-		
+
 	}
 
 	private static void startIntegrationTests(String draftName) throws RabixTestException {
+		
 		logger.info("Integration tests started:  " + draftName);
 		boolean allTestsPassed = true;
 		boolean testPassed = false;
@@ -79,7 +78,7 @@ public class TestRunner {
 		setupIntegrationTestDirPath(configuration, draftName);
 		setupIntegrationCommandPrefix(configuration);
 		setupBuildFilePath(configuration);
-		
+
 		File dir = new File(testDirPath);
 		if (!dir.isDirectory()) {
 			logger.error("Problem with test directory path: Test directory path is not valid directory path.");
@@ -89,9 +88,9 @@ public class TestRunner {
 		if (directoryListing == null) {
 			logger.error("Problem with provided test directory: Test directory is empty.");
 		}
-		
+
 		ArrayList<Object> failedTests = new ArrayList<Object>();
-		
+
 		extractBuildFile();
 		copyTestbacklog();
 
@@ -101,35 +100,39 @@ public class TestRunner {
 			try {
 
 				currentTestSuite = child.getPath();
-				logger.info(" ### ");
 				logger.info("Executing test suite: " + currentTestSuite);
 				String currentTest = readFile(child.getAbsolutePath(), Charset.defaultCharset());
 				Map<String, Object> inputSuite = JSONHelper.readMap(JSONHelper.transformToJSON(currentTest));
 				Iterator entries = inputSuite.entrySet().iterator();
 
 				while (entries.hasNext()) {
+					
 					Entry thisEntry = (Entry) entries.next();
 					Object testName = thisEntry.getKey();
 					Object test = thisEntry.getValue();
+					
 					logger.info(" --- ");
 					logger.info("Running test: " + testName + " with given parameters:");
-					@SuppressWarnings({ "rawtypes", "unchecked" })
-					Map<String, Map<String, LinkedHashMap>> mapTest = (Map<String, Map<String, LinkedHashMap>>) test;
-					logger.info("  app: " + mapTest.get("app"));
-					logger.info("  inputs: " + mapTest.get("inputs"));
-					logger.info("  expected: " + mapTest.get("expected"));
 					
-					String cmd = cmdPrefix + " " + mapTest.get("app") + " " + mapTest.get("inputs") + " > result.yaml";
+					@SuppressWarnings({ "rawtypes", "unchecked" })
+					Map<String, Map<String, LinkedHashMap>> currentTestDetails = (Map<String, Map<String, LinkedHashMap>>) test;
+					
+					logger.info("  app: " + currentTestDetails.get("app"));
+					logger.info("  inputs: " + currentTestDetails.get("inputs"));
+					logger.info("  expected: " + currentTestDetails.get("expected"));
+
+					String cmd = cmdPrefix + " " + currentTestDetails.get("app") + " " + currentTestDetails.get("inputs") + " > result.yaml";
+					
 					logger.info("->Running cmd: " + cmd);
 					command(cmd, workingdir);
 
 					File integrationTempResultFile = new File(integrationTempResultPath);
 
 					String resultText = readFile(integrationTempResultFile.getAbsolutePath(), Charset.defaultCharset());
-					Map<String, Object> resultData = JSONHelper.readMap(JSONHelper.transformToJSON(resultText));
+					Map<String, Object> actualResult = JSONHelper.readMap(JSONHelper.transformToJSON(resultText));
 					logger.info("\nGenerated result file:");
 					logger.info(resultText);
-					testPassed = validateTestCase(mapTest, resultData);
+					testPassed = validateTestCase(currentTestDetails, actualResult);
 					logger.info("Test result: ");
 					if (testPassed) {
 						logger.info(testName + " PASSED");
@@ -211,21 +214,27 @@ public class TestRunner {
 
 	private static boolean validateTestCase(Map<String, Map<String, LinkedHashMap>> mapTest,
 			Map<String, Object> resultData) {
+
 		String resultFileName;
 		int resultFileSize;
 		String resultFileClass;
 		String resultFileChecksum;
-		
+		LinkedHashMap resultMetadata;
+		LinkedHashMap expectedMetadata;
+
 		Map<String, Object> resultValues = null;
-		
+
 		resultValues = ((Map<String, Object>) resultData.get("output"));
-		
+
 		resultFileName = resultValues.get("path").toString();
 		resultFileName = resultFileName.split("/")[resultFileName.split("/").length - 1];
 		resultFileSize = (int) resultValues.get("size");
 		resultFileClass = resultValues.get("class").toString();
 		resultFileChecksum = (String) resultValues.get("checksum");
-		
+		resultMetadata = (LinkedHashMap) resultValues.get("metadata");
+		expectedMetadata = (LinkedHashMap) mapTest.get("expected").get("outfile").get("metadata");
+		boolean fileMetadataEqual = true;
+
 		boolean fileNamesEqual = resultFileName.equals(mapTest.get("expected").get("outfile").get("name"));
 		boolean fileSizesEqual = resultFileSize == (int) mapTest.get("expected").get("outfile").get("size");
 		boolean fileClassesEqual = resultFileClass.equals(mapTest.get("expected").get("outfile").get("class"));
@@ -240,29 +249,60 @@ public class TestRunner {
 				+ mapTest.get("expected").get("outfile").get("class"));
 		logger.info("result file checksum: " + resultFileChecksum + ", expected file checksum: "
 				+ mapTest.get("expected").get("outfile").get("checksum"));
-		
+
+		if (expectedMetadata != null) {
+			fileMetadataEqual = expectedMetadata.equals(resultMetadata);
+
+			logger.info("result file metadata: " + resultMetadata.entrySet() + ", expected file metadata: "
+					+ expectedMetadata.entrySet());
+			validateMetadata(fileMetadataEqual);
+		}
+
+		validateName(fileNamesEqual);
+		validateSize(fileSizesEqual);
+		validateClass(fileClassesEqual);
+		validateChecksum(fileChecksumsEqual);
+
+		boolean validationResult = fileNamesEqual && fileSizesEqual && fileClassesEqual && fileChecksumsEqual
+				&& fileMetadataEqual;
+
+		return validationResult;
+	}
+	
+	private static void validateMetadata(boolean fileMetadataEqual) {
+		if (!fileMetadataEqual) {
+			logger.error("result and expected file metadata are not equal!");
+		}
+
+	}
+
+	private static void validateChecksum(boolean fileChecksumsEqual) {
+		if (!fileChecksumsEqual) {
+			logger.error("result and expected file checksums are not equal!");
+		}
+
+	}
+
+	private static void validateClass(boolean fileClassesEqual) {
+		if (!fileClassesEqual) {
+			logger.error("result and expected file class are not equal!");
+		}
+
+	}
+
+	private static void validateSize(boolean fileSizesEqual) {
+		if (!fileSizesEqual) {
+			logger.error("result and expected file size are not equal!");
+		}
+
+	}
+
+	private static void validateName(boolean fileNamesEqual) {
 		if (!fileNamesEqual) {
 			logger.error("result and expected file name are not equal!");
-		} else {
-			if (!fileSizesEqual) {
-				logger.error("result and expected file size are not equal!");
-			} else {
-				if (!fileClassesEqual) {
-					logger.error("result and expected file class are not equal!");
-				} else {
-					if(!fileChecksumsEqual) {
-						logger.error("result and expected file checksums are not equal!");
-					} else {
-						logger.info("Test case passed.");
-						return true;	
-					}
-					
-				}
-			}
 		}
-		
-		return false;
 	}
+
 
 	public static void command(final String cmdline, final String directory) throws RabixTestException {
 		try {
@@ -288,7 +328,7 @@ public class TestRunner {
 			throw new RabixTestException("Error while executing command: " + e.getMessage());
 		}
 	}
-	
+
 	public static void executeConformanceSuite(final String cmdline, final String directory) throws RabixTestException {
 		try {
 			File errorLog = new File(directory + "errorConf.log");
@@ -297,26 +337,25 @@ public class TestRunner {
 
 			Map<String, String> env = processBuilder.environment();
 			env.put("LC_ALL", "C");
-					
+
 			Process process = processBuilder.start();
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			
+
 			String line = null;
 			while ((line = br.readLine()) != null)
 				logger.info(line);
 
 			int exitCode = process.waitFor();
-			
+
 			FileReader fileReader = new FileReader(errorLog);
-			BufferedReader bufferedReader =  new BufferedReader(fileReader);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			line = null;
 			logger.info("Error outputs:");
-			
-			while((line = bufferedReader.readLine()) != null) {
-                System.out.println(line);
-            }   
-			bufferedReader.close(); 
-			
+
+			while ((line = bufferedReader.readLine()) != null) {
+				System.out.println(line);
+			}
+			bufferedReader.close();
 
 			if (0 != exitCode) {
 				throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
