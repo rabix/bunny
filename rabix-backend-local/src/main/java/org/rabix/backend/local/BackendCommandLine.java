@@ -233,6 +233,13 @@ public class BackendCommandLine {
               continue;
 
             String[] values = commandLineInputs.getOptionValues(id);
+
+            // We have option, but no value for it. That means it's boolean flag.
+            if (values == null) {
+              inputs.put(id, true);
+              continue;
+            }
+
             if (!schemaInput.getDataType().isArray() && values.length>1) {
               VerboseLogger.log(String.format("Input port %s doesn't accept multiple values", id));
               System.exit(10);
