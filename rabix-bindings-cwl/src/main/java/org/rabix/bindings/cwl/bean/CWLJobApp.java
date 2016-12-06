@@ -37,16 +37,6 @@ public abstract class CWLJobApp extends Application {
 
   public static final String CWL_VERSION = "v1.0";
   
-  @JsonProperty("id")
-  protected String id;
-  @JsonProperty("@context")
-  protected String context;
-  @JsonProperty("cwlVersion")
-  protected String cwlVersion;
-  @JsonProperty("description")
-  protected String description;
-  @JsonProperty("label")
-  protected String label;
   @JsonProperty("contributor")
   protected List<String> contributor = new ArrayList<>();
   @JsonProperty("owner")
@@ -70,12 +60,14 @@ public abstract class CWLJobApp extends Application {
   @JsonProperty("successCodes")
   protected List<Integer> successCodes = new ArrayList<>();
 
+  @JsonIgnore
   public String getId() {
-    return id;
+    return (String) getProperty("id");
   }
-  
+
+  @JsonIgnore
   public String getCwlVersion() {
-    return cwlVersion;
+    return (String) getProperty("cwlVersion");
   }
   
   public void setCwlVersion(String cwlVersion) {
@@ -266,12 +258,14 @@ public abstract class CWLJobApp extends Application {
     return null;
   }
 
+  @JsonIgnore
   public String getContext() {
-    return context;
+    return (String) getProperty("@context");
   }
 
+  @JsonIgnore
   public String getDescription() {
-    return description;
+    return (String) getProperty("description");
   }
 
   public List<CWLInputPort> getInputs() {
@@ -290,8 +284,9 @@ public abstract class CWLJobApp extends Application {
     return hints;
   }
 
+  @JsonIgnore
   public String getLabel() {
-    return label;
+    return (String) getProperty("label");
   }
 
   public List<String> getContributor() {
@@ -333,10 +328,10 @@ public abstract class CWLJobApp extends Application {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((context == null) ? 0 : context.hashCode());
-    result = prime * result + ((description == null) ? 0 : description.hashCode());
+    result = prime * result + ((getContext() == null) ? 0 : getContext().hashCode());
+    result = prime * result + ((getDescription() == null) ? 0 : getDescription().hashCode());
     result = prime * result + ((hints == null) ? 0 : hints.hashCode());
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
     return result;
   }
 
@@ -349,32 +344,32 @@ public abstract class CWLJobApp extends Application {
     if (getClass() != obj.getClass())
       return false;
     CWLJobApp other = (CWLJobApp) obj;
-    if (context == null) {
-      if (other.context != null)
+    if (getContext() == null) {
+      if (other.getContext() != null)
         return false;
-    } else if (!context.equals(other.context))
+    } else if (!getContext().equals(other.getContext()))
       return false;
-    if (description == null) {
-      if (other.description != null)
+    if (getDescription()== null) {
+      if (other.getDescription() != null)
         return false;
-    } else if (!description.equals(other.description))
+    } else if (!getDescription().equals(other.getDescription()))
       return false;
     if (hints == null) {
       if (other.hints != null)
         return false;
     } else if (!hints.equals(other.hints))
       return false;
-    if (id == null) {
-      if (other.id != null)
+    if (getId() == null) {
+      if (other.getId() != null)
         return false;
-    } else if (!id.equals(other.id))
+    } else if (!getId().equals(other.getId()))
       return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "JobApp [id=" + id + ", context=" + context + ", description=" + description + ", label=" + label + ", contributor=" + contributor + ", owner=" + owner + ", hints=" + hints + ", inputs=" + inputs + ", outputs=" + outputs + ", requirements=" + requirements + "]";
+    return "JobApp [id=" + getId() + ", context=" + getContext() + ", description=" + getDescription() + ", label=" + getLabel() + ", contributor=" + contributor + ", owner=" + owner + ", hints=" + hints + ", inputs=" + inputs + ", outputs=" + outputs + ", requirements=" + requirements + "]";
   }
   
 }
