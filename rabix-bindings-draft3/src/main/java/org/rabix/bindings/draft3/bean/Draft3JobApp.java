@@ -58,7 +58,7 @@ public abstract class Draft3JobApp extends Application {
 
   @JsonIgnore
   public String getCwlVersion() {
-    return (String) getProperty("cwlVersion");
+    return cwlVersion;
   }
   
   public void setCwlVersion(String cwlVersion) {
