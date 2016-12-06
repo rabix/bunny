@@ -20,7 +20,7 @@ public class Draft2PythonTool extends Draft2JobApp {
 
   @Override
   public String toString() {
-    return "Draft2PythonTool [function=" + function + ", id=" + id + ", getInputs()=" + getInputs() + ", getOutputs()=" + getOutputs() + "]";
+    return "Draft2PythonTool [function=" + function + ", id=" + getId() + ", getInputs()=" + getInputs() + ", getOutputs()=" + getOutputs() + "]";
   }
 
 }

@@ -20,7 +20,7 @@ public class SBPythonTool extends SBJobApp {
 
   @Override
   public String toString() {
-    return "SBPythonTool [function=" + function + ", id=" + id + ", getInputs()=" + getInputs() + ", getOutputs()=" + getOutputs() + "]";
+    return "SBPythonTool [function=" + function + ", id=" + getId() + ", getInputs()=" + getInputs() + ", getOutputs()=" + getOutputs() + "]";
   }
 
 }
