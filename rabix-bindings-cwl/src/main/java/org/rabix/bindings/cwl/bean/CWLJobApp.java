@@ -41,6 +41,8 @@ public abstract class CWLJobApp extends Application {
   protected List<String> contributor = new ArrayList<>();
   @JsonProperty("owner")
   protected List<String> owner = new ArrayList<>();
+  @JsonProperty("cwlVersion")
+  protected String cwlVersion;
 
   @JsonProperty("inputs")
   @JsonDeserialize(using = CWLInputPortsDeserializer.class)

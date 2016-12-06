@@ -37,6 +37,8 @@ public abstract class SBJobApp extends Application {
   protected List<String> contributor = new ArrayList<>();
   @JsonProperty("owner")
   protected List<String> owner = new ArrayList<>();
+  @JsonProperty("cwlVersion")
+  protected String cwlVersion;
 
   @JsonProperty("inputs")
   protected List<SBInputPort> inputs = new ArrayList<>();
