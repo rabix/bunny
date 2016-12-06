@@ -14,6 +14,10 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
+import org.rabix.bindings.draft2.bean.Draft2CommandLineTool;
+import org.rabix.bindings.draft2.bean.Draft2Job;
+import org.rabix.bindings.draft2.expression.Draft2ExpressionException;
+import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -147,6 +151,19 @@ public class Draft2Bindings implements Bindings {
   }
 
   @Override
+  public String getStandardOutLog(Job job) throws BindingException {
+    Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
+    try {
+      if (draft2Job.getApp().isCommandLineTool()) {
+        return ((Draft2CommandLineTool) draft2Job.getApp()).getStdout(draft2Job);
+      }
+      return null;
+    } catch (Draft2ExpressionException e) {
+      throw new BindingException(e);
+    }
+  }
+  
+  @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     return null;
   }
@@ -168,4 +185,5 @@ public class Draft2Bindings implements Bindings {
   public Object translateToCommon(Object nativeValue) throws BindingException {
     return Draft2ValueTranslator.translateToCommon(nativeValue);
   }
+
 }

@@ -98,6 +98,19 @@ public class CWLBindings implements Bindings {
   }
 
   @Override
+  public String getStandardOutLog(Job job) throws BindingException {
+    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    try {
+      if (cwlJob.getApp().isCommandLineTool()) {
+        return ((CWLCommandLineTool) cwlJob.getApp()).getStdout(cwlJob);
+      }
+      return null;
+    } catch (CWLExpressionException e) {
+      throw new BindingException(e);
+    }
+  }
+  
+  @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
@@ -180,4 +193,5 @@ public class CWLBindings implements Bindings {
   public Object translateToCommon(Object nativeValue) throws BindingException {
     return CWLValueTranslator.translateToCommon(nativeValue);
   }
+
 }

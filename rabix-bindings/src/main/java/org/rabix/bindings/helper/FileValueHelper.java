@@ -173,6 +173,7 @@ public class FileValueHelper {
       FileValue fileValue = (FileValue) value;
       if (fileValue.getPath() != null) {
         fileValue.setPath(fileMapper.map(fileValue.getPath(), config));
+        fileValue.setLocation(fileMapper.map(fileValue.getPath(), config));
       }
 
       List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();

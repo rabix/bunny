@@ -14,6 +14,10 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
+import org.rabix.bindings.draft3.bean.Draft3CommandLineTool;
+import org.rabix.bindings.draft3.bean.Draft3Job;
+import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
+import org.rabix.bindings.draft3.helper.Draft3JobHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -146,6 +150,19 @@ public class Draft3Bindings implements Bindings {
     return processor.transformInputs(value, job, transform);
   }
 
+  @Override
+  public String getStandardOutLog(Job job) throws BindingException {
+    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
+    try {
+      if (draft3Job.getApp().isCommandLineTool()) {
+        return ((Draft3CommandLineTool) draft3Job.getApp()).getStdout(draft3Job);
+      }
+      return null;
+    } catch (Draft3ExpressionException e) {
+      throw new BindingException(e);
+    }
+  }
+  
   @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     return null;

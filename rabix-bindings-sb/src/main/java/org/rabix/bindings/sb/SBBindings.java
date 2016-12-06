@@ -22,6 +22,10 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
+import org.rabix.bindings.sb.bean.SBCommandLineTool;
+import org.rabix.bindings.sb.bean.SBJob;
+import org.rabix.bindings.sb.expression.SBExpressionException;
+import org.rabix.bindings.sb.helper.SBJobHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
@@ -146,6 +150,19 @@ public class SBBindings implements Bindings {
     return value;
   }
 
+  @Override
+  public String getStandardOutLog(Job job) throws BindingException {
+    SBJob sbJob = SBJobHelper.getSBJob(job);
+    try {
+      if (sbJob.getApp().isCommandLineTool()) {
+        return ((SBCommandLineTool) sbJob.getApp()).getStdout(sbJob);
+      }
+      return null;
+    } catch (SBExpressionException e) {
+      throw new BindingException(e);
+    }
+  }
+  
   @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     return null;
