@@ -35,17 +35,19 @@ public class SBJobAppDeserializer extends JsonDeserializer<SBJobApp>  {
       return null;
     }
     if (tree.isObject()) {
-      if(tree.get(CLASS_KEY).asText().equals(WORKFLOW_CLASS) && tree.get(SBDocumentResolver.CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion)) {
-        return objectMapper.readValue(JSONHelper.writeObject(tree), SBWorkflow.class);
-      }
-      else if(tree.get(CLASS_KEY).asText().equals(COMMANDLINETOOL_CLASS) && tree.get(SBDocumentResolver.CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion)) {
-        return objectMapper.readValue(JSONHelper.writeObject(tree), SBCommandLineTool.class);
-      }
-      else if(tree.get(CLASS_KEY).asText().equals(PYTHONTOOL_CLASS) && tree.get(SBDocumentResolver.CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion)) {
-        return objectMapper.readValue(JSONHelper.writeObject(tree), SBPythonTool.class);
-      }
-      else if(tree.get(CLASS_KEY).asText().equals(EXPRESSION_CLASS) && tree.get(SBDocumentResolver.CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion)) {
-        return objectMapper.readValue(JSONHelper.writeObject(tree), SBExpressionTool.class);
+      if(tree.get(SBDocumentResolver.CWL_VERSION_KEY) == null || tree.get(SBDocumentResolver.CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion)) {
+        if(tree.get(CLASS_KEY).asText().equals(WORKFLOW_CLASS)) {
+          return objectMapper.readValue(JSONHelper.writeObject(tree), SBWorkflow.class);
+        }
+        else if(tree.get(CLASS_KEY).asText().equals(COMMANDLINETOOL_CLASS)) {
+          return objectMapper.readValue(JSONHelper.writeObject(tree), SBCommandLineTool.class);
+        }
+        else if(tree.get(CLASS_KEY).asText().equals(PYTHONTOOL_CLASS)) {
+          return objectMapper.readValue(JSONHelper.writeObject(tree), SBPythonTool.class);
+        }
+        else if(tree.get(CLASS_KEY).asText().equals(EXPRESSION_CLASS)) {
+          return objectMapper.readValue(JSONHelper.writeObject(tree), SBExpressionTool.class);
+        }
       }
     }
     return new SBEmbeddedApp(JSONHelper.writeObject(tree));
