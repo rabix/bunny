@@ -56,6 +56,7 @@ public abstract class Draft2JobApp extends Application {
   @JsonProperty("successCodes")
   protected List<Integer> successCodes = new ArrayList<>();
 
+  @JsonIgnore
   public String getId() {
     return (String) getProperty("id");
   }
@@ -235,15 +236,18 @@ public abstract class Draft2JobApp extends Application {
   public String getVersion() {
     return getCwlVersion();
   }
-  
+
+  @JsonIgnore
   public String getCwlVersion() {
     return (String) getProperty("cwlVersion");
   }
 
+  @JsonIgnore
   public String getContext() {
     return (String) getProperty("@context");
   }
 
+  @JsonIgnore
   public String getDescription() {
     return (String) getProperty("description");
   }
@@ -264,6 +268,7 @@ public abstract class Draft2JobApp extends Application {
     return hints;
   }
 
+  @JsonIgnore
   public String getLabel() {
     return (String) getProperty("label");
   }
