@@ -20,7 +20,7 @@ public class CWLPythonTool extends CWLJobApp {
 
   @Override
   public String toString() {
-    return "CWLPythonTool [function=" + function + ", id=" + id + ", getInputs()=" + getInputs()
+    return "CWLPythonTool [function=" + function + ", id=" + getId() + ", getInputs()=" + getInputs()
         + ", getOutputs()=" + getOutputs() + "]";
   }
 
