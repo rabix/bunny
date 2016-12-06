@@ -2,7 +2,9 @@ package org.rabix.bindings.sb.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = SBExpressionTool.class)
 public class SBExpressionTool extends SBJobApp {
 
   @JsonProperty("expression")
