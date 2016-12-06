@@ -10,7 +10,9 @@ import org.rabix.bindings.draft2.expression.helper.Draft2ExpressionBeanHelper;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = Draft2CommandLineTool.class)
 public class Draft2CommandLineTool extends Draft2JobApp {
 
   public static final String KEY_ARGUMENT_VALUE = "valueFrom";

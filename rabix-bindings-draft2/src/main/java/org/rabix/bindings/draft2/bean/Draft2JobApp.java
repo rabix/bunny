@@ -15,6 +15,7 @@ import org.rabix.bindings.draft2.bean.resource.requirement.Draft2EnvVarRequireme
 import org.rabix.bindings.draft2.bean.resource.requirement.Draft2ExpressionEngineRequirement;
 import org.rabix.bindings.draft2.bean.resource.requirement.Draft2IORequirement;
 import org.rabix.bindings.draft2.bean.resource.requirement.Draft2SchemaDefRequirement;
+import org.rabix.bindings.draft2.json.Draft2JobAppDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.json.BeanSerializer;
@@ -24,16 +25,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = Draft2EmbeddedApp.class)
-@JsonSubTypes({ 
-	@Type(value = Draft2CommandLineTool.class, name = "CommandLineTool"),
-	@Type(value = Draft2ExpressionTool.class, name = "ExpressionTool"),
-    @Type(value = Draft2Workflow.class, name = "Workflow"),
-    @Type(value = Draft2PythonTool.class, name = "PythonTool")})
+@JsonDeserialize(using=Draft2JobAppDeserializer.class)
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Draft2JobApp extends Application {

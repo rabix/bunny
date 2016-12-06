@@ -2,7 +2,9 @@ package org.rabix.bindings.draft2.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = Draft2ExpressionTool.class)
 public class Draft2ExpressionTool extends Draft2JobApp {
 
   @JsonProperty("expression")

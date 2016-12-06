@@ -11,7 +11,9 @@ import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = CWLCommandLineTool.class)
 public class CWLCommandLineTool extends CWLJobApp {
 
   public static final String KEY_ARGUMENT_VALUE = "valueFrom";

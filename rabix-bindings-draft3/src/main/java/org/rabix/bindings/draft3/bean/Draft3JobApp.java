@@ -14,6 +14,7 @@ import org.rabix.bindings.draft3.bean.resource.requirement.Draft3InlineJavascrip
 import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ResourceRequirement;
 import org.rabix.bindings.draft3.bean.resource.requirement.Draft3SchemaDefRequirement;
 import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ShellCommandRequirement;
+import org.rabix.bindings.draft3.json.Draft3JobAppDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.json.BeanSerializer;
@@ -23,21 +24,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = Draft3EmbeddedApp.class)
-@JsonSubTypes({ 
-	@Type(value = Draft3CommandLineTool.class, name = "CommandLineTool"),
-	@Type(value = Draft3ExpressionTool.class, name = "ExpressionTool"),
-    @Type(value = Draft3Workflow.class, name = "Workflow"),
-    @Type(value = Draft3PythonTool.class, name = "PythonTool")})
+@JsonDeserialize(using=Draft3JobAppDeserializer.class)
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Draft3JobApp extends Application {
-
-  public static final String DRAFT_3_VERSION = "cwl:draft-3";
   
   @JsonProperty("id")
   protected String id;

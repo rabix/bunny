@@ -16,6 +16,7 @@ import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLSchemaDefRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLShellCommandRequirement;
 import org.rabix.bindings.cwl.json.CWLInputPortsDeserializer;
+import org.rabix.bindings.cwl.json.CWLJobAppDeserializer;
 import org.rabix.bindings.cwl.json.CWLOutputPortsDeserializer;
 import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
 import org.rabix.bindings.model.Application;
@@ -27,17 +28,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = CWLEmbeddedApp.class)
-@JsonSubTypes({ 
-	@Type(value = CWLCommandLineTool.class, name = "CommandLineTool"),
-	@Type(value = CWLExpressionTool.class, name = "ExpressionTool"),
-    @Type(value = CWLWorkflow.class, name = "Workflow"),
-    @Type(value = CWLPythonTool.class, name = "PythonTool")})
+@JsonDeserialize(using=CWLJobAppDeserializer.class)
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class CWLJobApp extends Application {
