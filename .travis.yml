@@ -7,7 +7,6 @@ services:
 before_install:
   - source /opt/jdk_switcher/jdk_switcher.sh
   - jdk_switcher use oraclejdk8	
-<<<<<<< HEAD
   - cd rabix-integration-testing
   - rm -rf common-workflow-language
   - git clone https://github.com/common-workflow-language/common-workflow-language.git
@@ -18,8 +17,6 @@ before_install:
   - git status
   - cd ..
   - cd ..
-=======
->>>>>>> develop
 
 script:
   - mvn clean install package -P draft-sb
