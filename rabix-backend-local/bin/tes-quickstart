@@ -1,0 +1,17 @@
+#!/bin/sh
+
+git clone https://github.com/simonovic86/task-execution-server.git
+
+cd task-execution-server
+mkdir logs
+
+git checkout develop
+
+make depends
+make
+
+server="./bin/tes-server > ./logs/server.log"
+worker="./bin/tes-worker > ./logs/worker.log"
+
+nohup sh -c "$server" 2>&1 </dev/null 2>/dev/null &
+nohup sh -c "$worker" 2>&1 </dev/null 2>/dev/null &
