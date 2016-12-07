@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 public class BindingsFactory {
 
   private final static Logger logger = LoggerFactory.getLogger(BindingsFactory.class);
-
-  public static Bindings bindingsInUse = null;
   
   public static final String MULTIPROTOCOL_KEY = "rabix.multiprotocol";
   
@@ -44,23 +42,21 @@ public class BindingsFactory {
   }
 
   public static synchronized Bindings create(String appURL) throws BindingException {
-    if(bindingsInUse != null) {
-      return bindingsInUse;
-    }
     for (Bindings binding : bindings) {
       try {
         Application app = binding.loadAppObject(appURL);
         if (app == null) {
           continue;
         }
-        if (binding.getProtocolType().appVersion != null && app.getVersion() != null) {
-          if (binding.getProtocolType().appVersion.equalsIgnoreCase(app.getVersion())) {
-            return binding;
-          } else {
-            continue;
-          }
+        if (app.getVersion() != null && binding.getProtocolType().appVersion.equalsIgnoreCase(app.getVersion())) {
+          return binding;
         }
-        return binding;
+        else if(app.getVersion() == null && binding.getProtocolType().appVersion == null) {
+          return binding;
+        }
+        else {
+          continue;
+        }
       } catch (NotImplementedException e) {
         throw e; // fail if we do not support this kind of deserialization (Schema salad)
       } catch (Exception ignore) {
@@ -68,26 +64,9 @@ public class BindingsFactory {
     }
     throw new BindingException("Cannot find binding for the payload.");
   }
-  
-  public static synchronized Bindings create(String appURL, boolean multiProtocol) throws BindingException {
-    if (multiProtocol) {
-      return create(appURL);
-    } else {
-      if (bindingsInUse != null) {
-        return bindingsInUse;
-      } else {
-        bindingsInUse = create(appURL);
-      }
-      return bindingsInUse;
-    }
-  }
 
   public static synchronized Bindings create(Job job) throws BindingException {
     return create(job.getApp());
-  }
-  
-  public static synchronized Bindings create(Job job, boolean multiProtocol) throws BindingException {
-    return create(job.getApp(), multiProtocol);
   }
   
   public static synchronized Bindings create(ProtocolType protocol) throws BindingException {
@@ -97,20 +76,6 @@ public class BindingsFactory {
       }
     }
     throw new BindingException("Cannot find binding for the protocol.");
-  }
-  
-  public static synchronized Bindings create(ProtocolType protocol, boolean multiProtocol) throws BindingException {
-    if (multiProtocol) {
-      return create(protocol);
-    }
-    else {
-      if (bindingsInUse != null) {
-        return bindingsInUse;
-      } else {
-        bindingsInUse = create(protocol);
-      }
-      return bindingsInUse;
-    }
   }
 
 }

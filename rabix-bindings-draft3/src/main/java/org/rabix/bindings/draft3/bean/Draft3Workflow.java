@@ -8,7 +8,9 @@ import org.rabix.common.json.BeanPropertyView;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = Draft3Workflow.class)
 public class Draft3Workflow extends Draft3JobApp {
 
   @JsonProperty("steps")

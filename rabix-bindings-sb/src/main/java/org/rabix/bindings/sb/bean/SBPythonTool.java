@@ -2,7 +2,9 @@ package org.rabix.bindings.sb.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = SBPythonTool.class)
 public class SBPythonTool extends SBJobApp {
 
   @JsonProperty("function")

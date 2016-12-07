@@ -17,6 +17,7 @@ import org.rabix.bindings.sb.bean.resource.requirement.SBEnvVarRequirement;
 import org.rabix.bindings.sb.bean.resource.requirement.SBExpressionEngineRequirement;
 import org.rabix.bindings.sb.bean.resource.requirement.SBIORequirement;
 import org.rabix.bindings.sb.bean.resource.requirement.SBSchemaDefRequirement;
+import org.rabix.bindings.sb.json.SBJobAppDeserializer;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,24 +25,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = SBEmbeddedApp.class)
-@JsonSubTypes({ 
-	@Type(value = SBCommandLineTool.class, name = "CommandLineTool"),
-	@Type(value = SBExpressionTool.class, name = "ExpressionTool"),
-    @Type(value = SBWorkflow.class, name = "Workflow"),
-    @Type(value = SBPythonTool.class, name = "PythonTool")})
+
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonDeserialize(using=SBJobAppDeserializer.class)
 public abstract class SBJobApp extends Application {
 
   @JsonProperty("contributor")
   protected List<String> contributor = new ArrayList<>();
   @JsonProperty("owner")
   protected List<String> owner = new ArrayList<>();
+  @JsonProperty("cwlVersion")
+  protected String cwlVersion;
 
   @JsonProperty("inputs")
   protected List<SBInputPort> inputs = new ArrayList<>();
@@ -67,7 +64,11 @@ public abstract class SBJobApp extends Application {
 
   @JsonIgnore
   public String getCwlVersion() {
-    return (String) getProperty("cwlVersion");
+    return cwlVersion;
+  }
+  
+  public void setCwlVersion(String cwlVersion) {
+    this.cwlVersion = cwlVersion;
   }
   
   @Override
