@@ -40,8 +40,8 @@ notifications:
   email:
     recipients:
       - marko.vukobrat@sbgenomics.com
-      - janko.simonovic@sbgenomics.com
-      - sinisa.ivkovic@sbgenomics.com
+     # - janko.simonovic@sbgenomics.com
+     # - sinisa.ivkovic@sbgenomics.com
     on_success: always
     on_failure: always 
 
