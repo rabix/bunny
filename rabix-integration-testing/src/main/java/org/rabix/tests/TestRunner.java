@@ -27,6 +27,7 @@ public class TestRunner {
   private static String cmdPrefix;
   private static String resultPath = "./rabix-backend-local/target/result.yaml";
   private static String workingdir = "./rabix-backend-local/target/";
+  private static String version = "1.0.0-SNAPSHOT-rc1";
   private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
   public static void main(String[] commandLineArguments) {
@@ -58,7 +59,7 @@ public class TestRunner {
     }
     logger.info("Extracting jar file");
     command("tar -zxvf " + System.getProperty("user.dir")
-        + "/rabix-backend-local/target/rabix-backend-local-0.6.1-SNAPSHOT-id3.tar.gz", workingdir);
+        + "/rabix-backend-local/target/rabix-backend-local-"+version+".tar.gz", workingdir);
     
     command("cp -a " + System.getProperty("user.dir") + "/rabix-integration-testing/testbacklog .", workingdir);
 
