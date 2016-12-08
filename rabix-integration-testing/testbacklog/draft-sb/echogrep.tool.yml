@@ -1,0 +1,266 @@
+{
+  "class": "Workflow",
+  "steps": [
+    {
+      "id": "#echotool",
+      "run": {
+        "sbg:sbgMaintained": false,
+        "temporaryFailCodes": [],
+        "class": "CommandLineTool",
+        "sbg:modifiedOn": 1481194269,
+        "stdin": "",
+        "sbg:cmdPreview": "echo  echostring-string-value > echo.txt",
+        "hints": [
+          {
+            "value": 1,
+            "class": "sbg:CPURequirement"
+          },
+          {
+            "value": 1024,
+            "class": "sbg:MemRequirement"
+          },
+          {
+            "class": "DockerRequirement",
+            "dockerImageId": "",
+            "dockerPull": "ubuntu:latest"
+          }
+        ],
+        "description": "",
+        "requirements": [],
+        "sbg:validationErrors": [],
+        "baseCommand": [
+          "echo"
+        ],
+        "sbg:createdBy": "vukobrat",
+        "sbg:revision": 1,
+        "id": "vukobrat/myproj/echotool/1",
+        "sbg:modifiedBy": "vukobrat",
+        "sbg:project": "vukobrat/myproj",
+        "sbg:job": {
+          "inputs": {
+            "echostring": "echostring-string-value"
+          },
+          "allocatedResources": {
+            "cpu": 1,
+            "mem": 1024
+          }
+        },
+        "successCodes": [],
+        "outputs": [
+          {
+            "type": [
+              "File"
+            ],
+            "outputBinding": {
+              "glob": "echo.txt"
+            },
+            "id": "#echooutput"
+          }
+        ],
+        "sbg:revisionsInfo": [
+          {
+            "sbg:revision": 0,
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1481194109,
+            "sbg:modifiedBy": "vukobrat"
+          },
+          {
+            "sbg:revision": 1,
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1481194269,
+            "sbg:modifiedBy": "vukobrat"
+          }
+        ],
+        "sbg:createdOn": 1481194109,
+        "sbg:id": "vukobrat/myproj/echotool/1",
+        "sbg:image_url": null,
+        "sbg:latestRevision": 1,
+        "sbg:contributors": [
+          "vukobrat"
+        ],
+        "arguments": [],
+        "label": "echotool",
+        "stdout": "echo.txt",
+        "inputs": [
+          {
+            "type": [
+              "string"
+            ],
+            "inputBinding": {
+              "separate": true,
+              "sbg:cmdInclude": true,
+              "position": 1
+            },
+            "id": "#echostring"
+          }
+        ],
+        "x": 299,
+        "y": 281
+      },
+      "inputs": [
+        {
+          "id": "#echotool.echostring",
+          "default": "bacon"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "#echotool.echooutput"
+        }
+      ],
+      "sbg:x": 299,
+      "sbg:y": 281
+    },
+    {
+      "id": "#greptool",
+      "run": {
+        "sbg:sbgMaintained": false,
+        "temporaryFailCodes": [],
+        "class": "CommandLineTool",
+        "sbg:modifiedOn": 1481207640,
+        "stdin": "",
+        "sbg:cmdPreview": "grep  grepString-string-value  /path/to/grepFile.ext > out.txt",
+        "hints": [
+          {
+            "value": 1,
+            "class": "sbg:CPURequirement"
+          },
+          {
+            "value": 1024,
+            "class": "sbg:MemRequirement"
+          },
+          {
+            "class": "DockerRequirement",
+            "dockerImageId": "",
+            "dockerPull": "ubuntu:latest"
+          }
+        ],
+        "description": "",
+        "requirements": [],
+        "sbg:validationErrors": [],
+        "baseCommand": [
+          "grep"
+        ],
+        "sbg:createdBy": "vukobrat",
+        "sbg:revision": 1,
+        "id": "vukobrat/myproj/greptool/1",
+        "sbg:modifiedBy": "vukobrat",
+        "sbg:project": "vukobrat/myproj",
+        "sbg:job": {
+          "inputs": {
+            "grepString": "grepString-string-value",
+            "grepFile": {
+              "path": "/path/to/grepFile.ext",
+              "class": "File",
+              "size": 0,
+              "secondaryFiles": []
+            }
+          },
+          "allocatedResources": {
+            "cpu": 1,
+            "mem": 1024
+          }
+        },
+        "successCodes": [],
+        "outputs": [
+          {
+            "type": [
+              "null",
+              "File"
+            ],
+            "outputBinding": {
+              "glob": "out.txt"
+            },
+            "id": "#output"
+          }
+        ],
+        "sbg:revisionsInfo": [
+          {
+            "sbg:revision": 0,
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1481201104,
+            "sbg:modifiedBy": "vukobrat"
+          },
+          {
+            "sbg:revision": 1,
+            "sbg:revisionNotes": null,
+            "sbg:modifiedOn": 1481207640,
+            "sbg:modifiedBy": "vukobrat"
+          }
+        ],
+        "sbg:createdOn": 1481201104,
+        "sbg:id": "vukobrat/myproj/greptool/1",
+        "sbg:image_url": null,
+        "sbg:latestRevision": 1,
+        "sbg:contributors": [
+          "vukobrat"
+        ],
+        "arguments": [],
+        "label": "greptool",
+        "stdout": "out.txt",
+        "inputs": [
+          {
+            "type": [
+              "string"
+            ],
+            "inputBinding": {
+              "separate": true,
+              "sbg:cmdInclude": true,
+              "position": 1
+            },
+            "id": "#grepString"
+          },
+          {
+            "type": [
+              "File"
+            ],
+            "inputBinding": {
+              "separate": true,
+              "sbg:cmdInclude": true,
+              "position": 2
+            },
+            "id": "#grepFile",
+            "required": true
+          }
+        ],
+        "x": 739,
+        "y": 282
+      },
+      "inputs": [
+        {
+          "id": "#greptool.grepString",
+          "default": "bacon"
+        },
+        {
+          "id": "#greptool.grepFile",
+          "source": [
+            "#echotool.echooutput"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "id": "#greptool.output"
+        }
+      ],
+      "sbg:x": 739,
+      "sbg:y": 282
+    }
+  ],
+  "requirements": [],
+  "inputs": [],
+  "outputs": [
+    {
+      "type": [
+        "null",
+        "File"
+      ],
+      "id": "#output",
+      "sbg:includeInPorts": true,
+      "required": false,
+      "source": [
+        "#greptool.output"
+      ]
+    }
+  ]
+}

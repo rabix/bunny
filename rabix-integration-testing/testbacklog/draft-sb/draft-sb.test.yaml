@@ -25,7 +25,7 @@ test2:
         key2: value2
 # test3:
 #   app: testbacklog/draft-sb/echogrep.tool.yml
-#   inputs: testbacklog/draft-sb/echogrep.inputs.yaml
+#   inputs: testbacklog/draft-sb/echogrep.inputs.yml
 #   runtime: 60
 #   expected:
 #     outfile:
