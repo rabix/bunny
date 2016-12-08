@@ -33,7 +33,7 @@ public class TestRunner {
 
 	public static void main(String[] commandLineArguments) {
 		try {
-			draftName = commandLineArguments[0];
+			draftName = "draft-sb";
 			startIntegrationTests(draftName);
 
 			if (!draftName.equals("draft-sb")) {
