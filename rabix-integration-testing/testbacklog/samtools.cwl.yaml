@@ -1,5 +1,6 @@
 {
   "sbg:modifiedBy": "markovTest",
+  "cwlVersion": "sbg:draft-2",
   "sbg:createdOn": 1468408484,
   "temporaryFailCodes": [],
   "hints": [

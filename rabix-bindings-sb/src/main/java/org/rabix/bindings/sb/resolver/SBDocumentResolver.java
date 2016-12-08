@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
 
@@ -31,6 +32,7 @@ public class SBDocumentResolver {
 
   public static final String RESOLVER_REFERENCE_KEY = "import";
   public static final String RESOLVER_REFERENCE_INCLUDE_KEY = "include";
+  public static final String CWL_VERSION_KEY = "cwlVersion";
   
   public static final String RESOLVER_JSON_POINTER_KEY = "$job";
   
@@ -89,8 +91,14 @@ public class SBDocumentResolver {
       }
     }
     
+    if(!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion))) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      clearFragmentCache(appUrl);
+      throw new BindingException("Document version is not sbg:draft-2");
+    }
     cache.put(appUrl, JSONHelper.writeObject(root));
-
+    
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);
     clearFragmentCache(appUrl);

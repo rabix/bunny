@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
@@ -66,6 +67,7 @@ public class CWLDocumentResolver {
   public static final String SCHEMA_KEY = "$schemas";
   public static final String NAMESPACES_KEY = "$namespaces";
   public static final String SCHEMADEF_KEY = "SchemaDefRequirement";
+  public static final String CWL_VERSION_KEY = "cwlVersion";
   
   public static final String RESOLVER_JSON_POINTER_KEY = "$job";
   
@@ -136,6 +138,13 @@ public class CWLDocumentResolver {
     if(graphResolve) {
       String fragment = URIHelper.extractFragment(appUrl).substring(1);
       
+      String cwlVersion = root.get(CWL_VERSION_KEY).asText();
+      if (!(cwlVersion.equals(ProtocolType.CWL.appVersion))) {
+        clearReplacements(appUrl);
+        clearReferenceCache(appUrl);
+        throw new BindingException("Document version is not cwl:draft-3");
+      }
+      
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       
@@ -151,17 +160,24 @@ public class CWLDocumentResolver {
       
       for(final JsonNode elem: root.get(GRAPH_KEY)) {
         if(elem.get("id").asText().equals(fragment)) {
-          cache.put(appUrl, JSONHelper.writeObject(elem));
+          Map<String, Object> result = JSONHelper.readMap(elem);
+          result.put(CWL_VERSION_KEY, cwlVersion);
+          cache.put(appUrl, JSONHelper.writeObject(result));
           break;
         }
       }
       graphResolve = false;
     }
     else {
+      if (!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.CWL.appVersion))) {
+        clearReplacements(appUrl);
+        clearReferenceCache(appUrl);
+        throw new BindingException("Document version is not v1.0");
+      }
       cache.put(appUrl, JSONHelper.writeObject(root));
     }
     clearReplacements(appUrl);
-    clearReferenceCache(appUrl);;
+    clearReferenceCache(appUrl);
     return cache.get(appUrl);
   }
   

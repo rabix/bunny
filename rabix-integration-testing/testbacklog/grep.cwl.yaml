@@ -1,6 +1,7 @@
 {
     "id": "users-boysha-code-cwl-bbx-templates-grep-cwl-yaml-json",
     "class": "CommandLineTool",
+    "cwlVersion": "sbg:draft-2",
     "label": "grep",
     "description": "",
     "requirements": [],

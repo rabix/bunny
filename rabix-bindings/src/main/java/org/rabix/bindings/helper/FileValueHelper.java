@@ -93,8 +93,18 @@ public class FileValueHelper {
 
     //ARRAY
     if (value instanceof List) {
-      List list = (List<?>)value;
-      DataType arrayType = getDataTypeFromValue(list.isEmpty() ? null : list.get(0));
+      DataType arrayType = null;
+      for (Object element: (List<?>)value) {
+        DataType dt = getDataTypeFromValue(element);
+        if (arrayType != null && !arrayType.equals(dt)) {
+          arrayType = new DataType(DataType.Type.ANY);
+          break;
+        } else
+          arrayType = dt;
+      }
+      if (arrayType == null)
+        arrayType = new DataType(DataType.Type.ANY);
+
       return new DataType(DataType.Type.ARRAY, arrayType);
     }
 
@@ -110,7 +120,7 @@ public class FileValueHelper {
 
     // PRIMITIVE
     for (DataType.Type t : DataType.Type.values()) {
-      if (t.primitiveType !=null && t.primitiveType.isInstance(value))
+      if (t.primitiveTypes !=null && t.isPrimitive(value))
         return new DataType(t);
     }
 

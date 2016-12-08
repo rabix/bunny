@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestRunner {
-	
 	private static String testDirPath;
 	private static String cmdPrefix;
 	private static String buildFile;
@@ -399,5 +398,4 @@ public class TestRunner {
 	private static String getStringFromConfig(PropertiesConfiguration configuration, String key) {
 		return configuration.getString(key);
 	}
-
 }

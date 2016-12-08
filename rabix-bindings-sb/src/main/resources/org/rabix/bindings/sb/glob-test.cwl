@@ -1,5 +1,6 @@
 {
   "id": "https://api.sbgenomics.com/v2/apps/sinisa/platform-workflows-debug/globsubdirectory/2/raw/",
+  "cwlVersion": "sbg:draft-2",
   "class": "CommandLineTool",
   "label": "globSubdirectory",
   "description": "",

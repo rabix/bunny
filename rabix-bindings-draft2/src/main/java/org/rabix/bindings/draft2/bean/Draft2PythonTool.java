@@ -2,7 +2,9 @@ package org.rabix.bindings.draft2.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = Draft2PythonTool.class)
 public class Draft2PythonTool extends Draft2JobApp {
 
   @JsonProperty("function")

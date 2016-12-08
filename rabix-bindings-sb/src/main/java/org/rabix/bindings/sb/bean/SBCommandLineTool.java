@@ -10,7 +10,9 @@ import org.rabix.bindings.sb.expression.helper.SBExpressionBeanHelper;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = SBCommandLineTool.class)
 public class SBCommandLineTool extends SBJobApp {
 
   public static final String KEY_ARGUMENT_VALUE = "valueFrom";

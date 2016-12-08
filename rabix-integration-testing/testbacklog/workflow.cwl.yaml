@@ -1,5 +1,6 @@
 {
   "sbg:revisionNotes": "1st wf save. 0-1",
+  "cwlVersion": "sbg:draft-2",
   "sbg:createdOn": 1471350980,
   "hints": [],
   "sbg:project": "markoAdmin/jess",

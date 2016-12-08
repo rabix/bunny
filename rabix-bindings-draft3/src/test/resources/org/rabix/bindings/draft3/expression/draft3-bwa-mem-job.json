@@ -37,6 +37,7 @@
 	{
 		"id": "app@some_id^",
 		"class": "CommandLineTool",
+		"cwlVersion": "cwl:draft-3",
 		"hints": 
 		[
 			{
