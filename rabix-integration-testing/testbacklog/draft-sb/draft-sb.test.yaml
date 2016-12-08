@@ -1,13 +1,13 @@
 test1:
-  app: testbacklog/draft-sb/grep.tool.yaml
-  inputs: testbacklog/draft-sb/grep.inputs.yaml
+  app: testbacklog/draft-sb/greptool.yml
+  inputs: testbacklog/draft-sb/greptool.inputs.yml
   runtime: 60
   expected:
     outfile:
       class: File
       name: out.txt
-      size: 37
-      checksum: sha1$e86575e9ebb6a21bff86c0bf1bdf7257a73ae271
+      size: 6
+      checksum: sha1$4f0ecdd7b27486665fecea299e9a01b0a8245766
       metadata: null
 test2:
   app: testbacklog/draft-sb/inheritmeta.cwl.yaml

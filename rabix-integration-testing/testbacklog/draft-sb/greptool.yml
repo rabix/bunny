@@ -1,0 +1,20 @@
+class: CommandLineTool
+baseCommand: grep
+stdout: "out.txt"
+inputs:
+  - id: "#grepString"
+    type: string
+    inputBinding:
+      separate: true
+      position: 1
+
+  - id: "#grepFile"
+    type: File
+    inputBinding: 
+      separate: true
+      position: 2
+outputs:
+  - id: "#output"
+    type: File
+    outputBinding:
+      glob: "out.txt"
