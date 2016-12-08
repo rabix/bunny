@@ -11,20 +11,29 @@ import java.util.*;
 public class DataType {
   public enum Type {
     UNION, ARRAY, RECORD, FILE(null, "File"), DIRECTORY, ANY, NULL(null, "null"),
-    BOOLEAN(Boolean.class, "boolean"), STRING(String.class, "string"), INT(Integer.class, "int"),
-    LONG(Long.class, "long"), FLOAT(Float.class, "float"), DOUBLE(Double.class, "float");
+    BOOLEAN(new Class<?>[] {Boolean.class}, "boolean"), STRING(new Class<?>[] {String.class}, "string"),
+    INT(new Class<?>[] {Integer.class, Long.class}, "int"), FLOAT(new Class<?>[] {Float.class, Double.class}, "float");
 
-    public final Class<?> primitiveType;
+    public final Class<?>[] primitiveTypes;
     public final String avroType;
 
     Type() {
-      primitiveType = null;
+      primitiveTypes = null;
       avroType = null;
     }
 
-    Type(Class<?> primitiveType, String avroType) {
-      this.primitiveType = primitiveType;
+    Type(Class<?>[] primitiveTypes, String avroType) {
+      this.primitiveTypes = primitiveTypes;
       this.avroType = avroType;
+    }
+    public boolean isPrimitive(Object value) {
+      if (primitiveTypes == null)
+        return false;
+      for (Class<?> c : primitiveTypes) {
+        if (c.isInstance(value))
+          return true;
+      }
+      return false;
     }
   }
 

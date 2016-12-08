@@ -515,13 +515,13 @@ public class Draft2SchemaHelper extends Draft2BeanHelper {
       return new DataType(DataType.Type.INT, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, "long")) {
-      return new DataType(DataType.Type.LONG, !isRequired(schema));
+      return new DataType(DataType.Type.INT, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, "float")) {
       return new DataType(DataType.Type.FLOAT, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, "double")) {
-      return new DataType(DataType.Type.DOUBLE, !isRequired(schema));
+      return new DataType(DataType.Type.FLOAT, !isRequired(schema));
     }
     if (isTypeFromSchema(schema, SCHEMA_NULL)) {
       return new DataType(DataType.Type.NULL);
