@@ -45,3 +45,14 @@ test4:
       size: 71
       checksum: sha1$9beb2e850a179252904a466279d5dab0c9b8fa03
       metadata: null
+test5:
+  app: testbacklog/draft-sb/echotool.yml
+  inputs: testbacklog/draft-sb/echotool.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 8
+      checksum: sha1$2065a80811f78fd782586a160e8f05115992c32b
+      metadata: null

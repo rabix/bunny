@@ -1,0 +1,15 @@
+class: CommandLineTool
+stdout: "echo.txt"
+baseCommand: echo
+inputs:
+  - id: "#echostring"
+    type: string
+    inputBinding:
+      separate: true
+      position: 1
+      sbg:cmdInclude: true
+outputs:
+  - id: "#output"
+    type: File
+    outputBinding:
+      glob: "echo.txt"
