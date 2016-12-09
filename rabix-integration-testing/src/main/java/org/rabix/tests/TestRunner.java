@@ -27,7 +27,7 @@ public class TestRunner {
 	private static String buildFileDirPath = "./rabix-backend-local/target/";
 	private static String currentTestSuite;
 	private static String integrationTempResultPath = "./rabix-backend-local/target/result.yaml";
-	private static String workingdir; 
+	private static String workingdir;
 	private static String cwlTestWorkingdir;
 	private static String draftName;
 	private static String[] drafts = { "draft-sb", "draft-2", "draft-3", "cwl" };
@@ -35,6 +35,7 @@ public class TestRunner {
 
 	public static void main(String[] commandLineArguments) throws IOException {
 		try {
+			
 			PropertiesConfiguration configuration = getConfig();
 			setupIntegrationCommandPrefix(configuration);
 			extractBuildFile();
@@ -47,7 +48,6 @@ public class TestRunner {
 				if (!draftName.equals("draft-sb")) {
 					startConformanceTests(draftName);
 				}
-
 			}
 
 		} catch (RabixTestException e) {
@@ -79,27 +79,28 @@ public class TestRunner {
 	}
 
 	private static void startIntegrationTests(String draftName) throws RabixTestException, IOException {
-		logger.info("Integration tests started: " + draftName);
-		PropertiesConfiguration configuration = getConfig();
-		setupIntegrationTestDirPath(configuration, draftName);
-
 		boolean allTestsPassed = true;
 		boolean testPassed = false;
 		ArrayList<Object> failedTests = new ArrayList<Object>();
+		
+		logger.info("Integration tests started: " + draftName);
+		
+		PropertiesConfiguration configuration = getConfig();
+		setupIntegrationTestDirPath(configuration, draftName);
 
 		File dir = new File(testDirPath);
-		
+
 		if (!dir.isDirectory()) {
 			logger.error("Test directory path is not valid directory path: " + testDirPath);
 			System.exit(-1);
 		}
-		
+
 		File[] directoryListing = dir.listFiles();
-		
+
 		if (directoryListing == null) {
 			logger.error("Problem with test directory: Test directory is empty.");
 		}
-		
+
 		logger.info("Running tests for draft: " + draftName);
 		logger.info("Test directory used: " + testDirPath);
 
@@ -177,7 +178,6 @@ public class TestRunner {
 		logger.info("Integration tests finished:  " + draftName);
 	}
 
-
 	private static void copyTestbacklog() throws RabixTestException {
 		String commandCopyTestbacklog = "cp -a " + System.getProperty("user.dir")
 				+ "/rabix-integration-testing/testbacklog .";
@@ -191,40 +191,38 @@ public class TestRunner {
 
 		File buildFileDir = new File(buildFileDirPath);
 		File[] directoryListing = buildFileDir.listFiles();
-		
+
 		if (directoryListing != null) {
-		
+
 			for (File child : directoryListing) {
-				if(child.getPath().contains("tar.gz")){
+				if (child.getPath().contains("tar.gz")) {
 					logger.info("Found build file with given path: " + child.getAbsolutePath());
 					buildFilePath = child.getAbsolutePath();
-					
+
 				}
 			}
-			
-			
+
 		} else {
 			throw new RabixTestException("Build folder is empty. Check build status.");
 		}
-		
+
 		logger.info("Extracting build file: started");
 
 		String commandUntarBuildFile = "tar -zxvf " + buildFilePath;
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
 		command(commandUntarBuildFile, buildFileDirPath);
-		
+
 		File[] dirListingAfterUnpac = buildFileDir.listFiles();
 		for (File child : dirListingAfterUnpac) {
-			if(child.isDirectory() && child.getName().endsWith("SNAPSHOT")){
+			if (child.isDirectory() && child.getName().endsWith("SNAPSHOT")) {
 				workingdir = child.getAbsolutePath();
 				logger.info("Working dir set: " + workingdir);
-				
+
 				integrationTempResultPath = workingdir + "/result.yaml";
 			}
-			
+
 		}
 
-		
 		logger.info("Extracting build file: ended");
 	}
 
