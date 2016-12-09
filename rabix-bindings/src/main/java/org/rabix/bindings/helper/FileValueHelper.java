@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.Bindings;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.DataType;
@@ -37,13 +36,17 @@ public class FileValueHelper {
     } else if (value instanceof List) {
       List<Object> ret = new ArrayList<>();
       for (Object o : (List<?>) value) {
-        ret.add(updateFileValues(o, fileTransformer));
+        Object newValue = updateFileValues(o, fileTransformer);
+        if (newValue != null)
+          ret.add(newValue);
       }
       return ret;
     } else if (value instanceof Map) {
       Map<Object, Object> ret = new HashMap<>();
       for (Object key : ((Map<?, ?>) value).keySet()) {
-        ret.put(key, updateFileValues(((Map<?, ?>) value).get(key), fileTransformer));
+        Object newValue = updateFileValues(((Map<?, ?>) value).get(key), fileTransformer);
+        if (newValue != null)
+          ret.put(key, newValue);
       }
       return ret;
     }
@@ -90,7 +93,18 @@ public class FileValueHelper {
 
     //ARRAY
     if (value instanceof List) {
-      DataType arrayType = getDataTypeFromValue(((List<?>)value).get(0));
+      DataType arrayType = null;
+      for (Object element: (List<?>)value) {
+        DataType dt = getDataTypeFromValue(element);
+        if (arrayType != null && !arrayType.equals(dt)) {
+          arrayType = new DataType(DataType.Type.ANY);
+          break;
+        } else
+          arrayType = dt;
+      }
+      if (arrayType == null)
+        arrayType = new DataType(DataType.Type.ANY);
+
       return new DataType(DataType.Type.ARRAY, arrayType);
     }
 
@@ -106,23 +120,13 @@ public class FileValueHelper {
 
     // PRIMITIVE
     for (DataType.Type t : DataType.Type.values()) {
-      if (t.primitiveType !=null && t.primitiveType.isInstance(value))
+      if (t.primitiveTypes !=null && t.isPrimitive(value))
         return new DataType(t);
     }
 
     return new DataType(DataType.Type.ANY);
   }
 
-  @SuppressWarnings("unchecked")
-  public static Map<String, Object> translateFileToSpecific(Bindings bindings, FileValue file) {
-    try {
-      return (Map<String, Object>) bindings.translateToSpecific(file);
-    } catch (BindingException e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
-  
   /**
    * Maps input file paths using the particular {@link FilePathMapper}
    *

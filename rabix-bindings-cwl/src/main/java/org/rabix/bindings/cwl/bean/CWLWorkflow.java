@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = CWLWorkflow.class)
 public class CWLWorkflow extends CWLJobApp {
 
   @JsonProperty("steps")
@@ -51,8 +52,8 @@ public class CWLWorkflow extends CWLJobApp {
 
   @Override
   public String toString() {
-    return "Workflow [steps=" + steps + ", dataLinks=" + dataLinks + ", id=" + id + ", context=" + context
-        + ", description=" + description + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements="
+    return "Workflow [steps=" + steps + ", dataLinks=" + dataLinks + ", id=" + getId() + ", context=" + getContext()
+        + ", description=" + getDescription() + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements="
         + requirements + "]";
   }
 

@@ -16,10 +16,12 @@ import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLSchemaDefRequirement;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLShellCommandRequirement;
 import org.rabix.bindings.cwl.json.CWLInputPortsDeserializer;
+import org.rabix.bindings.cwl.json.CWLJobAppDeserializer;
 import org.rabix.bindings.cwl.json.CWLOutputPortsDeserializer;
 import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.common.json.BeanPropertyView;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -27,37 +29,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = CWLEmbeddedApp.class)
-@JsonSubTypes({ 
-	@Type(value = CWLCommandLineTool.class, name = "CommandLineTool"),
-	@Type(value = CWLExpressionTool.class, name = "ExpressionTool"),
-    @Type(value = CWLWorkflow.class, name = "Workflow"),
-    @Type(value = CWLPythonTool.class, name = "PythonTool")})
+@JsonDeserialize(using=CWLJobAppDeserializer.class)
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class CWLJobApp extends Application {
 
   public static final String CWL_VERSION = "v1.0";
   
-  @JsonProperty("id")
-  protected String id;
-  @JsonProperty("@context")
-  protected String context;
-  @JsonProperty("cwlVersion")
-  protected String cwlVersion;
-  @JsonProperty("description")
-  protected String description;
-  @JsonProperty("label")
-  protected String label;
   @JsonProperty("contributor")
   protected List<String> contributor = new ArrayList<>();
   @JsonProperty("owner")
   protected List<String> owner = new ArrayList<>();
+  @JsonProperty("cwlVersion")
+  protected String cwlVersion;
 
   @JsonProperty("inputs")
   @JsonDeserialize(using = CWLInputPortsDeserializer.class)
@@ -77,12 +64,22 @@ public abstract class CWLJobApp extends Application {
   @JsonProperty("successCodes")
   protected List<Integer> successCodes = new ArrayList<>();
 
-  public String getId() {
-    return id;
-  }
+  @JsonProperty("appFileLocation")
+  @JsonView(BeanPropertyView.Full.class)
+  protected String appFileLocation;
   
+  @JsonIgnore
+  public String getId() {
+    return (String) getProperty("id");
+  }
+
+  @JsonIgnore
   public String getCwlVersion() {
     return cwlVersion;
+  }
+  
+  public void setCwlVersion(String cwlVersion) {
+    this.cwlVersion = cwlVersion;
   }
   
   @Override
@@ -93,6 +90,10 @@ public abstract class CWLJobApp extends Application {
   
   public List<Integer> getSuccessCodes() {
     return successCodes;
+  }
+  
+  public String getAppFileLocation() {
+    return appFileLocation;
   }
 
   @JsonIgnore
@@ -269,12 +270,14 @@ public abstract class CWLJobApp extends Application {
     return null;
   }
 
+  @JsonIgnore
   public String getContext() {
-    return context;
+    return (String) getProperty("@context");
   }
 
+  @JsonIgnore
   public String getDescription() {
-    return description;
+    return (String) getProperty("description");
   }
 
   public List<CWLInputPort> getInputs() {
@@ -293,8 +296,9 @@ public abstract class CWLJobApp extends Application {
     return hints;
   }
 
+  @JsonIgnore
   public String getLabel() {
-    return label;
+    return (String) getProperty("label");
   }
 
   public List<String> getContributor() {
@@ -336,10 +340,10 @@ public abstract class CWLJobApp extends Application {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((context == null) ? 0 : context.hashCode());
-    result = prime * result + ((description == null) ? 0 : description.hashCode());
+    result = prime * result + ((getContext() == null) ? 0 : getContext().hashCode());
+    result = prime * result + ((getDescription() == null) ? 0 : getDescription().hashCode());
     result = prime * result + ((hints == null) ? 0 : hints.hashCode());
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
     return result;
   }
 
@@ -352,32 +356,32 @@ public abstract class CWLJobApp extends Application {
     if (getClass() != obj.getClass())
       return false;
     CWLJobApp other = (CWLJobApp) obj;
-    if (context == null) {
-      if (other.context != null)
+    if (getContext() == null) {
+      if (other.getContext() != null)
         return false;
-    } else if (!context.equals(other.context))
+    } else if (!getContext().equals(other.getContext()))
       return false;
-    if (description == null) {
-      if (other.description != null)
+    if (getDescription()== null) {
+      if (other.getDescription() != null)
         return false;
-    } else if (!description.equals(other.description))
+    } else if (!getDescription().equals(other.getDescription()))
       return false;
     if (hints == null) {
       if (other.hints != null)
         return false;
     } else if (!hints.equals(other.hints))
       return false;
-    if (id == null) {
-      if (other.id != null)
+    if (getId() == null) {
+      if (other.getId() != null)
         return false;
-    } else if (!id.equals(other.id))
+    } else if (!getId().equals(other.getId()))
       return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "JobApp [id=" + id + ", context=" + context + ", description=" + description + ", label=" + label + ", contributor=" + contributor + ", owner=" + owner + ", hints=" + hints + ", inputs=" + inputs + ", outputs=" + outputs + ", requirements=" + requirements + "]";
+    return "JobApp [id=" + getId() + ", context=" + getContext() + ", description=" + getDescription() + ", label=" + getLabel() + ", contributor=" + contributor + ", owner=" + owner + ", hints=" + hints + ", inputs=" + inputs + ", outputs=" + outputs + ", requirements=" + requirements + "]";
   }
   
 }

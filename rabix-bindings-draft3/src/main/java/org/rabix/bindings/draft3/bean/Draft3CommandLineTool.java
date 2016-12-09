@@ -10,7 +10,9 @@ import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = Draft3CommandLineTool.class)
 public class Draft3CommandLineTool extends Draft3JobApp {
 
   public static final String KEY_ARGUMENT_VALUE = "valueFrom";
@@ -117,8 +119,8 @@ public class Draft3CommandLineTool extends Draft3JobApp {
   @Override
   public String toString() {
     return "CommandLineTool [stdin=" + stdin + ", stdout=" + stdout + ", baseCommands=" + baseCommand + ", arguments="
-        + arguments + ", successCodes=" + successCodes + ", id=" + id + ", context=" + context + ", description="
-        + description + ", label=" + label + ", contributor=" + contributor + ", owner=" + owner + ", inputs=" + getInputs()
+        + arguments + ", successCodes=" + successCodes + ", id=" + getId() + ", context=" + getContext() + ", description="
+        + getDescription() + ", label=" + getLabel() + ", contributor=" + contributor + ", owner=" + owner + ", inputs=" + getInputs()
         + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
   }
 

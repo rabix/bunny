@@ -1,6 +1,7 @@
 
 {
   "id": "root",
+  "cwlVersion": "sbg:draft-2",
   "requirements": [],
   "sbg:canvas_x": -280,
   "sbg:image_url": "https://brood.sbgenomics.com/static/sinisa/strawberry/grep-demo/3.png",

@@ -2,7 +2,9 @@ package org.rabix.bindings.cwl.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = CWLExpressionTool.class)
 public class CWLExpressionTool extends CWLJobApp {
 
   @JsonProperty("expression")
@@ -20,7 +22,7 @@ public class CWLExpressionTool extends CWLJobApp {
 
   @Override
   public String toString() {
-    return "CWLExpressionTool [script=" + script + ", id=" + id + ", context=" + context + ", description=" + description + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
+    return "CWLExpressionTool [script=" + script + ", id=" + getId() + ", context=" + getContext() + ", description=" + getDescription() + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
   }
   
 }

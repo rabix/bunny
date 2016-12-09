@@ -15,6 +15,7 @@ import org.rabix.bindings.draft2.bean.resource.requirement.Draft2EnvVarRequireme
 import org.rabix.bindings.draft2.bean.resource.requirement.Draft2ExpressionEngineRequirement;
 import org.rabix.bindings.draft2.bean.resource.requirement.Draft2IORequirement;
 import org.rabix.bindings.draft2.bean.resource.requirement.Draft2SchemaDefRequirement;
+import org.rabix.bindings.draft2.json.Draft2JobAppDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.json.BeanSerializer;
@@ -24,34 +25,19 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl = Draft2EmbeddedApp.class)
-@JsonSubTypes({ 
-	@Type(value = Draft2CommandLineTool.class, name = "CommandLineTool"),
-	@Type(value = Draft2ExpressionTool.class, name = "ExpressionTool"),
-    @Type(value = Draft2Workflow.class, name = "Workflow"),
-    @Type(value = Draft2PythonTool.class, name = "PythonTool")})
+@JsonDeserialize(using=Draft2JobAppDeserializer.class)
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Draft2JobApp extends Application {
 
-  @JsonProperty("id")
-  protected String id;
-  @JsonProperty("@context")
-  protected String context;
-  @JsonProperty("cwlVersion")
-  protected String cwlVersion;
-  @JsonProperty("description")
-  protected String description;
-  @JsonProperty("label")
-  protected String label;
   @JsonProperty("contributor")
   protected List<String> contributor = new ArrayList<>();
   @JsonProperty("owner")
   protected List<String> owner = new ArrayList<>();
+  @JsonProperty("cwlVersion")
+  protected String cwlVersion;
 
   @JsonProperty("inputs")
   protected List<Draft2InputPort> inputs = new ArrayList<>();
@@ -66,8 +52,9 @@ public abstract class Draft2JobApp extends Application {
   @JsonProperty("successCodes")
   protected List<Integer> successCodes = new ArrayList<>();
 
+  @JsonIgnore
   public String getId() {
-    return id;
+    return (String) getProperty("id");
   }
   
   public List<Integer> getSuccessCodes() {
@@ -245,17 +232,24 @@ public abstract class Draft2JobApp extends Application {
   public String getVersion() {
     return getCwlVersion();
   }
-  
+
+  @JsonIgnore
   public String getCwlVersion() {
     return cwlVersion;
   }
-
-  public String getContext() {
-    return context;
+  
+  public void setCwlVersion(String cwlVersion) {
+    this.cwlVersion = cwlVersion;
   }
 
+  @JsonIgnore
+  public String getContext() {
+    return (String) getProperty("@context");
+  }
+
+  @JsonIgnore
   public String getDescription() {
-    return description;
+    return (String) getProperty("description");
   }
 
   public List<Draft2InputPort> getInputs() {
@@ -274,8 +268,9 @@ public abstract class Draft2JobApp extends Application {
     return hints;
   }
 
+  @JsonIgnore
   public String getLabel() {
-    return label;
+    return (String) getProperty("label");
   }
 
   public List<String> getContributor() {
@@ -317,10 +312,10 @@ public abstract class Draft2JobApp extends Application {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((context == null) ? 0 : context.hashCode());
-    result = prime * result + ((description == null) ? 0 : description.hashCode());
+    result = prime * result + ((getContext() == null) ? 0 : getContext().hashCode());
+    result = prime * result + ((getDescription() == null) ? 0 : getDescription().hashCode());
     result = prime * result + ((hints == null) ? 0 : hints.hashCode());
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
     return result;
   }
 
@@ -333,32 +328,32 @@ public abstract class Draft2JobApp extends Application {
     if (getClass() != obj.getClass())
       return false;
     Draft2JobApp other = (Draft2JobApp) obj;
-    if (context == null) {
-      if (other.context != null)
+    if (getContext() == null) {
+      if (other.getContext() != null)
         return false;
-    } else if (!context.equals(other.context))
+    } else if (!getContext().equals(other.getContext()))
       return false;
-    if (description == null) {
-      if (other.description != null)
+    if (getDescription()== null) {
+      if (other.getDescription() != null)
         return false;
-    } else if (!description.equals(other.description))
+    } else if (!getDescription().equals(other.getDescription()))
       return false;
     if (hints == null) {
       if (other.hints != null)
         return false;
     } else if (!hints.equals(other.hints))
       return false;
-    if (id == null) {
-      if (other.id != null)
+    if (getId() == null) {
+      if (other.getId() != null)
         return false;
-    } else if (!id.equals(other.id))
+    } else if (!getId().equals(other.getId()))
       return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "JobApp [id=" + id + ", context=" + context + ", description=" + description + ", label=" + label
+    return "JobApp [id=" + getId() + ", context=" + getContext() + ", description=" + getDescription() + ", label=" + getLabel()
         + ", contributor=" + contributor + ", owner=" + owner + ", hints=" + hints + ", inputs=" + inputs + ", outputs="
         + outputs + ", requirements=" + requirements + "]";
   }

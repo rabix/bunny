@@ -10,7 +10,9 @@ import org.rabix.bindings.sb.expression.helper.SBExpressionBeanHelper;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = SBCommandLineTool.class)
 public class SBCommandLineTool extends SBJobApp {
 
   public static final String KEY_ARGUMENT_VALUE = "valueFrom";
@@ -122,8 +124,8 @@ public class SBCommandLineTool extends SBJobApp {
   @Override
   public String toString() {
     return "CommandLineTool [stdin=" + stdin + ", stdout=" + stdout + ", baseCommands=" + baseCommand + ", arguments="
-        + arguments + ", successCodes=" + successCodes + ", id=" + id + ", context=" + context + ", description="
-        + description + ", label=" + label + ", contributor=" + contributor + ", owner=" + owner + ", inputs=" + getInputs()
+        + arguments + ", successCodes=" + successCodes + ", id=" + getId() + ", context=" + getContext() + ", description="
+        + getDescription() + ", label=" + getLabel() + ", contributor=" + contributor + ", owner=" + owner + ", inputs=" + getInputs()
         + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
   }
 

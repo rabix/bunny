@@ -2,7 +2,9 @@ package org.rabix.bindings.sb.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = SBPythonTool.class)
 public class SBPythonTool extends SBJobApp {
 
   @JsonProperty("function")
@@ -20,7 +22,7 @@ public class SBPythonTool extends SBJobApp {
 
   @Override
   public String toString() {
-    return "SBPythonTool [function=" + function + ", id=" + id + ", getInputs()=" + getInputs() + ", getOutputs()=" + getOutputs() + "]";
+    return "SBPythonTool [function=" + function + ", id=" + getId() + ", getInputs()=" + getInputs() + ", getOutputs()=" + getOutputs() + "]";
   }
 
 }

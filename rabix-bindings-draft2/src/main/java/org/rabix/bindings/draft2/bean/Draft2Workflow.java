@@ -8,7 +8,9 @@ import org.rabix.common.json.BeanPropertyView;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = Draft2Workflow.class)
 public class Draft2Workflow extends Draft2JobApp {
 
   @JsonProperty("steps")
@@ -48,8 +50,8 @@ public class Draft2Workflow extends Draft2JobApp {
 
   @Override
   public String toString() {
-    return "Workflow [steps=" + steps + ", dataLinks=" + dataLinks + ", id=" + id + ", context=" + context
-        + ", description=" + description + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements="
+    return "Workflow [steps=" + steps + ", dataLinks=" + dataLinks + ", id=" + getId() + ", context=" + getContext()
+        + ", description=" + getDescription() + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements="
         + requirements + "]";
   }
 

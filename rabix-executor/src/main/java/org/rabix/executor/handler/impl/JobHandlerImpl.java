@@ -259,8 +259,13 @@ public class JobHandlerImpl implements JobHandler {
           if (!file.exists()) {
             continue;
           }
+          boolean isLinkEnabled = ((SingleInputFileRequirement) fileRequirement).isLinkEnabled();
           if (file.isFile()) {
-            Files.createLink(destinationFile.toPath(), file.toPath()); // use hard link
+            if (isLinkEnabled) {
+              Files.createLink(destinationFile.toPath(), file.toPath()); // use hard link
+            } else {
+              FileUtils.copyFile(file, destinationFile); // use copy
+            }
           } else {
             FileUtils.copyDirectory(file, destinationFile); // use copy
           }

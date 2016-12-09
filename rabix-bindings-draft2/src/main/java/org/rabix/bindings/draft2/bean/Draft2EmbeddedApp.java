@@ -9,9 +9,11 @@ import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
+@JsonDeserialize(as = Draft2EmbeddedApp.class)
 public class Draft2EmbeddedApp extends Draft2JobApp {
 
   private Application application;

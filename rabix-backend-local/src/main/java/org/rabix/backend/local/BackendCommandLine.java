@@ -18,7 +18,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.local.download.LocalDownloadServiceImpl;
@@ -30,7 +29,6 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -247,14 +245,12 @@ public class BackendCommandLine {
 
       String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
 
-      Configuration configuration = configModule.provideConfig();
-      Boolean multiProtocol = configuration.getBoolean(BindingsFactory.MULTIPROTOCOL_KEY, true);
       // Load app from JSON
       Bindings bindings = null;
       Application application = null;
       
       try {
-        bindings = BindingsFactory.create(appUrl, multiProtocol);
+        bindings = BindingsFactory.create(appUrl);
         application = bindings.loadAppObject(appUrl);
       } catch (NotImplementedException e) {
         logger.error("Not implemented feature");
@@ -304,6 +300,13 @@ public class BackendCommandLine {
               continue;
 
             String[] values = commandLineInputs.getOptionValues(id);
+
+            // We have option, but no value for it. That means it's boolean flag.
+            if (values == null) {
+              inputs.put(id, true);
+              continue;
+            }
+
             if (!schemaInput.getDataType().isArray() && values.length>1) {
               VerboseLogger.log(String.format("Input port %s doesn't accept multiple values", id));
               System.exit(10);
@@ -330,7 +333,7 @@ public class BackendCommandLine {
               values = remappedValues;
             }
 
-            inputs.put(id, createInputValue(values, schemaInput.getDataType(), bindings));
+            inputs.put(id, createInputValue(values, schemaInput.getDataType()));
           }
         } catch (ParseException e) {
           printAppInvalidUsageAndExit(appInputOptions);
@@ -538,14 +541,12 @@ public class BackendCommandLine {
     }
   }
 
-  private static Object createInputValue(String[] value, DataType inputType, Bindings bindings) {
+  private static Object createInputValue(String[] value, DataType inputType) {
     if (inputType.isArray()) {
       if (inputType.getSubtype().isFile()) {
-        List<Map<String, Object>> ret = new ArrayList<>();
+        List<FileValue> ret = new ArrayList<>();
         for (String s : value) {
-          FileValue fileValue = new FileValue(null, s, null, null, null, null, null);
-          Map<String, Object> entry = FileValueHelper.translateFileToSpecific(bindings, fileValue);
-          ret.add(entry);
+          ret.add(new FileValue(null, s, null, null, null, null, null));
         }
         return ret;
       } else {
@@ -554,8 +555,7 @@ public class BackendCommandLine {
     }
 
     if (inputType.isFile()) {
-      FileValue fileValue = new FileValue(null, value[0], null, null, null, null, null);
-      return FileValueHelper.translateFileToSpecific(bindings, fileValue);
+      return new FileValue(null, value[0], null, null, null, null, null);
     } else {
       return value[0];
     }

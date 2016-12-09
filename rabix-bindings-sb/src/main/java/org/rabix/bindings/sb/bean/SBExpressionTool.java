@@ -2,7 +2,9 @@ package org.rabix.bindings.sb.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = SBExpressionTool.class)
 public class SBExpressionTool extends SBJobApp {
 
   @JsonProperty("expression")
@@ -20,7 +22,7 @@ public class SBExpressionTool extends SBJobApp {
 
   @Override
   public String toString() {
-    return "SBExpressionTool [script=" + script + ", id=" + id + ", context=" + context + ", description=" + description + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
+    return "SBExpressionTool [script=" + script + ", id=" + getId() + ", context=" + getContext() + ", description=" + getDescription() + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
   }
   
 }

@@ -92,12 +92,12 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         Object entryname = dirent.getEntryname(); // TODO explicit cast
         if (CWLSchemaHelper.isFileFromValue(entry)) {
           FileValue fileValue = CWLFileValueHelper.createFileValue(((CWLDirent) listingObj).getEntry());
-          result.add(new FileRequirement.SingleInputFileRequirement((String) entryname, fileValue, dirent.isWritable()));
+          result.add(new FileRequirement.SingleInputFileRequirement((String) entryname, fileValue, !dirent.isWritable()));
           continue;
         }
         if (CWLSchemaHelper.isDirectoryFromValue(entry)) {
           DirectoryValue directoryValue = CWLDirectoryValueHelper.createDirectoryValue(((CWLDirent) listingObj).getEntry());
-          result.add(new FileRequirement.SingleInputDirectoryRequirement((String) entryname, directoryValue, dirent.isWritable()));
+          result.add(new FileRequirement.SingleInputDirectoryRequirement((String) entryname, directoryValue, !dirent.isWritable()));
           continue;
         }
         if (entry instanceof String) {
@@ -107,12 +107,12 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
       }
       if (CWLSchemaHelper.isFileFromValue(listingObj)) {
         FileValue fileValue = CWLFileValueHelper.createFileValue(listingObj);
-        result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue, true));
+        result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue, false));
         continue;
       }
       if (CWLSchemaHelper.isDirectoryFromValue(listingObj)) {
         DirectoryValue directoryValue = CWLDirectoryValueHelper.createDirectoryValue(listingObj);
-        result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue, true));
+        result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue, false));
         continue;
       }
       throw new BindingException("Failed to create file requirements. Unknown value " + listingObj);
