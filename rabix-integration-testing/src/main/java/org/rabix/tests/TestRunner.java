@@ -23,11 +23,11 @@ import org.slf4j.LoggerFactory;
 public class TestRunner {
 	private static String testDirPath;
 	private static String cmdPrefix;
-	private static String buildFile;
+	private static String buildFilePath;
 	private static String buildFileDirPath = "./rabix-backend-local/target/";
 	private static String currentTestSuite;
 	private static String integrationTempResultPath = "./rabix-backend-local/target/result.yaml";
-	private static String workingdir = "./rabix-backend-local/target/"; // TODO ovo ces dinamicki da setujes u extractMetodi
+	private static String workingdir; 
 	private static String cwlTestWorkingdir;
 	private static String draftName;
 	private static String[] drafts = { "draft-sb", "draft-2", "draft-3", "cwl" };
@@ -37,7 +37,7 @@ public class TestRunner {
 		try {
 			PropertiesConfiguration configuration = getConfig();
 			setupIntegrationCommandPrefix(configuration);
-			setupBuildFilePath(configuration); // TODO ovo ces da izbrises
+			//setupBuildFilePath(configuration); 
 
 			for (String draft : drafts) {
 				draftName = draft;
@@ -196,7 +196,10 @@ public class TestRunner {
 		
 			for (File child : directoryListing) {
 				if(child.getPath().contains("tar.gz")){
-					logger.info("Found build file with given path: " + child.getPath());
+					logger.info("Found build file with given path: " + child.getAbsolutePath());
+					buildFilePath = child.getAbsolutePath();
+					workingdir = child.getParent();
+					logger.info("Working dir set: " + workingdir);
 				}
 			}
 			
@@ -207,30 +210,30 @@ public class TestRunner {
 		
 		logger.info("Extracting build file: started");
 
-		String commandUntarBuildFile = "tar -zxvf " + System.getProperty("user.dir") + buildFile;
+		String commandUntarBuildFile = "tar -zxvf " + buildFilePath;
 
-		File extractDir = new File(System.getProperty("user.dir") + "/rabix-backend-local/target/");
-		File fileToExtract = new File(System.getProperty("user.dir") + buildFile);
-
-		logger.info("Checking extract dir path: " + extractDir.getAbsolutePath());
-		if (!extractDir.isDirectory()) {
-			logger.error(
-					"Problem with extract directory path: Test extract directory path is not valid directory path.");
-			System.exit(-1);
-		}
-		logger.info("Checking extract file path: " + fileToExtract.getAbsolutePath());
-		if (!fileToExtract.isFile()) {
-			logger.error("Problem with extract file path: Test extract file path is not valid directory path.");
-			System.exit(-1);
-		}
+//		File extractDir = new File(System.getProperty("user.dir") + "/rabix-backend-local/target/");
+//		File fileToExtract = new File(System.getProperty("user.dir") + buildFile);
+//
+//		logger.info("Checking extract dir path: " + extractDir.getAbsolutePath());
+//		if (!extractDir.isDirectory()) {
+//			logger.error(
+//					"Problem with extract directory path: Test extract directory path is not valid directory path.");
+//			System.exit(-1);
+//		}
+//		logger.info("Checking extract file path: " + fileToExtract.getAbsolutePath());
+//		if (!fileToExtract.isFile()) {
+//			logger.error("Problem with extract file path: Test extract file path is not valid directory path.");
+//			System.exit(-1);
+//		}
 
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
-		command(commandUntarBuildFile, System.getProperty("user.dir") + "/rabix-backend-local/target/");
+		command(commandUntarBuildFile, workingdir);
 		logger.info("Extracting build file: ended");
 	}
 
 	private static void setupBuildFilePath(PropertiesConfiguration configuration) {
-		buildFile = getStringFromConfig(configuration, "buildFile");
+		buildFilePath = getStringFromConfig(configuration, "buildFile");
 	}
 
 	private static void setupIntegrationCommandPrefix(PropertiesConfiguration configuration) {
