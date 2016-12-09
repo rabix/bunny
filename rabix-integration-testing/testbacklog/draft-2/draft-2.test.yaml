@@ -7,7 +7,7 @@ test1:
       class: File
       name: out.txt
       size: 4
-      checksum: sha1$
+      checksum: sha1$6694b1596962757b0169b1ad8cec397cdaac4483
 # test2:
 #   app: testbacklog/draft-2/echogrep.tool.yaml
 #   inputs: testbacklog/draft-2/echogrep.inputs.yaml
