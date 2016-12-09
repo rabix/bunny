@@ -26,7 +26,7 @@ public class TestRunner {
 	private static String buildFilePath;
 	private static String buildFileDirPath = "./rabix-backend-local/target/";
 	private static String currentTestSuite;
-	private static String integrationTempResultPath = "./rabix-backend-local/target/result.yaml";
+	private static String integrationTempResultPath;
 	private static String workingdir; 
 	private static String cwlTestWorkingdir;
 	private static String draftName;
@@ -78,7 +78,7 @@ public class TestRunner {
 	}
 
 	private static void startIntegrationTests(String draftName) throws RabixTestException {
-		logger.info("Integration tests started");
+		logger.info("Integration tests started: " + draftName);
 		PropertiesConfiguration configuration = getConfig();
 		setupIntegrationTestDirPath(configuration, draftName);
 
@@ -133,7 +133,7 @@ public class TestRunner {
 					logger.info("  expected: " + currentTestDetails.get("expected"));
 
 					String cmd = cmdPrefix + " " + currentTestDetails.get("app") + " "
-							+ currentTestDetails.get("inputs") + " > result.yaml";
+							+ currentTestDetails.get("inputs") + " -v > result.yaml";
 
 					logger.info("->Running cmd: " + cmd);
 					command(cmd, workingdir);
@@ -182,6 +182,7 @@ public class TestRunner {
 	private static void copyTestbacklog() throws RabixTestException {
 		String commandCopyTestbacklog = "cp -a " + System.getProperty("user.dir")
 				+ "/rabix-integration-testing/testbacklog .";
+		logger.info("Working dir user in copy method: " + workingdir);
 		command(commandCopyTestbacklog, workingdir);
 		logger.info("Copying testbacklog command: " + commandCopyTestbacklog);
 		logger.info("Copying testbacklog dir: done ");
@@ -210,31 +211,16 @@ public class TestRunner {
 		logger.info("Extracting build file: started");
 
 		String commandUntarBuildFile = "tar -zxvf " + buildFilePath;
-
-//		File extractDir = new File(System.getProperty("user.dir") + "/rabix-backend-local/target/");
-//		File fileToExtract = new File(System.getProperty("user.dir") + buildFile);
-//
-//		logger.info("Checking extract dir path: " + extractDir.getAbsolutePath());
-//		if (!extractDir.isDirectory()) {
-//			logger.error(
-//					"Problem with extract directory path: Test extract directory path is not valid directory path.");
-//			System.exit(-1);
-//		}
-//		logger.info("Checking extract file path: " + fileToExtract.getAbsolutePath());
-//		if (!fileToExtract.isFile()) {
-//			logger.error("Problem with extract file path: Test extract file path is not valid directory path.");
-//			System.exit(-1);
-//		}
-
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
 		command(commandUntarBuildFile, buildFileDirPath);
 		
 		File[] dirListingAfterUnpac = buildFileDir.listFiles();
 		for (File child : dirListingAfterUnpac) {
-			logger.info("Checking file: " + child.getName() );
 			if(child.isDirectory() && child.getName().endsWith("SNAPSHOT")){
 				workingdir = child.getAbsolutePath();
 				logger.info("Working dir set: " + workingdir);
+				
+				integrationTempResultPath = workingdir + "/result.yaml";
 			}
 			
 		}
