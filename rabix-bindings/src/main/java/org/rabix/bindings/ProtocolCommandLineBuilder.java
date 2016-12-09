@@ -12,4 +12,5 @@ public interface ProtocolCommandLineBuilder {
   
   List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
   
+  CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
 }

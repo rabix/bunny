@@ -36,6 +36,7 @@ import org.rabix.backend.local.tes.service.TESStorageService.SharedFileStorage;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
@@ -299,12 +300,19 @@ public class TESExecutorServiceImpl implements ExecutorService {
           secondCommandLineParts.add("/bin/sh");
           secondCommandLineParts.add("../command.sh");
 
-          String commandLineToolStdout = bindings.getStandardOutLog(job);
-          if (commandLineToolStdout != null) {
+          CommandLine commandLine = bindings.buildCommandLineObject(job, new File(TESStorageService.DOCKER_PATH_PREFIX + "/working_dir"), new FilePathMapper() {
+            @Override
+            public String map(String path, Map<String, Object> config) throws FileMappingException {
+              return path;
+            }
+          });
+          
+          String commandLineToolStdout = commandLine.getStandardOut();
+          if (commandLineToolStdout != null && !commandLineToolStdout.startsWith("/")) {
             commandLineToolStdout = TESStorageService.DOCKER_PATH_PREFIX + "/working_dir/" + commandLineToolStdout;
           }
 
-          String commandLineToolErrLog = bindings.getStandardErrorLog(job);
+          String commandLineToolErrLog = commandLine.getStandardError();
           String commandLineStandardErrLog = TESStorageService.DOCKER_PATH_PREFIX + "/working_dir/" + (commandLineToolErrLog != null ? commandLineToolErrLog : DEFAULT_COMMAND_LINE_TOOL_ERR_LOG);
           
           dockerExecutors.add(new TESDockerExecutor(imageId, secondCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, commandLineToolStdout, commandLineStandardErrLog));

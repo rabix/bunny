@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.draft3.bean.Draft3CommandLineTool;
 import org.rabix.bindings.draft3.bean.Draft3InputPort;
@@ -34,8 +35,6 @@ import com.google.common.escape.Escapers;
 
 public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
 
-  public static final String PART_SEPARATOR = "\u0020";
-
   private final static Logger logger = LoggerFactory.getLogger(Draft3CommandLineBuilder.class);
   
   public static final Escaper SHELL_ESCAPE;
@@ -46,73 +45,52 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   }
   
   @Override
-  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+  public CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     if (draft3Job.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(draft3Job, workingDir, filePathMapper);
-  }
-  
-  @Override
-  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
-    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
-    if (!draft3Job.getApp().isCommandLineTool()) {
-      return null;
-    }
-    return Lists.transform(buildCommandLineParts(draft3Job, workingDir, filePathMapper), new Function<Object, String>() {
+    
+    Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) draft3Job.getApp();
+    List<String> commandLineParts = Lists.transform(buildCommandLineParts(draft3Job, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
     });
-  }
-  
-  /**
-   * Builds command line string with both STDIN and STDOUT
-   */
-  public String buildCommandLine(Draft3Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
-    Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) job.getApp();
-    
-    List<Object> commandLineParts = buildCommandLineParts(job, workingDir, filePathMapper);
-    StringBuilder builder = new StringBuilder();
-    for (Object commandLinePart : commandLineParts) {
-      builder.append(commandLinePart).append(PART_SEPARATOR);
-    }
 
     String stdin = null;
     try {
-      stdin = commandLineTool.getStdin(job);
+      stdin = commandLineTool.getStdin(draft3Job);
     } catch (Draft3ExpressionException e) {
       logger.error("Failed to extract standard input.", e);
       throw new BindingException("Failed to extract standard input.", e);
     }
-    if (!StringUtils.isEmpty(stdin)) {
-      builder.append(PART_SEPARATOR).append("<").append(PART_SEPARATOR).append(stdin);
-    }
 
     String stdout = null;
     try {
-      stdout = commandLineTool.getStdout(job);
+      stdout = commandLineTool.getStdout(draft3Job);
     } catch (Draft3ExpressionException e) {
       logger.error("Failed to extract standard output.", e);
       throw new BindingException("Failed to extract standard outputs.", e);
     }
-    if (!StringUtils.isEmpty(stdout)) {
-      builder.append(PART_SEPARATOR).append(">").append(PART_SEPARATOR).append(stdout);
-    }
 
-    String commandLine = normalizeCommandLine(builder.toString());
+    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null);
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }
-
-  /**
-   * Normalize command line (remove multiple spaces, etc.)
-   */
-  private String normalizeCommandLine(String commandLine) {
-    return commandLine.trim().replaceAll(PART_SEPARATOR + "+", PART_SEPARATOR);
+  
+  @Override
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    CommandLine commandLine = buildCommandLineObject(job, workingDir, filePathMapper);
+    return commandLine != null ? commandLine.buildCommandLine() : null;
   }
-
+  
+  @Override
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    CommandLine commandLine = buildCommandLineObject(job, workingDir, filePathMapper);
+    return commandLine != null ? commandLine.getParts() : null;
+  }
+  
   /**
    * Build command line arguments
    */

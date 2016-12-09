@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLInputPort;
@@ -37,8 +38,6 @@ import com.google.common.escape.Escapers;
 
 public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
-  public static final String PART_SEPARATOR = "\u0020";
-
   private final static Logger logger = LoggerFactory.getLogger(CWLCommandLineBuilder.class);
   
   public final static String SHELL_QUOTE_KEY = "shellQuote";
@@ -53,79 +52,66 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   }
   
   @Override
-  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+  public CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     if (cwlJob.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(cwlJob, workingDir, filePathMapper, job.getConfig());
-  }
-  
-  @Override
-  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    if (!cwlJob.getApp().isCommandLineTool()) {
-      return null;
-    }
-    return Lists.transform(buildCommandLineParts(cwlJob, workingDir, filePathMapper), new Function<Object, String>() {
+    CWLCommandLineTool commandLineTool = (CWLCommandLineTool) cwlJob.getApp();
+
+    List<String> commandLineParts = Lists.transform(buildCommandLineParts(cwlJob, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
     });
-  }
-  
-  /**
-   * Builds command line string with both STDIN and STDOUT
-   */
-  public String buildCommandLine(CWLJob job, File workingDir, FilePathMapper filePathMapper, Map<String, Object> config) throws BindingException {
-    CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     
-    List<Object> commandLineParts = buildCommandLineParts(job, workingDir, filePathMapper);
-    StringBuilder builder = new StringBuilder();
-    for (Object commandLinePart : commandLineParts) {
-      builder.append(commandLinePart).append(PART_SEPARATOR);
-    }
-
     String stdin = null;
     try {
-      stdin = commandLineTool.getStdin(job);
+      stdin = commandLineTool.getStdin(cwlJob);
     } catch (CWLExpressionException e) {
       logger.error("Failed to extract standard input.", e);
       throw new BindingException("Failed to extract standard input.", e);
     }
-    if (!StringUtils.isEmpty(stdin)) {
-      builder.append(PART_SEPARATOR).append("<").append(PART_SEPARATOR).append(stdin);
-    }
-
+    
     String stdout = null;
     try {
-      stdout = commandLineTool.getStdout(job);
+      stdout = commandLineTool.getStdout(cwlJob);
     } catch (CWLExpressionException e) {
       logger.error("Failed to extract standard output.", e);
-      throw new BindingException("Failed to extract standard outputs.", e);
+      throw new BindingException("Failed to extract standard output.", e);
     }
     if (!StringUtils.isEmpty(stdout)) {
       if (!stdout.startsWith("/")) {
         try {
-          String mappedWorkingDir = filePathMapper.map(workingDir.getAbsolutePath(), config);
+          String mappedWorkingDir = filePathMapper.map(workingDir.getAbsolutePath(), job.getConfig());
           stdout = new File(mappedWorkingDir, stdout).getAbsolutePath();
         } catch (FileMappingException e) {
           throw new BindingException(e);
         }
       }
-      builder.append(PART_SEPARATOR).append(">").append(PART_SEPARATOR).append(stdout);
     }
-
-    String commandLine = normalizeCommandLine(builder.toString());
+    String stderr = null;
+    try {
+      stderr = commandLineTool.getStderr(cwlJob);
+    } catch (CWLExpressionException e) {
+      logger.error("Failed to extract standard error.", e);
+      throw new BindingException("Failed to extract standard error.", e);
+    }
+    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, stderr);
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }
-
-  /**
-   * Normalize command line (remove multiple spaces, etc.)
-   */
-  private String normalizeCommandLine(String commandLine) {
-    return commandLine.trim().replaceAll(PART_SEPARATOR + "+", PART_SEPARATOR);
+  
+  @Override
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    CommandLine commandLine = buildCommandLineObject(job, workingDir, filePathMapper);
+    return commandLine != null ? commandLine.buildCommandLine() : null;
+  }
+  
+  @Override
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    CommandLine commandLine = buildCommandLineObject(job, workingDir, filePathMapper);
+    return commandLine != null ? commandLine.getParts() : null;
   }
   
   /**

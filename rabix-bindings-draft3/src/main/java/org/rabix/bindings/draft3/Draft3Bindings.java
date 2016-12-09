@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.ProtocolFileValueProcessor;
@@ -14,10 +15,6 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.draft3.bean.Draft3CommandLineTool;
-import org.rabix.bindings.draft3.bean.Draft3Job;
-import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
-import org.rabix.bindings.draft3.helper.Draft3JobHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -91,6 +88,11 @@ public class Draft3Bindings implements Bindings {
   public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     return commandLineBuilder.buildCommandLineParts(job, workingDir, filePathMapper);
   }
+  
+  @Override
+  public CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLineObject(job, workingDir, filePathMapper);
+  }
 
   @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
@@ -150,19 +152,6 @@ public class Draft3Bindings implements Bindings {
     return processor.transformInputs(value, job, transform);
   }
 
-  @Override
-  public String getStandardOutLog(Job job) throws BindingException {
-    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
-    try {
-      if (draft3Job.getApp().isCommandLineTool()) {
-        return ((Draft3CommandLineTool) draft3Job.getApp()).getStdout(draft3Job);
-      }
-      return null;
-    } catch (Draft3ExpressionException e) {
-      throw new BindingException(e);
-    }
-  }
-  
   @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     return null;

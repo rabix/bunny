@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.ProtocolFileValueProcessor;
@@ -14,10 +15,6 @@ import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.ProtocolTranslator;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.draft2.bean.Draft2CommandLineTool;
-import org.rabix.bindings.draft2.bean.Draft2Job;
-import org.rabix.bindings.draft2.expression.Draft2ExpressionException;
-import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
@@ -91,6 +88,11 @@ public class Draft2Bindings implements Bindings {
   public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     return commandLineBuilder.buildCommandLineParts(job, workingDir, filePathMapper);
   }
+  
+  @Override
+  public CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLineObject(job, workingDir, filePathMapper);
+  }
 
   @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
@@ -150,19 +152,6 @@ public class Draft2Bindings implements Bindings {
     return value;
   }
 
-  @Override
-  public String getStandardOutLog(Job job) throws BindingException {
-    Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
-    try {
-      if (draft2Job.getApp().isCommandLineTool()) {
-        return ((Draft2CommandLineTool) draft2Job.getApp()).getStdout(draft2Job);
-      }
-      return null;
-    } catch (Draft2ExpressionException e) {
-      throw new BindingException(e);
-    }
-  }
-  
   @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     return null;

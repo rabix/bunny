@@ -175,12 +175,12 @@ public class DockerContainerHandler implements ContainerHandler {
       builder.hostConfig(hostConfig);
 
       Bindings bindings = BindingsFactory.create(job);
-      commandLine = bindings.buildCommandLine(job, workingDir, new FilePathMapper() {
+      commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
         @Override
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
-      });
+      }).buildCommandLine();
 
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success

@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.ProtocolFileValueProcessor;
@@ -91,25 +92,17 @@ public class CWLBindings implements Bindings {
   public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     return commandLineBuilder.buildCommandLineParts(job, workingDir, filePathMapper);
   }
+  
+  @Override
+  public CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLineObject(job, workingDir, filePathMapper);
+  }
 
   @Override
   public Set<FileValue> getInputFiles(Job job, FilePathMapper fileMapper) throws BindingException {
     return fileValueProcessor.getInputFiles(job, fileMapper);
   }
 
-  @Override
-  public String getStandardOutLog(Job job) throws BindingException {
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    try {
-      if (cwlJob.getApp().isCommandLineTool()) {
-        return ((CWLCommandLineTool) cwlJob.getApp()).getStdout(cwlJob);
-      }
-      return null;
-    } catch (CWLExpressionException e) {
-      throw new BindingException(e);
-    }
-  }
-  
   @Override
   public String getStandardErrorLog(Job job) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
