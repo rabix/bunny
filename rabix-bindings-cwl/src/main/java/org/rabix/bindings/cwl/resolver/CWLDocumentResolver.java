@@ -373,8 +373,6 @@ public class CWLDocumentResolver {
 
     if (reference != null) {
       ((ObjectNode) parent).put(fieldName, reference.getResolvedNode());
-    } else {
-      throw new BindingException("Cannot find reference " + replacement.getNormalizedReferencePath());
     }
   }
 
@@ -397,12 +395,11 @@ public class CWLDocumentResolver {
       appLocationNode.put("location", location);
     }
     if (node.isObject()) {
-      ((ObjectNode) node).put(APP_LOCATION, appLocationNode);
+      ((ObjectNode) node).set(APP_LOCATION, appLocationNode);
     }
   }
 
-  private static void replaceArrayItem(String appURL, JsonNode root, CWLDocumentResolverReplacement replacement)
-      throws BindingException {
+  private static void replaceArrayItem(String appURL, JsonNode root, CWLDocumentResolverReplacement replacement) throws BindingException {
     JsonNode parent = replacement.getParentNode() == null ? root : replacement.getParentNode();
 
     Iterator<JsonNode> nodeIterator = parent.elements();
@@ -419,8 +416,6 @@ public class CWLDocumentResolver {
 
       if (reference != null) {
         ((ArrayNode) parent).add(reference.getResolvedNode());
-      } else {
-        throw new BindingException("Cannot find reference " + replacement.getNormalizedReferencePath());
       }
     }
   }
