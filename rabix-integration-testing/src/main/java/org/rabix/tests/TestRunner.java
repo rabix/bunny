@@ -204,7 +204,7 @@ public class TestRunner {
 			
 			
 		} else {
-			throw new RabixTestException("Build folder is empty! Check build status!");
+			throw new RabixTestException("Build folder is empty. Check build status.");
 		}
 		
 		logger.info("Extracting build file: started");
@@ -229,8 +229,8 @@ public class TestRunner {
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
 		command(commandUntarBuildFile, buildFileDirPath);
 		
-		
-		for (File child : directoryListing) {
+		File[] dirListingAfterUnpac = buildFileDir.listFiles();
+		for (File child : dirListingAfterUnpac) {
 			logger.info("Checking file: " + child.getName() );
 			if(child.isDirectory() && child.getName().endsWith("SNAPSHOT")){
 				workingdir = child.getAbsolutePath();
