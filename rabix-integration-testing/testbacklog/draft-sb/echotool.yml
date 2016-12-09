@@ -1,6 +1,6 @@
 class: CommandLineTool
 cwlVersion: "sbg:draft-2"
-stdout: "echo.txt"
+stdout: "out.txt"
 baseCommand: echo
 inputs:
   - id: "#echostring"
