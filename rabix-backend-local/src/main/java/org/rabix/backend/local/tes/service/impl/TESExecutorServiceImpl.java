@@ -48,16 +48,12 @@ import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.executor.engine.EngineStub;
-import org.rabix.executor.engine.EngineStubActiveMQ;
 import org.rabix.executor.engine.EngineStubLocal;
-import org.rabix.executor.engine.EngineStubRabbitMQ;
 import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.rabix.transport.backend.Backend;
-import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
-import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,18 +127,23 @@ public class TESExecutorServiceImpl implements ExecutorService {
     Map<String, Object> result = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(tesJob.getLogs().get(tesJob.getLogs().size()-1).getStdout())); // TODO change log fetching
     
     final Job finalJob = job;
-    result = (Map<String, Object>) FileValueHelper.updateFileValues(result, new FileTransformer() {
-      @Override
-      public FileValue transform(FileValue fileValue) {
-        String location = fileValue.getLocation();
-        if (location.startsWith("/mnt")) {
-          location = finalJob.getId() + "/" + location.substring(5);
+    try {
+      result = (Map<String, Object>) FileValueHelper.updateFileValues(result, new FileTransformer() {
+        @Override
+        public FileValue transform(FileValue fileValue) throws BindingException {
+          String location = fileValue.getLocation();
+          if (location.startsWith(TESStorageService.DOCKER_PATH_PREFIX)) {
+            location = finalJob.getId() + "/" + location.substring(TESStorageService.DOCKER_PATH_PREFIX.length() + 1);
+          }
+          fileValue.setPath(location);
+          fileValue.setLocation(location);
+          return fileValue;
         }
-        fileValue.setPath(location);
-        fileValue.setLocation(location);
-        return fileValue;
-      }
-    });
+      });
+    } catch (BindingException e) {
+      logger.error("Failed to process output files", e);
+      throw new RuntimeException("Failed to process output files", e);
+    }
     
     job = Job.cloneWithOutputs(job, result);
     job = Job.cloneWithMessage(job, "Success!");
@@ -159,8 +160,8 @@ public class TESExecutorServiceImpl implements ExecutorService {
     job = Job.cloneWithStatus(job, JobStatus.FAILED);
     try {
       job = statusCallback.onJobFailed(job);
-    } catch (ExecutorStatusCallbackException e1) {
-      logger.warn("Failed to execute statusCallback: {}", e1);
+    } catch (ExecutorStatusCallbackException e) {
+      logger.warn("Failed to execute statusCallback: {}", e);
     }
   }
   
@@ -171,13 +172,8 @@ public class TESExecutorServiceImpl implements ExecutorService {
       case LOCAL:
         engineStub = new EngineStubLocal((BackendLocal) backend, this, configuration);
         break;
-      case RABBIT_MQ:
-        engineStub = new EngineStubRabbitMQ((BackendRabbitMQ) backend, this, configuration);
-        break;
-      case ACTIVE_MQ:
-        engineStub = new EngineStubActiveMQ((BackendActiveMQ) backend, this, configuration);
       default:
-        break;
+        throw new TransportPluginException("Backend " + backend.getType() + " is not supported.");
       }
       engineStub.start();
     } catch (TransportPluginException e) {
@@ -239,12 +235,12 @@ public class TESExecutorServiceImpl implements ExecutorService {
         job = storageService.stageInputFiles(job, localFileStorage, sharedFileStorage);
 
         List<TESTaskParameter> inputs = new ArrayList<>();
-        inputs.add(new TESTaskParameter("mount", null, "", "/mnt", FileType.Directory.name(), true));
+        inputs.add(new TESTaskParameter("mount", null, "", TESStorageService.DOCKER_PATH_PREFIX, FileType.Directory.name(), true));
         
         job = FileValueHelper.mapInputFilePaths(job, new FilePathMapper() {
           @Override
           public String map(String path, Map<String, Object> config) throws FileMappingException {
-            return path.replace(sharedFileStorage.getBaseDir(), "/mnt");
+            return path.replace(sharedFileStorage.getBaseDir(), TESStorageService.DOCKER_PATH_PREFIX);
           }
         });
         
@@ -254,33 +250,33 @@ public class TESExecutorServiceImpl implements ExecutorService {
         File jobDir = createJobDir(sharedFileStorage, job);
 
         String workingDirRelativePath = getWorkingDirRelativePath(job);
-        inputs.add(new TESTaskParameter("working_dir", null, workingDirRelativePath, "/mnt/working_dir", FileType.Directory.name(), false));
+        inputs.add(new TESTaskParameter("working_dir", null, workingDirRelativePath, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", FileType.Directory.name(), false));
 
         File jobFile = new File(jobDir, "job.json");
         FileUtils.writeStringToFile(jobFile, JSONHelper.writeObject(job));
-        inputs.add(new TESTaskParameter("job.json", null, job.getId() + "/job.json", "/mnt/job.json", FileType.File.name(), true));
+        inputs.add(new TESTaskParameter("job.json", null, job.getId() + "/job.json", TESStorageService.DOCKER_PATH_PREFIX + "/job.json", FileType.File.name(), true));
         
         List<TESTaskParameter> outputs = new ArrayList<>();
-        outputs.add(new TESTaskParameter("working_dir", null, workingDirRelativePath, "/mnt/working_dir", FileType.Directory.name(), false));    
+        outputs.add(new TESTaskParameter("working_dir", null, workingDirRelativePath, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", FileType.Directory.name(), false));    
         if (!bindings.canExecute(job)) {
-          outputs.add(new TESTaskParameter("command.sh", null, job.getId() + "/command.sh", "/mnt/command.sh", FileType.File.name(), false));
-          outputs.add(new TESTaskParameter("environment.sh", null, job.getId() + "/environment.sh", "/mnt/environment.sh", FileType.File.name(), false));
+          outputs.add(new TESTaskParameter("command.sh", null, job.getId() + "/command.sh", TESStorageService.DOCKER_PATH_PREFIX + "/command.sh", FileType.File.name(), false));
+          outputs.add(new TESTaskParameter("environment.sh", null, job.getId() + "/environment.sh", TESStorageService.DOCKER_PATH_PREFIX + "/environment.sh", FileType.File.name(), false));
         }
         
         List<String> firstCommandLineParts = new ArrayList<>();
         firstCommandLineParts.add("/usr/share/rabix-tes-command-line/rabix");
         firstCommandLineParts.add("-j");
-        firstCommandLineParts.add("/mnt/job.json");
+        firstCommandLineParts.add(TESStorageService.DOCKER_PATH_PREFIX + "/job.json");
         firstCommandLineParts.add("-w");
-        firstCommandLineParts.add("/mnt/working_dir");
+        firstCommandLineParts.add(TESStorageService.DOCKER_PATH_PREFIX + "/working_dir");
         firstCommandLineParts.add("-m");
         firstCommandLineParts.add("initialize");
         
         List<TESDockerExecutor> dockerExecutors = new ArrayList<>();
-        String standardOutLog = "/mnt/" + STANDARD_OUT_LOG;
-        String standardErrorLog = "/mnt/" + STANDARD_ERROR_LOG;
+        String standardOutLog = TESStorageService.DOCKER_PATH_PREFIX + "/" + STANDARD_OUT_LOG;
+        String standardErrorLog = TESStorageService.DOCKER_PATH_PREFIX + "/" + STANDARD_ERROR_LOG;
         
-        dockerExecutors.add(new TESDockerExecutor("janko/java-oracle:v6", firstCommandLineParts, "/mnt/working_dir", null, standardOutLog, standardErrorLog));
+        dockerExecutors.add(new TESDockerExecutor("janko/java-oracle:v6", firstCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
         
         List<Requirement> combinedRequirements = new ArrayList<>();
         combinedRequirements.addAll(bindings.getHints(job));
@@ -305,28 +301,28 @@ public class TESExecutorServiceImpl implements ExecutorService {
 
           String commandLineToolStdout = bindings.getStandardOutLog(job);
           if (commandLineToolStdout != null) {
-            commandLineToolStdout = "/mnt/working_dir/" + commandLineToolStdout;
+            commandLineToolStdout = TESStorageService.DOCKER_PATH_PREFIX + "/working_dir/" + commandLineToolStdout;
           }
 
           String commandLineToolErrLog = bindings.getStandardErrorLog(job);
-          String commandLineStandardErrLog = "/mnt/working_dir/" + (commandLineToolErrLog != null ? commandLineToolErrLog : DEFAULT_COMMAND_LINE_TOOL_ERR_LOG);
+          String commandLineStandardErrLog = TESStorageService.DOCKER_PATH_PREFIX + "/working_dir/" + (commandLineToolErrLog != null ? commandLineToolErrLog : DEFAULT_COMMAND_LINE_TOOL_ERR_LOG);
           
-          dockerExecutors.add(new TESDockerExecutor(imageId, secondCommandLineParts, "/mnt/working_dir", null, commandLineToolStdout, commandLineStandardErrLog));
+          dockerExecutors.add(new TESDockerExecutor(imageId, secondCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, commandLineToolStdout, commandLineStandardErrLog));
         }
         
         List<String> thirdCommandLineParts = new ArrayList<>();
         thirdCommandLineParts.add("/usr/share/rabix-tes-command-line/rabix");
         thirdCommandLineParts.add("-j");
-        thirdCommandLineParts.add("/mnt/job.json");
+        thirdCommandLineParts.add(TESStorageService.DOCKER_PATH_PREFIX + "/job.json");
         thirdCommandLineParts.add("-w");
-        thirdCommandLineParts.add("/mnt/working_dir");
+        thirdCommandLineParts.add(TESStorageService.DOCKER_PATH_PREFIX + "/working_dir");
         thirdCommandLineParts.add("-m");
         thirdCommandLineParts.add("finalize");
         
-        dockerExecutors.add(new TESDockerExecutor("janko/java-oracle:v6", thirdCommandLineParts, "/mnt/working_dir", null, standardOutLog, standardErrorLog));
+        dockerExecutors.add(new TESDockerExecutor("janko/java-oracle:v6", thirdCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
         
         List<TESVolume> volumes = new ArrayList<>();
-        volumes.add(new TESVolume("vol_work", 1, null, "/mnt"));
+        volumes.add(new TESVolume("vol_work", 1, null, TESStorageService.DOCKER_PATH_PREFIX));
         TESResources resources = new TESResources(null, false, null, volumes, null);
 
         TESTask task = new TESTask(job.getName(), DEFAULT_PROJECT, null, inputs, outputs, resources, job.getId(), dockerExecutors);

@@ -58,7 +58,7 @@ public class TESStorageServiceImpl implements TESStorageService {
   
   
   @Override
-  public Job stageInputFiles(Job job, final LocalFileStorage localFileStorage, final SharedFileStorage sharedFileStorage) {
+  public Job stageInputFiles(Job job, final LocalFileStorage localFileStorage, final SharedFileStorage sharedFileStorage) throws BindingException {
     try {
       return FileValueHelper.updateInputFiles(job, new FileTransformer() {
         @Override
@@ -66,9 +66,10 @@ public class TESStorageServiceImpl implements TESStorageService {
           if (fileValue instanceof DirectoryValue) {
             DirectoryValue directoryValue = (DirectoryValue) fileValue;
             String location = directoryValue.getLocation();
-            location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();
-            
-            if (!location.startsWith("/mnt")) {
+            if (!location.startsWith("/")) {
+              location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();  
+            }
+            if (!location.startsWith(DOCKER_PATH_PREFIX)) {
               String mappedLocation = replacePrefix(location, localFileStorage.getBaseDir(), sharedFileStorage.getBaseDir());
               
               File destinationFile = new File(mappedLocation);
@@ -93,8 +94,10 @@ public class TESStorageServiceImpl implements TESStorageService {
           }
           
           String location = fileValue.getLocation();
-          if (!location.startsWith("/mnt")) {
-            location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();
+          if (!location.startsWith(DOCKER_PATH_PREFIX)) {
+            if (!location.startsWith("/")) {
+              location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();  
+            }
             String mappedLocation = replacePrefix(location, localFileStorage.getBaseDir(), sharedFileStorage.getBaseDir());
             
             File destinationFile = new File(mappedLocation);
@@ -105,7 +108,6 @@ public class TESStorageServiceImpl implements TESStorageService {
                 throw new RuntimeException("Failed to copy file from " + location + " to " + destinationFile);
               }
             }
-            
             fileValue.setName(destinationFile.getName());
             fileValue.setPath(mappedLocation);
             fileValue.setLocation(mappedLocation);
@@ -123,12 +125,10 @@ public class TESStorageServiceImpl implements TESStorageService {
         private String replacePrefix(String src, String toMatch, String toReplace) {
           return toReplace + src.substring(toMatch.length());
         }
-        
       });
     } catch (BindingException e) {
-      logger.error("Failed to stage input files", e);   // TODO handle
-      e.printStackTrace();
-      return null;
+      logger.error("Failed to stage input files", e);
+      throw new BindingException("Failed to stage input files", e);
     }
   }
   

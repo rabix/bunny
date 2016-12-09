@@ -29,7 +29,7 @@ public class FileValueHelper {
    * @param fileTransformer
    * @return copy of value with replaced FileValues
    */
-  public static Object updateFileValues(Object value, FileTransformer fileTransformer) {
+  public static Object updateFileValues(Object value, FileTransformer fileTransformer) throws BindingException {
     if (value instanceof FileValue) {
       FileValue origFile = (FileValue) value;
       return fileTransformer.transform(origFile);
