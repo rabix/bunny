@@ -26,14 +26,14 @@ public class TestRunner {
 	private static String buildFilePath;
 	private static String buildFileDirPath = "./rabix-backend-local/target/";
 	private static String currentTestSuite;
-	private static String integrationTempResultPath;
+	private static String integrationTempResultPath = "./rabix-backend-local/target/result.yaml";
 	private static String workingdir; 
 	private static String cwlTestWorkingdir;
 	private static String draftName;
 	private static String[] drafts = { "draft-sb", "draft-2", "draft-3", "cwl" };
 	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
-	public static void main(String[] commandLineArguments) {
+	public static void main(String[] commandLineArguments) throws IOException {
 		try {
 			PropertiesConfiguration configuration = getConfig();
 			setupIntegrationCommandPrefix(configuration);
@@ -43,9 +43,9 @@ public class TestRunner {
 				draftName = draft;
 				startIntegrationTests(draftName);
 
-				if (!draftName.equals("draft-sb")) {
-					startConformanceTests(draftName);
-				}
+//				if (!draftName.equals("draft-sb")) {
+//					startConformanceTests(draftName);
+//				}
 
 			}
 
@@ -77,7 +77,7 @@ public class TestRunner {
 
 	}
 
-	private static void startIntegrationTests(String draftName) throws RabixTestException {
+	private static void startIntegrationTests(String draftName) throws RabixTestException, IOException {
 		logger.info("Integration tests started: " + draftName);
 		PropertiesConfiguration configuration = getConfig();
 		setupIntegrationTestDirPath(configuration, draftName);
@@ -88,6 +88,7 @@ public class TestRunner {
 
 		extractBuildFile();
 		copyTestbacklog();
+		copyResultFile();
 
 		File dir = new File(testDirPath);
 		
@@ -177,6 +178,11 @@ public class TestRunner {
 			}
 		}
 		logger.info("Integration tests finished:  " + draftName);
+	}
+
+	private static void copyResultFile() throws IOException {
+		
+		
 	}
 
 	private static void copyTestbacklog() throws RabixTestException {
