@@ -30,7 +30,7 @@ public class TestRunner {
 	private static String workingdir; 
 	private static String cwlTestWorkingdir;
 	private static String draftName;
-	private static String[] drafts = { "draft-sb", "draft-2", "cwl" };
+	private static String[] drafts = { "draft-sb", "draft-2", "draft-3", "cwl" };
 	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	public static void main(String[] commandLineArguments) throws IOException {

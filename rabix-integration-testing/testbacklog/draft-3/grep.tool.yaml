@@ -1,18 +1,17 @@
-cwlVersion: cwl:draft-3
-cwlVersion: "sbg:draft-3"
+cwlVersion: sbg:draft-2
 class: CommandLineTool
 description: "Grep desired string from desired file"
 inputs:
-  - id: stringPattern
+  - id: "#stringPattern"
     type: string
     inputBinding:
       position: 1
-  - id: fileToGrep
+  - id: "#fileToGrep"
     type: File
     inputBinding:
       position: 2
 outputs:
-  - id: output
+  - id: "#output"
     type: File
     outputBinding:
       glob: out.txt
