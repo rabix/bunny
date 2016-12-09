@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
@@ -37,25 +38,50 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   private final static Logger logger = LoggerFactory.getLogger(SBCommandLineBuilder.class);
 
   @Override
-  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+  public CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     if (sbJob.getApp().isExpressionTool()) {
       return null;
     }
-    return buildCommandLine(sbJob, workingDir, filePathMapper);
-  }
-  
-  @Override
-  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
-    SBJob sbJob = SBJobHelper.getSBJob(job);
-    if (!sbJob.getApp().isCommandLineTool()) {
-      return null;
-    }
-    return Lists.transform(buildCommandLineParts(sbJob, workingDir, filePathMapper), new Function<Object, String>() {
+    
+    SBCommandLineTool commandLineTool = (SBCommandLineTool) sbJob.getApp();
+    List<String> commandLineParts = Lists.transform(buildCommandLineParts(sbJob, workingDir, filePathMapper), new Function<Object, String>() {
       public String apply(Object obj) {
         return obj.toString();
       }
     });
+
+    String stdin = null;
+    try {
+      stdin = commandLineTool.getStdin(sbJob);
+    } catch (SBExpressionException e) {
+      logger.error("Failed to extract standard input.", e);
+      throw new BindingException("Failed to extract standard input.", e);
+    }
+
+    String stdout = null;
+    try {
+      stdout = commandLineTool.getStdout(sbJob);
+    } catch (SBExpressionException e) {
+      logger.error("Failed to extract standard output.", e);
+      throw new BindingException("Failed to extract standard outputs.", e);
+    }
+
+    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null);
+    logger.info("Command line built. CommandLine = {}", commandLine);
+    return commandLine;
+  }
+  
+  @Override
+  public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    CommandLine commandLine = buildCommandLineObject(job, workingDir, filePathMapper);
+    return commandLine != null ? commandLine.buildCommandLine() : null;
+  }
+  
+  @Override
+  public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    CommandLine commandLine = buildCommandLineObject(job, workingDir, filePathMapper);
+    return commandLine != null ? commandLine.getParts() : null;
   }
   
   /**

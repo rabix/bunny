@@ -32,7 +32,7 @@ public class CWLCommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(cwlJob.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, cwlJob.getInputs(), null, null, null, null);
       Bindings bindings = new CWLBindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
       Assert.assertEquals(resultList, expectedList);

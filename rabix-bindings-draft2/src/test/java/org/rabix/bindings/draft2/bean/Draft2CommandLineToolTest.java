@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.draft2.Draft2Bindings;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Job;
@@ -35,7 +36,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -69,7 +70,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
       Assert.assertEquals(resultList, expectedList);
@@ -84,14 +85,13 @@ public class Draft2CommandLineToolTest {
 
     Draft2Job draft2Job = BeanSerializer.deserialize(inputJson, Draft2Job.class);
 
-    List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      CommandLine commandLine = bindings.buildCommandLineObject(job, null, null);
 
-      Assert.assertNull(resultList);
+      Assert.assertNull(commandLine);
     } catch (BindingException e) {
       Assert.fail(e.getMessage());
     }
@@ -117,7 +117,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -137,7 +137,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      String commandLine = bindings.buildCommandLine(job, null, null);
+      String commandLine = bindings.buildCommandLineObject(job, null, null).buildCommandLine();
       
       Assert.assertEquals(commandLine,
           "bwa mem -t 3 -I 1,2,3,4 -m 3 rabix/tests/test-files/chr20.fa.tmp rabix/tests/test-files/example_human_Illumina.pe_1.fastq rabix/tests/test-files/example_human_Illumina.pe_2.fastq < input.txt > output.sam");
@@ -183,7 +183,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -214,7 +214,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id",encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -244,7 +244,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -278,7 +278,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -305,7 +305,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -332,7 +332,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -359,7 +359,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
@@ -386,7 +386,7 @@ public class Draft2CommandLineToolTest {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
-      resultList = bindings.buildCommandLineParts(job, null, null);
+      resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());

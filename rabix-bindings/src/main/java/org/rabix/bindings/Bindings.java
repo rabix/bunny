@@ -87,6 +87,7 @@ public interface Bindings {
    * @return                Command line
    * @throws BindingException
    */
+  @Deprecated
   String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
 
   /**
@@ -98,8 +99,20 @@ public interface Bindings {
    * @return                List of command line parts
    * @throws BindingException
    */
+  @Deprecated
   List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
 
+  /**
+   * Builds command line object
+   *
+   * @param job             Job object
+   * @param workingDir      Working directory
+   * @param filePathMapper  FilePathMapper used to map workingDir when new files are being created
+   * @return                Command line
+   * @throws BindingException
+   */
+  CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException;
+  
   /**
    * Gets a set of input {@link FileValue} objects with their secondary files mapped with a {@link FilePathMapper}
    *
@@ -157,6 +170,7 @@ public interface Bindings {
    * @return            Standard error log
    * @throws BindingException
    */
+  @Deprecated
   String getStandardErrorLog(Job job) throws BindingException;
   
   /**

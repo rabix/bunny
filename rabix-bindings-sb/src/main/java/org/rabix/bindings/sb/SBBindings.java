@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.ProtocolFileValueProcessor;
@@ -86,6 +87,11 @@ public class SBBindings implements Bindings {
   @Override
   public List<String> buildCommandLineParts(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     return commandLineBuilder.buildCommandLineParts(job, workingDir, filePathMapper);
+  }
+  
+  @Override
+  public CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+    return commandLineBuilder.buildCommandLineObject(job, workingDir, filePathMapper);
   }
 
   @Override
