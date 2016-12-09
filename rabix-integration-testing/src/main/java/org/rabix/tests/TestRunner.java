@@ -198,8 +198,7 @@ public class TestRunner {
 				if(child.getPath().contains("tar.gz")){
 					logger.info("Found build file with given path: " + child.getAbsolutePath());
 					buildFilePath = child.getAbsolutePath();
-					workingdir = child.getParent();
-					logger.info("Working dir set: " + workingdir);
+					
 				}
 			}
 			
@@ -229,6 +228,17 @@ public class TestRunner {
 
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
 		command(commandUntarBuildFile, workingdir);
+		
+		
+		for (File child : directoryListing) {
+			if(child.isDirectory() && child.getName().contains("SNAPSHOT")){
+				workingdir = child.getAbsolutePath();
+				logger.info("Working dir set: " + workingdir);
+			}
+			
+		}
+
+		
 		logger.info("Extracting build file: ended");
 	}
 
