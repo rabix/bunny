@@ -30,14 +30,15 @@ public class TestRunner {
 	private static String workingdir; 
 	private static String cwlTestWorkingdir;
 	private static String draftName;
-	private static String[] drafts = { "draft-sb", "draft-2", "draft-3", "cwl" };
+	private static String[] drafts = { "draft-sb", "draft-2", "cwl" };
 	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	public static void main(String[] commandLineArguments) throws IOException {
 		try {
 			PropertiesConfiguration configuration = getConfig();
 			setupIntegrationCommandPrefix(configuration);
-			//setupBuildFilePath(configuration); 
+			extractBuildFile();
+			copyTestbacklog();
 
 			for (String draft : drafts) {
 				draftName = draft;
@@ -85,10 +86,6 @@ public class TestRunner {
 		boolean allTestsPassed = true;
 		boolean testPassed = false;
 		ArrayList<Object> failedTests = new ArrayList<Object>();
-
-		extractBuildFile();
-		copyTestbacklog();
-		copyResultFile();
 
 		File dir = new File(testDirPath);
 		
@@ -180,10 +177,6 @@ public class TestRunner {
 		logger.info("Integration tests finished:  " + draftName);
 	}
 
-	private static void copyResultFile() throws IOException {
-		
-		
-	}
 
 	private static void copyTestbacklog() throws RabixTestException {
 		String commandCopyTestbacklog = "cp -a " + System.getProperty("user.dir")
