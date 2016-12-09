@@ -227,7 +227,7 @@ public class TestRunner {
 //		}
 
 		logger.info("Extracting build file command: " + commandUntarBuildFile);
-		command(commandUntarBuildFile, workingdir);
+		command(commandUntarBuildFile, buildFileDirPath);
 		
 		
 		for (File child : directoryListing) {
