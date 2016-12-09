@@ -1,12 +1,13 @@
 class: CommandLineTool
+cwlVersion: "sbg:draft-2"
 baseCommand: [ls]
 requirements:
   - class: sbg:CPURequirement
-    value: 
+    value:
       class: Expression
       engine: "#cwl-js-engine"
       script: "$job.inputs.x"
-      
+
   - class: sbg:MemRequirement
     value:
       class: Expression
@@ -32,4 +33,3 @@ outputs:
         class: Expression
         engine: "#cwl-js-engine"
         script: "$job.allocatedResources.mem >= $job.inputs.x * 100"
-     

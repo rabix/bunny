@@ -1,4 +1,5 @@
 class: CommandLineTool
+cwlVersion: "sbg:draft-2"
 baseCommand: grep
 stdout: "out.txt"
 inputs:
@@ -10,7 +11,7 @@ inputs:
 
   - id: "#grepFile"
     type: File
-    inputBinding: 
+    inputBinding:
       separate: true
       position: 2
 outputs:

@@ -1,7 +1,8 @@
 class: CommandLineTool
+cwlVersion: "sbg:draft-2"
 label: inherittool
 baseCommand: ["touch", "out.txt"]
-inputs: 
+inputs:
   - id: "#inputfile"
     type: File
 outputs:

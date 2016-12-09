@@ -1,4 +1,5 @@
 class: CommandLineTool
+cwlVersion: "sbg:draft-2"
 baseCommand: [ls]
 stdout: "out.txt"
 inputs:

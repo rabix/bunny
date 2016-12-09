@@ -1,5 +1,6 @@
 {
   "class": "Workflow",
+  "cwlVersion": "sbg:draft-2",
   "steps": [
     {
       "id": "#echotool",

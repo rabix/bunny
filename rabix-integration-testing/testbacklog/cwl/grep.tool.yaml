@@ -1,4 +1,5 @@
 cwlVersion: v1.0
+cwlVersion: "sbg:draft-v1.0"
 class: CommandLineTool
 description: "Grep desired string from desired file"
 inputs:
@@ -9,7 +10,7 @@ inputs:
   fileToGrep:
     type: File
     inputBinding:
-      position: 2 
+      position: 2
 outputs:
   output:
     type: File
