@@ -277,7 +277,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
         String standardOutLog = TESStorageService.DOCKER_PATH_PREFIX + "/" + STANDARD_OUT_LOG;
         String standardErrorLog = TESStorageService.DOCKER_PATH_PREFIX + "/" + STANDARD_ERROR_LOG;
         
-        dockerExecutors.add(new TESDockerExecutor("janko/java-oracle:v6", firstCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
+        dockerExecutors.add(new TESDockerExecutor("rabix/tes-command-line:v1", firstCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
         
         List<Requirement> combinedRequirements = new ArrayList<>();
         combinedRequirements.addAll(bindings.getHints(job));
@@ -327,7 +327,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
         thirdCommandLineParts.add("-m");
         thirdCommandLineParts.add("finalize");
         
-        dockerExecutors.add(new TESDockerExecutor("janko/java-oracle:v6", thirdCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
+        dockerExecutors.add(new TESDockerExecutor("rabix/tes-command-line:v1", thirdCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
         
         List<TESVolume> volumes = new ArrayList<>();
         volumes.add(new TESVolume("vol_work", 1, null, TESStorageService.DOCKER_PATH_PREFIX));
