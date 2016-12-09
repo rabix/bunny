@@ -44,9 +44,9 @@ public class TestRunner {
 				draftName = draft;
 				startIntegrationTests(draftName);
 
-//				if (!draftName.equals("draft-sb")) {
-//					startConformanceTests(draftName);
-//				}
+				if (!draftName.equals("draft-sb")) {
+					startConformanceTests(draftName);
+				}
 
 			}
 
