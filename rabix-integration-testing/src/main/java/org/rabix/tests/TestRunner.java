@@ -231,7 +231,8 @@ public class TestRunner {
 		
 		
 		for (File child : directoryListing) {
-			if(child.isDirectory() && child.getName().contains("SNAPSHOT")){
+			logger.info("Checking file: " + child.getName() );
+			if(child.isDirectory() && child.getName().endsWith("SNAPSHOT")){
 				workingdir = child.getAbsolutePath();
 				logger.info("Working dir set: " + workingdir);
 			}
