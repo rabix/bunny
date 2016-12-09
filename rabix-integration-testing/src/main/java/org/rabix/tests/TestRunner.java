@@ -24,20 +24,29 @@ public class TestRunner {
 	private static String testDirPath;
 	private static String cmdPrefix;
 	private static String buildFile;
+	private static String buildFileDirPath = "./rabix-backend-local/target/";
 	private static String currentTestSuite;
 	private static String integrationTempResultPath = "./rabix-backend-local/target/result.yaml";
-	private static String workingdir = "./rabix-backend-local/target/";
+	private static String workingdir = "./rabix-backend-local/target/"; // TODO ovo ces dinamicki da setujes u extractMetodi
 	private static String cwlTestWorkingdir;
 	private static String draftName;
+	private static String[] drafts = { "draft-sb", "draft-2", "draft-3", "cwl" };
 	private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
 	public static void main(String[] commandLineArguments) {
 		try {
-			draftName = "draft-sb";
-			startIntegrationTests(draftName);
+			PropertiesConfiguration configuration = getConfig();
+			setupIntegrationCommandPrefix(configuration);
+			setupBuildFilePath(configuration); // TODO ovo ces da izbrises
 
-			if (!draftName.equals("draft-sb")) {
-				startConformanceTests(draftName);
+			for (String draft : drafts) {
+				draftName = draft;
+				startIntegrationTests(draftName);
+
+				if (!draftName.equals("draft-sb")) {
+					startConformanceTests(draftName);
+				}
+
 			}
 
 		} catch (RabixTestException e) {
@@ -62,36 +71,39 @@ public class TestRunner {
 		logger.info("Conformance starter script: " + starterScriptName);
 
 		command("chmod +x " + starterScriptName, cwlTestWorkingdir);
-		
+
 		executeConformanceSuite("./" + starterScriptName, cwlTestWorkingdir);
 		logger.info("Conformance test ended: " + draftName);
 
 	}
 
 	private static void startIntegrationTests(String draftName) throws RabixTestException {
-		
-		logger.info("Integration tests started:  " + draftName);
-		boolean allTestsPassed = true;
-		boolean testPassed = false;
+		logger.info("Integration tests started");
 		PropertiesConfiguration configuration = getConfig();
 		setupIntegrationTestDirPath(configuration, draftName);
-		setupIntegrationCommandPrefix(configuration);
-		setupBuildFilePath(configuration);
 
-		File dir = new File(testDirPath);
-		if (!dir.isDirectory()) {
-			logger.error("Problem with test directory path: Test directory path is not valid directory path.");
-			System.exit(-1);
-		}
-		File[] directoryListing = dir.listFiles();
-		if (directoryListing == null) {
-			logger.error("Problem with provided test directory: Test directory is empty.");
-		}
-
+		boolean allTestsPassed = true;
+		boolean testPassed = false;
 		ArrayList<Object> failedTests = new ArrayList<Object>();
 
 		extractBuildFile();
 		copyTestbacklog();
+
+		File dir = new File(testDirPath);
+		
+		if (!dir.isDirectory()) {
+			logger.error("Test directory path is not valid directory path: " + testDirPath);
+			System.exit(-1);
+		}
+		
+		File[] directoryListing = dir.listFiles();
+		
+		if (directoryListing == null) {
+			logger.error("Problem with test directory: Test directory is empty.");
+		}
+		
+		logger.info("Running tests for draft: " + draftName);
+		logger.info("Test directory used: " + testDirPath);
 
 		for (File child : directoryListing) {
 			if (!child.getPath().endsWith(".test.yaml"))
@@ -105,23 +117,24 @@ public class TestRunner {
 				Iterator entries = inputSuite.entrySet().iterator();
 
 				while (entries.hasNext()) {
-					
+
 					Entry thisEntry = (Entry) entries.next();
 					Object testName = thisEntry.getKey();
 					Object test = thisEntry.getValue();
-					
+
 					logger.info(" --- ");
 					logger.info("Running test: " + testName + " with given parameters:");
-					
+
 					@SuppressWarnings({ "rawtypes", "unchecked" })
 					Map<String, Map<String, LinkedHashMap>> currentTestDetails = (Map<String, Map<String, LinkedHashMap>>) test;
-					
+
 					logger.info("  app: " + currentTestDetails.get("app"));
 					logger.info("  inputs: " + currentTestDetails.get("inputs"));
 					logger.info("  expected: " + currentTestDetails.get("expected"));
 
-					String cmd = cmdPrefix + " " + currentTestDetails.get("app") + " " + currentTestDetails.get("inputs") + " > result.yaml";
-					
+					String cmd = cmdPrefix + " " + currentTestDetails.get("app") + " "
+							+ currentTestDetails.get("inputs") + " > result.yaml";
+
 					logger.info("->Running cmd: " + cmd);
 					command(cmd, workingdir);
 
@@ -175,6 +188,23 @@ public class TestRunner {
 	}
 
 	private static void extractBuildFile() throws RabixTestException {
+
+		File buildFileDir = new File(buildFileDirPath);
+		File[] directoryListing = buildFileDir.listFiles();
+		
+		if (directoryListing != null) {
+		
+			for (File child : directoryListing) {
+				if(child.getPath().contains("tar.gz")){
+					logger.info("Found build file with given path: " + child.getPath());
+				}
+			}
+			
+			
+		} else {
+			throw new RabixTestException("Build folder is empty! Check build status!");
+		}
+		
 		logger.info("Extracting build file: started");
 
 		String commandUntarBuildFile = "tar -zxvf " + System.getProperty("user.dir") + buildFile;
@@ -267,7 +297,7 @@ public class TestRunner {
 
 		return validationResult;
 	}
-	
+
 	private static void validateMetadata(boolean fileMetadataEqual) {
 		if (!fileMetadataEqual) {
 			logger.error("result and expected file metadata are not equal!");
@@ -301,7 +331,6 @@ public class TestRunner {
 			logger.error("result and expected file name are not equal!");
 		}
 	}
-
 
 	public static void command(final String cmdline, final String directory) throws RabixTestException {
 		try {
