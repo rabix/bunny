@@ -23,17 +23,17 @@ test2:
         key0: value0
         key1: value1
         key2: value2
-# test3:
-#   app: testbacklog/draft-sb/echogrep.tool.yml
-#   inputs: testbacklog/draft-sb/echogrep.inputs.yml
-#   runtime: 60
-#   expected:
-#     outfile:
-#       class: File
-#       name: out.txt
-#       size: 26
-#       checksum: sha1$07dd2a122148b25972681ef85ed1e04e225f8d40
-#       metadata: null
+test3:
+  app: testbacklog/draft-sb/echogrep.tool.yml
+  inputs: testbacklog/draft-sb/echogrep.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 10
+      checksum: sha1$416e67232de2b79ef0283b3600605de92355d1c8
+      metadata: null
 test4:
   app: testbacklog/draft-sb/stageinputs.cwl.yml
   inputs: testbacklog/draft-sb/stageinputs.inputs.yaml
