@@ -11,7 +11,7 @@ test1:
       metadata: null
 test2:
   app: testbacklog/draft-2/echo.tool.yml
-  inputs: testbacklog/draft-2/echo.inputs.yaml
+  inputs: testbacklog/draft-2/echo.inputs.yml
   runtime: 60
   expected:
     outfile:

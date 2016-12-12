@@ -131,7 +131,7 @@ public class TestRunner {
 					logger.info("  expected: " + currentTestDetails.get("expected"));
 
 					String cmd = cmdPrefix + " " + currentTestDetails.get("app") + " "
-							+ currentTestDetails.get("inputs") + " -v > result.yaml";
+							+ currentTestDetails.get("inputs") + " > result.yaml";
 
 					logger.info("->Running cmd: " + cmd);
 					command(cmd, workingdir);
