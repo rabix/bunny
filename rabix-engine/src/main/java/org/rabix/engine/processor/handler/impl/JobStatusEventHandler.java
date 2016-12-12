@@ -89,7 +89,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
         Job job = null;
         try {
-          job = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
+          job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
           if (!StringUtils.isEmpty(event.getEventGroupId())) {
             jobGroupsDB.add(event.getEventGroupId(), job);
           } else {
@@ -148,7 +148,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       } else {
         try {
-          Job failedJob = JobHelper.createJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
+          Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
           engineStatusCallback.onJobFailed(failedJob);
           
           eventProcessor.send(new JobStatusEvent("root", event.getContextId(), JobState.FAILED, null, event.getEventGroupId())); // TODO remove hardcoded 'root' value

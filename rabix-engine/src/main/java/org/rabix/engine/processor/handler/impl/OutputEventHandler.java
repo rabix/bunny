@@ -85,7 +85,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       jobService.update(sourceJob);
       
       try {
-        Job completedJob = JobHelper.createJob(sourceJob, JobStatus.COMPLETED, jobService, variableService, linkService, contextService, dagNodeDB);
+        Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobService, variableService, linkService, contextService, dagNodeDB);
         engineStatusCallback.onJobCompleted(completedJob);
       } catch (BindingException e) {
         logger.error("Failed to create Job " + sourceJob.getId(), e);
