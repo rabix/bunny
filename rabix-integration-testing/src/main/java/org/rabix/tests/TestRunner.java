@@ -120,8 +120,7 @@ public class TestRunner {
 					Entry thisEntry = (Entry) entries.next();
 					Object testName = thisEntry.getKey();
 					Object test = thisEntry.getValue();
-
-					logger.info(" --- ");
+					
 					logger.info("Running test: " + testName + " with given parameters:");
 
 					@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -375,11 +374,11 @@ public class TestRunner {
 			FileReader fileReader = new FileReader(errorLog);
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			line = null;
-			logger.info("Error outputs:");
 
 			while ((line = bufferedReader.readLine()) != null) {
 				System.out.println(line);
 			}
+
 			bufferedReader.close();
 
 			if (0 != exitCode) {
