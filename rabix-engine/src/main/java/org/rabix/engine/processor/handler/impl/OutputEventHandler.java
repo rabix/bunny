@@ -172,17 +172,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           }
         }
       }
-      
-//      if (event.getEventGroupId() != null && event.getEventGroupId().equals(sourceJob.getExternalId()) && sourceJob.isCompleted()) {
-//        Set<Job> readyJobs = jobGroupsDB.get(event.getContextId(), event.getEventGroupId());
-//        try {
-//          engineStatusCallback.onJobsReady(readyJobs);
-//        } catch (EngineStatusCallbackException e) {
-//          logger.error("Failed to call onJobsReady() callback", e);
-//          throw new EventHandlerException(e);
-//        }
-//      }
-//      return;
     }
     
     if (sourceJob.isOutputPortReady(event.getPortId())) {
