@@ -21,6 +21,7 @@ import org.rabix.bindings.cwl.json.CWLOutputPortsDeserializer;
 import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.common.json.BeanPropertyView;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(using=CWLJobAppDeserializer.class)
@@ -62,6 +64,10 @@ public abstract class CWLJobApp extends Application {
   @JsonProperty("successCodes")
   protected List<Integer> successCodes = new ArrayList<>();
 
+  @JsonProperty("appFileLocation")
+  @JsonView(BeanPropertyView.Full.class)
+  protected String appFileLocation;
+  
   @JsonIgnore
   public String getId() {
     return (String) getProperty("id");
@@ -84,6 +90,10 @@ public abstract class CWLJobApp extends Application {
   
   public List<Integer> getSuccessCodes() {
     return successCodes;
+  }
+  
+  public String getAppFileLocation() {
+    return appFileLocation;
   }
 
   @JsonIgnore

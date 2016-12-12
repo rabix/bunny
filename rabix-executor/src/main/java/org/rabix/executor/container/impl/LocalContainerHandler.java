@@ -60,12 +60,12 @@ public class LocalContainerHandler implements ContainerHandler {
       VerboseLogger.log(String.format("Local execution (no container) has started"));
       
       Bindings bindings = BindingsFactory.create(job);
-      commandLine = bindings.buildCommandLine(job, workingDir, new FilePathMapper() {
+      commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
         @Override
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
-      });
+      }).buildCommandLine();
 
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();
@@ -99,12 +99,12 @@ public class LocalContainerHandler implements ContainerHandler {
       } else if (commandLine.contains("<") || commandLine.contains(">")) {
         processBuilder.command("/bin/bash", "-c", commandLine);
       } else {
-        processBuilder.command(bindings.buildCommandLineParts(job, workingDir, new FilePathMapper() {
+        processBuilder.command(bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
           @Override
           public String map(String path, Map<String, Object> config) throws FileMappingException {
             return path;
           }
-        }));
+        }).getParts());
       }
       processBuilder.directory(workingDir);
       

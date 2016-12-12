@@ -1,5 +1,6 @@
 package org.rabix.bindings.cwl;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,9 +14,12 @@ import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.bean.CWLOutputPort;
 import org.rabix.bindings.cwl.bean.CWLStep;
+import org.rabix.bindings.cwl.bean.CWLStepInputs;
 import org.rabix.bindings.cwl.bean.CWLWorkflow;
 import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
+import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
+import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.LinkMerge;
@@ -54,7 +58,8 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       job.getApp().setCwlVersion(parentJob.getApp().getCwlVersion());
     }
     processElements(null, job);
-
+    rewriteDefaultPaths(job);
+    
     if (job.getApp().isWorkflow()) {
       CWLWorkflow workflow = (CWLWorkflow) job.getApp();
       for (CWLStep step : workflow.getSteps()) {
@@ -69,6 +74,64 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       }
     }
     return job;
+  }
+  
+  /**
+   * Rewrite default file location if application is loaded from elsewhere 
+   */
+  private void rewriteDefaultPaths(CWLJob job) {
+    CWLJobApp app = job.getApp();
+    String appLocation = app.getAppFileLocation();
+    if (appLocation != null) {
+      rewriteDefaultPaths(job.getInputs(), appLocation);
+    }
+  }
+  
+  @SuppressWarnings("unchecked")
+  private void rewriteDefaultPaths(Object value, String appLocation) {
+    if (value instanceof CWLStepInputs) {
+      value = ((CWLStepInputs) value).getDefaultValue();
+    }
+    if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
+      String location = CWLFileValueHelper.getLocation(value);
+      if (location != null && !location.startsWith("/")) {
+        File appFile = new File(appLocation);
+        String newLocation = new File(appFile.getParentFile(), location).getAbsolutePath();
+        CWLFileValueHelper.setLocation(newLocation, value);
+      }
+      String path = CWLFileValueHelper.getPath(value);
+      if (path != null && !path.startsWith("/")) {
+        File appFile = new File(appLocation);
+        String newPath = new File(appFile.getParentFile(), path).getAbsolutePath();
+        CWLFileValueHelper.setPath(newPath, value);
+      }
+      List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
+      if (secondaryFiles != null) {
+        for (Map<String, Object> secondaryFile : secondaryFiles) {
+          rewriteDefaultPaths(secondaryFile, appLocation);
+        }
+      }
+      if (CWLSchemaHelper.isDirectoryFromValue(value)) {
+        List<Object> listing = CWLDirectoryValueHelper.getListing(value);
+        if (listing != null) {
+          for (Object listingObj : listing) {
+            rewriteDefaultPaths(listingObj, appLocation);
+          }
+        }
+      }
+      return;
+    }
+    if (value instanceof Map<?, ?>) {
+      for (Object mapValue : ((Map<String, Object>) value).values()) {
+        rewriteDefaultPaths(mapValue, appLocation);
+      }
+      return;
+    }
+    if (value instanceof List<?>) {
+      for (Object listValue : ((List<Object>) value)) {
+        rewriteDefaultPaths(listValue, appLocation);
+      }
+    }
   }
   
   /**
