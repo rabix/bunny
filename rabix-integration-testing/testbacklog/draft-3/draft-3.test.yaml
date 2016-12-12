@@ -8,3 +8,4 @@ test1:
       name: out.txt
       size: 4
       checksum: sha1$6694b1596962757b0169b1ad8cec397cdaac4483
+      metadata: null

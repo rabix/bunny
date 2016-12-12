@@ -1,7 +1,0 @@
-{
-  "fileToGrep": {
-    "class": "File",
-    "path": "hello.txt"
-  },
-  "stringPattern": "inf"
-}

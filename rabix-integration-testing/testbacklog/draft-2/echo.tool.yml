@@ -11,4 +11,4 @@ outputs:
   - id: "#output"
     type: File
     outputBinding:
-      glob: echo.txt
+      glob: out.txt

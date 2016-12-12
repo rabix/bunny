@@ -1,5 +1,4 @@
 cwlVersion: v1.0
-cwlVersion: "v1.0"
 class: CommandLineTool
 description: "Grep desired string from desired file"
 inputs:
