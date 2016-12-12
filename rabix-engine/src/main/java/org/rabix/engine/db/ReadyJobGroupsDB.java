@@ -19,7 +19,7 @@ public class ReadyJobGroupsDB {
   }
 
   public void add(String eventId, Job job) {
-    Map<String, Set<Job>> groupedByRoot = groupedJobs.get(eventId);
+    Map<String, Set<Job>> groupedByRoot = groupedJobs.get(job.getRootId());
 
     if (groupedByRoot == null) {
       groupedByRoot = new HashMap<>();
