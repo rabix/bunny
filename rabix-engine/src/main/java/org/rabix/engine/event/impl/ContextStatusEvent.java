@@ -26,6 +26,11 @@ public class ContextStatusEvent implements Event {
   public String getContextId() {
     return contextId;
   }
+  
+  @Override
+  public String getEventGroupId() {
+    return null;
+  }
 
   @Override
   public int hashCode() {

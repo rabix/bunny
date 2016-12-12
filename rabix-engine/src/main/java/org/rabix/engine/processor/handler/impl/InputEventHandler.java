@@ -74,13 +74,13 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
         if ((job.isInputPortBlocking(node, event.getPortId()))) {
           // it's blocking
           if (job.isInputPortReady(event.getPortId())) {
-            scatterHelper.scatterPort(job, event.getPortId(), variable.getValue(), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), false);
+            scatterHelper.scatterPort(job, event, event.getPortId(), variable.getValue(), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), false);
             update(job, variable);
             return;
           }
         } else {
           // it's not blocking
-          scatterHelper.scatterPort(job, event.getPortId(), event.getValue(), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), true);
+          scatterHelper.scatterPort(job, event, event.getPortId(), event.getValue(), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), true);
           update(job, variable);
           return;
         }
@@ -92,7 +92,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     }
 
     if (job.isReady()) {
-      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null);
+      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId());
       eventProcessor.send(jobStatusEvent);
     }
     update(job, variable);
@@ -113,7 +113,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     for (LinkRecord link : links) {
       VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
 
-      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variable.getValue(), event.getPosition());
+      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variable.getValue(), event.getPosition(), event.getEventGroupId());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {

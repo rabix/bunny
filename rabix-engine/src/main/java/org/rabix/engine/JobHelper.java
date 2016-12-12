@@ -67,7 +67,7 @@ public class JobHelper {
     if (!jobRecords.isEmpty()) {
       for (JobRecord job : jobRecords) {
         try {
-          jobs.add(createJob(job, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB));
+          jobs.add(createReadyJob(job, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB));
         } catch (BindingException e) {
           logger.debug("Failed to create job", e);
         }
@@ -77,11 +77,17 @@ public class JobHelper {
     return jobs;
   }
   
-  public static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) throws BindingException {
+  public static Job createReadyJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) throws BindingException {
+    return createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, true);
+  }
+  
+  public static Job createCompletedJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) throws BindingException {
+    return createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
+  }
+  
+  private static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, boolean processVariables) throws BindingException {
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId());
 
-    Map<String, Object> preprocesedInputs = new HashMap<>();
-    
     boolean autoBoxingEnabled = false;   // get from configuration
     
     StringBuilder inputsLogBuilder = new StringBuilder("\n ---- JobRecord ").append(job.getId()).append("\n");
@@ -90,6 +96,7 @@ public class JobHelper {
     
     List<VariableRecord> inputVariables = variableRecordService.find(job.getId(), LinkPortType.INPUT, job.getRootId());
     
+    Map<String, Object> preprocesedInputs = new HashMap<>();
     for (VariableRecord inputVariable : inputVariables) {
       Object value = inputVariable.getValue();
       preprocesedInputs.put(inputVariable.getPortId(), value);
@@ -101,40 +108,41 @@ public class JobHelper {
     Set<String> visiblePorts = findVisiblePorts(job, jobRecordService, linkRecordService, variableRecordService);
     Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, preprocesedInputs, null, contextRecord.getConfig(), null, visiblePorts);
     try {
-      Bindings bindings = BindingsFactory.create(encodedApp);
-      
-      for (VariableRecord inputVariable : inputVariables) {
-        Object value = CloneHelper.deepCopy(inputVariable.getValue());
-        ApplicationPort port = node.getApp().getInput(inputVariable.getPortId());
-        if (port == null) {
-          continue;
-        }
-        for (DAGLinkPort p: node.getInputPorts()) {
-          if(p.getId() == inputVariable.getPortId()) {
-            if (p.getTransform() != null) {
-              Object transform = p.getTransform();
-              if(transform != null) {
-                value = bindings.transformInputs(value, newJob, transform);
+      if (processVariables) {
+        Bindings bindings = BindingsFactory.create(encodedApp);
+        
+        for (VariableRecord inputVariable : inputVariables) {
+          Object value = CloneHelper.deepCopy(inputVariable.getValue());
+          ApplicationPort port = node.getApp().getInput(inputVariable.getPortId());
+          if (port == null) {
+            continue;
+          }
+          for (DAGLinkPort p : node.getInputPorts()) {
+            if (p.getId() == inputVariable.getPortId()) {
+              if (p.getTransform() != null) {
+                Object transform = p.getTransform();
+                if (transform != null) {
+                  value = bindings.transformInputs(value, newJob, transform);
+                }
               }
             }
           }
-        }
-        if (port != null && autoBoxingEnabled) {
-          if (port.isList() && !(value instanceof List)) {
-            List<Object> transformed = new ArrayList<>();
-            transformed.add(value);
-            value = transformed;
+          if (port != null && autoBoxingEnabled) {
+            if (port.isList() && !(value instanceof List)) {
+              List<Object> transformed = new ArrayList<>();
+              transformed.add(value);
+              value = transformed;
+            }
           }
+          inputsLogBuilder.append(" ---- Input ").append(inputVariable.getPortId()).append(", value ").append(value).append("\n");
+          inputs.put(inputVariable.getPortId(), value);
         }
-        inputsLogBuilder.append(" ---- Input ").append(inputVariable.getPortId()).append(", value ").append(value).append("\n");
-        inputs.put(inputVariable.getPortId(), value);
       }
     } catch (BindingException e) {
       throw new BindingException("Failed to transform inputs", e);
     }
     
     logger.debug(inputsLogBuilder.toString());
-    
     return new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, inputs, null, contextRecord.getConfig(), null, visiblePorts);
   }
   
