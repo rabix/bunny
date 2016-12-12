@@ -17,11 +17,13 @@ public class InputUpdateEvent implements Event {
   private final Integer numberOfScattered;      // number of scattered nodes
   private final boolean isLookAhead;            // it's a look ahead event
   
-  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position) {
-    this(contextId, jobId, portId, value, false, null, position);
+  private final String eventGroupId;
+  
+  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position, String eventGroupId) {
+    this(contextId, jobId, portId, value, false, null, position, eventGroupId);
   }
 
-  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position) {
+  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, String eventGroupId) {
     this.jobId = jobId;
     this.portId = portId;
     this.value = value;
@@ -29,6 +31,7 @@ public class InputUpdateEvent implements Event {
     this.isLookAhead = isLookAhead;
     this.numberOfScattered = scatteredNodes;
     this.position = position;
+    this.eventGroupId = eventGroupId;
   }
 
   public String getJobId() {
@@ -51,6 +54,11 @@ public class InputUpdateEvent implements Event {
     return isLookAhead;
   }
 
+  @Override
+  public String getEventGroupId() {
+    return eventGroupId;
+  }
+  
   @Override
   public String getContextId() {
     return contextId;

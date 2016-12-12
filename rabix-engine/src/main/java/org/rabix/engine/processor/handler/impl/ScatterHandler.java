@@ -55,7 +55,7 @@ public class ScatterHandler {
    * @throws BindingException 
    */
   @SuppressWarnings("unchecked")
-  public void scatterPort(JobRecord job, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
+  public void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId());
 
     if (job.getScatterStrategy() == null) {
@@ -68,12 +68,12 @@ public class ScatterHandler {
 
     if (isLookAhead) {
       int numberOfScattered = getNumberOfScattered(job, numberOfScatteredFromEvent);
-      createScatteredJobs(job, portId, value, node, numberOfScattered, position);
+      createScatteredJobs(job, event, portId, value, node, numberOfScattered, position);
       return;
     }
 
     if (value == null) {
-      createScatteredJobs(job, portId, value, node, 1, position);
+      createScatteredJobs(job, event, portId, value, node, 1, position);
       return;
     }
     
@@ -96,7 +96,7 @@ public class ScatterHandler {
     }
     
     for (int i = 0; i < values.size(); i++) {
-      createScatteredJobs(job, portId, values.get(i), node, values.size(), usePositionFromEvent ? position : i + 1);
+      createScatteredJobs(job, event, portId, values.get(i), node, values.size(), usePositionFromEvent ? position : i + 1);
     }
   }
   
@@ -114,7 +114,7 @@ public class ScatterHandler {
     return new JobRecord(contextId, id, JobRecordService.generateUniqueId(), parentId, JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking);
   }
   
-  private void createScatteredJobs(JobRecord job, String port, Object value, DAGNode node, Integer numberOfScattered, Integer position) throws EventHandlerException {
+  private void createScatteredJobs(JobRecord job, Event event, String port, Object value, DAGNode node, Integer numberOfScattered, Integer position) throws EventHandlerException {
     ScatterStrategy scatterStrategy = job.getScatterStrategy();
     scatterStrategy.enable(port, value, position);
     
@@ -156,12 +156,12 @@ public class ScatterHandler {
         linkRecordService.create(link);
 
         if (inputPort.isScatter()) {
-          Event eventInputPort = new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), mapping.getValue(inputPort.getId()), 1);
+          Event eventInputPort = new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), mapping.getValue(inputPort.getId()), 1, event.getEventGroupId());
           events.add(eventInputPort);
         } else {
           if (job.isInputPortReady(inputPort.getId())) {
             VariableRecord variable = variableRecordService.find(job.getId(), inputPort.getId(), LinkPortType.INPUT, job.getRootId());
-            events.add(new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), variable.getValue(), 1));
+            events.add(new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), variable.getValue(), 1, event.getEventGroupId()));
           }
         }
       }

@@ -1,6 +1,7 @@
 package org.rabix.engine;
 
 import org.rabix.engine.db.DAGNodeDB;
+import org.rabix.engine.db.ReadyJobGroupsDB;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
 import org.rabix.engine.processor.handler.HandlerFactory;
@@ -24,6 +25,7 @@ public class EngineModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(DAGNodeDB.class).in(Scopes.SINGLETON);
+    bind(ReadyJobGroupsDB.class).in(Scopes.SINGLETON);
     
     bind(JobRecordService.class).in(Scopes.SINGLETON);
     bind(VariableRecordService.class).in(Scopes.SINGLETON);
