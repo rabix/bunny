@@ -310,11 +310,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
         if (dockerContainerRequirement == null) {
           imageId = "frolvlad/alpine-python2";
         } else {
-          if (dockerContainerRequirement.getDockerImageId() != null) {
-            imageId = dockerContainerRequirement.getDockerImageId();
-          } else {
-            imageId = dockerContainerRequirement.getDockerPull();
-          }
+          imageId = dockerContainerRequirement.getDockerPull();
         }
         
         if (!bindings.canExecute(job)) {
