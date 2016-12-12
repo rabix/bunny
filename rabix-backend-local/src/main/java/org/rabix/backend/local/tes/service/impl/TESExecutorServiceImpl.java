@@ -48,6 +48,7 @@ import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.common.logging.VerboseLogger;
 import org.rabix.executor.engine.EngineStub;
 import org.rabix.executor.engine.EngineStubLocal;
 import org.rabix.executor.service.ExecutorService;
@@ -65,6 +66,8 @@ public class TESExecutorServiceImpl implements ExecutorService {
 
   private final static Logger logger = LoggerFactory.getLogger(TESExecutorServiceImpl.class);
 
+  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v2";
+  
   public final static String WORKING_DIR = "working_dir";
   public final static String STANDARD_OUT_LOG = "standard_out.log";
   public final static String STANDARD_ERROR_LOG = "standard_error.log";
@@ -113,7 +116,26 @@ public class TESExecutorServiceImpl implements ExecutorService {
               taskJobs.remove(tesJob.getTask().getTaskId());
               iterator.remove();
             } catch (InterruptedException | ExecutionException e) {
-              logger.error("Failed to retrieve TESJob", e); // TODO handle
+              logger.error("Failed to retrieve TESJob", e);
+              handleException(e);
+            }
+          }
+        }
+      }
+      
+      /**
+       * Basic exception handling  
+       */
+      private void handleException(Exception e) {
+        Throwable cause = e.getCause();
+        if (cause != null) {
+          if (cause.getClass().equals(TESServiceException.class)) {
+            Throwable subcause = cause.getCause();
+            if (subcause != null) {
+              if (subcause.getClass().equals(TESHTTPClientException.class)) {
+                VerboseLogger.log("Failed to communicate with TES service");
+                System.exit(-10);
+              }
             }
           }
         }
@@ -277,7 +299,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
         String standardOutLog = TESStorageService.DOCKER_PATH_PREFIX + "/" + STANDARD_OUT_LOG;
         String standardErrorLog = TESStorageService.DOCKER_PATH_PREFIX + "/" + STANDARD_ERROR_LOG;
         
-        dockerExecutors.add(new TESDockerExecutor("rabix/tes-command-line:v1", firstCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
+        dockerExecutors.add(new TESDockerExecutor(BUNNY_COMMAND_LINE_DOCKER_IMAGE, firstCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
         
         List<Requirement> combinedRequirements = new ArrayList<>();
         combinedRequirements.addAll(bindings.getHints(job));
@@ -327,7 +349,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
         thirdCommandLineParts.add("-m");
         thirdCommandLineParts.add("finalize");
         
-        dockerExecutors.add(new TESDockerExecutor("rabix/tes-command-line:v1", thirdCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
+        dockerExecutors.add(new TESDockerExecutor(BUNNY_COMMAND_LINE_DOCKER_IMAGE, thirdCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
         
         List<TESVolume> volumes = new ArrayList<>();
         volumes.add(new TESVolume("vol_work", 1, null, TESStorageService.DOCKER_PATH_PREFIX));

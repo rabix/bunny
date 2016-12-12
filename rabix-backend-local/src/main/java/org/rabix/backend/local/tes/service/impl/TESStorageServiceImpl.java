@@ -65,7 +65,7 @@ public class TESStorageServiceImpl implements TESStorageService {
         public FileValue transform(FileValue fileValue) {
           if (fileValue instanceof DirectoryValue) {
             DirectoryValue directoryValue = (DirectoryValue) fileValue;
-            String location = directoryValue.getLocation();
+            String location = directoryValue.getPath();
             if (!location.startsWith("/")) {
               location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();  
             }
@@ -93,7 +93,7 @@ public class TESStorageServiceImpl implements TESStorageService {
             return fileValue;
           }
           
-          String location = fileValue.getLocation();
+          String location = fileValue.getPath();
           if (!location.startsWith(DOCKER_PATH_PREFIX)) {
             if (!location.startsWith("/")) {
               location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();  
