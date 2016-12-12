@@ -1,5 +1,5 @@
 class: CommandLineTool
-stdout: echo.txt
+stdout: out.txt
 inputs:
   - id: "#writeString"
     type: string
