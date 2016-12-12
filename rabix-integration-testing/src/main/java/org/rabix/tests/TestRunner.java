@@ -39,7 +39,7 @@ public class TestRunner {
 			PropertiesConfiguration configuration = getConfig();
 			setupIntegrationCommandPrefix(configuration);
 			extractBuildFile();
-			copyTestbacklog();
+			copyTestsInWorkingDir();
 
 			for (String draft : drafts) {
 				draftName = draft;
@@ -178,7 +178,7 @@ public class TestRunner {
 		logger.info("Integration tests finished:  " + draftName);
 	}
 
-	private static void copyTestbacklog() throws RabixTestException {
+	private static void copyTestsInWorkingDir() throws RabixTestException {
 		String commandCopyTestbacklog = "cp -a " + System.getProperty("user.dir")
 				+ "/rabix-integration-testing/testbacklog .";
 		logger.info("Working dir user in copy method: " + workingdir);
