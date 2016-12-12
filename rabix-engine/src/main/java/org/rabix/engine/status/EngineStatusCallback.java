@@ -10,6 +10,8 @@ public interface EngineStatusCallback {
 
   void onJobsReady(Set<Job> jobs) throws EngineStatusCallbackException;
   
+  void onJobCompleted(Job job) throws EngineStatusCallbackException;
+  
   void onJobFailed(Job job) throws EngineStatusCallbackException;
 
   void onJobRootCompleted(Job rootJob) throws EngineStatusCallbackException;

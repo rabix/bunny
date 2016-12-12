@@ -325,6 +325,11 @@ public class JobServiceImpl implements JobService {
       logger.info("Root {} is partially completed.", rootJob.getId());
     }
 
+    @Override
+    public void onJobCompleted(Job job) throws EngineStatusCallbackException {
+      logger.info("Job {} is completed.", job.getId());
+    }
+
   }
   
 }

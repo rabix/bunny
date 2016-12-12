@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
@@ -82,6 +83,15 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     if (sourceJob.isCompleted()) {
       sourceJob.setState(JobState.COMPLETED);
       jobService.update(sourceJob);
+      
+      try {
+        Job completedJob = JobHelper.createJob(sourceJob, JobStatus.COMPLETED, jobService, variableService, linkService, contextService, dagNodeDB);
+        engineStatusCallback.onJobCompleted(completedJob);
+      } catch (BindingException e) {
+        logger.error("Failed to create Job " + sourceJob.getId(), e);
+      } catch (EngineStatusCallbackException e) {
+        logger.error("Failed to call onJobCompleted callback for Job " + sourceJob.getId(), e);
+      }
       
       if (sourceJob.isRoot()) {
         Map<String, Object> outputs = new HashMap<>();
@@ -172,6 +182,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           }
         }
       }
+      return;
     }
     
     if (sourceJob.isOutputPortReady(event.getPortId())) {
