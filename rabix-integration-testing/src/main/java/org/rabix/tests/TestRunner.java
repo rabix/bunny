@@ -35,7 +35,7 @@ public class TestRunner {
 
 	public static void main(String[] commandLineArguments) throws IOException {
 		try {
-			
+
 			PropertiesConfiguration configuration = getConfig();
 			setupIntegrationCommandPrefix(configuration);
 			extractBuildFile();
@@ -81,9 +81,9 @@ public class TestRunner {
 		boolean allTestsPassed = true;
 		boolean testPassed = false;
 		ArrayList<Object> failedTests = new ArrayList<Object>();
-		
+
 		logger.info("Integration tests started: " + draftName);
-		
+
 		PropertiesConfiguration configuration = getConfig();
 		setupIntegrationTestDirPath(configuration, draftName);
 
@@ -100,7 +100,6 @@ public class TestRunner {
 			logger.error("Problem with test directory: Test directory is empty.");
 		}
 
-		
 		logger.info("Test directory used: " + testDirPath);
 
 		for (File child : directoryListing) {
@@ -119,7 +118,7 @@ public class TestRunner {
 					Entry thisEntry = (Entry) entries.next();
 					Object testName = thisEntry.getKey();
 					Object test = thisEntry.getValue();
-					
+
 					logger.info("Running test: " + testName + " with given parameters:");
 
 					@SuppressWarnings({ "rawtypes", "unchecked" })
