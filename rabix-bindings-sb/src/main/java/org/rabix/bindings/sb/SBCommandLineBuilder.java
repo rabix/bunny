@@ -75,7 +75,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   @Override
   public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     CommandLine commandLine = buildCommandLineObject(job, workingDir, filePathMapper);
-    return commandLine != null ? commandLine.buildCommandLine() : null;
+    return commandLine != null ? commandLine.build() : null;
   }
   
   @Override
