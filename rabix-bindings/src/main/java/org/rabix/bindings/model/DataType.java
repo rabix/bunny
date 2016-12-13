@@ -10,7 +10,7 @@ import java.util.*;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataType {
   public enum Type {
-    UNION, ARRAY, RECORD, FILE(null, "File"), DIRECTORY, ANY, NULL(null, "null"),
+    UNION, ARRAY, RECORD, FILE(null, "File"), DIRECTORY, ENUM(null, "enum"), ANY, NULL(null, "null"),
     BOOLEAN(new Class<?>[] {Boolean.class}, "boolean"), STRING(new Class<?>[] {String.class}, "string"),
     INT(new Class<?>[] {Integer.class, Long.class}, "int"), FLOAT(new Class<?>[] {Float.class, Double.class}, "float");
 
@@ -81,6 +81,16 @@ public class DataType {
     this(type, subtypes, null);
   }
 
+  // Constructor for ENUM
+  public DataType(Type type, List<String> symbols, Boolean nullable) {
+    this.type = type;
+    this.symbols = symbols;
+    this.nullable = nullable;
+  }
+  public DataType(Type type, List<String> symbols) {
+    this(type, symbols, null);
+  }
+
   @JsonProperty("type")
   private final Type type;
 
@@ -96,6 +106,9 @@ public class DataType {
   @JsonProperty("nullable")
   private Boolean nullable;
 
+  @JsonProperty("symbols")
+  private List<String> symbols;
+
   public Boolean isNullable() {
     return nullable;
   }
@@ -110,6 +123,10 @@ public class DataType {
 
   public Set<DataType> getTypes() {
     return types;
+  }
+
+  public List<String> getSymbols() {
+    return symbols;
   }
 
   public Map<String, DataType> getSubtypes() {
@@ -130,6 +147,10 @@ public class DataType {
   @JsonIgnore
   public boolean isFile() {
     return isType(Type.FILE);
+  }
+  @JsonIgnore
+  public boolean isEnum() {
+    return isType(Type.ENUM);
   }
 
   public boolean isType(Type t) {
@@ -156,6 +177,10 @@ public class DataType {
 
     if (type == Type.ANY || value.getType() == Type.ANY)
       return true;
+
+    // Temporary solution for ENUM - allow any string to pass validation.
+    if (isEnum())
+      return value.isType(Type.STRING);
 
     if (isUnion()) {
       for (DataType dt : types) {
@@ -226,7 +251,8 @@ public class DataType {
   public String toString() {
     return "DataType{" + "type=" + type + (subtype != null ? ", subtype=" + subtype : "")
         + (types != null ? ", types=" + types : "") + (subtypes != null ? ", subtypes=" + subtypes : "") +
-        (nullable != null ? ", nullable=" + nullable : "") + '}';
+        (nullable != null ? ", nullable=" + nullable : "") +
+        (symbols != null ? ", symbols=" + symbols : "") + '}';
   }
 
   @Override public boolean equals(Object o) {
