@@ -60,7 +60,7 @@ public class SBBindings implements Bindings {
   }
   
   @Override
-  public boolean canExecute(Job job) throws BindingException {
+  public boolean isSelfExecutable(Job job) throws BindingException {
     return appProcessor.isSelfExecutable(job);
   }
   

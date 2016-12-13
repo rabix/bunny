@@ -46,17 +46,17 @@ public class TESInitializeService implements TESCommandLineService {
 
       stageFileRequirements(workingDir, combinedRequirements);
 
-      if (bindings.canExecute(job)) {
+      if (bindings.isSelfExecutable(job)) {
         VerboseLogger.log("Do not generate command.sh file. Tool is an expression tool.");
         return;
       }
       
-      String commandLine = bindings.buildCommandLine(job, workingDir, new FilePathMapper() {
+      String commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
         @Override
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
-      });
+      }).build();
 
       File resultFile = new File(workingDir.getParentFile(), "command.sh");
       FileUtils.writeStringToFile(resultFile, commandLine);

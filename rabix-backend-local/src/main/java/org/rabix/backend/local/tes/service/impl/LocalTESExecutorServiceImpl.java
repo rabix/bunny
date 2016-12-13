@@ -294,7 +294,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         
         List<TESTaskParameter> outputs = new ArrayList<>();
         outputs.add(new TESTaskParameter(WORKING_DIR, null, workingDirRelativePath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), FileType.Directory.name(), false));    
-        if (!bindings.canExecute(job)) {
+        if (!bindings.isSelfExecutable(job)) {
           outputs.add(new TESTaskParameter("command.sh", null, Paths.get(job.getId(), "command.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "command.sh").toString(), FileType.File.name(), false));
           outputs.add(new TESTaskParameter("environment.sh", null, Paths.get(job.getId(), "environment.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "environment.sh").toString(), FileType.File.name(), false));
         }
@@ -326,7 +326,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           imageId = dockerContainerRequirement.getDockerPull();
         }
         
-        if (!bindings.canExecute(job)) {
+        if (!bindings.isSelfExecutable(job)) {
           List<String> secondCommandLineParts = new ArrayList<>();
           secondCommandLineParts.add("/bin/sh");
           secondCommandLineParts.add("../command.sh");
