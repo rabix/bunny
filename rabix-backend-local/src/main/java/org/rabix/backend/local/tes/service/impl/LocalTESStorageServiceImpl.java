@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class TESStorageServiceImpl implements TESStorageService {
+public class LocalTESStorageServiceImpl implements TESStorageService {
 
-  private final static Logger logger = LoggerFactory.getLogger(TESStorageServiceImpl.class);
+  private final static Logger logger = LoggerFactory.getLogger(LocalTESStorageServiceImpl.class);
 
   private static String STORAGE_BASE_DIR = "baseDir";
   private static String STORAGE_TYPE_KEY = "storageType";
@@ -30,7 +30,7 @@ public class TESStorageServiceImpl implements TESStorageService {
   private TESHttpClient tesHttpClient;
   
   @Inject
-  public TESStorageServiceImpl(TESHttpClient tesHttpClient) {
+  public LocalTESStorageServiceImpl(TESHttpClient tesHttpClient) {
     this.tesHttpClient = tesHttpClient;
   }
 

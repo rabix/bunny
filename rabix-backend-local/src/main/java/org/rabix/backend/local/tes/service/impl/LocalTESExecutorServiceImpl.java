@@ -2,6 +2,7 @@ package org.rabix.backend.local.tes.service.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -61,9 +62,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class TESExecutorServiceImpl implements ExecutorService {
+public class LocalTESExecutorServiceImpl implements ExecutorService {
 
-  private final static Logger logger = LoggerFactory.getLogger(TESExecutorServiceImpl.class);
+  private final static Logger logger = LoggerFactory.getLogger(LocalTESExecutorServiceImpl.class);
 
   public final static String PYTHON_DEFAULT_DOCKER_IMAGE = "frolvlad/alpine-python2";
   public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v2";
@@ -74,7 +75,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
   
   public final static String DEFAULT_PROJECT = "default";
 
-  private static final String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
+  public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
   
   private TESHttpClient tesHttpClient;
   private TESStorageService storageService;
@@ -100,7 +101,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
   }
   
   @Inject
-  public TESExecutorServiceImpl(final TESHttpClient tesHttpClient, final TESStorageService storageService, final ExecutorStatusCallback statusCallback, final Configuration configuration) {
+  public LocalTESExecutorServiceImpl(final TESHttpClient tesHttpClient, final TESStorageService storageService, final ExecutorStatusCallback statusCallback, final Configuration configuration) {
     this.tesHttpClient = tesHttpClient;
     this.storageService = storageService;
     this.configuration = configuration;
@@ -168,10 +169,10 @@ public class TESExecutorServiceImpl implements ExecutorService {
         public FileValue transform(FileValue fileValue) throws BindingException {
           String location = fileValue.getPath();
           if (location.startsWith(TESStorageService.DOCKER_PATH_PREFIX)) {
-            location = finalJob.getId() + "/" + location.substring(TESStorageService.DOCKER_PATH_PREFIX.length() + 1);
+            location = Paths.get(finalJob.getId() , location.substring(TESStorageService.DOCKER_PATH_PREFIX.length() + 1)).toString();
           }
-          if (!location.startsWith("/")) {
-            location = baseStorageDir + "/" + location;
+          if (!location.startsWith(File.pathSeparator)) {
+            location = Paths.get(baseStorageDir, location).toString();
           }
           fileValue.setPath(location);
           fileValue.setLocation(location);
@@ -250,7 +251,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
   }
   
   private String getWorkingDirRelativePath(Job job) {
-    return job.getId() + "/" + WORKING_DIR;
+    return Paths.get(job.getId(), WORKING_DIR).toString();
   }
   
   public class TaskRunCallable implements Callable<TESJob> {
@@ -285,33 +286,33 @@ public class TESExecutorServiceImpl implements ExecutorService {
         File jobDir = createJobDir(sharedFileStorage, job);
 
         String workingDirRelativePath = getWorkingDirRelativePath(job);
-        inputs.add(new TESTaskParameter("working_dir", null, workingDirRelativePath, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", FileType.Directory.name(), false));
+        inputs.add(new TESTaskParameter(WORKING_DIR, null, workingDirRelativePath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), FileType.Directory.name(), false));
 
         File jobFile = new File(jobDir, "job.json");
         FileUtils.writeStringToFile(jobFile, JSONHelper.writeObject(job));
-        inputs.add(new TESTaskParameter("job.json", null, job.getId() + "/job.json", TESStorageService.DOCKER_PATH_PREFIX + "/job.json", FileType.File.name(), true));
+        inputs.add(new TESTaskParameter("job.json", null, Paths.get(job.getId(), "job.json").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "job.json").toString(), FileType.File.name(), true));
         
         List<TESTaskParameter> outputs = new ArrayList<>();
-        outputs.add(new TESTaskParameter("working_dir", null, workingDirRelativePath, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", FileType.Directory.name(), false));    
+        outputs.add(new TESTaskParameter(WORKING_DIR, null, workingDirRelativePath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), FileType.Directory.name(), false));    
         if (!bindings.canExecute(job)) {
-          outputs.add(new TESTaskParameter("command.sh", null, job.getId() + "/command.sh", TESStorageService.DOCKER_PATH_PREFIX + "/command.sh", FileType.File.name(), false));
-          outputs.add(new TESTaskParameter("environment.sh", null, job.getId() + "/environment.sh", TESStorageService.DOCKER_PATH_PREFIX + "/environment.sh", FileType.File.name(), false));
+          outputs.add(new TESTaskParameter("command.sh", null, Paths.get(job.getId(), "command.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "command.sh").toString(), FileType.File.name(), false));
+          outputs.add(new TESTaskParameter("environment.sh", null, Paths.get(job.getId(), "environment.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "environment.sh").toString(), FileType.File.name(), false));
         }
         
         List<String> firstCommandLineParts = new ArrayList<>();
         firstCommandLineParts.add("/usr/share/rabix-tes-command-line/rabix");
         firstCommandLineParts.add("-j");
-        firstCommandLineParts.add(TESStorageService.DOCKER_PATH_PREFIX + "/job.json");
+        firstCommandLineParts.add(Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "job.json").toString());
         firstCommandLineParts.add("-w");
-        firstCommandLineParts.add(TESStorageService.DOCKER_PATH_PREFIX + "/working_dir");
+        firstCommandLineParts.add(Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString());
         firstCommandLineParts.add("-m");
         firstCommandLineParts.add("initialize");
         
         List<TESDockerExecutor> dockerExecutors = new ArrayList<>();
-        String standardOutLog = TESStorageService.DOCKER_PATH_PREFIX + "/" + STANDARD_OUT_LOG;
-        String standardErrorLog = TESStorageService.DOCKER_PATH_PREFIX + "/" + STANDARD_ERROR_LOG;
+        String standardOutLog = Paths.get(TESStorageService.DOCKER_PATH_PREFIX, STANDARD_OUT_LOG).toString();
+        String standardErrorLog = Paths.get(TESStorageService.DOCKER_PATH_PREFIX, STANDARD_ERROR_LOG).toString();
         
-        dockerExecutors.add(new TESDockerExecutor(BUNNY_COMMAND_LINE_DOCKER_IMAGE, firstCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
+        dockerExecutors.add(new TESDockerExecutor(BUNNY_COMMAND_LINE_DOCKER_IMAGE, firstCommandLineParts, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), null, standardOutLog, standardErrorLog));
         
         List<Requirement> combinedRequirements = new ArrayList<>();
         combinedRequirements.addAll(bindings.getHints(job));
@@ -330,7 +331,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
           secondCommandLineParts.add("/bin/sh");
           secondCommandLineParts.add("../command.sh");
 
-          CommandLine commandLine = bindings.buildCommandLineObject(job, new File(TESStorageService.DOCKER_PATH_PREFIX + "/working_dir"), new FilePathMapper() {
+          CommandLine commandLine = bindings.buildCommandLineObject(job, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toFile(), new FilePathMapper() {
             @Override
             public String map(String path, Map<String, Object> config) throws FileMappingException {
               return path;
@@ -338,26 +339,26 @@ public class TESExecutorServiceImpl implements ExecutorService {
           });
           
           String commandLineToolStdout = commandLine.getStandardOut();
-          if (commandLineToolStdout != null && !commandLineToolStdout.startsWith("/")) {
-            commandLineToolStdout = TESStorageService.DOCKER_PATH_PREFIX + "/working_dir/" + commandLineToolStdout;
+          if (commandLineToolStdout != null && !commandLineToolStdout.startsWith(File.pathSeparator)) {
+            commandLineToolStdout = Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR, commandLineToolStdout).toString();
           }
 
           String commandLineToolErrLog = commandLine.getStandardError();
-          String commandLineStandardErrLog = TESStorageService.DOCKER_PATH_PREFIX + "/working_dir/" + (commandLineToolErrLog != null ? commandLineToolErrLog : DEFAULT_COMMAND_LINE_TOOL_ERR_LOG);
+          String commandLineStandardErrLog = Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR, commandLineToolErrLog != null ? commandLineToolErrLog : DEFAULT_COMMAND_LINE_TOOL_ERR_LOG).toString();
           
-          dockerExecutors.add(new TESDockerExecutor(imageId, secondCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, commandLineToolStdout, commandLineStandardErrLog));
+          dockerExecutors.add(new TESDockerExecutor(imageId, secondCommandLineParts, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), null, commandLineToolStdout, commandLineStandardErrLog));
         }
         
         List<String> thirdCommandLineParts = new ArrayList<>();
         thirdCommandLineParts.add("/usr/share/rabix-tes-command-line/rabix");
         thirdCommandLineParts.add("-j");
-        thirdCommandLineParts.add(TESStorageService.DOCKER_PATH_PREFIX + "/job.json");
+        thirdCommandLineParts.add(Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "job.json").toString());
         thirdCommandLineParts.add("-w");
-        thirdCommandLineParts.add(TESStorageService.DOCKER_PATH_PREFIX + "/working_dir");
+        thirdCommandLineParts.add(Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString());
         thirdCommandLineParts.add("-m");
         thirdCommandLineParts.add("finalize");
         
-        dockerExecutors.add(new TESDockerExecutor(BUNNY_COMMAND_LINE_DOCKER_IMAGE, thirdCommandLineParts, TESStorageService.DOCKER_PATH_PREFIX + "/working_dir", null, standardOutLog, standardErrorLog));
+        dockerExecutors.add(new TESDockerExecutor(BUNNY_COMMAND_LINE_DOCKER_IMAGE, thirdCommandLineParts, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), null, standardOutLog, standardErrorLog));
         
         List<TESVolume> volumes = new ArrayList<>();
         volumes.add(new TESVolume("vol_work", 1, null, TESStorageService.DOCKER_PATH_PREFIX));

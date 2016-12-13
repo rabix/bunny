@@ -23,8 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.local.download.LocalDownloadServiceImpl;
 import org.rabix.backend.local.tes.client.TESHttpClient;
 import org.rabix.backend.local.tes.service.TESStorageService;
-import org.rabix.backend.local.tes.service.impl.TESExecutorServiceImpl;
-import org.rabix.backend.local.tes.service.impl.TESStorageServiceImpl;
+import org.rabix.backend.local.tes.service.impl.LocalTESExecutorServiceImpl;
+import org.rabix.backend.local.tes.service.impl.LocalTESStorageServiceImpl;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -223,8 +223,8 @@ public class BackendCommandLine {
               
               if (isTesEnabled) {
                 bind(TESHttpClient.class).in(Scopes.SINGLETON);
-                bind(TESStorageService.class).to(TESStorageServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ExecutorService.class).to(TESExecutorServiceImpl.class).in(Scopes.SINGLETON);
+                bind(TESStorageService.class).to(LocalTESStorageServiceImpl.class).in(Scopes.SINGLETON);
+                bind(ExecutorService.class).to(LocalTESExecutorServiceImpl.class).in(Scopes.SINGLETON);
               } else {
                 install(new RetryInterceptorModule());
                 install(new FactoryModuleBuilder().implement(JobHandler.class, JobHandlerImpl.class).build(JobHandlerFactory.class));
