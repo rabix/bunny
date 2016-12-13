@@ -1,0 +1,11 @@
+test1:
+  app: testbacklog/cwl/grep.tool.yml
+  inputs: testbacklog/cwl/grep.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 4
+      checksum: sha1$6694b1596962757b0169b1ad8cec397cdaac4483
+      metadata: null

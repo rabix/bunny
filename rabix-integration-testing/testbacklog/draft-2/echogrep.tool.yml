@@ -1,0 +1,59 @@
+class: Workflow
+cwlVersion: "sbg:draft-2"
+inputs: []
+outputs:
+  - id: "#output"
+    type: File
+    source: "#greptool.output"
+steps:
+  - id: "#echotool"
+    inputs:
+      - id: "#echotool.echoString"
+        default: "orangeees"
+    outputs:
+      - id: "#echotool.output"
+    run:
+      class: CommandLineTool
+      baseCommand: echo
+      stdout: "out.txt"
+      inputs:
+        - id: "#echoString"
+          type: string
+          inputBinding:
+            position: 1
+            separate: true
+      outputs:
+        - id: "#output"
+          type: File
+          outputBinding:
+            glob: "out.txt"
+
+  - id: "#greptool"
+    inputs:
+      - id: "#greptool.grepString"
+        default: "orangeees"
+      - id: "#greptool.grepFile"
+        source: "#echotool.output"
+    outputs:
+      - id: "#greptool.output"
+    run:
+      class: CommandLineTool
+      baseCommand: grep
+      stdout: "out.txt"
+      inputs:
+        - id: "#grepString"
+          type: string
+          inputBinding:
+            position: 1
+            separate: true
+
+        - id: "#grepFile"
+          type: File
+          inputBinding:
+            position: 2
+            separate: true
+      outputs:
+        - id: "#output"
+          type: File
+          outputBinding:
+            glob: "out.txt"
