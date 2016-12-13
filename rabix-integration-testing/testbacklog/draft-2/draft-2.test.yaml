@@ -1,0 +1,33 @@
+test1:
+  app: testbacklog/draft-2/grep.tool.yml
+  inputs: testbacklog/draft-2/grep.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 4
+      checksum: sha1$6694b1596962757b0169b1ad8cec397cdaac4483
+      metadata: null
+test2:
+  app: testbacklog/draft-2/echo.tool.yml
+  inputs: testbacklog/draft-2/echo.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 8
+      checksum: sha1$acbbc66fd6d7d80418fbfbc81c78f096121150aa
+      metadata: null
+test3:
+  app: testbacklog/draft-2/echogrep.tool.yml
+  inputs: testbacklog/draft-2/echogrep.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 10
+      checksum: sha1$416e67232de2b79ef0283b3600605de92355d1c8
+      metadata: null
