@@ -1,9 +1,0 @@
-{
-    "inputfile": {
-        "path": "bplib.fa",
-        "metadata": {
-          "metakey1" : "metavalue1"
-        },
-        "class": "File"
-    }
-}
