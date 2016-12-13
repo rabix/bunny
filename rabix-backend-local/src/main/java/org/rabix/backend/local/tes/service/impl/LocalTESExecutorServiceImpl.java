@@ -200,6 +200,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     } catch (ExecutorStatusCallbackException e) {
       logger.warn("Failed to execute statusCallback: {}", e);
     }
+    engineStub.send(job);
   }
   
   @Override
