@@ -276,7 +276,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
         if (prefix == null) {
           return new Draft3CommandLinePart.Builder(position, isFile).part(joinedItems).build();
         }
-        if (StringUtils.isWhitespace(separator)) {
+        if (StringUtils.isWhitespace(separator) && separator.length() > 0) {
           return new Draft3CommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(joinedItems).build();
         } else {
           return new Draft3CommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix + separator + joinedItems).build();
