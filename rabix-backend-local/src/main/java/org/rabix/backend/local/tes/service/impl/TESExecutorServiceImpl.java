@@ -130,6 +130,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
             } catch (InterruptedException | ExecutionException e) {
               logger.error("Failed to retrieve TESJob", e);
               handleException(e);
+              iterator.remove();
             }
           }
         }
