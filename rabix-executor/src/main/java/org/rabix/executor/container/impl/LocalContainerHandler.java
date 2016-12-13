@@ -65,7 +65,7 @@ public class LocalContainerHandler implements ContainerHandler {
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
-      }).buildCommandLine();
+      }).build();
 
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();

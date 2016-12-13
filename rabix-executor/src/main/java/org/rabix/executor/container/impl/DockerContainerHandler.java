@@ -180,7 +180,7 @@ public class DockerContainerHandler implements ContainerHandler {
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
-      }).buildCommandLine();
+      }).build();
 
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success
