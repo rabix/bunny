@@ -1,19 +1,17 @@
 #!/bin/sh
 
-loggingConfiguration=$(dirname $0)/config/logback.xml
+basedir=$(dirname $(readlink -f "$0"))
+
+loggingConfiguration=$basedir/config/logback.xml
 for var in "$@"
 do
     if [ "$var" = "-v" -o "$var" = "-verbose" ]
     then
-        loggingConfiguration=$(dirname $0)/config/logback-verbose.xml
+        loggingConfiguration=$basedir/config/logback-verbose.xml
     fi
 done
 
-command="java -Dlogback.configurationFile=${loggingConfiguration} -jar $(dirname $0)/lib/rabix-backend-local.jar"
+command="java -Dlogback.configurationFile=${loggingConfiguration} -jar $basedir/lib/rabix-backend-local.jar"
 
-for i in "$@"
-do
-    command="$command $i"
-done
+$command "$@"
 
-eval $command
