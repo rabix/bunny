@@ -3,7 +3,6 @@ package org.rabix.backend.local.tes.service.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +65,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
 
   private final static Logger logger = LoggerFactory.getLogger(TESExecutorServiceImpl.class);
 
+  public final static String PYTHON_DEFAULT_DOCKER_IMAGE = "frolvlad/alpine-python2";
   public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v2";
   
   public final static String WORKING_DIR = "working_dir";
@@ -79,9 +79,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
   private TESHttpClient tesHttpClient;
   private TESStorageService storageService;
 
-  private final Set<Future<?>> taskFutures = new ConcurrentHashSet<>();
- 
-  private final Map<String, Job> taskJobs = new HashMap<>();
+  private final Set<PendingResult> pendingResults = new ConcurrentHashSet<>();
   
   private final ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(1);
   private final java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(10);
@@ -90,6 +88,16 @@ public class TESExecutorServiceImpl implements ExecutorService {
   
   private final Configuration configuration;
   private final ExecutorStatusCallback statusCallback;
+  
+  private class PendingResult {
+    private Job job;
+    private Future<TESJob> future;
+    
+    public PendingResult(Job job, Future<TESJob> future) {
+      this.job = job;
+      this.future = future;
+    }
+  }
   
   @Inject
   public TESExecutorServiceImpl(final TESHttpClient tesHttpClient, final TESStorageService storageService, final ExecutorStatusCallback statusCallback, final Configuration configuration) {
@@ -100,7 +108,6 @@ public class TESExecutorServiceImpl implements ExecutorService {
     
     this.scheduledTaskChecker.scheduleAtFixedRate(new Runnable() {
       @Override
-      @SuppressWarnings("unchecked")
       public void run() {
         String baseStorageDir = null;
         try {
@@ -109,18 +116,16 @@ public class TESExecutorServiceImpl implements ExecutorService {
           throw new RuntimeException("Failed to fetch base storage dir path", e);
         }
         
-        for (Iterator<Future<?>> iterator = taskFutures.iterator(); iterator.hasNext();){
-          Future<TESJob> tesJobFuture = (Future<TESJob>) iterator.next();
-          if (tesJobFuture.isDone()) {
+        for (Iterator<PendingResult> iterator = pendingResults.iterator(); iterator.hasNext();){
+          PendingResult pending = (PendingResult) iterator.next();
+          if (pending.future.isDone()) {
             try {
-              TESJob tesJob = tesJobFuture.get();
-
+              TESJob tesJob = pending.future.get();
               if (tesJob.getState().equals(TESState.Complete)) {
-                success(tesJob, baseStorageDir);
+                success(pending.job, tesJob, baseStorageDir);
               } else {
-                fail(tesJob);
+                fail(pending.job, tesJob);
               }
-              taskJobs.remove(tesJob.getTask().getTaskId());
               iterator.remove();
             } catch (InterruptedException | ExecutionException e) {
               logger.error("Failed to retrieve TESJob", e);
@@ -151,8 +156,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
   }
   
   @SuppressWarnings("unchecked")
-  private void success(final TESJob tesJob, final String baseStorageDir) {
-    Job job = taskJobs.get(tesJob.getTask().getTaskId());
+  private void success(Job job, TESJob tesJob, final String baseStorageDir) {
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
     Map<String, Object> result = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(tesJob.getLogs().get(tesJob.getLogs().size()-1).getStdout())); // TODO change log fetching
     
@@ -177,9 +181,8 @@ public class TESExecutorServiceImpl implements ExecutorService {
       logger.error("Failed to process output files", e);
       throw new RuntimeException("Failed to process output files", e);
     }
-    
     job = Job.cloneWithOutputs(job, result);
-    job = Job.cloneWithMessage(job, "Success!");
+    job = Job.cloneWithMessage(job, "Success");
     try {
       job = statusCallback.onJobCompleted(job);
     } catch (ExecutorStatusCallbackException e1) {
@@ -188,8 +191,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
     engineStub.send(job);
   }
   
-  private void fail(TESJob tesJob) {
-    Job job = taskJobs.get(tesJob.getTask().getTaskId());
+  private void fail(Job job, TESJob tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.FAILED);
     try {
       job = statusCallback.onJobFailed(job);
@@ -217,8 +219,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
 
   @Override
   public void start(Job job, String contextId) {
-    taskFutures.add(taskPoolExecutor.submit(new TaskRunCallable(job)));
-    taskJobs.put(job.getId(), job);
+    pendingResults.add(new PendingResult(job, taskPoolExecutor.submit(new TaskRunCallable(job))));
   }
 
   @SuppressWarnings("unchecked")
@@ -318,7 +319,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
         DockerContainerRequirement dockerContainerRequirement = getRequirement(combinedRequirements, DockerContainerRequirement.class);
         String imageId = null;
         if (dockerContainerRequirement == null) {
-          imageId = "frolvlad/alpine-python2";
+          imageId = PYTHON_DEFAULT_DOCKER_IMAGE;
         } else {
           imageId = dockerContainerRequirement.getDockerPull();
         }
@@ -364,11 +365,10 @@ public class TESExecutorServiceImpl implements ExecutorService {
         TESTask task = new TESTask(job.getName(), DEFAULT_PROJECT, null, inputs, outputs, resources, job.getId(), dockerExecutors);
         
         TESJobId tesJobId = tesHttpClient.runTask(task);
-        taskJobs.put(tesJobId.getValue(), job);
-        
+
         TESJob tesJob = null;
         do {
-          Thread.sleep(500L);
+          Thread.sleep(1000L);
           tesJob = tesHttpClient.getJob(tesJobId);
           if (tesJob == null) {
             throw new TESServiceException("TESJob is not created. JobId = " + job.getId());
