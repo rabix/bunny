@@ -349,7 +349,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         if (prefix == null) {
           return new CWLCommandLinePart.Builder(position, isFile).part(joinedItems).build();
         }
-        if (StringUtils.isWhitespace(separator)) {
+        if (separator.equals(" ")) {
           return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(joinedItems).build();
         } else {
           return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix + separator + joinedItems).build();
