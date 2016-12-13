@@ -66,22 +66,24 @@ public class TESStorageServiceImpl implements TESStorageService {
           if (fileValue instanceof DirectoryValue) {
             DirectoryValue directoryValue = (DirectoryValue) fileValue;
             String location = directoryValue.getPath();
-            if (!location.startsWith("/")) {
-              location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();  
-            }
-            if (!location.startsWith(DOCKER_PATH_PREFIX)) {
-              String mappedLocation = replacePrefix(location, localFileStorage.getBaseDir(), sharedFileStorage.getBaseDir());
-              
-              File destinationFile = new File(mappedLocation);
-              try {
-                FileUtils.copyDirectory(new File(location), destinationFile);
-              } catch (IOException e) {
-                throw new RuntimeException("Failed to copy file from " + location + " to " + destinationFile);
+            if (!location.startsWith(sharedFileStorage.getBaseDir())) {
+              if (!location.startsWith("/")) {
+                location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();  
               }
-              
-              fileValue.setPath(mappedLocation);
-              fileValue.setName(destinationFile.getName());
-              fileValue.setLocation(mappedLocation);
+              if (!location.startsWith(DOCKER_PATH_PREFIX)) {
+                String mappedLocation = replacePrefix(location, localFileStorage.getBaseDir(), sharedFileStorage.getBaseDir());
+                
+                File destinationFile = new File(mappedLocation);
+                try {
+                  FileUtils.copyDirectory(new File(location), destinationFile);
+                } catch (IOException e) {
+                  throw new RuntimeException("Failed to copy file from " + location + " to " + destinationFile);
+                }
+                
+                fileValue.setPath(mappedLocation);
+                fileValue.setName(destinationFile.getName());
+                fileValue.setLocation(mappedLocation);
+              }
             }
             
             List<FileValue> directoryListing = directoryValue.getListing();
@@ -94,23 +96,25 @@ public class TESStorageServiceImpl implements TESStorageService {
           }
           
           String location = fileValue.getPath();
-          if (!location.startsWith(DOCKER_PATH_PREFIX)) {
-            if (!location.startsWith("/")) {
-              location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();  
-            }
-            String mappedLocation = replacePrefix(location, localFileStorage.getBaseDir(), sharedFileStorage.getBaseDir());
-            
-            File destinationFile = new File(mappedLocation);
-            if (!destinationFile.exists()) {
-              try {
-                FileUtils.copyFile(new File(location), destinationFile);
-              } catch (IOException e) {
-                throw new RuntimeException("Failed to copy file from " + location + " to " + destinationFile);
+          if (!location.startsWith(sharedFileStorage.getBaseDir())) {
+            if (!location.startsWith(DOCKER_PATH_PREFIX)) {
+              if (!location.startsWith("/")) {
+                location = new File(localFileStorage.getBaseDir(), location).getAbsolutePath();  
               }
+              String mappedLocation = replacePrefix(location, localFileStorage.getBaseDir(), sharedFileStorage.getBaseDir());
+              
+              File destinationFile = new File(mappedLocation);
+              if (!destinationFile.exists()) {
+                try {
+                  FileUtils.copyFile(new File(location), destinationFile);
+                } catch (IOException e) {
+                  throw new RuntimeException("Failed to copy file from " + location + " to " + destinationFile);
+                }
+              }
+              fileValue.setName(destinationFile.getName());
+              fileValue.setPath(mappedLocation);
+              fileValue.setLocation(mappedLocation);
             }
-            fileValue.setName(destinationFile.getName());
-            fileValue.setPath(mappedLocation);
-            fileValue.setLocation(mappedLocation);
           }
           
           List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();

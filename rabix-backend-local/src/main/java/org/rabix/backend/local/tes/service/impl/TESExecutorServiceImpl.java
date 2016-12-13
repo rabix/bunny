@@ -102,6 +102,13 @@ public class TESExecutorServiceImpl implements ExecutorService {
       @Override
       @SuppressWarnings("unchecked")
       public void run() {
+        String baseStorageDir = null;
+        try {
+          baseStorageDir = storageService.getStorageInfo().getBaseDir();
+        } catch (TESServiceException e) {
+          throw new RuntimeException("Failed to fetch base storage dir path", e);
+        }
+        
         for (Iterator<Future<?>> iterator = taskFutures.iterator(); iterator.hasNext();){
           Future<TESJob> tesJobFuture = (Future<TESJob>) iterator.next();
           if (tesJobFuture.isDone()) {
@@ -109,7 +116,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
               TESJob tesJob = tesJobFuture.get();
 
               if (tesJob.getState().equals(TESState.Complete)) {
-                success(tesJob);
+                success(tesJob, baseStorageDir);
               } else {
                 fail(tesJob);
               }
@@ -144,7 +151,7 @@ public class TESExecutorServiceImpl implements ExecutorService {
   }
   
   @SuppressWarnings("unchecked")
-  private void success(TESJob tesJob) {
+  private void success(final TESJob tesJob, final String baseStorageDir) {
     Job job = taskJobs.get(tesJob.getTask().getTaskId());
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
     Map<String, Object> result = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(tesJob.getLogs().get(tesJob.getLogs().size()-1).getStdout())); // TODO change log fetching
@@ -154,9 +161,12 @@ public class TESExecutorServiceImpl implements ExecutorService {
       result = (Map<String, Object>) FileValueHelper.updateFileValues(result, new FileTransformer() {
         @Override
         public FileValue transform(FileValue fileValue) throws BindingException {
-          String location = fileValue.getLocation();
+          String location = fileValue.getPath();
           if (location.startsWith(TESStorageService.DOCKER_PATH_PREFIX)) {
             location = finalJob.getId() + "/" + location.substring(TESStorageService.DOCKER_PATH_PREFIX.length() + 1);
+          }
+          if (!location.startsWith("/")) {
+            location = baseStorageDir + "/" + location;
           }
           fileValue.setPath(location);
           fileValue.setLocation(location);
