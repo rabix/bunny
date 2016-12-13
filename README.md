@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/rabix/bunny.svg?branch=master)](https://travis-ci.org/rabix/bunny)
+
+
 # Overview
 
 Rabix is an open-source development kit for the [Common Workflow Language](http://www.commonwl.org/) from [Seven Bridges](https://sbgenomics.com). 
