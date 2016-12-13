@@ -39,6 +39,11 @@ public class InitEvent implements Event {
     return rootId;
   }
   
+  @Override
+  public String getEventGroupId() {
+    return null;
+  }
+  
   public Map<String, Object> getConfig() {
     return config;
   }

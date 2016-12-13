@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -17,6 +18,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.db.DAGNodeDB;
+import org.rabix.engine.db.ReadyJobGroupsDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
@@ -49,6 +51,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final ScatterHandler scatterHelper;
   private final EventProcessor eventProcessor;
   
+  private final ReadyJobGroupsDB jobGroupsDB;
+  
   private final JobRecordService jobRecordService;
   private final LinkRecordService linkRecordService;
   private final VariableRecordService variableRecordService;
@@ -57,11 +61,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private EngineStatusCallback engineStatusCallback;
 
   @Inject
-  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final ContextRecordService contextRecordService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper) {
+  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final ContextRecordService contextRecordService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper, final ReadyJobGroupsDB jobGroupsDB) {
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
-    
+    this.jobGroupsDB = jobGroupsDB;
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
     this.contextRecordService = contextRecordService;
@@ -80,18 +84,22 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     case READY:
       jobRecord.setState(JobState.READY);
       jobRecordService.update(jobRecord);
-      ready(jobRecord, event.getContextId());
+      ready(jobRecord, event);
       
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
-        Job job;
+        Job job = null;
         try {
-          job = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
-          try {
-            engineStatusCallback.onJobReady(job);
-          } catch (Exception e) {
-            logger.error("Failed to call onReady callback for Job " + job.getId(), e);
-            throw new EventHandlerException("Failed to call onReady callback for Job " + job.getId(), e);
-          } 
+          job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
+          if (!StringUtils.isEmpty(event.getEventGroupId())) {
+            jobGroupsDB.add(event.getEventGroupId(), job);
+          } else {
+            try {
+              engineStatusCallback.onJobReady(job);
+            } catch (Exception e) {
+              logger.error("Failed to call onReady callback for Job " + job.getId(), e);
+              throw new EventHandlerException("Failed to call onReady callback for Job " + job.getId(), e);
+            }
+          }
         } catch (BindingException e1) {
           logger.info("Failed to create job", e1);
         }
@@ -108,7 +116,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             // if root is CommandLineTool create OutputUpdateEvents
             for (PortCounter portCounter : jobRecord.getOutputCounters()) {
               Object output = event.getResult().get(portCounter.getPort());
-              eventProcessor.send(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1));
+              eventProcessor.send(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId()));
             }
           }
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
@@ -122,7 +130,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       } else {
         for (PortCounter portCounter : jobRecord.getOutputCounters()) {
           Object output = event.getResult().get(portCounter.getPort());
-          eventProcessor.addToQueue(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1));
+          eventProcessor.addToQueue(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId()));
         }
       }
       break;
@@ -140,10 +148,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       } else {
         try {
-          Job failedJob = JobHelper.createJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
+          Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
           engineStatusCallback.onJobFailed(failedJob);
           
-          eventProcessor.send(new JobStatusEvent("root", event.getContextId(), JobState.FAILED, null)); // TODO remove hardcoded 'root' value
+          eventProcessor.send(new JobStatusEvent("root", event.getContextId(), JobState.FAILED, null, event.getEventGroupId())); // TODO remove hardcoded 'root' value
         } catch (Exception e) {
           logger.error("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
           throw new EventHandlerException("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
@@ -159,14 +167,16 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     jobRecordService.delete(rootId);
     variableRecordService.delete(rootId);
     linkRecordService.delete(rootId);
+    jobGroupsDB.delete(rootId);
   }
   
   /**
    * Job is ready
    */
-  public void ready(JobRecord job, String contextId) throws EventHandlerException {
+  public void ready(JobRecord job, Event event) throws EventHandlerException {
     job.setState(JobState.READY);
     
+    String contextId = event.getContextId();
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), contextId);
 
     StringBuilder readyJobLogging = new StringBuilder(" --- JobRecord ").append(job.getId()).append(" is ready.").append(" Job isBlocking=").append(job.isBlocking()).append("\n");
@@ -193,10 +203,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         for (String readyNodeId : immediateReadyNodeIds) {
           JobRecord childJobRecord = jobRecordService.find(readyNodeId, contextId);
           if(childJobRecord.isContainer() || childJobRecord.isScatterWrapper()) {
-        	ready(childJobRecord, contextId);  
+        	ready(childJobRecord, event);  
           }
           else {
-            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), contextId, JobState.READY, null);
+            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), contextId, JobState.READY, null, event.getEventGroupId());
             eventProcessor.send(jobStatusEvent);
           }
         }
@@ -208,7 +218,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             VariableRecord stepVariable = new VariableRecord(contextId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, sourceVariable.getValue(), null);
             variableRecordService.create(stepVariable);
           }
-          Event updateEvent = new InputUpdateEvent(contextId, link.getDestinationJobId(), link.getDestinationJobPort(), sourceVariable.getValue(), link.getPosition());
+          Event updateEvent = new InputUpdateEvent(contextId, link.getDestinationJobId(), link.getDestinationJobPort(), sourceVariable.getValue(), link.getPosition(), event.getEventGroupId());
           eventProcessor.send(updateEvent);
         }
       }
@@ -217,7 +227,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       
       for (String port : job.getScatterPorts()) {
         VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, contextId);
-        scatterHelper.scatterPort(job, port, variable.getValue(), 1, null, false, false);
+        scatterHelper.scatterPort(job, event, port, variable.getValue(), 1, null, false, false);
       }
     }
   }

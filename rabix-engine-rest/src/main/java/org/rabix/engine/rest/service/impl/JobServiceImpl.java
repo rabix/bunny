@@ -95,7 +95,7 @@ public class JobServiceImpl implements JobService {
           return;
         }
         JobStateValidator.checkState(jobRecord, JobState.RUNNING);
-        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs());
+        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), null);
         eventProcessor.addToQueue(statusEvent);
         break;
       case FAILED:
@@ -103,7 +103,7 @@ public class JobServiceImpl implements JobService {
           return;
         }
         JobStateValidator.checkState(jobRecord, JobState.FAILED);
-        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null);
+        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, null);
         eventProcessor.addToQueue(statusEvent);
         break;
       case COMPLETED:
@@ -111,7 +111,7 @@ public class JobServiceImpl implements JobService {
           return;
         }
         JobStateValidator.checkState(jobRecord, JobState.COMPLETED);
-        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs());
+        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs(), job.getId());
         eventProcessor.addToQueue(statusEvent);
         break;
       default:
@@ -219,6 +219,13 @@ public class JobServiceImpl implements JobService {
       jobDB.update(job);
       backendDispatcher.send(job);
     }
+    
+    @Override
+    public void onJobsReady(Set<Job> jobs) throws EngineStatusCallbackException {
+      for (Job job : jobs) {
+        onJobReady(job);
+      }
+    }
 
     @Override
     public void onJobFailed(final Job failedJob) throws EngineStatusCallbackException {
@@ -317,6 +324,12 @@ public class JobServiceImpl implements JobService {
     public void onJobRootPartiallyCompleted(Job rootJob) throws EngineStatusCallbackException {
       logger.info("Root {} is partially completed.", rootJob.getId());
     }
+
+    @Override
+    public void onJobCompleted(Job job) throws EngineStatusCallbackException {
+      logger.info("Job {} is completed.", job.getId());
+    }
+
   }
   
 }

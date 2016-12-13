@@ -1,5 +1,7 @@
 package org.rabix.engine.status.impl;
 
+import java.util.Set;
+
 import org.rabix.bindings.model.Job;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
@@ -14,12 +16,22 @@ public class NoOpEngineStatusCallback implements EngineStatusCallback {
   public void onJobReady(Job job) throws EngineStatusCallbackException {
     logger.debug("onJobReady(jobId={})", job.getId());
   }
+  
+  @Override
+  public void onJobsReady(Set<Job> jobs) throws EngineStatusCallbackException {
+    logger.debug("onJobsReady()");
+  }
 
   @Override
   public void onJobFailed(Job job) throws EngineStatusCallbackException {
     logger.debug("onJobFailed(jobId={})", job.getId());
   }
 
+  @Override
+  public void onJobCompleted(Job job) throws EngineStatusCallbackException {
+    logger.debug("onJobCompleted(jobId={})", job.getId());
+  }
+  
   @Override
   public void onJobRootCompleted(Job rootJob) throws EngineStatusCallbackException {
     logger.debug("onJobRootCompleted(jobId={})", rootJob.getId());

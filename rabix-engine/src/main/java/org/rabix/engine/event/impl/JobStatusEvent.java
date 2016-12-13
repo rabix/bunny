@@ -13,11 +13,14 @@ public class JobStatusEvent implements Event {
   
   private final Map<String, Object> result;
   
-  public JobStatusEvent(String jobId, String contextId, JobState state, Map<String, Object> result) {
+  private final String eventGroupId;
+  
+  public JobStatusEvent(String jobId, String contextId, JobState state, Map<String, Object> result, String eventGroupId) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.state = state;
     this.result = result;
+    this.eventGroupId = eventGroupId;
   }
   
   public String getJobId() {
@@ -35,6 +38,11 @@ public class JobStatusEvent implements Event {
   
   public Map<String, Object> getResult() {
     return result;
+  }
+  
+  @Override
+  public String getEventGroupId() {
+    return eventGroupId;
   }
   
   @Override
