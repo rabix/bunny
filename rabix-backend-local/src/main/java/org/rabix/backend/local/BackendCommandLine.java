@@ -180,18 +180,23 @@ public class BackendCommandLine {
           System.exit(10);
         }
         
-        URL url = new URL(tesURL);
-        String host = url.getHost();
-        if (host != null) {
-          configOverrides.put("rabix.tes.client-host", host);
-        }
-        Integer port = url.getPort();
-        if (port != null) {
-          configOverrides.put("rabix.tes.client-port", port);
-        }
-        String scheme = url.getProtocol();
-        if (scheme != null) {
-          configOverrides.put("rabix.tes.client-scheme", scheme);
+        try {
+          URL url = new URL(tesURL);
+          String host = url.getHost();
+          if (host != null) {
+            configOverrides.put("rabix.tes.client-host", host);
+          }
+          Integer port = url.getPort();
+          if (port != null) {
+            configOverrides.put("rabix.tes.client-port", port);
+          }
+          String scheme = url.getProtocol();
+          if (scheme != null) {
+            configOverrides.put("rabix.tes.client-scheme", scheme);
+          }
+        } catch (Exception e) {
+          VerboseLogger.log("TES URL is invalid");
+          System.exit(-10);
         }
       }
       
