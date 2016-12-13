@@ -151,7 +151,7 @@ public class ConformanceCommandLineTest {
       String commandLineToolStr = URIHelper.createDataURI(ResourceHelper.readResource(this.getClass(), "cat3-tool.cwl"));
       
       Job job = new Job(commandLineToolStr, inputs);
-      String cmdLine = new Draft3Bindings().buildCommandLineObject(job, null, null).buildCommandLine();
+      String cmdLine = new Draft3Bindings().buildCommandLineObject(job, null, null).build();
       Assert.assertNotNull(cmdLine);
       Assert.assertEquals("cat hello.txt > output.txt", cmdLine);
     } catch (BindingException e) {
@@ -168,7 +168,7 @@ public class ConformanceCommandLineTest {
       String commandLineToolStr = URIHelper.createDataURI(ResourceHelper.readResource(this.getClass(), "cat4-tool.cwl"));
       
       Job job = new Job(commandLineToolStr, inputs);
-      String cmdLine = new Draft3Bindings().buildCommandLineObject(job, null, null).buildCommandLine();
+      String cmdLine = new Draft3Bindings().buildCommandLineObject(job, null, null).build();
       Assert.assertNotNull(cmdLine);
       Assert.assertEquals("cat < hello.txt > output.txt", cmdLine);
     } catch (BindingException e) {

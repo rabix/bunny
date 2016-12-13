@@ -21,7 +21,7 @@ public class CommandLine {
     this.standardError = standardError;
   }
 
-  public String buildCommandLine() {
+  public String build() {
     StringBuilder builder = new StringBuilder();
    
     for (String part : parts) {
