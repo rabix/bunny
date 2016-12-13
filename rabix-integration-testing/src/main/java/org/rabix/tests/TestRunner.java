@@ -67,7 +67,6 @@ public class TestRunner {
 
 		command(commandCopyCwlStarter, cwlTestWorkingdir);
 
-		logger.info("Runnig tests for build: " + draftName);
 		logger.info("Conformance working dir: " + cwlTestWorkingdir);
 		logger.info("Conformance starter script: " + starterScriptName);
 
@@ -101,7 +100,7 @@ public class TestRunner {
 			logger.error("Problem with test directory: Test directory is empty.");
 		}
 
-		logger.info("Running tests for draft: " + draftName);
+		
 		logger.info("Test directory used: " + testDirPath);
 
 		for (File child : directoryListing) {
