@@ -179,6 +179,9 @@ public class FileValueHelper {
         fileValue.setPath(fileMapper.map(fileValue.getPath(), config));
         fileValue.setLocation(fileMapper.map(fileValue.getPath(), config));
       }
+      if (fileValue.getDirname() != null) {
+        fileValue.setDirname(fileMapper.map(fileValue.getDirname(), config));
+      }
 
       List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();
       if (secondaryFiles != null) {
