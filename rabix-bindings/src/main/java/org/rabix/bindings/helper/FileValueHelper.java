@@ -121,7 +121,7 @@ public class FileValueHelper {
     // PRIMITIVE
     for (DataType.Type t : DataType.Type.values()) {
       if (t.primitiveTypes !=null && t.isPrimitive(value))
-        return new DataType(t);
+        return new DataType(t, value);
     }
 
     return new DataType(DataType.Type.ANY);
@@ -178,6 +178,9 @@ public class FileValueHelper {
       if (fileValue.getPath() != null) {
         fileValue.setPath(fileMapper.map(fileValue.getPath(), config));
         fileValue.setLocation(fileMapper.map(fileValue.getPath(), config));
+      }
+      if (fileValue.getDirname() != null) {
+        fileValue.setDirname(fileMapper.map(fileValue.getDirname(), config));
       }
 
       List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();
