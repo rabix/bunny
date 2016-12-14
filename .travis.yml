@@ -3,7 +3,7 @@ language: java
 
 os:
   - linux
-  - osx 
+#  - osx 
 
 services:
   - docker
