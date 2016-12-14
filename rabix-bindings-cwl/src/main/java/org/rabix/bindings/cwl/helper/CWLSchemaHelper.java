@@ -600,6 +600,11 @@ public class CWLSchemaHelper extends CWLBeanHelper {
       }
       return new DataType(DataType.Type.RECORD, subTypes, !isRequired(schema));
     }
+    // MAP
+    if (isTypeFromSchema(schema, "map")) {
+      DataType mapType = readDataType(getValue("values", schema));
+      return new DataType(DataType.Type.MAP, mapType, !isRequired(schema));
+    }
 
     // PRIMITIVES
     if (isTypeFromSchema(schema, "boolean")) {

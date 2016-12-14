@@ -10,7 +10,7 @@ import java.util.*;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataType {
   public enum Type {
-    UNION, ARRAY, RECORD, FILE(null, "File"), DIRECTORY, ENUM(null, "enum"), ANY, NULL(null, "null"),
+    UNION, ARRAY, RECORD, FILE(null, "File"), DIRECTORY, ENUM(null, "enum"), MAP(null, "map"), ANY, NULL(null, "null"),
     BOOLEAN(new Class<?>[] {Boolean.class}, "boolean"), STRING(new Class<?>[] {String.class}, "string"),
     INT(new Class<?>[] {Integer.class, Long.class}, "int"), FLOAT(new Class<?>[] {Float.class, Double.class}, "float");
 
@@ -61,7 +61,7 @@ public class DataType {
     this(type, types, null);
   }
 
-  // Constructor for ARRAY
+  // Constructor for ARRAY or MAP
   public DataType(Type type, DataType subtype, Boolean nullable) {
     this.type = type;
     this.subtype = subtype;
@@ -190,6 +190,20 @@ public class DataType {
 
     if (type == Type.ANY || value.getType() == Type.ANY)
       return true;
+
+    if (isType(Type.MAP)) {
+      if (value.isType(Type.MAP))
+          return subtype.isCompatible(value.getSubtype(), allowAny);
+      if (value.isType(Type.RECORD)) {
+        for (DataType dt: value.getSubtypes().values()) {
+          if (!subtype.isCompatible(dt))
+            return false;
+        }
+        return true;
+      }
+      return false;
+    }
+
 
     if (isEnum())
       return value.isType(Type.STRING) && value.getValue() != null && symbols.contains(value.getValue().toString());
