@@ -87,6 +87,12 @@ public class DataType {
     this.symbols = symbols;
     this.nullable = nullable;
   }
+
+  // Constructor for primitives
+  public DataType(Type type, Object value) {
+    this.type = type;
+    this.value = value;
+  }
   public DataType(Type type, List<String> symbols) {
     this(type, symbols, null);
   }
@@ -108,6 +114,13 @@ public class DataType {
 
   @JsonProperty("symbols")
   private List<String> symbols;
+
+  @JsonProperty("value")
+  private Object value;
+
+  public Object getValue() {
+    return value;
+  }
 
   public Boolean isNullable() {
     return nullable;
@@ -178,9 +191,8 @@ public class DataType {
     if (type == Type.ANY || value.getType() == Type.ANY)
       return true;
 
-    // Temporary solution for ENUM - allow any string to pass validation.
     if (isEnum())
-      return value.isType(Type.STRING);
+      return value.isType(Type.STRING) && value.getValue() != null && symbols.contains(value.getValue().toString());
 
     if (isUnion()) {
       for (DataType dt : types) {

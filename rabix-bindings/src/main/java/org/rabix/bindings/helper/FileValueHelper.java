@@ -121,7 +121,7 @@ public class FileValueHelper {
     // PRIMITIVE
     for (DataType.Type t : DataType.Type.values()) {
       if (t.primitiveTypes !=null && t.isPrimitive(value))
-        return new DataType(t);
+        return new DataType(t, value);
     }
 
     return new DataType(DataType.Type.ANY);
