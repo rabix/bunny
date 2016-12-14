@@ -181,6 +181,7 @@ public class TestRunner {
 
   private static void extractBuildFile() throws RabixTestException {
     File buildFileDir = new File(buildFileDirPath);
+    buildFileDirPath = buildFileDir.getAbsolutePath();
     File[] directoryListing = buildFileDir.listFiles();
 
     if (directoryListing != null) {
