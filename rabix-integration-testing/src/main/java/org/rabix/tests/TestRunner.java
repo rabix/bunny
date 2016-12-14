@@ -8,8 +8,13 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -208,6 +213,11 @@ public class TestRunner {
     command("ln -s " + workingdir + "/rabix .", buildFileDirPath);
 
     logger.info("Extracting build file: ended");
+  
+  }
+
+  private static void setupBuildFilePath(PropertiesConfiguration configuration) {
+    buildFilePath = getStringFromConfig(configuration, "buildFile");
   }
 
   private static void setupIntegrationCommandPrefix(PropertiesConfiguration configuration) {

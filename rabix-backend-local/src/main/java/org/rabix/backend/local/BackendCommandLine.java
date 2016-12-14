@@ -2,6 +2,7 @@ package org.rabix.backend.local;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,6 +21,10 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.local.download.LocalDownloadServiceImpl;
+import org.rabix.backend.local.tes.client.TESHttpClient;
+import org.rabix.backend.local.tes.service.TESStorageService;
+import org.rabix.backend.local.tes.service.impl.LocalTESExecutorServiceImpl;
+import org.rabix.backend.local.tes.service.impl.LocalTESStorageServiceImpl;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -36,6 +41,7 @@ import org.rabix.bindings.model.Resources;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.VerboseLogger;
+import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
@@ -52,13 +58,28 @@ import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
-import org.rabix.executor.ExecutorModule;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
+import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
+import org.rabix.executor.execution.JobHandlerCommandDispatcher;
+import org.rabix.executor.handler.JobHandler;
+import org.rabix.executor.handler.JobHandlerFactory;
+import org.rabix.executor.handler.impl.JobHandlerImpl;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.pathmapper.local.LocalPathMapper;
 import org.rabix.executor.service.ExecutorService;
+import org.rabix.executor.service.FilePermissionService;
+import org.rabix.executor.service.FileService;
+import org.rabix.executor.service.JobDataService;
+import org.rabix.executor.service.JobFitter;
+import org.rabix.executor.service.ResultCacheService;
+import org.rabix.executor.service.impl.ExecutorServiceImpl;
+import org.rabix.executor.service.impl.FilePermissionServiceImpl;
+import org.rabix.executor.service.impl.FileServiceImpl;
+import org.rabix.executor.service.impl.JobDataServiceImpl;
+import org.rabix.executor.service.impl.JobFitterImpl;
+import org.rabix.executor.service.impl.ResultCacheServiceImpl;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
@@ -73,6 +94,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
  * Local command line executor
@@ -151,14 +173,44 @@ public class BackendCommandLine {
         configOverrides.put("backend.docker.enabled", false);
       }
 
-      ConfigModule configModule = new ConfigModule(configDir, configOverrides);
+      String tesURL = commandLine.getOptionValue("tes-url");
+      if (tesURL != null) {
+        if (tesURL.trim().isEmpty()) {
+          VerboseLogger.log("TES URL is empty");
+          System.exit(10);
+        }
+        
+        try {
+          URL url = new URL(tesURL);
+          String host = url.getHost();
+          if (host != null) {
+            configOverrides.put("rabix.tes.client-host", host);
+          }
+          Integer port = url.getPort();
+          if (port != null) {
+            configOverrides.put("rabix.tes.client-port", port);
+          }
+          String scheme = url.getProtocol();
+          if (scheme != null) {
+            configOverrides.put("rabix.tes.client-scheme", scheme);
+          }
+        } catch (Exception e) {
+          VerboseLogger.log("TES URL is invalid");
+          System.exit(-10);
+        }
+      }
+      
+      final boolean isTesEnabled = tesURL != null;
+      
+      final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
           new SimpleFTPModule(), 
           new EngineModule(),
-          new ExecutorModule(configModule), 
           new AbstractModule() {
             @Override
             protected void configure() {
+              install(configModule);
+              
               bind(JobDB.class).in(Scopes.SINGLETON);
               bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
               bind(BackendDB.class).in(Scopes.SINGLETON);
@@ -173,6 +225,26 @@ public class BackendCommandLine {
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
               bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
               bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
+              
+              if (isTesEnabled) {
+                bind(TESHttpClient.class).in(Scopes.SINGLETON);
+                bind(TESStorageService.class).to(LocalTESStorageServiceImpl.class).in(Scopes.SINGLETON);
+                bind(ExecutorService.class).to(LocalTESExecutorServiceImpl.class).in(Scopes.SINGLETON);
+              } else {
+                install(new RetryInterceptorModule());
+                install(new FactoryModuleBuilder().implement(JobHandler.class, JobHandlerImpl.class).build(JobHandlerFactory.class));
+
+                bind(DockerClientLockDecorator.class).in(Scopes.SINGLETON);
+
+                bind(JobFitter.class).to(JobFitterImpl.class).in(Scopes.SINGLETON);
+                bind(JobDataService.class).to(JobDataServiceImpl.class).in(Scopes.SINGLETON);
+                bind(JobHandlerCommandDispatcher.class).in(Scopes.SINGLETON);
+
+                bind(FileService.class).to(FileServiceImpl.class).in(Scopes.SINGLETON);
+                bind(ExecutorService.class).to(ExecutorServiceImpl.class).in(Scopes.SINGLETON);
+                bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
+                bind(ResultCacheService.class).to(ResultCacheServiceImpl.class).in(Scopes.SINGLETON);
+              }
             }
           });
 
@@ -391,6 +463,7 @@ public class BackendCommandLine {
     options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");
     options.addOption(null, "outdir", true, "doesn't do anything");
     options.addOption(null, "quiet", false, "quiet");
+    options.addOption(null, "tes-url", true, "TES URL (experimental)");
     options.addOption("h", "help", false, "help");
     return options;
   }

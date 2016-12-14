@@ -60,7 +60,7 @@ public class Draft2Bindings implements Bindings {
   }
   
   @Override
-  public boolean canExecute(Job job) throws BindingException {
+  public boolean isSelfExecutable(Job job) throws BindingException {
     return appProcessor.isSelfExecutable(job);
   }
   
@@ -174,4 +174,5 @@ public class Draft2Bindings implements Bindings {
   public Object translateToCommon(Object nativeValue) throws BindingException {
     return Draft2ValueTranslator.translateToCommon(nativeValue);
   }
+
 }
