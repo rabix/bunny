@@ -108,7 +108,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       else {
         Job containerJob = null;
         try {
-          containerJob = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
+          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
         } catch (BindingException e) {
           logger.error("Failed to create containerJob " + containerJob, e);
           throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
