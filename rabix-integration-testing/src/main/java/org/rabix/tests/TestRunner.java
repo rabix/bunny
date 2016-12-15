@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestRunner {
+
   private static String testDirPath;
   private static String cmdPrefix;
   private static String buildFilePath;
@@ -180,6 +182,7 @@ public class TestRunner {
 
   private static void extractBuildFile() throws RabixTestException {
     File buildFileDir = new File(buildFileDirPath);
+    buildFileDirPath = buildFileDir.getAbsolutePath();
     File[] directoryListing = buildFileDir.listFiles();
 
     if (directoryListing != null) {
@@ -208,7 +211,11 @@ public class TestRunner {
       }
     }
 
+    logger.info("Create rabix symlink");
+    command("ln -s " + workingdir + "/rabix .", buildFileDirPath);
+
     logger.info("Extracting build file: ended");
+  
   }
 
   private static void setupBuildFilePath(PropertiesConfiguration configuration) {
@@ -314,6 +321,7 @@ public class TestRunner {
   }
 
   public static void command(final String cmdline, final String directory) throws RabixTestException {
+    logger.debug("Executing " + cmdline);
     try {
       Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
           .directory(new File(directory)).start();
@@ -342,10 +350,11 @@ public class TestRunner {
     try {
       File errorLog = new File(directory + "errorConf.log");
       ProcessBuilder processBuilder = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
-          .directory(new File(directory)).redirectError(errorLog);
+          .directory(new File(directory)).redirectError(errorLog).redirectOutput(Redirect.PIPE);
 
       Map<String, String> env = processBuilder.environment();
       env.put("LC_ALL", "C");
+      env.put("buildFileDirPath", buildFileDirPath);
 
       Process process = processBuilder.start();
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
