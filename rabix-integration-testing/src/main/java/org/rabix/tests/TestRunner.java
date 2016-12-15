@@ -203,7 +203,7 @@ public class TestRunner {
 
     File[] dirListingAfterUnpac = buildFileDir.listFiles();
     for (File child : dirListingAfterUnpac) {
-      if (child.isDirectory() && child.getName().endsWith("SNAPSHOT")) {
+      if (child.isDirectory() && child.getName().startsWith("rabix")) {
         workingdir = child.getAbsolutePath();
         logger.info("Working dir set: " + workingdir);
 
