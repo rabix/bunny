@@ -37,7 +37,7 @@ public class JobFitterImpl implements JobFitter {
       return true;
     }
     Bindings bindings = BindingsFactory.create(job);
-    if (bindings.canExecute(job)) {
+    if (bindings.isSelfExecutable(job)) {
       return true;
     }
     ResourceRequirement resourceRequirement = bindings.getResourceRequirement(job);
@@ -72,7 +72,7 @@ public class JobFitterImpl implements JobFitter {
     }
 
     Bindings bindings = BindingsFactory.create(job);
-    if (bindings.canExecute(job)) {
+    if (bindings.isSelfExecutable(job)) {
       return;
     }
     

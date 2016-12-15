@@ -1,19 +1,30 @@
 #!/bin/sh
 
-loggingConfiguration=$(dirname $0)/config/logback.xml
+realpath() {
+  OURPWD=$PWD
+  cd "$(dirname "$1")"
+  LINK=$(readlink "$(basename "$1")")
+  while [ "$LINK" ]; do
+    cd "$(dirname "$LINK")"
+    LINK=$(readlink "$(basename "$1")")
+  done
+  REALPATH="$PWD/$(basename "$1")"
+  cd "$OURPWD"
+  echo "$REALPATH"
+}
+
+basedir=$(dirname $(realpath "$0"))
+
+loggingConfiguration=$basedir/config/logback.xml
 for var in "$@"
 do
     if [ "$var" = "-v" -o "$var" = "-verbose" ]
     then
-        loggingConfiguration=$(dirname $0)/config/logback-verbose.xml
+        loggingConfiguration=$basedir/config/logback-verbose.xml
     fi
 done
 
-command="java -Dlogback.configurationFile=${loggingConfiguration} -jar $(dirname $0)/lib/rabix-backend-local.jar"
+command="java -Dlogback.configurationFile=${loggingConfiguration} -jar $basedir/lib/rabix-backend-local.jar"
 
-for i in "$@"
-do
-    command="$command $i"
-done
+$command "$@"
 
-eval $command

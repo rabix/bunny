@@ -1,0 +1,58 @@
+test1:
+  app: testbacklog/draft-sb/greptool.yml
+  inputs: testbacklog/draft-sb/greptool.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 6
+      checksum: sha1$4f0ecdd7b27486665fecea299e9a01b0a8245766
+      metadata: null
+test2:
+  app: testbacklog/draft-sb/inheritmeta.cwl.yaml
+  inputs: testbacklog/draft-sb/inheritmeta.inputs.yaml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 0
+      checksum: sha1$da39a3ee5e6b4b0d3255bfef95601890afd80709
+      metadata:
+        key0: value0
+        key1: value1
+        key2: value2
+test3:
+  app: testbacklog/draft-sb/echogrep.tool.yml
+  inputs: testbacklog/draft-sb/echogrep.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 10
+      checksum: sha1$416e67232de2b79ef0283b3600605de92355d1c8
+      metadata: null
+test4:
+  app: testbacklog/draft-sb/stageinputs.cwl.yml
+  inputs: testbacklog/draft-sb/stageinputs.inputs.yaml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 71
+      checksum: sha1$9beb2e850a179252904a466279d5dab0c9b8fa03
+      metadata: null
+test5:
+  app: testbacklog/draft-sb/echotool.yml
+  inputs: testbacklog/draft-sb/echotool.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 8
+      checksum: sha1$2065a80811f78fd782586a160e8f05115992c32b
+      metadata: null

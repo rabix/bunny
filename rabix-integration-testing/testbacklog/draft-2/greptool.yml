@@ -1,0 +1,22 @@
+class: CommandLineTool
+stdout: out.txt
+baseCommand: grep
+hints:
+  - class: DockerRequirement
+    dockerPull: ubuntu:latest
+inputs:
+    - id: "#stringPattern"
+      type: string
+      inputBinding:
+        separate: true
+        position: 1
+    - id: "#fileToGrep"
+      type: File
+      inputBinding:
+        separate: true
+        position: 2
+outputs:
+  - id: "#output"
+    type: File
+    outputBinding:
+      glob: out.txt

@@ -1,0 +1,10 @@
+{
+    "inputfile": {
+        "path": "bplib.fa",
+        "metadata": {
+          "key0" : "value0",
+          "key1": "overrideme"
+        },
+        "class": "File"
+    }
+}

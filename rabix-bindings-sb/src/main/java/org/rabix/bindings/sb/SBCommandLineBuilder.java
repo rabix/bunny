@@ -75,7 +75,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   @Override
   public String buildCommandLine(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     CommandLine commandLine = buildCommandLineObject(job, workingDir, filePathMapper);
-    return commandLine != null ? commandLine.buildCommandLine() : null;
+    return commandLine != null ? commandLine.build() : null;
   }
   
   @Override
@@ -292,7 +292,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
         if (prefix == null) {
           return new SBCommandLinePart.Builder(position, isFile).part(joinedItems).build();
         }
-        if (StringUtils.isWhitespace(separator)) {
+        if (StringUtils.isWhitespace(separator) && separator.length() > 0) {
           return new SBCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(joinedItems).build();
         } else {
           return new SBCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix + separator + joinedItems).build();

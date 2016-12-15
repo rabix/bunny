@@ -1,0 +1,16 @@
+class: CommandLineTool
+cwlVersion: "sbg:draft-2"
+baseCommand: [ls]
+stdout: "out.txt"
+inputs:
+  - id: "#infile"
+    sbg:stageInput: copy
+    type: ["null", "File"]
+  - id: "#infile_list"
+    sbg:stageInput: link
+    type: ["null", {"type": "array", "items": "File"}]
+outputs:
+  - id: "#output"
+    type: File
+    outputBinding:
+      glob: out.txt

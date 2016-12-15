@@ -41,7 +41,7 @@ public interface Bindings {
    * @return            true/false
    * @throws BindingException
    */
-  boolean canExecute(Job job) throws BindingException;
+  boolean isSelfExecutable(Job job) throws BindingException;
   
   /**
    * Returns true if {@link Job} has been successfully executed

@@ -26,6 +26,7 @@ public class SBSchemaHelper extends SBBeanHelper {
   public static final String KEY_INPUT_BINDING_ADAPTER = "inputBinding";
   public static final String KEY_OUTPUT_BINDING_ADAPTER = "outputBinding";
   public static final String KEY_SCHEMA_FIELDS = "fields";
+  public static final String KEY_SCHEMA_SYMBOLS = "symbols";
   
   public static final String KEY_JOB_TYPE = "class";
   
@@ -358,6 +359,20 @@ public class SBSchemaHelper extends SBBeanHelper {
       return new DataType(DataType.Type.ARRAY, arrayType, !isRequired(schema));
     }
 
+    // ENUM
+    if (isTypeFromSchema(schema, "enum")) {
+      Object symbols = getValue(KEY_SCHEMA_SYMBOLS, schema);
+      if (symbols == null || !(symbols instanceof List))
+        return new DataType(DataType.Type.ANY);
+      List<String> list = new ArrayList<>();
+      for (Object o: (List<?>) symbols) {
+        if (!(o instanceof String))
+          return new DataType(DataType.Type.ANY);
+        list.add((String) o);
+      }
+      return new DataType(DataType.Type.ENUM, list);
+    }
+
     // RECORD
     if (isRecordFromSchema(schema)) {
       Map<String, DataType> subTypes = new HashMap<>();
@@ -369,6 +384,11 @@ public class SBSchemaHelper extends SBBeanHelper {
         }
       }
       return new DataType(DataType.Type.RECORD, subTypes, !isRequired(schema));
+    }
+    // MAP
+    if (isTypeFromSchema(schema, "map")) {
+      DataType mapType = readDataType(getValue("values", schema));
+      return new DataType(DataType.Type.MAP, mapType, !isRequired(schema));
     }
 
 
