@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -349,7 +350,7 @@ public class TestRunner {
     try {
       File errorLog = new File(directory + "errorConf.log");
       ProcessBuilder processBuilder = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
-          .directory(new File(directory)).redirectError(errorLog).redirectOutput(errorLog);
+          .directory(new File(directory)).redirectError(errorLog).redirectOutput(Redirect.PIPE);
 
       Map<String, String> env = processBuilder.environment();
       env.put("LC_ALL", "C");
