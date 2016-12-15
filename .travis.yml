@@ -1,12 +1,16 @@
 sudo: required
 language: java
 
+os:
+  - linux
+#  - osx 
+
 services:
   - docker
 
 before_install:
-  - source /opt/jdk_switcher/jdk_switcher.sh
-  - jdk_switcher use oraclejdk8	
+ # - source /opt/jdk_switcher/jdk_switcher.sh
+ # - jdk_switcher use oraclejdk8	
   - cd rabix-integration-testing
   - rm -rf common-workflow-language
   - git clone https://github.com/common-workflow-language/common-workflow-language.git

@@ -17,7 +17,7 @@ Once the download has been completed, unpack the downloaded archive.
 The following command will automatically download and unpack the archive in the newly created `rabix` directory:
 
 ```sh
-mkdir rabix && cd rabix && wget https://github.com/rabix/bunny/releases/download/v0.6.6-alpha/rabix-0.6.6-alpha.tar.gz && tar -xvf rabix-0.6.6-alpha.tar.gz
+wget https://github.com/rabix/bunny/releases/download/v1.0.0-rc2/rabix-1.0.0-rc2.tar.gz && tar -xvf rabix-1.0.0-rc2.tar.gz
 ```
 
 
@@ -66,3 +66,4 @@ When specifying the value for an input ports whose type is file, relative paths 
 If the same input parameter is specified both in the `<inputs>` file and through the command line, the one specified in the command line will take precedence.
 
 If the input parameter you are specifying through the command line is a list of values, the parameter needs to be repeated as many times as there are values, e.g. `--fasta file1.fasta --fasta file2.fasta`.
+
