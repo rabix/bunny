@@ -122,6 +122,9 @@ public class BackendCommandLine {
       if (commandLine.hasOption("h")) {
         printUsageAndExit(posixOptions);
       }
+      if (commandLine.hasOption("version")) {
+        printVersionAndExit(posixOptions);
+      }
       if (!checkCommandLine(commandLine)) {
         printUsageAndExit(posixOptions);
       }
@@ -464,6 +467,7 @@ public class BackendCommandLine {
     options.addOption(null, "outdir", true, "doesn't do anything");
     options.addOption(null, "quiet", false, "quiet");
     options.addOption(null, "tes-url", true, "TES URL (experimental)");
+    options.addOption(null, "version", false, "Rabix version");
     options.addOption("h", "help", false, "help");
     return options;
   }
@@ -492,6 +496,11 @@ public class BackendCommandLine {
     h.setSyntaxPrefix("");
     h.printHelp("Inputs for selected tool are: ", options);
     System.exit(10);
+  }
+  
+  private static void printVersionAndExit(Options posixOptions) {
+    System.out.println("Rabix 1.0.0-RC2");
+    System.exit(0);
   }
 
   private static void printAppInvalidUsageAndExit(Options options) {
