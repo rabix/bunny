@@ -82,7 +82,13 @@ public class JobHelper {
   }
   
   public static Job createCompletedJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) throws BindingException {
-    Job completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
+    Job completedJob;
+    if(job.isContainer() || job.isScatterWrapper()) {
+      completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
+    }
+    else {
+      completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, true);
+    }
     List<VariableRecord> outputVariables = variableRecordService.find(job.getId(), LinkPortType.OUTPUT, job.getRootId());
     
     Map<String, Object> outputs = new HashMap<>();
