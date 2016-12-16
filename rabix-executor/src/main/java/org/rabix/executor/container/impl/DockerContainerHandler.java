@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,10 +23,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
+import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
@@ -166,10 +170,14 @@ public class DockerContainerHandler implements ContainerHandler {
       builder.image(dockerPull);
 
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
-      hostConfigBuilder.binds(physicalPath + ":" + physicalPath + ":" + DIRECTORY_MAP_MODE);
       if(dockerResource.getDockerOutputDirectory() != null) {
         volumes.add(dockerResource.getDockerOutputDirectory());
         hostConfigBuilder.binds(workingDir + ":" + dockerResource.getDockerOutputDirectory() + ":" + DIRECTORY_MAP_MODE);
+      }
+      volumes = normalizeVolumes(job, volumes);
+      
+      for (String volume : volumes) {
+        hostConfigBuilder.binds(volume + ":" + volume + ":" + DIRECTORY_MAP_MODE);
       }
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
@@ -235,7 +243,44 @@ public class DockerContainerHandler implements ContainerHandler {
       throw new ContainerException("Failed to start container.", e);
     }
   }
-
+  
+  private Set<String> normalizeVolumes(Job job, Set<String> volumes) throws BindingException {
+    Set<String> paths = new HashSet<>();
+    Set<FileValue> files = flattenFiles(FileValueHelper.getInputFiles(job));
+    
+    for (FileValue fileValue : files) {
+      paths.add(Paths.get(fileValue.getPath()).getParent().toAbsolutePath().toString());
+    }
+    paths.addAll(volumes);
+    
+    List<String> toRemove = new ArrayList<>();
+    for (String pathA : paths) {
+      for (String pathB : paths) {
+        if (pathA.equals(pathB)) {
+          continue;
+        }
+        if (pathB.startsWith(pathA)) {
+          toRemove.add(pathB);
+        }
+      }
+    }
+    for (String path : toRemove) {
+      paths.remove(path);
+    }
+    return paths;
+  }
+  
+  private Set<FileValue> flattenFiles(Set<FileValue> fileValues) {
+    Set<FileValue> flattenedFileValues = new HashSet<>();
+    for (FileValue fileValue : fileValues) {
+      flattenedFileValues.add(fileValue);
+      if (fileValue.getSecondaryFiles() != null) {
+        flattenedFileValues.addAll(fileValue.getSecondaryFiles());
+      }
+    }
+    return flattenedFileValues;
+  }
+  
   private List<String> transformEnvironmentVariables(Map<String, String> variables) {
     List<String> transformed = new ArrayList<>();
     for (Entry<String, String> variableEntry : variables.entrySet()) {
@@ -534,9 +579,7 @@ public class DockerContainerHandler implements ContainerHandler {
     private static String defaultCertPath() {
       return Paths.get(getProperty("user.home"), ".docker").toString();
     }
-
   }
-  
 
   @Override
   public void dumpCommandLine() throws ContainerException {
@@ -548,5 +591,5 @@ public class DockerContainerHandler implements ContainerHandler {
       throw new ContainerException(e);
     }
   }
-
+  
 }
