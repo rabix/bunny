@@ -35,6 +35,7 @@ import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
+import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.common.retry.Retry;
 import org.rabix.executor.config.DockerConfigation;
@@ -48,7 +49,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -170,15 +176,26 @@ public class DockerContainerHandler implements ContainerHandler {
       builder.image(dockerPull);
 
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
+      volumes = normalizeVolumes(job, volumes);
+      
+      Set<String> toBindSet = new HashSet<>();
+      toBindSet.addAll(volumes);
       if(dockerResource.getDockerOutputDirectory() != null) {
         volumes.add(dockerResource.getDockerOutputDirectory());
         hostConfigBuilder.binds(workingDir + ":" + dockerResource.getDockerOutputDirectory() + ":" + DIRECTORY_MAP_MODE);
+        toBindSet.remove(workingDir);
+        toBindSet.remove(dockerResource.getDockerOutputDirectory());
+        toBindSet.remove(physicalPath);
       }
-      volumes = normalizeVolumes(job, volumes);
       
-      for (String volume : volumes) {
-        hostConfigBuilder.binds(volume + ":" + volume + ":" + DIRECTORY_MAP_MODE);
-      }
+      toBindSet = FluentIterable.from(toBindSet).transform(new Function<String, String>() {
+        @Override
+        public String apply(String input) {
+          return input + ":" + input + ":" + DIRECTORY_MAP_MODE;
+        }
+      }).toSet();
+      hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
+      
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
 
