@@ -9,7 +9,8 @@ import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -87,7 +88,7 @@ public class CWLDocumentResolver {
 
   private static Map<String, String> namespaces = new HashMap<String, String>();
   private static Map<String, Map<String, CWLDocumentResolverReference>> referenceCache = new HashMap<>();
-  private static Map<String, LinkedHashSet<CWLDocumentResolverReplacement>> replacements = new HashMap<>();
+  private static Map<String, List<CWLDocumentResolverReplacement>> replacements = new HashMap<>();
 
   public static String resolve(String appUrl) throws BindingException {
     if (cache.containsKey(appUrl)) {
@@ -155,7 +156,7 @@ public class CWLDocumentResolver {
       if (!(cwlVersion.equals(ProtocolType.CWL.appVersion))) {
         clearReplacements(appUrl);
         clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not cwl:draft-3");
+        throw new BindingException("Document version is not v1.0");
       }
 
       clearReplacements(appUrl);
@@ -196,42 +197,49 @@ public class CWLDocumentResolver {
       addAppLocations(root, appUrl);
       cache.put(appUrl, JSONHelper.writeObject(root));
     }
+    System.out.println(cache.get(appUrl));
     return cache.get(appUrl);
   }
   
   private static void addAppLocations(JsonNode node, String previous) {
-    if (node.isContainerNode()) {
-      if (node.isObject()) {
-        JsonNode appLocationNode = ((ObjectNode) node).get(APP_LOCATION);
-        String base = null;
-        String location = null;
-        if (appLocationNode != null) {
-          base = ((ObjectNode) appLocationNode).get("base").asText();
-          location = ((ObjectNode) appLocationNode).get("location").asText();
-        }
-        ((ObjectNode) node).remove(APP_LOCATION);
-        
-        if (base == null) {
-          base = previous;
-        }
-        if (isApp(node)) {
-          if (location != null) {
-            if (location.isEmpty()) {
-              location = base;
-            } else {
-              location = new File(new File(previous).getParentFile(), location).getAbsolutePath();
+    try {
+      if (node.isContainerNode()) {
+        if (node.isObject()) {
+          JsonNode appLocationNode = ((ObjectNode) node).get(APP_LOCATION);
+          String base = null;
+          String location = null;
+          if (appLocationNode != null) {
+            if(appLocationNode.isTextual()) {
+              return;
             }
-            ((ObjectNode) node).put(APP_LOCATION, location);
+            base = ((ObjectNode) appLocationNode).get("base").asText();
+            location = ((ObjectNode) appLocationNode).get("location").asText();
+          }
+          ((ObjectNode) node).remove(APP_LOCATION);
+          
+          if (base == null) {
+            base = previous;
+          }
+          if (isApp(node)) {
+            if (location != null) {
+              if (location.isEmpty()) {
+                location = base;
+              } else {
+                location = new File(new File(previous).getParentFile(), location).getAbsolutePath();
+              }
+              ((ObjectNode) node).put(APP_LOCATION, location);
+            }
+          }
+          for (JsonNode subnode : node) {
+            addAppLocations(subnode, base);
+          }
+        } else {
+          for (JsonNode subnode : node) {
+            addAppLocations(subnode, previous);
           }
         }
-        for (JsonNode subnode : node) {
-          addAppLocations(subnode, base);
-        }
-      } else {
-        for (JsonNode subnode : node) {
-          addAppLocations(subnode, previous);
-        }
-      }
+      } 
+    } catch (Exception e) {
     }
   }
 
@@ -317,11 +325,9 @@ public class CWLDocumentResolver {
         getReferenceCache(appUrl).put(referencePath, reference);
       }
       if (appReference) {
-        getReplacements(appUrl)
-            .add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("run"), referencePath));
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("run"), referencePath));
       } else if (typeReference) {
-        getReplacements(appUrl)
-            .add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("type"), referencePath));
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("type"), referencePath));
       } else {
         getReplacements(appUrl).add(new CWLDocumentResolverReplacement(parentNode, currentNode, referencePath));
       }
@@ -531,10 +537,10 @@ public class CWLDocumentResolver {
     return currentNode;
   }
 
-  private synchronized static Set<CWLDocumentResolverReplacement> getReplacements(String url) {
-    LinkedHashSet<CWLDocumentResolverReplacement> replacementsPerUrl = replacements.get(url);
+  private synchronized static List<CWLDocumentResolverReplacement> getReplacements(String url) {
+    LinkedList<CWLDocumentResolverReplacement> replacementsPerUrl = (LinkedList<CWLDocumentResolverReplacement>) replacements.get(url);
     if (replacementsPerUrl == null) {
-      replacementsPerUrl = new LinkedHashSet<CWLDocumentResolverReplacement>();
+      replacementsPerUrl = new LinkedList<CWLDocumentResolverReplacement>();
       replacements.put(url, replacementsPerUrl);
     }
     return replacementsPerUrl;

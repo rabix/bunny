@@ -37,6 +37,8 @@ public class Draft2DocumentResolver {
   public static final String DOCUMENT_FRAGMENT_SEPARATOR = "#";
   
   private static final String DEFAULT_ENCODING = "UTF-8";
+  
+  public static final String CWL_VERSION_KEY = "cwlVersion";
 
   private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>(); 
   
@@ -66,6 +68,10 @@ public class Draft2DocumentResolver {
       }
       String input = JSONHelper.transformToJSON(URIHelper.getData(appUrlBase));
       root = JSONHelper.readJsonNode(input);
+      if (root.has(CWL_VERSION_KEY)) {
+        throw new BindingException("Document version is not draft-2");
+      }
+      
     } catch (Exception e) {
       throw new BindingException(e);
     }
