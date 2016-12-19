@@ -40,6 +40,7 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.common.json.BeanSerializer;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.common.service.download.DownloadService;
@@ -122,15 +123,23 @@ public class BackendCommandLine {
       if (commandLine.hasOption("h")) {
         printUsageAndExit(posixOptions);
       }
+      if (commandLine.hasOption("version")) {
+        printVersionAndExit(posixOptions);
+      }
       if (!checkCommandLine(commandLine)) {
         printUsageAndExit(posixOptions);
       }
-
+      
       String appPath = commandLine.getArgList().get(0);
       File appFile = new File(URIHelper.extractBase(appPath));
       if (!appFile.exists()) {
         VerboseLogger.log(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));
         printUsageAndExit(posixOptions);
+      }
+      
+      String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
+      if (commandLine.hasOption("resolve-app")) {
+        printResolvedAppAndExit(appUrl);
       }
 
       File inputsFile = null;
@@ -248,8 +257,6 @@ public class BackendCommandLine {
             }
           });
 
-      String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
-
       // Load app from JSON
       Bindings bindings = null;
       Application application = null;
@@ -268,7 +275,7 @@ public class BackendCommandLine {
         VerboseLogger.log("Error reading the app file");
         System.exit(10);
       }
-
+      
       Options appInputOptions = new Options();
 
       // Create appInputOptions for parser
@@ -443,6 +450,27 @@ public class BackendCommandLine {
   }
 
   /**
+   * Prints resolved application on standard out 
+   */
+  private static void printResolvedAppAndExit(String appUrl) {
+    Bindings bindings = null;
+    Application application = null;
+    try {
+      bindings = BindingsFactory.create(appUrl);
+      application = bindings.loadAppObject(appUrl);
+      
+      System.out.println(BeanSerializer.serializePartial(application));
+      System.exit(0);
+    } catch (NotImplementedException e) {
+      logger.error("Not implemented feature");
+      System.exit(33);
+    } catch (BindingException e) {
+      logger.error("Error: " + appUrl + " is not a valid app!");
+      System.exit(10);
+    }
+  }
+  
+  /**
    * Reads content from a file
    */
   static String readFile(String path, Charset encoding) throws IOException {
@@ -458,12 +486,14 @@ public class BackendCommandLine {
     options.addOption("v", "verbose", false, "verbose");
     options.addOption("b", "basedir", true, "execution directory");
     options.addOption("c", "configuration-dir", true, "configuration directory");
+    options.addOption("r", "resolve-app", false, "resolve application");
     options.addOption(null, "no-container", false, "don't use containers");
     options.addOption(null, "tmp-outdir-prefix", true, "doesn't do anything");
     options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");
     options.addOption(null, "outdir", true, "doesn't do anything");
     options.addOption(null, "quiet", false, "quiet");
     options.addOption(null, "tes-url", true, "TES URL (experimental)");
+    options.addOption(null, "version", false, "Rabix version");
     options.addOption("h", "help", false, "help");
     return options;
   }
@@ -492,6 +522,11 @@ public class BackendCommandLine {
     h.setSyntaxPrefix("");
     h.printHelp("Inputs for selected tool are: ", options);
     System.exit(10);
+  }
+  
+  private static void printVersionAndExit(Options posixOptions) {
+    System.out.println("Rabix 1.0.0-RC2");
+    System.exit(0);
   }
 
   private static void printAppInvalidUsageAndExit(Options options) {
