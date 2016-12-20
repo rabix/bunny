@@ -114,6 +114,7 @@ public class BackendCommandLine {
     CommandLine commandLine;
     List<String> commandLineArray = Arrays.asList(commandLineArguments);
     String[] inputArguments = null;
+    
     if (commandLineArray.contains("--")) {
       commandLineArguments = commandLineArray.subList(0, commandLineArray.indexOf("--")).toArray(new String[0]);
       inputArguments = commandLineArray.subList(commandLineArray.indexOf("--") + 1, commandLineArray.size()).toArray(new String[0]);
@@ -133,6 +134,19 @@ public class BackendCommandLine {
       if (!appFile.exists()) {
         VerboseLogger.log(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));
         printUsageAndExit(posixOptions);
+      }
+      
+      if(commandLine.hasOption("resolve-only")) {
+        String appUrl = null;
+        try {
+          appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
+          Bindings bindings = BindingsFactory.create(appUrl);
+          System.out.println(bindings.loadApp(appUrl));
+        } catch (NotImplementedException | BindingException e) {
+          logger.error("Could not resolve app " + appUrl);
+          System.exit(10);
+        }
+        System.exit(0);
       }
 
       File inputsFile = null;
@@ -461,6 +475,7 @@ public class BackendCommandLine {
     options.addOption("v", "verbose", false, "verbose");
     options.addOption("b", "basedir", true, "execution directory");
     options.addOption("c", "configuration-dir", true, "configuration directory");
+    options.addOption(null, "resolve-only", false, "print resolved document");
     options.addOption(null, "no-container", false, "don't use containers");
     options.addOption(null, "tmp-outdir-prefix", true, "doesn't do anything");
     options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");
