@@ -197,7 +197,6 @@ public class CWLDocumentResolver {
       addAppLocations(root, appUrl);
       cache.put(appUrl, JSONHelper.writeObject(root));
     }
-    System.out.println(cache.get(appUrl));
     return cache.get(appUrl);
   }
   
