@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -299,7 +300,8 @@ public class CWLProcessor implements ProtocolProcessor {
     }
     Object outputEval = CWLBindingHelper.getOutputEval(binding);
     if (outputEval != null) {
-      result = CWLBindingHelper.evaluateOutputEval(job, result, binding);
+      Object self = result != null ? result : Collections.emptyList();
+      result = CWLBindingHelper.evaluateOutputEval(job, self, binding);
       logger.info("OutputEval transformed result into {}.", result);
     }
     if (CWLSchemaHelper.isFileFromSchema(schema) || CWLSchemaHelper.isDirectoryFromSchema(schema)) {
