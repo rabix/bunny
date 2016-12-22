@@ -10,11 +10,8 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.common.logging.VerboseLogger;
-import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
-import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 
 public class IntermediaryFilesHelper {
