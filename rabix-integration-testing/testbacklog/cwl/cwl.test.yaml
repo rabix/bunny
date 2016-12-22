@@ -53,3 +53,14 @@ test5:
       size: 13
       checksum: sha1$4957fd917e837b6b87b3c634b8e04edef4854d59
       metadata: null
+test6:
+  app: testbacklog/cwl/param.tool.yml
+  inputs: testbacklog/cwl/param.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: hello.txt
+      size: 25
+      checksum: sha1$4957fd917e837b6b87b3c634b8e04edef4854d59
+      metadata: null
