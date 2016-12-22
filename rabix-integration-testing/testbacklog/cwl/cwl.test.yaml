@@ -9,3 +9,15 @@ test1:
       size: 4
       checksum: sha1$6694b1596962757b0169b1ad8cec397cdaac4483
       metadata: null
+test1:
+  app: testbacklog/cwl/imp.tool.yml
+  inputs: testbacklog/cwl/imp.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: out.txt
+      size: 120
+      checksum: sha1$6576b1055eb9882f3cd2cb47395b6e1fbb109c3a
+      metadata: null
+ 
