@@ -327,7 +327,7 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void onJobCompleted(Job job) throws EngineStatusCallbackException {
-      logger.info("Job {} is completed.", job.getId());
+      logger.info("Job {} for root {} is completed.", job.getName(), job.getRootId());
     }
 
   }

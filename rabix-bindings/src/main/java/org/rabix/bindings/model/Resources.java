@@ -1,10 +1,17 @@
 package org.rabix.bindings.model;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Resources {
+public class Resources implements Serializable {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -5151063525987285925L;
+  
   @JsonProperty("cpu")
   private final Long cpu;
   @JsonProperty("memMB")

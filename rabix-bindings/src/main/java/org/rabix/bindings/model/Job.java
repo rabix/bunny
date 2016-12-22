@@ -1,5 +1,6 @@
 package org.rabix.bindings.model;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -17,7 +18,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Job {
+public class Job implements Serializable {
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -202012646416646107L;
 
   public static enum JobStatus {
     PENDING,
