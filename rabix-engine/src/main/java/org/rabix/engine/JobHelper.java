@@ -82,10 +82,23 @@ public class JobHelper {
   }
   
   public static Job createCompletedJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) throws BindingException {
-    return createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
+    Job completedJob;
+    if(job.isContainer() || job.isScatterWrapper()) {
+      completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
+    }
+    else {
+      completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, true);
+    }
+    List<VariableRecord> outputVariables = variableRecordService.find(job.getId(), LinkPortType.OUTPUT, job.getRootId());
+    
+    Map<String, Object> outputs = new HashMap<>();
+    for (VariableRecord outputVariable : outputVariables) {
+      outputs.put(outputVariable.getPortId(), outputVariable.getValue());
+    }
+    return Job.cloneWithOutputs(completedJob, outputs);
   }
   
-  private static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, boolean processVariables) throws BindingException {
+  public static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, boolean processVariables) throws BindingException {
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId());
 
     boolean autoBoxingEnabled = false;   // get from configuration
@@ -137,6 +150,9 @@ public class JobHelper {
           inputsLogBuilder.append(" ---- Input ").append(inputVariable.getPortId()).append(", value ").append(value).append("\n");
           inputs.put(inputVariable.getPortId(), value);
         }
+      }
+      else {
+        inputs = preprocesedInputs;
       }
     } catch (BindingException e) {
       throw new BindingException("Failed to transform inputs", e);

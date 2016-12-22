@@ -41,7 +41,7 @@ public class Draft2EmbeddedApp extends Draft2JobApp {
         }
       });
     } catch (BindingException e1) {
-      // TOOD implement
+      throw new RuntimeException();
     }
   }
   
