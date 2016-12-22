@@ -24,8 +24,8 @@ public class IntermediaryFilesServiceLocalImpl extends IntermediaryFilesService 
   }
   
   @Override
-  public void handleUnusedFiles() {
-    Set<String> unusedFiles = getUnusedFiles();
+  public void handleUnusedFiles(String rootId) {
+    Set<String> unusedFiles = getUnusedFiles(rootId);
     for (String p : unusedFiles) {
       Path path = Paths.get(p);
       try {

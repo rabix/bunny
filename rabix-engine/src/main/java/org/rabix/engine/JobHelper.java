@@ -151,6 +151,9 @@ public class JobHelper {
           inputs.put(inputVariable.getPortId(), value);
         }
       }
+      else {
+        inputs = preprocesedInputs;
+      }
     } catch (BindingException e) {
       throw new BindingException("Failed to transform inputs", e);
     }

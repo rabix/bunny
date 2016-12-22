@@ -1,12 +1,14 @@
 package org.rabix.engine.rest.service;
 
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.rabix.bindings.model.FileValue;
 import org.rabix.common.logging.VerboseLogger;
@@ -18,27 +20,29 @@ public abstract class IntermediaryFilesService {
 
   private final static Logger logger = LoggerFactory.getLogger(IntermediaryFilesService.class);
   
-  private Map<String, Integer> files = new HashMap<String, Integer>();
+  private Map<String, Map<String, Integer>> files = new ConcurrentHashMap<String, Map<String, Integer>>();
   
-  public synchronized void addOrIncrement(FileValue file, Integer usage) {
+  public void addOrIncrement(String rootId, FileValue file, Integer usage) {
     Set<String> paths = new HashSet<String>();
     IntermediaryFilesHelper.extractPathsFromFileValue(paths, file);
-    
+    Map<String, Integer> filesForRootId = files.get(rootId) != null ? files.get(rootId): new HashMap<String, Integer>();
     for(String path: paths) {
-      if(files.containsKey(path)) {
-        logger.debug("Increment file usage counter: " + path + ": " + ((Integer) files.get(path) + usage));
-        files.put(path, files.get(path) + usage);
+      if(filesForRootId.containsKey(path)) {
+        logger.debug("Increment file usage counter: " + path + ": " + ((Integer) filesForRootId.get(path) + usage));
+        filesForRootId.put(path, filesForRootId.get(path) + usage);
       }
       else {
         logger.debug("Adding file usage counter: " + path + ": " + usage);
-        files.put(path, usage);
+        filesForRootId.put(path, usage);
       }
     }
+    files.put(rootId, filesForRootId);
   }
   
-  protected synchronized Set<String> getUnusedFiles() {
+  protected Set<String> getUnusedFiles(String rootId) {
+    Map<String, Integer> filesForRootId = files.get(rootId) != null ? files.get(rootId): Collections.<String, Integer>emptyMap();
     Set<String> unusedFiles = new HashSet<String>();
-    for(Iterator<Map.Entry<String, Integer>> it = files.entrySet().iterator(); it.hasNext();) {
+    for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
       Entry<String, Integer> entry = it.next();
       if(entry.getValue() == 0) {
         unusedFiles.add(entry.getKey());
@@ -49,20 +53,25 @@ public abstract class IntermediaryFilesService {
   }
 
   
-  public synchronized void decrementFiles(Set<String> checkFiles) {
+  public void decrementFiles(String rootId, Set<String> checkFiles) {
+    Map<String, Integer> filesForRootId = files.get(rootId);
     for(String path: checkFiles) {
       logger.debug("Decrementing file with path={}", path);
-      files.put(path, files.get(path) - 1);
+      filesForRootId.put(path, filesForRootId.get(path) - 1);
     }
   }
   
-  public abstract void handleUnusedFiles();
+  public abstract void handleUnusedFiles(String rootId);
   
   public void dumpFiles() {
     VerboseLogger.log("Intermediary files table");
-    for(Iterator<Map.Entry<String, Integer>> it = files.entrySet().iterator(); it.hasNext();) {
-      Entry<String, Integer> entry = it.next();
-      VerboseLogger.log(entry.getKey() + ": " + entry.getValue());
+    for(Iterator<Map.Entry<String, Map<String, Integer>>> it = files.entrySet().iterator(); it.hasNext();) {
+      Entry<String, Map<String, Integer>> tableEntry = it.next();
+      VerboseLogger.log("RootId: " + tableEntry.getKey());
+      for(Iterator<Map.Entry<String, Integer>> itt = tableEntry.getValue().entrySet().iterator(); itt.hasNext();) {
+        Entry<String, Integer> fileEntry = itt.next();
+        VerboseLogger.log(fileEntry.getKey() + ": " + fileEntry.getValue());
+      }
     }
   }
   
