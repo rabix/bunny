@@ -31,4 +31,25 @@ test3:
       size: 25
       checksum: sha1$4957fd917e837b6b87b3c634b8e04edef4854d59
       metadata: null
- 
+test4:
+  app: testbacklog/cwl/tar.tool.yml
+  inputs: testbacklog/cwl/tar.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: hello.txt
+      size: 25
+      checksum: sha1$4957fd917e837b6b87b3c634b8e04edef4854d59
+      metadata: null
+test5:
+  app: testbacklog/cwl/echo.tool.yml
+  inputs: testbacklog/cwl/echo.inputs.yml
+  runtime: 60
+  expected:
+    outfile:
+      class: File
+      name: hello.txt
+      size: 13
+      checksum: sha1$4957fd917e837b6b87b3c634b8e04edef4854d59
+      metadata: null
