@@ -11,8 +11,10 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.logging.VerboseLogger;
+import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 
 public class IntermediaryFilesHelper {
@@ -66,12 +68,25 @@ public class IntermediaryFilesHelper {
             IntermediaryFilesHelper.extractPathsFromFileValue(inputs, file);
           }
         }
-        VerboseLogger.log(job.getName());
         intermediaryFilesService.decrementFiles(job.getRootId(), inputs);
         intermediaryFilesService.handleUnusedFiles(job.getRootId());
       }
       intermediaryFilesService.dumpFiles();
     }
+  }
+  
+  public static void handleJobFailed(Job job, Job rootJob, IntermediaryFilesService intermediaryFilesService, boolean keepInputFiles) {
+    Set<String> rootInputs = new HashSet<String>();
+    if(keepInputFiles) {
+      for(Map.Entry<String, Object> entry : rootJob.getInputs().entrySet()) {
+      List<FileValue> files = FileValueHelper.getFilesFromValue(entry.getValue());
+        for (FileValue file : files) {
+          IntermediaryFilesHelper.extractPathsFromFileValue(rootInputs, file);
+        }
+      }
+    }
+    intermediaryFilesService.jobFailed(job.getRootId(), rootInputs);
+    intermediaryFilesService.handleUnusedFiles(job.getRootId());
   }
   
   public static void extractPathsFromFileValue(Set<String> paths, FileValue file) {

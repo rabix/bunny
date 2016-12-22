@@ -61,6 +61,17 @@ public abstract class IntermediaryFilesService {
     }
   }
   
+  public void jobFailed(String rootId, Set<String> rootInputs) {
+    Map<String, Integer> filesForRootId = files.get(rootId);
+    for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
+      Entry<String, Integer> fileEntry = it.next();
+      if(!rootInputs.contains(fileEntry.getKey())) {
+        logger.debug("Removing onJobFailed: " + fileEntry.getKey());
+        filesForRootId.put(fileEntry.getKey(), 0);
+      }
+    }
+  }
+  
   public abstract void handleUnusedFiles(String rootId);
   
   public void dumpFiles() {

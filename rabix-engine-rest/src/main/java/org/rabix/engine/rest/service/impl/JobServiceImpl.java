@@ -277,6 +277,9 @@ public class JobServiceImpl implements JobService {
           });
         }
       }
+      if(deleteIntermediaryFiles) {
+        IntermediaryFilesHelper.handleJobFailed(failedJob, jobDB.get(failedJob.getRootId()), intermediaryFilesService, keepInputFiles);
+      }
     }
     
     private boolean isFinished(JobStatus jobStatus) {
