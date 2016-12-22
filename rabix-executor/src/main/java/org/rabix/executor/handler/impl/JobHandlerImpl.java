@@ -22,6 +22,7 @@ import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleFileRequirement;
@@ -32,6 +33,7 @@ import org.rabix.bindings.model.requirement.LocalContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
+import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.download.DownloadService.DownloadResource;
 import org.rabix.common.service.download.DownloadServiceException;
@@ -52,9 +54,9 @@ import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
+import org.rabix.executor.service.CacheService;
 import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
-import org.rabix.executor.service.ResultCacheService;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.slf4j.Logger;
@@ -80,6 +82,7 @@ public class JobHandlerImpl implements JobHandler {
   private final FilePathMapper outputFileMapper;
 
   private Job job;
+  private Job cachedJob;
   private EngineStub<?, ?, ?> engineStub;
 
   private DockerConfigation dockerConfig;
@@ -90,7 +93,7 @@ public class JobHandlerImpl implements JobHandler {
   private final ExecutorStatusCallback statusCallback;
   
   private final FilePermissionService filePermissionService;
-  private final ResultCacheService cacheService;
+  private final CacheService cacheService;
 
   private boolean setPermissions;
 
@@ -100,7 +103,7 @@ public class JobHandlerImpl implements JobHandler {
       JobDataService jobDataService, Configuration configuration, StorageConfiguration storageConfig, 
       DockerConfigation dockerConfig, FileConfiguration fileConfiguration, 
       DockerClientLockDecorator dockerClient, ExecutorStatusCallback statusCallback,
-      ResultCacheService cacheService, FilePermissionService filePermissionService, 
+      CacheService cacheService, FilePermissionService filePermissionService, 
       UploadService uploadService, DownloadService downloadService,
       @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper) {
     this.job = job;
@@ -119,7 +122,6 @@ public class JobHandlerImpl implements JobHandler {
     this.outputFileMapper = outputFileMapper;
     this.enableHash = fileConfiguration.calculateFileChecksum();
     this.hashAlgorithm = fileConfiguration.checksumAlgorithm();
-
     this.setPermissions = configuration.getBoolean("executor.set_permissions", false);
   }
 
@@ -128,15 +130,18 @@ public class JobHandlerImpl implements JobHandler {
     logger.info("Start command line tool for id={}", job.getId());
     try {
       job = statusCallback.onJobReady(job);
+      cachedJob = (Job) CloneHelper.deepCopy(job);
       
-      Map<String, Object> results = cacheService.findResultsFromCachingDir(job);
-      if (results != null) {
-        containerHandler = new CompletedContainerHandler(job);
-        containerHandler.start();
-        return;
+      if (cacheService.isCacheEnabled()) {
+        Map<String, Object> results = cacheService.find(job);
+        if (results != null) {
+          containerHandler = new CompletedContainerHandler(job);
+          containerHandler.start();
+          return;
+        }        
       }
-      Bindings bindings = BindingsFactory.create(job);
       
+      Bindings bindings = BindingsFactory.create(job);
       statusCallback.onInputFilesDownloadStarted(job);
       try {
         downloadInputFiles(job, bindings);
@@ -229,7 +234,6 @@ public class JobHandlerImpl implements JobHandler {
         }
         return FileValue.cloneWithSecondaryFiles(fileValue, secondaryFiles);
       }
-
     });
   }
   
@@ -293,25 +297,16 @@ public class JobHandlerImpl implements JobHandler {
     try {
       Bindings bindings = BindingsFactory.create(job);
       
-      Map<String, Object> results = cacheService.findResultsFromCachingDir(job);
+      Map<String, Object> results = cacheService.find(job);
       if (results != null) {
         job = Job.cloneWithOutputs(job, results);
-        
-        Set<FileValue> fileValues = bindings.getProtocolFiles(workingDir);
-        Set<File> files = new HashSet<>();
-        for (FileValue fileValue : fileValues) {
-          File file = new File(fileValue.getPath());
-          if (file.exists()) {
-            files.add(new File(fileValue.getPath()));
-          }
-        }
-        uploadService.upload(files, storageConfiguration.getPhysicalExecutionBaseDir(), true, true, job.getConfig());
-        return FileValueHelper.mapOutputFilePaths(job, outputFileMapper);
+        job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
+        return job;
       }
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
       if (standardErrorLog == null) {
-        standardErrorLog = ERROR_LOG;
+        standardErrorLog = DEFAULT_ERROR_FILE;
       }
       containerHandler.dumpContainerLogs(new File(workingDir, standardErrorLog));
 
@@ -335,6 +330,10 @@ public class JobHandlerImpl implements JobHandler {
       jobData = JobData.cloneWithResult(jobData, job.getOutputs());
       jobDataService.save(jobData);
 
+      cachedJob = Job.cloneWithStatus(cachedJob, JobStatus.COMPLETED);
+      cachedJob = Job.cloneWithOutputs(cachedJob, job.getOutputs());
+      cacheService.cache(cachedJob);
+      
       logger.debug("Command line tool {} returned result {}.", job.getId(), job.getOutputs());
       return job;
     } catch (ContainerException e) {
@@ -365,7 +364,7 @@ public class JobHandlerImpl implements JobHandler {
       fileValues.add(new FileValue(null, cmdFilePath, null, null, null, null, cmdFile.getName()));
     }
     
-    File jobErrFile = new File(workingDir, ERROR_LOG);
+    File jobErrFile = new File(workingDir, DEFAULT_ERROR_FILE);
     if (jobErrFile.exists()) {
       String jobErrFilePath = jobErrFile.getAbsolutePath();
       fileValues.add(new FileValue(null, jobErrFilePath, null, null, null, null, jobErrFile.getName()));

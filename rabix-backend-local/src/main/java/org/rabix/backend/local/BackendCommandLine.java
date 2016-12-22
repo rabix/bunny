@@ -76,13 +76,13 @@ import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
-import org.rabix.executor.service.ResultCacheService;
+import org.rabix.executor.service.CacheService;
 import org.rabix.executor.service.impl.ExecutorServiceImpl;
 import org.rabix.executor.service.impl.FilePermissionServiceImpl;
 import org.rabix.executor.service.impl.FileServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
-import org.rabix.executor.service.impl.ResultCacheServiceImpl;
+import org.rabix.executor.service.impl.CacheServiceImpl;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
@@ -184,6 +184,16 @@ public class BackendCommandLine {
       if (commandLine.hasOption("no-container")) {
         configOverrides.put("backend.docker.enabled", false);
       }
+      if (commandLine.hasOption("cache-dir")) {
+        String cacheDir = commandLine.getOptionValue("cache-dir");
+        File cacheDirFile = new File(cacheDir);
+        if (!cacheDirFile.exists()) {
+          VerboseLogger.log(String.format("Cache directory %s does not exist.", cacheDirFile.getCanonicalPath()));
+          printUsageAndExit(posixOptions);
+        }
+        configOverrides.put("cache.is_enabled", true);
+        configOverrides.put("cache.directory", cacheDirFile.getCanonicalPath());
+      }
 
       String tesURL = commandLine.getOptionValue("tes-url");
       if (tesURL != null) {
@@ -256,7 +266,7 @@ public class BackendCommandLine {
                 bind(FileService.class).to(FileServiceImpl.class).in(Scopes.SINGLETON);
                 bind(ExecutorService.class).to(ExecutorServiceImpl.class).in(Scopes.SINGLETON);
                 bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ResultCacheService.class).to(ResultCacheServiceImpl.class).in(Scopes.SINGLETON);
+                bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
               }
             }
           });
@@ -491,6 +501,7 @@ public class BackendCommandLine {
     options.addOption("b", "basedir", true, "execution directory");
     options.addOption("c", "configuration-dir", true, "configuration directory");
     options.addOption("r", "resolve-app", false, "resolve application");
+    options.addOption(null, "cache-dir", true, "basic tool result caching (experimental)");
     options.addOption(null, "no-container", false, "don't use containers");
     options.addOption(null, "tmp-outdir-prefix", true, "doesn't do anything");
     options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");

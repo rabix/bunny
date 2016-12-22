@@ -347,7 +347,6 @@ public class JobServiceImpl implements JobService {
     @Override
     public void onJobCompleted(Job job) throws EngineStatusCallbackException {
       logger.info("Job {} is completed.", job.getName());
-      
       if (deleteIntermediaryFiles) {
          IntermediaryFilesHelper.handleJobCompleted(job, linkRecordService, intermediaryFilesService);
       }

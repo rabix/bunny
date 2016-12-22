@@ -401,6 +401,7 @@ public class TestRunner {
       throw new RabixTestException("null value for user.dir property");
     }
     File configDir = new File(userDir + "/rabix-integration-testing/config/test");
+    logger.info("Config directory set: " + configDir.toString());
     try {
       Iterator<File> iterator = FileUtils.iterateFiles(configDir, new String[] { "properties" }, true);
       while (iterator.hasNext()) {

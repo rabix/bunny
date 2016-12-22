@@ -9,17 +9,9 @@ services:
   - docker
 
 before_install:
- # - source /opt/jdk_switcher/jdk_switcher.sh
- # - jdk_switcher use oraclejdk8	
+  - sudo apt-get install libffi-dev libssl-dev
   - cd rabix-integration-testing
-  - rm -rf common-workflow-language
   - git clone https://github.com/common-workflow-language/common-workflow-language.git
-  - cd common-workflow-language
-  - git status
-  - git fetch
-  - git pull
-  - git status
-  - cd ..
   - cd ..
 
 script:
