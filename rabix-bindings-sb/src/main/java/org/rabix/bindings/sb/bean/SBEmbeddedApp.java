@@ -41,7 +41,7 @@ public class SBEmbeddedApp extends SBJobApp {
         }
       });
     } catch (BindingException e1) {
-      // TOOD implement
+      throw new RuntimeException();
     }
   }
   

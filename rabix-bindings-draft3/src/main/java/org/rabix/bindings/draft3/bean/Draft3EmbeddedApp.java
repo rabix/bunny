@@ -39,7 +39,7 @@ public class Draft3EmbeddedApp extends Draft3JobApp {
         }
       });
     } catch (BindingException e1) {
-      // TOOD implement
+      throw new RuntimeException();
     }
   }
 

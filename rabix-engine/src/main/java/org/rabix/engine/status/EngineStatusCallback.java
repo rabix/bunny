@@ -14,10 +14,12 @@ public interface EngineStatusCallback {
   
   void onJobFailed(Job job) throws EngineStatusCallbackException;
 
+  void onJobContainerReady(Job rootJob) throws EngineStatusCallbackException;
+  
   void onJobRootCompleted(Job rootJob) throws EngineStatusCallbackException;
   
   void onJobRootPartiallyCompleted(Job rootJob) throws EngineStatusCallbackException;
   
   void onJobRootFailed(Job rootJob) throws EngineStatusCallbackException;
-
+  
 }
