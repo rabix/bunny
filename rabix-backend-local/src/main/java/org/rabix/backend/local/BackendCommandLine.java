@@ -55,9 +55,11 @@ import org.rabix.engine.rest.backend.BackendDispatcher;
 import org.rabix.engine.rest.db.BackendDB;
 import org.rabix.engine.rest.db.JobDB;
 import org.rabix.engine.rest.service.BackendService;
+import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
+import org.rabix.engine.rest.service.impl.IntermediaryFilesServiceLocalImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
@@ -113,6 +115,7 @@ public class BackendCommandLine {
     CommandLine commandLine;
     List<String> commandLineArray = Arrays.asList(commandLineArguments);
     String[] inputArguments = null;
+    
     if (commandLineArray.contains("--")) {
       commandLineArguments = commandLineArray.subList(0, commandLineArray.indexOf("--")).toArray(new String[0]);
       inputArguments = commandLineArray.subList(commandLineArray.indexOf("--") + 1, commandLineArray.size()).toArray(new String[0]);
@@ -233,6 +236,7 @@ public class BackendCommandLine {
               bind(JobDB.class).in(Scopes.SINGLETON);
               bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
               bind(BackendDB.class).in(Scopes.SINGLETON);
+              bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceLocalImpl.class).in(Scopes.SINGLETON);
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendPopulator.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);

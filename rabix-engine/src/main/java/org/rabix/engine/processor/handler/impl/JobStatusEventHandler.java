@@ -84,6 +84,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     case READY:
       jobRecord.setState(JobState.READY);
       jobRecordService.update(jobRecord);
+      
       ready(jobRecord, event);
       
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
@@ -102,6 +103,21 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           }
         } catch (BindingException e1) {
           logger.info("Failed to create job", e1);
+        }
+      }
+      else {
+        Job containerJob = null;
+        try {
+          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
+        } catch (BindingException e) {
+          logger.error("Failed to create containerJob " + containerJob, e);
+          throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
+        }
+        try {
+          engineStatusCallback.onJobContainerReady(containerJob);
+        } catch (Exception e) {
+          logger.error("Failed to call onReady callback for Job " + containerJob, e);
+          throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
         }
       }
       break;

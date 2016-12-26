@@ -47,4 +47,9 @@ public class NoOpEngineStatusCallback implements EngineStatusCallback {
     logger.debug("onJobFailed(jobId={})", rootJob.getId());
   }
 
+  @Override
+  public void onJobContainerReady(Job rootJob) throws EngineStatusCallbackException {
+    logger.debug("onJobRootReady(jobId={})", rootJob.getId());
+  }
+
 }

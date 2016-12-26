@@ -40,7 +40,7 @@ public class CWLEmbeddedApp extends CWLJobApp {
         }
       });
     } catch (BindingException e1) {
-      // TOOD implement
+      throw new RuntimeException();
     }
   }
 

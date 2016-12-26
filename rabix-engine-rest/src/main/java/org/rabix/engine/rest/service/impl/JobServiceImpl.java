@@ -27,6 +27,8 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.rest.backend.BackendDispatcher;
 import org.rabix.engine.rest.db.JobDB;
+import org.rabix.engine.rest.helpers.IntermediaryFilesHelper;
+import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.service.ContextRecordService;
@@ -57,14 +59,17 @@ public class JobServiceImpl implements JobService {
   
   private final EventProcessor eventProcessor;
   private final BackendDispatcher backendDispatcher;
+  private final IntermediaryFilesService intermediaryFilesService;
   
   private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
   private boolean isLocalBackend;
   private boolean deleteFilesUponExecution;
+  private boolean deleteIntermediaryFiles;
+  private boolean keepInputFiles;
   
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, BackendDispatcher backendDispatcher, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB) {
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, BackendDispatcher backendDispatcher, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
     this.eventProcessor = eventProcessor;
@@ -74,8 +79,13 @@ public class JobServiceImpl implements JobService {
     this.variableRecordService = variableRecordService;
     this.contextRecordService = contextRecordService;
     this.backendDispatcher = backendDispatcher;
+    
+    this.intermediaryFilesService = intermediaryFilesService;
 
     deleteFilesUponExecution = configuration.getBoolean("rabix.delete_files_upon_execution", false);
+    
+    deleteIntermediaryFiles = configuration.getBoolean("rabix.delete_intermediary_files", false);
+    keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);
     
     isLocalBackend = configuration.getBoolean("local.backend", false);
     this.eventProcessor.start(null, new EngineStatusCallbackImpl(isLocalBackend, isLocalBackend));
@@ -267,6 +277,9 @@ public class JobServiceImpl implements JobService {
           });
         }
       }
+      if(deleteIntermediaryFiles) {
+        IntermediaryFilesHelper.handleJobFailed(failedJob, jobDB.get(failedJob.getRootId()), intermediaryFilesService, keepInputFiles);
+      }
     }
     
     private boolean isFinished(JobStatus jobStatus) {
@@ -277,6 +290,12 @@ public class JobServiceImpl implements JobService {
         return true;
       default:
         return false;
+      }
+    }
+    
+    public void onJobContainerReady(Job containerJob) {
+      if(deleteIntermediaryFiles) {
+        IntermediaryFilesHelper.handleContainerReady(containerJob, linkRecordService, intermediaryFilesService, keepInputFiles);
       }
     }
 
@@ -324,12 +343,14 @@ public class JobServiceImpl implements JobService {
     public void onJobRootPartiallyCompleted(Job rootJob) throws EngineStatusCallbackException {
       logger.info("Root {} is partially completed.", rootJob.getId());
     }
-
+    
     @Override
     public void onJobCompleted(Job job) throws EngineStatusCallbackException {
-      logger.info("Job {} for root {} is completed.", job.getName(), job.getRootId());
+      logger.info("Job {} is completed.", job.getName());
+      if (deleteIntermediaryFiles) {
+         IntermediaryFilesHelper.handleJobCompleted(job, linkRecordService, intermediaryFilesService);
+      }
     }
-
   }
-  
+
 }

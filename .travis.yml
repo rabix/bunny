@@ -9,6 +9,7 @@ services:
   - docker
 
 before_install:
+  - sudo apt-get install libffi-dev libssl-dev
   - cd rabix-integration-testing
   - git clone https://github.com/common-workflow-language/common-workflow-language.git
   - cd ..
