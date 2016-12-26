@@ -57,7 +57,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
 
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       if (job.getState().equals(JobState.PENDING)) {
-        job.incrementPortCounter(inputPort, LinkPortType.INPUT);
+        jobRecordService.incrementPortCounter(job, inputPort, LinkPortType.INPUT);
       }
       Object defaultValue = node.getDefaults().get(inputPort.getId());
       VariableRecord variable = new VariableRecord(event.getContextId(), event.getNode().getId(), inputPort.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(inputPort.getId(), inputPort.getType()));
@@ -65,7 +65,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     }
 
     for (DAGLinkPort outputPort : node.getOutputPorts()) {
-      job.incrementPortCounter(outputPort, LinkPortType.OUTPUT);
+      jobRecordService.incrementPortCounter(job, outputPort, LinkPortType.OUTPUT);
 
       VariableRecord variable = new VariableRecord(event.getContextId(), event.getNode().getId(), outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()));
       variableRecordService.create(variable);

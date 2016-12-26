@@ -4,18 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.rabix.bindings.model.LinkMerge;
-import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.service.JobRecordService.JobState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JobRecord {
 
-  private final static Logger logger = LoggerFactory.getLogger(JobRecord.class);
-  
   private final String id;
   private final String externalId;
   private final String rootId;
@@ -55,74 +50,14 @@ public class JobRecord {
     return externalId.equals(rootId);
   }
   
-  public String getId() {
-    return id;
-  }
-  
-  public String getExternalId() {
-    return externalId;
-  }
-
-  public String getRootId() {
-    return rootId;
-  }
-  
-  public String getParentId() {
-    return parentId;
-  }
-  
-  public boolean isMaster() {
-    return master;
-  }
-  
   public boolean isBlocking() {
     return blocking;
   }
-  
+
   public void setBlocking(boolean blocking) {
     this.blocking = blocking;
   }
-  
-  public void increaseInputPortIncoming(String port) {
-    for (PortCounter portCounter : inputCounters) {
-      if (portCounter.port.equals(port)) {
-        portCounter.incoming++;
-        return;
-      }
-    }
-  }
-  
-  public void increaseOutputPortIncoming(String port) {
-    for (PortCounter portCounter : outputCounters) {
-      if (portCounter.port.equals(port)) {
-        portCounter.incoming++;
-        return;
-      }
-    }
-  }
-  
-  public int getInputPortIncoming(String port) {
-    for (PortCounter pc : inputCounters) {
-      if (pc.port.equals(port)) {
-        return pc.incoming;
-      }
-    }
-    return 0;
-  }
-  
-  public boolean isInputPortBlocking(DAGNode node, String port) {
-    return getInputPortIncoming(port) > 1 && LinkMerge.isBlocking(node.getLinkMerge(port, LinkPortType.INPUT));
-  }
-  
-  public int getOutputPortIncoming(String port) {
-    for (PortCounter pc : outputCounters) {
-      if (pc.port.equals(port)) {
-        return pc.incoming;
-      }
-    }
-    return 0;
-  }
-  
+
   public JobState getState() {
     return state;
   }
@@ -142,35 +77,9 @@ public class JobRecord {
   public List<PortCounter> getOutputCounters() {
     return outputCounters;
   }
-  
-  public PortCounter getInputCounter(String port) {
-    for (PortCounter portCounter : inputCounters) {
-      if (portCounter.port.equals(port)) {
-        return portCounter;
-      }
-    }
-    return null;
-  }
-  
-  public PortCounter getOutputCounter(String port) {
-    for (PortCounter portCounter : outputCounters) {
-      if (portCounter.port.equals(port)) {
-        return portCounter;
-      }
-    }
-    return null;
-  }
 
   public void setOutputCounters(List<PortCounter> outputCounters) {
     this.outputCounters = outputCounters;
-  }
-
-  public boolean isContainer() {
-    return isContainer;
-  }
-
-  public void setContainer(boolean isContainer) {
-    this.isContainer = isContainer;
   }
 
   public boolean isScattered() {
@@ -181,6 +90,14 @@ public class JobRecord {
     this.isScattered = isScattered;
   }
 
+  public boolean isContainer() {
+    return isContainer;
+  }
+
+  public void setContainer(boolean isContainer) {
+    this.isContainer = isContainer;
+  }
+
   public boolean isScatterWrapper() {
     return isScatterWrapper;
   }
@@ -189,12 +106,48 @@ public class JobRecord {
     this.isScatterWrapper = isScatterWrapper;
   }
 
+  public int getNumberOfGlobalInputs() {
+    return numberOfGlobalInputs;
+  }
+
+  public void setNumberOfGlobalInputs(int numberOfGlobalInputs) {
+    this.numberOfGlobalInputs = numberOfGlobalInputs;
+  }
+
+  public int getNumberOfGlobalOutputs() {
+    return numberOfGlobalOutputs;
+  }
+
+  public void setNumberOfGlobalOutputs(int numberOfGlobalOutputs) {
+    this.numberOfGlobalOutputs = numberOfGlobalOutputs;
+  }
+
   public ScatterStrategy getScatterStrategy() {
     return scatterStrategy;
   }
 
   public void setScatterStrategy(ScatterStrategy scatterStrategy) {
     this.scatterStrategy = scatterStrategy;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public String getExternalId() {
+    return externalId;
+  }
+
+  public String getRootId() {
+    return rootId;
+  }
+
+  public String getParentId() {
+    return parentId;
+  }
+
+  public boolean isMaster() {
+    return master;
   }
 
   public boolean isInputPortReady(String port) {
@@ -218,137 +171,43 @@ public class JobRecord {
     }
     return false;
   }
-
-  public void incrementPortCounter(DAGLinkPort port, LinkPortType type) {
-    List<PortCounter> counters = type.equals(LinkPortType.INPUT) ? inputCounters : outputCounters;
-
-    for (PortCounter pc : counters) {
-      if (pc.port.equals(port.getId())) {
-        if (type.equals(LinkPortType.INPUT)) {
-          pc.counter = pc.counter + 1;
-        } else {
-          if (pc.updatedAsSourceCounter > 0) {
-            pc.updatedAsSourceCounter = pc.updatedAsSourceCounter--;
-            return;
-          } else { 
-            if (type.equals(LinkPortType.OUTPUT)) {
-              if (isScatterWrapper) {
-                pc.counter = pc.counter + 1;
-              } else if (isContainer && pc.incoming > 1) {
-                pc.counter = pc.counter + 1;
-              }
-            }
-          }
-        }
-        return;
+  
+  public PortCounter getInputCounter(String port) {
+    for (PortCounter portCounter : inputCounters) {
+      if (portCounter.port.equals(port)) {
+        return portCounter;
       }
     }
-    PortCounter portCounter = new PortCounter(port.getId(), 1, port.isScatter());
-    counters.add(portCounter);
+    return null;
   }
   
-  public void decrementPortCounter(String portId, LinkPortType type) {
-    logger.info("JobRecord {}. Decrementing port {}.", id, portId);
-    List<PortCounter> counters = type.equals(LinkPortType.INPUT) ? inputCounters : outputCounters;
-    for (PortCounter portCounter : counters) {
-      if (portCounter.port.equals(portId)) {
-        portCounter.counter = portCounter.counter - 1;
+  public PortCounter getOutputCounter(String port) {
+    for (PortCounter portCounter : outputCounters) {
+      if (portCounter.port.equals(port)) {
+        return portCounter;
       }
     }
-    printInputPortCounters();
-    printOutputPortCounters();
+    return null;
   }
-  
-  private void printInputPortCounters() {
-    StringBuilder builder = new StringBuilder("\nJob ").append(id).append(" input counters:\n");
-    for (PortCounter inputPortCounter : inputCounters) {
-      builder.append(" -- Input port ").append(inputPortCounter.getPort()).append(", counter=").append(inputPortCounter.counter).append("\n");
-    }
-    logger.debug(builder.toString());
-  }
-  
-  private void printOutputPortCounters() {
-    StringBuilder builder = new StringBuilder("\nJob ").append(id).append(" output counters:\n");
-    for (PortCounter inputPortCounter : outputCounters) {
-      builder.append(" -- Output port ").append(inputPortCounter.getPort()).append(", counter=").append(inputPortCounter.counter).append("\n");
-    }
-    logger.debug(builder.toString());
-  }
-  
-  public void resetInputPortCounters(int value) {
-    if (numberOfGlobalInputs == value) {
-      return;
-    }
-    int oldValue = numberOfGlobalInputs;
-    if (numberOfGlobalInputs < value) {
-      numberOfGlobalInputs = value;
 
-      for (PortCounter pc : inputCounters) {
-        if (pc.counter != value) {
-          if (pc.counter == 0) {
-            continue;
-          }
-          if (oldValue != 0) {
-            pc.counter = numberOfGlobalInputs - (oldValue - pc.counter);
-          } else {
-            pc.counter = numberOfGlobalInputs;
-          }
-        }
+  public int getInputPortIncoming(String port) {
+    for (PortCounter pc : inputCounters) {
+      if (pc.port.equals(port)) {
+        return pc.incoming;
       }
     }
-  }
-
-  public void setNumberOfGlobalOutputs(int numberOfGlobalOutputs) {
-    this.numberOfGlobalOutputs = numberOfGlobalOutputs;
+    return 0;
   }
   
-  public void resetOutputPortCounter(int value, String port) {
-    logger.info("Reset output port counter {} for {} to {}", port, id, value);
+  public int getOutputPortIncoming(String port) {
     for (PortCounter pc : outputCounters) {
       if (pc.port.equals(port)) {
-        int oldValue = pc.globalCounter;
-        if (pc.globalCounter < value) {
-          pc.globalCounter = value;
-
-          if (pc.counter == 0) {
-            continue;
-          }
-          if (pc.counter != value) {
-            if (oldValue != 0) {
-              pc.counter = pc.globalCounter - (oldValue - pc.counter);
-            } else {
-              pc.counter = pc.globalCounter;
-            }
-          }
-        }
+        return pc.incoming;
       }
     }
+    return 0;
   }
   
-  public void resetOutputPortCounters(int value) {
-    logger.info("Reset output port counters for {} to {}", id, value);
-    if (numberOfGlobalOutputs == value) {
-      return;
-    }
-    int oldValue = numberOfGlobalOutputs;
-    if (numberOfGlobalOutputs < value) {
-      numberOfGlobalOutputs = value;
-
-      for (PortCounter pc : outputCounters) {
-        if (pc.counter == 0) {
-          continue;
-        }
-        if (pc.counter != value) {
-          if (oldValue != 0) {
-            pc.counter = numberOfGlobalOutputs - (oldValue - pc.counter);
-          } else {
-            pc.counter = numberOfGlobalOutputs;
-          }
-        }
-      }
-    }
-  }
-
   public boolean isReady() {
     for (PortCounter portCounter : inputCounters) {
       if (portCounter.counter > 0) {
@@ -386,22 +245,22 @@ public class JobRecord {
     }
     return result;
   }
-
-  public Integer getNumberOfGlobalOutputs() {
-    return numberOfGlobalOutputs;
+  
+  public boolean isInputPortBlocking(DAGNode node, String port) {
+    return getInputPortIncoming(port) > 1 && LinkMerge.isBlocking(node.getLinkMerge(port, LinkPortType.INPUT));
   }
 
-  public class PortCounter {
-    private String port;
-    private int counter;
-    private boolean scatter;
+  public static class PortCounter {
+    public String port;
+    public int counter;
+    public boolean scatter;
     
-    private int incoming;
+    public int incoming;
     
-    private int updatedAsSourceCounter = 0;
-    private int globalCounter = 0;
+    public int updatedAsSourceCounter = 0;
+    public int globalCounter = 0;
 
-    PortCounter(String port, int counter, boolean scatter) {
+    public PortCounter(String port, int counter, boolean scatter) {
       this.port = port;
       this.counter = counter;
       this.scatter = scatter;

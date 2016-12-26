@@ -59,14 +59,14 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       if (job.isBlocking() || (job.getInputPortIncoming(event.getPortId()) > 1)) {
         return; // guard: should not happen
       } else {
-        job.resetInputPortCounters(event.getNumberOfScattered());
+        jobService.resetInputPortCounters(job, event.getNumberOfScattered());
       }
     } else if ((job.getInputPortIncoming(event.getPortId()) > 1) && job.isScatterPort(event.getPortId()) && !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
-      job.resetOutputPortCounters(job.getInputPortIncoming(event.getPortId()));
+      jobService.resetOutputPortCounters(job, job.getInputPortIncoming(event.getPortId()));
     }
     
     variable.addValue(event.getValue(), event.getPosition());
-    job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
+    jobService.decrementPortCounter(job, event.getPortId(), LinkPortType.INPUT);
     
     // scatter
     if (!job.isBlocking() && !job.isScattered()) {

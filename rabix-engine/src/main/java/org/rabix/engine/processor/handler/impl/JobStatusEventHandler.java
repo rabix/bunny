@@ -309,8 +309,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private void handleLinkPort(JobRecord job, DAGLinkPort linkPort, boolean isSource) {
     if (linkPort.getType().equals(LinkPortType.INPUT)) {
       if (job.getState().equals(JobState.PENDING)) {
-        job.incrementPortCounter(linkPort, LinkPortType.INPUT);
-        job.increaseInputPortIncoming(linkPort.getId());
+        jobRecordService.incrementPortCounter(job, linkPort, LinkPortType.INPUT);
+        jobRecordService.increaseInputPortIncoming(job, linkPort.getId());
         
         if (job.getInputPortIncoming(linkPort.getId()) > 1) {
           if (LinkMerge.isBlocking(linkPort.getLinkMerge())) {
@@ -319,11 +319,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       }
     } else {
-      job.incrementPortCounter(linkPort, LinkPortType.OUTPUT);
+      jobRecordService.incrementPortCounter(job, linkPort, LinkPortType.OUTPUT);
       if (isSource) {
         job.getOutputCounter(linkPort.getId()).updatedAsSource(1);
       }
-      job.increaseOutputPortIncoming(linkPort.getId());
+      jobRecordService.increaseOutputPortIncoming(job, linkPort.getId());
     }
     jobRecordService.update(job);
   }
