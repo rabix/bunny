@@ -1,9 +1,5 @@
 package org.rabix.engine.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 
@@ -46,90 +42,6 @@ public class VariableRecord {
     this.transform = transform;
   }
   
-
-  @SuppressWarnings("unchecked")
-  public void addValue(Object value, Integer position, boolean isScatterWrapper) {
-    numberOfTimesUpdated++;
-    if (isDefault) {
-      this.value = null;
-      isDefault = false;
-    }
-    if (this.value == null) {
-      if (position == 1) {
-        if (isScatterWrapper) {
-          this.value = new ArrayList<>();
-          ((ArrayList<Object>) this.value).add(value);
-        } else {
-          this.value = value;
-        }
-      } else {
-        List<Object> valueList = new ArrayList<>();
-        expand(valueList, position);
-        valueList.set(position - 1, value);
-        this.value = valueList;
-        this.isWrapped = true;
-      }
-    } else {
-      if (isWrapped) {
-        expand((List<Object>) this.value, position);
-        ((List<Object>) this.value).set(position - 1, value);
-      } else {
-        List<Object> valueList = new ArrayList<>();
-        valueList.add(this.value);
-        expand(valueList, position);
-        valueList.set(position - 1, value);
-        this.value = valueList;
-        this.isWrapped = true;
-      }
-    }
-  }
-
-  public Object linkMerge() {
-    switch (linkMerge) {
-    case merge_nested:
-      return this.value;
-    case merge_flattened:
-      return mergeFlatten(this.value);
-    default:
-      return this.value;
-    }
-  }
-
-  private <T> void expand(List<T> list, Integer position) {
-    int initialSize = list.size();
-    if (initialSize >= position) {
-      return;
-    }
-    for (int i = 0; i < position - initialSize; i++) {
-      list.add(null);
-    }
-    return;
-  }
-
-  @SuppressWarnings("unchecked")
-  private Object mergeFlatten(Object value) {
-    if (value == null) {
-      return null;
-    }
-    if (!(value instanceof List<?>)) {
-      return value;
-    }
-    List<Object> flattenedValues = new ArrayList<>();
-    if (value instanceof List<?>) {
-      for (Object subvalue : ((List<?>) value)) {
-        Object flattenedSubvalue = mergeFlatten(subvalue);
-        if (flattenedSubvalue instanceof List<?>) {
-          flattenedValues.addAll((Collection<? extends Object>) flattenedSubvalue);
-        } else {
-          flattenedValues.add(flattenedSubvalue);
-        }
-      }
-    } else {
-      flattenedValues.add(value);
-    }
-    return flattenedValues;
-  }
-
   public String getJobId() {
     return jobId;
   }
@@ -158,13 +70,6 @@ public class VariableRecord {
     this.type = type;
   }
 
-  public Object getValue() {
-    if (linkMerge == null) {
-      return this.value;
-    }
-    return linkMerge();
-  }
-
   public void setValue(Object value) {
     this.value = value;
   }
@@ -183,6 +88,38 @@ public class VariableRecord {
 
   public void setNumberGlobals(int numberOfGlobals) {
     this.numberOfGlobals = numberOfGlobals;
+  }
+
+  public LinkMerge getLinkMerge() {
+    return linkMerge;
+  }
+
+  public void setLinkMerge(LinkMerge linkMerge) {
+    this.linkMerge = linkMerge;
+  }
+
+  public boolean isDefault() {
+    return isDefault;
+  }
+
+  public void setDefault(boolean isDefault) {
+    this.isDefault = isDefault;
+  }
+
+  public Object getValue() {
+    return value;
+  }
+
+  public void setContextId(String contextId) {
+    this.contextId = contextId;
+  }
+
+  public void setNumberOfGlobals(int numberOfGlobals) {
+    this.numberOfGlobals = numberOfGlobals;
+  }
+
+  public void setNumberOfTimesUpdated(int numberOfTimesUpdated) {
+    this.numberOfTimesUpdated = numberOfTimesUpdated;
   }
 
   @Override

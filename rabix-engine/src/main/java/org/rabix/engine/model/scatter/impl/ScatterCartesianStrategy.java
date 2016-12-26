@@ -79,7 +79,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
       for (Combination combination : combinations) {
         String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
         VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-        result.addLast(variableRecord.getValue());
+        result.addLast(variableRecordService.getValue(variableRecord));
       }
       return result;
     }
@@ -96,7 +96,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
         }
         String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
         VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-        subresult.addLast(variableRecord.getValue());
+        subresult.addLast(variableRecordService.getValue(variableRecord));
       }
       result.addLast(subresult);
       return result;

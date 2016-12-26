@@ -177,7 +177,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
     for (Combination combination : combinations) {
       String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
       VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-      result.addLast(variableRecord.getValue());
+      result.addLast(variableRecordService.getValue(variableRecord));
     }
     return result;
   }

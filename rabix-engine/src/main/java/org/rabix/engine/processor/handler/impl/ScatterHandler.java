@@ -161,7 +161,7 @@ public class ScatterHandler {
         } else {
           if (job.isInputPortReady(inputPort.getId())) {
             VariableRecord variable = variableRecordService.find(job.getId(), inputPort.getId(), LinkPortType.INPUT, job.getRootId());
-            events.add(new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), variable.getValue(), 1, event.getEventGroupId()));
+            events.add(new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), variableRecordService.getValue(variable), 1, event.getEventGroupId()));
           }
         }
       }
