@@ -1,76 +1,44 @@
 package org.rabix.engine.service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.dao.LinkRecordRepository;
 import org.rabix.engine.model.LinkRecord;
+
+import com.google.inject.Inject;
 
 public class LinkRecordService {
 
-  private ConcurrentMap<String, List<LinkRecord>> linkRecordsPerContext = new ConcurrentHashMap<String, List<LinkRecord>>();
-
+  private LinkRecordRepository linkRecordRepository;
+  
+  @Inject
+  public LinkRecordService(LinkRecordRepository linkRecordRepository) {
+    this.linkRecordRepository = linkRecordRepository;
+  }
+  
   public void create(LinkRecord link) {
-    getLinkRecords(link.getContextId()).add(link);
+    linkRecordRepository.insert(link);
   }
 
   public void delete(String rootId) {
-    linkRecordsPerContext.remove(rootId);
+//    linkRecordsPerContext.remove(rootId);
   }
   
   public List<LinkRecord> findBySourceJobId(String jobId, String contextId) {
-    List<LinkRecord> result = new ArrayList<>();
-    for (LinkRecord lr : getLinkRecords(contextId)) {
-      if (lr.getSourceJobId().equals(jobId) && lr.getContextId().equals(contextId)) {
-        result.add(lr);
-      }
-    }
-    return result;
+    return linkRecordRepository.getBySourceJobId(jobId, contextId);
   }
   
   public List<LinkRecord> findBySourceAndSourceType(String jobId, LinkPortType varType, String contextId) {
-    List<LinkRecord> result = new ArrayList<>();
-    for (LinkRecord lr : getLinkRecords(contextId)) {
-      if (lr.getSourceJobId().equals(jobId) && lr.getSourceVarType().equals(varType) && lr.getContextId().equals(contextId)) {
-        result.add(lr);
-      }
-    }
-    return result;
+    return linkRecordRepository.getBySourceAndSourceType(jobId, varType, contextId);
   }
   
   public List<LinkRecord> findBySource(String jobId, String portId, String contextId) {
-    List<LinkRecord> result = new ArrayList<>();
-    for (LinkRecord lr : getLinkRecords(contextId)) {
-      if (lr.getSourceJobId().equals(jobId) && lr.getSourceJobPort().equals(portId) && lr.getContextId().equals(contextId)) {
-        result.add(lr);
-      }
-    }
-    return result;
+    return linkRecordRepository.getBySource(jobId, portId, contextId);
   }
   
   public List<LinkRecord> findBySourceAndDestinationType(String jobId, String portId, LinkPortType varType, String contextId) {
-    List<LinkRecord> result = new ArrayList<>();
-    for (LinkRecord lr : getLinkRecords(contextId)) {
-      if (lr.getSourceJobId().equals(jobId) && lr.getSourceJobPort().equals(portId) && lr.getDestinationVarType().equals(varType) && lr.getContextId().equals(contextId)) {
-        result.add(lr);
-      }
-    }
-    return result;
+    return linkRecordRepository.getBySourceAndDestinationType(jobId, portId, varType, contextId);
   }
 
-  public List<LinkRecord> find(String contextId) {
-    return getLinkRecords(contextId);
-  }
-  
-  private List<LinkRecord> getLinkRecords(String contextId) {
-    List<LinkRecord> linkList = linkRecordsPerContext.get(contextId);
-    if (linkList == null) {
-      linkList = new ArrayList<>();
-      linkRecordsPerContext.put(contextId, linkList);
-    }
-    return linkList;
-  }
-  
 }
