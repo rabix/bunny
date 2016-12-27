@@ -9,30 +9,36 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.service.JobRecordService.JobState;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class JobRecord {
 
-  private final String id;
-  private final String externalId;
-  private final String rootId;
-  private final String parentId;
-  private final boolean master;
-  private boolean blocking;
+  private String id;
+  private String externalId;
+  private String rootId;
+  private String parentId;
+  private Boolean master;
+  private Boolean blocking;
   
   private JobState state;
   
   private List<PortCounter> inputCounters;
   private List<PortCounter> outputCounters;
 
-  private boolean isScattered;                  // it's created from scatter
-  private boolean isContainer;                  // it's a container Job
-  private boolean isScatterWrapper;             // it's a scatter wrapper
+  private Boolean isScattered = false;                  // it's created from scatter
+  private Boolean isContainer = false;                  // it's a container Job
+  private Boolean isScatterWrapper = false;             // it's a scatter wrapper
 
   private int numberOfGlobalInputs = 0;
   private int numberOfGlobalOutputs = 0;
   
   private ScatterStrategy scatterStrategy;
   
-  public JobRecord(String rootId, String id, String uniqueId, String parentId, JobState state, boolean isContainer, boolean isScattered, boolean master, boolean blocking) {
+  public JobRecord() {
+  }
+  
+  public JobRecord(String rootId, String id, String uniqueId, String parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking) {
     this.id = id;
     this.externalId = uniqueId;
     this.rootId = rootId;
@@ -46,15 +52,15 @@ public class JobRecord {
     this.outputCounters = new ArrayList<>();
   }
   
-  public boolean isRoot() {
+  public Boolean isRoot() {
     return externalId.equals(rootId);
   }
   
-  public boolean isBlocking() {
+  public Boolean isBlocking() {
     return blocking;
   }
 
-  public void setBlocking(boolean blocking) {
+  public void setBlocking(Boolean blocking) {
     this.blocking = blocking;
   }
 
@@ -82,27 +88,27 @@ public class JobRecord {
     this.outputCounters = outputCounters;
   }
 
-  public boolean isScattered() {
+  public Boolean isScattered() {
     return isScattered;
   }
 
-  public void setScattered(boolean isScattered) {
+  public void setScattered(Boolean isScattered) {
     this.isScattered = isScattered;
   }
 
-  public boolean isContainer() {
+  public Boolean isContainer() {
     return isContainer;
   }
 
-  public void setContainer(boolean isContainer) {
+  public void setContainer(Boolean isContainer) {
     this.isContainer = isContainer;
   }
 
-  public boolean isScatterWrapper() {
+  public Boolean isScatterWrapper() {
     return isScatterWrapper;
   }
 
-  public void setScatterWrapper(boolean isScatterWrapper) {
+  public void setScatterWrapper(Boolean isScatterWrapper) {
     this.isScatterWrapper = isScatterWrapper;
   }
 
@@ -146,11 +152,11 @@ public class JobRecord {
     return parentId;
   }
 
-  public boolean isMaster() {
+  public Boolean isMaster() {
     return master;
   }
 
-  public boolean isInputPortReady(String port) {
+  public Boolean isInputPortReady(String port) {
     for (PortCounter pc : inputCounters) {
       if (pc.port.equals(port)) {
         if (pc.counter == 0) {
@@ -161,7 +167,7 @@ public class JobRecord {
     return false;
   }
   
-  public boolean isOutputPortReady(String port) {
+  public Boolean isOutputPortReady(String port) {
     for (PortCounter pc : outputCounters) {
       if (pc.port.equals(port)) {
         if (pc.counter == 0) {
@@ -208,7 +214,7 @@ public class JobRecord {
     return 0;
   }
   
-  public boolean isReady() {
+  public Boolean isReady() {
     for (PortCounter portCounter : inputCounters) {
       if (portCounter.counter > 0) {
         return false;
@@ -217,7 +223,7 @@ public class JobRecord {
     return true;
   }
 
-  public boolean isCompleted() {
+  public Boolean isCompleted() {
     for (PortCounter portCounter : outputCounters) {
       if (portCounter.counter > 0) {
         return false;
@@ -226,7 +232,7 @@ public class JobRecord {
     return true;
   }
 
-  public boolean isScatterPort(String port) {
+  public Boolean isScatterPort(String port) {
     for (PortCounter portCounter : inputCounters) {
       if (portCounter.port.equals(port)) {
         return portCounter.scatter;
@@ -246,21 +252,38 @@ public class JobRecord {
     return result;
   }
   
-  public boolean isInputPortBlocking(DAGNode node, String port) {
+  public Boolean isInputPortBlocking(DAGNode node, String port) {
     return getInputPortIncoming(port) > 1 && LinkMerge.isBlocking(node.getLinkMerge(port, LinkPortType.INPUT));
   }
 
   public static class PortCounter {
+    @JsonProperty("port")
     public String port;
+    @JsonProperty("counter")
     public int counter;
-    public boolean scatter;
-    
+    @JsonProperty("scatter")
+    public Boolean scatter;
+    @JsonProperty("incoming")
     public int incoming;
     
+    @JsonProperty("updatedAsSourceCounter")
     public int updatedAsSourceCounter = 0;
+    @JsonProperty("globalCounter")
     public int globalCounter = 0;
 
-    public PortCounter(String port, int counter, boolean scatter) {
+    @JsonCreator
+    public PortCounter(@JsonProperty("port") String port, @JsonProperty("counter") int counter, @JsonProperty("scatter") Boolean scatter, @JsonProperty("incoming") int incoming, @JsonProperty("updatedAsSourceCounter") int updatedAsSourceCounter,
+        @JsonProperty("globalCounter") int globalCounter) {
+      super();
+      this.port = port;
+      this.counter = counter;
+      this.scatter = scatter;
+      this.incoming = incoming;
+      this.updatedAsSourceCounter = updatedAsSourceCounter;
+      this.globalCounter = globalCounter;
+    }
+
+    public PortCounter(String port, int counter, Boolean scatter) {
       this.port = port;
       this.counter = counter;
       this.scatter = scatter;
@@ -299,11 +322,11 @@ public class JobRecord {
       this.counter = counter;
     }
 
-    public boolean isScatter() {
+    public Boolean isScatter() {
       return scatter;
     }
 
-    public void setScatter(boolean scatter) {
+    public void setScatter(Boolean scatter) {
       this.scatter = scatter;
     }
   }

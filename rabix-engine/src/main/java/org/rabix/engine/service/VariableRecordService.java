@@ -3,76 +3,45 @@ package org.rabix.engine.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.dao.VariableRecordRepository;
 import org.rabix.engine.model.VariableRecord;
+
+import com.google.inject.Inject;
 
 public class VariableRecordService {
 
-  private ConcurrentMap<String, List<VariableRecord>> variableRecordsPerContext = new ConcurrentHashMap<String, List<VariableRecord>>();
+  private VariableRecordRepository variableRecordRepository;
 
+  @Inject
+  public VariableRecordService(VariableRecordRepository variableRecordRepository) {
+    this.variableRecordRepository = variableRecordRepository;
+  }
+  
   public void create(VariableRecord variableRecord) {
-    getVariableRecords(variableRecord.getContextId()).add(variableRecord);
+    variableRecordRepository.insert(variableRecord);
   }
   
   public void delete(String rootId) {
-    variableRecordsPerContext.remove(rootId);
+//    variableRecordsPerContext.remove(rootId);
   }
 
   public void update(VariableRecord variableRecord) {
-    for (VariableRecord vr : getVariableRecords(variableRecord.getContextId())) {
-      if (vr.getJobId().equals(variableRecord.getJobId()) && vr.getPortId().equals(variableRecord.getPortId()) && vr.getType().equals(variableRecord.getType()) && vr.getContextId().equals(variableRecord.getContextId())) {
-        vr.setValue(variableRecord.getValue());
-        return;
-      }
-    }
+    variableRecordRepository.update(variableRecord);
   }
   
   public List<VariableRecord> find(String jobId, LinkPortType type, String contextId) {
-    List<VariableRecord> result = new ArrayList<>();
-    for (VariableRecord vr : getVariableRecords(contextId)) {
-      if (vr.getJobId().equals(jobId) && vr.getType().equals(type) && vr.getContextId().equals(contextId)) {
-        result.add(vr);
-      }
-    }
-    return result;
+    return variableRecordRepository.getByType(jobId, type, contextId);
   }
   
   public List<VariableRecord> find(String jobId, String portId, String contextId) {
-    List<VariableRecord> result = new ArrayList<>();
-    for (VariableRecord vr : getVariableRecords(contextId)) {
-      if (vr.getJobId().equals(jobId) && vr.getPortId().equals(portId) && vr.getContextId().equals(contextId)) {
-        result.add(vr);
-      }
-    }
-    return result;
+    return variableRecordRepository.getByPort(jobId, portId, contextId);
   }
 
   public VariableRecord find(String jobId, String portId, LinkPortType type, String contextId) {
-    for (VariableRecord vr : getVariableRecords(contextId)) {
-      if (vr.getJobId().equals(jobId) && vr.getPortId().equals(portId) && vr.getType().equals(type) && vr.getContextId().equals(contextId)) {
-        return vr;
-      }
-    }
-    return null;
+    return variableRecordRepository.get(jobId, portId, type, contextId);
   }
-
-  public List<VariableRecord> findByJobId(String jobId, LinkPortType type, String contextId) {
-    List<VariableRecord> result = new ArrayList<>();
-    for (VariableRecord vr : getVariableRecords(contextId)) {
-      if (vr.getJobId().equals(jobId) && vr.getType().equals(type) && vr.getContextId().equals(contextId)) {
-        result.add(vr);
-      }
-    }
-    return result;
-  }
-
-  public List<VariableRecord> find(String contextId) {
-    return getVariableRecords(contextId);
-  }
-  
 
   @SuppressWarnings("unchecked")
   public void addValue(VariableRecord variableRecord, Object value, Integer position, boolean isScatterWrapper) {
@@ -163,15 +132,6 @@ public class VariableRecordService {
       return variableRecord.getValue();
     }
     return linkMerge(variableRecord);
-  }
-  
-  public List<VariableRecord> getVariableRecords(String contextId) {
-    List<VariableRecord> variableList = variableRecordsPerContext.get(contextId);
-    if (variableList == null) {
-      variableList = new ArrayList<>();
-      variableRecordsPerContext.put(contextId, variableList);
-    }
-    return variableList;
   }
   
 }

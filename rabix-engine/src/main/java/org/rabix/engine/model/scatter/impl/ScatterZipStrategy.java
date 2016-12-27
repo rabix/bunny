@@ -19,25 +19,41 @@ import org.rabix.engine.model.scatter.RowMapping;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.service.VariableRecordService;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 
 public class ScatterZipStrategy implements ScatterStrategy {
 
+  @JsonProperty("combinations")
   private LinkedList<Combination> combinations;
   
+  @JsonProperty("values")
   private Map<String, LinkedList<Object>> values;
+  @JsonProperty("indexes")
   private Map<String, LinkedList<Boolean>> indexes;
 
-  private final ScatterMethod scatterMethod;
-  private final VariableRecordService variableRecordService;
+  @JsonProperty("scatterMethod")
+  private ScatterMethod scatterMethod;
   
-  public ScatterZipStrategy(DAGNode dagNode, VariableRecordService variableRecordService) {
+  @JsonCreator
+  public ScatterZipStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
+      @JsonProperty("values") Map<String, LinkedList<Object>> values,
+      @JsonProperty("indexes") Map<String, LinkedList<Boolean>> indexes,
+      @JsonProperty("scatterMethod") ScatterMethod scatterMethod) {
+    super();
+    this.combinations = combinations;
+    this.values = values;
+    this.indexes = indexes;
+    this.scatterMethod = scatterMethod;
+  }
+
+  public ScatterZipStrategy(DAGNode dagNode) {
     values = new HashMap<>();
     indexes = new HashMap<>();
     combinations = new LinkedList<>();
     
     this.scatterMethod = dagNode.getScatterMethod();
-    this.variableRecordService = variableRecordService;
     initialize(dagNode);
   }
   
@@ -149,11 +165,14 @@ public class ScatterZipStrategy implements ScatterStrategy {
     return combinations.size();
   }
 
-  private class Combination {
+  public static class Combination {
+    @JsonProperty("position")
     int position;
+    @JsonProperty("enabled")
     boolean enabled;
 
-    public Combination(int position, boolean enabled) {
+    @JsonCreator
+    public Combination(@JsonProperty("position") int position, @JsonProperty("enabled") boolean enabled) {
       this.position = position;
       this.enabled = enabled;
     }
@@ -165,7 +184,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
   }
 
   @Override
-  public LinkedList<Object> values(String jobId, String portId, String contextId) {
+  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, String contextId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {

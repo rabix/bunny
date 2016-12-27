@@ -85,17 +85,17 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
           return;
         }
       } else if (job.isScatterWrapper()) {
-        sendValuesToScatteredJobs(job, variable, event);
         update(job, variable);
+        sendValuesToScatteredJobs(job, variable, event);
         return;
       }
     }
 
+    update(job, variable);
     if (job.isReady()) {
       JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId());
       eventProcessor.send(jobStatusEvent);
     }
-    update(job, variable);
   }
   
   private void update(JobRecord job, VariableRecord variable) {

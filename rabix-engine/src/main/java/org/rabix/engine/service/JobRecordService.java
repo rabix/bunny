@@ -1,17 +1,17 @@
 package org.rabix.engine.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.dao.JobRecordRepository;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.PortCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 public class JobRecordService {
 
@@ -25,86 +25,46 @@ public class JobRecordService {
     FAILED
   }
 
-  private ConcurrentMap<String, List<JobRecord>> jobRecordsPerContext = new ConcurrentHashMap<String, List<JobRecord>>();
-
+  private JobRecordRepository jobRecordRepository;
+  
+  @Inject
+  public JobRecordService(JobRecordRepository jobRecordRepository) {
+    this.jobRecordRepository = jobRecordRepository;
+  }
+  
   public static String generateUniqueId() {
     return UUID.randomUUID().toString();
   }
   
   public void create(JobRecord jobRecord) {
-    getJobRecords(jobRecord.getRootId()).add(jobRecord);
+    jobRecordRepository.insert(jobRecord);
   }
 
   public void delete(String rootId) {
-    jobRecordsPerContext.remove(rootId);
   }
   
   public void update(JobRecord jobRecord) {
-    for (JobRecord jr : getJobRecords(jobRecord.getRootId())) {
-      if (jr.getId().equals(jobRecord.getId())) {
-        jr.setState(jobRecord.getState());
-        jr.setContainer(jobRecord.isContainer());
-        jr.setScattered(jobRecord.isScattered());
-        jr.setInputCounters(jobRecord.getInputCounters());
-        jr.setOutputCounters(jobRecord.getOutputCounters());
-        jr.setScatterWrapper(jobRecord.isScatterWrapper());
-        jr.setScatterStrategy(jobRecord.getScatterStrategy());
-        return;
-      }
-    }
+    jobRecordRepository.update(jobRecord);
   }
   
   public List<JobRecord> find(String contextId) {
-    return getJobRecords(contextId);
+    return jobRecordRepository.get(contextId);
   }
   
   public List<JobRecord> findReady(String contextId) {
-    List<JobRecord> result = new ArrayList<>();
-    
-    for (JobRecord jr : getJobRecords(contextId)) {
-      if (jr.getState().equals(JobState.READY) && jr.getRootId().equals(contextId)) {
-        result.add(jr);
-      }
-    }
-    return result;
+    return jobRecordRepository.getReady(contextId);
   }
   
   public List<JobRecord> findByParent(String parentId, String contextId) {
-    List<JobRecord> result = new ArrayList<>();
-
-    for (JobRecord jr : getJobRecords(contextId)) {
-      if (jr.getParentId() != null && jr.getParentId().equals(parentId)) {
-        result.add(jr);
-      }
-    }
-    return result;
+    return jobRecordRepository.getByParent(parentId, contextId);
   }
   
   public JobRecord find(String id, String contextId) {
-    for (JobRecord jr : getJobRecords(contextId)) {
-      if (jr.getId().equals(id) && jr.getRootId().equals(contextId)) {
-        return jr;
-      }
-    }
-    return null;
+    return jobRecordRepository.get(id, contextId);
   }
   
   public JobRecord findRoot(String contextId) {
-    for (JobRecord jr : getJobRecords(contextId)) {
-      if (jr.isMaster() && jr.getRootId().equals(contextId)) {
-        return jr;
-      }
-    }
-    return null;
-  }
-  
-  private List<JobRecord> getJobRecords(String contextId) {
-    List<JobRecord> jobRecordList = jobRecordsPerContext.get(contextId);
-    if (jobRecordList == null) {
-      jobRecordList = new ArrayList<>();
-      jobRecordsPerContext.put(contextId, jobRecordList);
-    }
-    return jobRecordList;
+    return jobRecordRepository.getRoot(contextId);
   }
   
   public void increaseInputPortIncoming(JobRecord jobRecord, String port) {

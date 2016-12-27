@@ -20,22 +20,39 @@ import org.rabix.engine.model.scatter.RowMapping;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.service.VariableRecordService;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ScatterCartesianStrategy implements ScatterStrategy {
 
+  @JsonProperty("combinations")
   private LinkedList<Combination> combinations;
 
+  @JsonProperty("values")
   private Map<String, LinkedList<Object>> values;
+  @JsonProperty("positions")
   private Map<String, LinkedList<Integer>> positions;
 
-  private final ScatterMethod scatterMethod;
-  private final VariableRecordService variableRecordService;
+  @JsonProperty("scatterMethod")
+  private ScatterMethod scatterMethod;
   
-  public ScatterCartesianStrategy(DAGNode dagNode, VariableRecordService variableRecordService) {
+  @JsonCreator
+  public ScatterCartesianStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
+      @JsonProperty("combinations") Map<String, LinkedList<Object>> values,
+      @JsonProperty("positions") Map<String, LinkedList<Integer>> positions,
+      @JsonProperty("scatterMethod") ScatterMethod scatterMethod) {
+    super();
+    this.combinations = combinations;
+    this.values = values;
+    this.positions = positions;
+    this.scatterMethod = scatterMethod;
+  }
+
+  public ScatterCartesianStrategy(DAGNode dagNode) {
     this.values = new HashMap<>();
     this.positions = new HashMap<>();
     this.combinations = new LinkedList<>();
     this.scatterMethod = dagNode.getScatterMethod();
-    this.variableRecordService = variableRecordService;
     initialize(dagNode);
   }
 
@@ -66,7 +83,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public LinkedList<Object> values(String jobId, String portId, String contextId) {
+  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, String contextId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
@@ -209,12 +226,17 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     return null;
   }
 
-  private class Combination {
+  public static class Combination {
+    @JsonProperty("position")
     int position;
+    @JsonProperty("enabled")
     boolean enabled;
+    @JsonProperty("indexes")
     LinkedList<Integer> indexes;
 
-    public Combination(int position, boolean enabled, LinkedList<Integer> indexes) {
+    @JsonCreator
+    public Combination(@JsonProperty("position") int position, @JsonProperty("enabled") boolean enabled,
+        @JsonProperty("indexes") LinkedList<Integer> indexes) {
       this.position = position;
       this.enabled = enabled;
       this.indexes = indexes;

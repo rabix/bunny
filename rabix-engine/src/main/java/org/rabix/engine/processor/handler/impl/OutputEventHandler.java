@@ -78,6 +78,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     VariableRecord sourceVariable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.OUTPUT, event.getContextId());
     jobService.decrementPortCounter(sourceJob, event.getPortId(), LinkPortType.OUTPUT);
     variableService.addValue(sourceVariable, event.getValue(), event.getPosition(), sourceJob.isScatterWrapper());
+    variableService.update(sourceVariable); // TODO wha?
     jobService.update(sourceJob);
     
     if (sourceJob.isCompleted()) {
@@ -126,7 +127,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if (scatterStrategy.isBlocking()) {
         if (sourceJob.isOutputPortReady(event.getPortId())) {
           isValueFromScatterStrategy = true;
-          value = scatterStrategy.values(sourceJob.getId(), event.getPortId(), event.getContextId());
+          value = scatterStrategy.values(variableService, sourceJob.getId(), event.getPortId(), event.getContextId());
         } else {
           return;
         }
