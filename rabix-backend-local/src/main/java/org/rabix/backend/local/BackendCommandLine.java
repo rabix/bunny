@@ -520,7 +520,7 @@ public class BackendCommandLine {
     if (commandLine.getArgList().size() == 1 || commandLine.getArgList().size() == 2) {
       return true;
     }
-    VerboseLogger.log("Invalid number of arguments\n");
+    logger.info("Invalid number of arguments\n");
     return false;
   }
 
@@ -528,7 +528,15 @@ public class BackendCommandLine {
    * Prints command line usage
    */
   private static void printUsageAndExit(Options options) {
-    new HelpFormatter().printHelp("rabix [OPTION]... <tool> <job> [-- {inputs}...]", options);
+    HelpFormatter hf =new HelpFormatter();
+    hf.setWidth(80);
+    hf.setSyntaxPrefix("Usage: ");
+    final String usage = "rabix [OPTION]... <tool> <job> [-- {inputs}...]";
+    final String header = "Executes CWL application with provided inputs.\n\n";
+    final String footer = "\nYou can add/override additional input parameters after -- parameter.\n\n" +
+            "Rabix suite homepage: https://rabix.org\n" +
+            "Source and issue tracker: https://github.com/rabix/bunny.";
+    hf.printHelp(usage, header, options, footer);
     System.exit(10);
   }
 
