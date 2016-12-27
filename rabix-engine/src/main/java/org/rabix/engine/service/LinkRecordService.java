@@ -22,7 +22,6 @@ public class LinkRecordService {
   }
 
   public void delete(String rootId) {
-//    linkRecordsPerContext.remove(rootId);
   }
   
   public List<LinkRecord> findBySourceJobId(String jobId, String contextId) {
