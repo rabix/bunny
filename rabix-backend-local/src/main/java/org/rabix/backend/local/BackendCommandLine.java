@@ -63,6 +63,7 @@ import org.rabix.engine.rest.service.impl.IntermediaryFilesServiceLocalImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
+import org.rabix.executor.config.impl.LocalStorageConfiguration;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.execution.JobHandlerCommandDispatcher;
 import org.rabix.executor.handler.JobHandler;
@@ -133,7 +134,7 @@ public class BackendCommandLine {
         printUsageAndExit(posixOptions);
       }
       
-      String appPath = commandLine.getArgList().get(0);
+      final String appPath = commandLine.getArgList().get(0);
       File appFile = new File(URIHelper.extractBase(appPath));
       if (!appFile.exists()) {
         VerboseLogger.log(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));
@@ -234,7 +235,7 @@ public class BackendCommandLine {
               install(configModule);
               
               bind(JobDB.class).in(Scopes.SINGLETON);
-              bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
+              bind(StorageConfiguration.class).toInstance(new LocalStorageConfiguration(appPath,configModule.provideConfig()));
               bind(BackendDB.class).in(Scopes.SINGLETON);
               bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceLocalImpl.class).in(Scopes.SINGLETON);
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
