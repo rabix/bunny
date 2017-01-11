@@ -67,10 +67,6 @@ public class Job implements Serializable {
     this(null, null, generateId(), null, app, JobStatus.PENDING, null, inputs, null, null, null, null);
   }
   
-  public Job(String rootId, String app, Map<String, Object> inputs) {
-	this(null, null, rootId, null, app, JobStatus.PENDING, null, inputs, null, null, null, null);
-  }
-  
   @JsonCreator
   public Job(@JsonProperty("id") String id,
       @JsonProperty("parentId") String parentId,

@@ -6,11 +6,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -414,7 +411,7 @@ public class BackendCommandLine {
       }
       
       @SuppressWarnings("unchecked")
-      final Job job = jobService.start(new Job(generateRootId(appUrl), appUrl, (Map<String, Object>) commonInputs), contextConfig);
+      final Job job = jobService.start(new Job(appUrl, (Map<String, Object>) commonInputs), contextConfig);
 
       final Bindings finalBindings = bindings;
       Thread checker = new Thread(new Runnable() {
@@ -464,24 +461,6 @@ public class BackendCommandLine {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }
-  }
-  
-  /**
-   * Returns a directory name containing the current date and job name
-   */
-  public static String generateRootId(String path) {
-    String name;
-    if(path.contains("/")){
-      name = path.substring(path.lastIndexOf('/'));
-    }
-    else{
-      name = path;
-    }
-    if(name.contains(".")){
-      name = name.substring(0, name.indexOf('.'));
-    }
-    DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-    return name+df.format(new Date());
   }
 
   /**
