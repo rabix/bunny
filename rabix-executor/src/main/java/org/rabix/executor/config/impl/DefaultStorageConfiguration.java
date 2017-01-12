@@ -22,9 +22,6 @@ public class DefaultStorageConfiguration implements StorageConfiguration {
   @Override
   public File getWorkingDir(Job job) {
     File contextDir = getRootDir(job.getRootId(), job.getConfig());
-    if (!contextDir.exists()) {
-      contextDir.mkdirs();
-    }
     
     File workingDir = contextDir;
     String[] idArray = transformLocalIDsToPath(job);
