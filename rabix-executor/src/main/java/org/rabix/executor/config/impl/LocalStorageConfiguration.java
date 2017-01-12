@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.FilenameUtils;
 
 
 public class LocalStorageConfiguration extends DefaultStorageConfiguration {
@@ -19,7 +20,7 @@ public class LocalStorageConfiguration extends DefaultStorageConfiguration {
 
   public LocalStorageConfiguration(String appPath, Configuration configuration) {
     super(configuration);
-    this.rootDir = generateRootId(appPath);
+    this.rootDir = generateDirectoryName(appPath);
   }
 
   /**
@@ -37,18 +38,10 @@ public class LocalStorageConfiguration extends DefaultStorageConfiguration {
   /**
    * Returns a directory name containing the current date and app name
    */
-  public static String generateRootId(String path) {
-    String name;
-    if (path.contains("/")) {
-      name = path.substring(path.lastIndexOf('/'));
-    } else {
-      name = path;
-    }
-    if (name.contains(".")) {
-      name = name.substring(0, name.indexOf('.'));
-    }
+  public static String generateDirectoryName(String path) {
+    String name = FilenameUtils.getBaseName(path);
     DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-    return name + df.format(new Date());
+    return name + "-" + df.format(new Date());
   }
 
 }
