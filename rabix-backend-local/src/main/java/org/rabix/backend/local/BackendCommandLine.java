@@ -497,19 +497,19 @@ public class BackendCommandLine {
    */
   private static Options createOptions() {
     Options options = new Options();
-    options.addOption("v", "verbose", false, "verbose");
+    options.addOption("v", "verbose", false, "print more information on the standard output");
     options.addOption("b", "basedir", true, "execution directory");
     options.addOption("c", "configuration-dir", true, "configuration directory");
-    options.addOption("r", "resolve-app", false, "resolve application");
+    options.addOption("r", "resolve-app", false, "resolve all referenced fragments and print application as a single JSON document");
     options.addOption(null, "cache-dir", true, "basic tool result caching (experimental)");
     options.addOption(null, "no-container", false, "don't use containers");
     options.addOption(null, "tmp-outdir-prefix", true, "doesn't do anything");
     options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");
     options.addOption(null, "outdir", true, "doesn't do anything");
-    options.addOption(null, "quiet", false, "quiet");
-    options.addOption(null, "tes-url", true, "TES URL (experimental)");
-    options.addOption(null, "version", false, "Rabix version");
-    options.addOption("h", "help", false, "help");
+    options.addOption(null, "quiet", false, "don't print anything except final result on standard output");
+    options.addOption(null, "tes-url", true, "url of the ga4gh task execution server instance (experimental)");
+    options.addOption(null, "version", false, "print program version and exit");
+    options.addOption("h", "help", false, "print this help message and exit");
     return options;
   }
 
@@ -520,7 +520,7 @@ public class BackendCommandLine {
     if (commandLine.getArgList().size() == 1 || commandLine.getArgList().size() == 2) {
       return true;
     }
-    VerboseLogger.log("Invalid number of arguments\n");
+    logger.info("Invalid number of arguments\n");
     return false;
   }
 
@@ -528,7 +528,15 @@ public class BackendCommandLine {
    * Prints command line usage
    */
   private static void printUsageAndExit(Options options) {
-    new HelpFormatter().printHelp("rabix <tool> <job> [OPTION] [-- {inputs}...]", options);
+    HelpFormatter hf =new HelpFormatter();
+    hf.setWidth(80);
+    hf.setSyntaxPrefix("Usage: ");
+    final String usage = "rabix [OPTION]... <tool> <job> [-- {inputs}...]";
+    final String header = "Executes CWL application with provided inputs.\n\n";
+    final String footer = "\nYou can add/override additional input parameters after -- parameter.\n\n" +
+            "Rabix suite homepage: https://rabix.org\n" +
+            "Source and issue tracker: https://github.com/rabix/bunny.";
+    hf.printHelp(usage, header, options, footer);
     System.exit(10);
   }
 
