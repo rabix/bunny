@@ -24,8 +24,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
 
   private final static Logger logger = LoggerFactory.getLogger(LocalTESStorageServiceImpl.class);
 
-  private static String STORAGE_BASE_DIR = "baseDir";
-  private static String STORAGE_TYPE_KEY = "storageType";
+  private static String LOCAL_DIR_KEY = "Local.AllowedDirs";
 
   private TESHttpClient tesHttpClient;
   
@@ -38,11 +37,13 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
   public SharedFileStorage getStorageInfo() throws TESServiceException {
     try {
       TESServiceInfo serviceInfo = tesHttpClient.getServiceInfo();
-      String storageTypeStr = serviceInfo.getStorageConfig().get(STORAGE_TYPE_KEY);
-      
-      StorageType storageType = StorageType.valueOf(storageTypeStr);
-      if (storageType.equals(StorageType.sharedFile)) {
-        return new SharedFileStorage(serviceInfo.getStorageConfig().get(STORAGE_BASE_DIR));
+      // TODO this can be comma-separated. This service info
+      //      is still in flux and will probably be redesigned
+      //      soon because a simple key-value string map isn't
+      //      enough.
+      String allowedDirs = serviceInfo.getStorageConfig().get(LOCAL_DIR_KEY);
+      if (allowedDirs != null) {
+        return new SharedFileStorage(allowedDirs);
       }
       return null;
     } catch (Exception e) {

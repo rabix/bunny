@@ -8,7 +8,7 @@ public interface TESStorageService {
   public final static String DOCKER_PATH_PREFIX = "/mnt";
   
   enum StorageType {
-    sharedFile
+    Local
   }
   
   SharedFileStorage getStorageInfo() throws TESServiceException;

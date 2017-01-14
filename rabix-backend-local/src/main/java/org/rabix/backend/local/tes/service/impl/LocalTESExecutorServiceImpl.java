@@ -267,12 +267,13 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     public TESJob call() throws Exception {
       try {
         final SharedFileStorage sharedFileStorage = storageService.getStorageInfo();
+        String baseDir = sharedFileStorage.getBaseDir();
 
         LocalFileStorage localFileStorage = new LocalFileStorage(configuration.getString("backend.execution.directory"));
         job = storageService.stageInputFiles(job, localFileStorage, sharedFileStorage);
 
         List<TESTaskParameter> inputs = new ArrayList<>();
-        inputs.add(new TESTaskParameter("mount", null, "", TESStorageService.DOCKER_PATH_PREFIX, FileType.Directory.name(), true));
+        inputs.add(new TESTaskParameter("mount", null, "file://" + baseDir, TESStorageService.DOCKER_PATH_PREFIX, FileType.Directory.name(), true));
         
         job = FileValueHelper.mapInputFilePaths(job, new FilePathMapper() {
           @Override
@@ -287,17 +288,20 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         File jobDir = createJobDir(sharedFileStorage, job);
 
         String workingDirRelativePath = getWorkingDirRelativePath(job);
-        inputs.add(new TESTaskParameter(WORKING_DIR, null, workingDirRelativePath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), FileType.Directory.name(), false));
+        String workingDirAbsolutePath = Paths.get(baseDir, workingDirRelativePath).toString();
+        String workingDirInputPath = "file://" + workingDirAbsolutePath;
+        inputs.add(new TESTaskParameter(WORKING_DIR, null, workingDirInputPath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), FileType.Directory.name(), false));
 
         File jobFile = new File(jobDir, "job.json");
         FileUtils.writeStringToFile(jobFile, JSONHelper.writeObject(job));
-        inputs.add(new TESTaskParameter("job.json", null, Paths.get(job.getId(), "job.json").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "job.json").toString(), FileType.File.name(), true));
+        String jobInputPath = "file://" + Paths.get(baseDir, job.getId(), "job.json").toString();
+        inputs.add(new TESTaskParameter("job.json", null, jobInputPath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "job.json").toString(), FileType.File.name(), true));
         
         List<TESTaskParameter> outputs = new ArrayList<>();
-        outputs.add(new TESTaskParameter(WORKING_DIR, null, workingDirRelativePath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), FileType.Directory.name(), false));    
+        outputs.add(new TESTaskParameter(WORKING_DIR, null, workingDirInputPath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), FileType.Directory.name(), false));    
         if (!bindings.isSelfExecutable(job)) {
-          outputs.add(new TESTaskParameter("command.sh", null, Paths.get(job.getId(), "command.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "command.sh").toString(), FileType.File.name(), false));
-          outputs.add(new TESTaskParameter("environment.sh", null, Paths.get(job.getId(), "environment.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "environment.sh").toString(), FileType.File.name(), false));
+          outputs.add(new TESTaskParameter("command.sh", null, "file://" + Paths.get(baseDir, job.getId(), "command.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "command.sh").toString(), FileType.File.name(), false));
+          outputs.add(new TESTaskParameter("environment.sh", null, "file://" + Paths.get(baseDir, job.getId(), "environment.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "environment.sh").toString(), FileType.File.name(), false));
         }
         
         List<String> firstCommandLineParts = new ArrayList<>();
