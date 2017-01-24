@@ -54,6 +54,6 @@ public class TestApp extends Application {
     return new DAGNode(id,
         inputs.stream().map(in -> in.toInputPort(id)).collect(Collectors.toList()),
         outputs.stream().map(out -> out.toOutputPort(id)).collect(Collectors.toList()),
-        scatterMethod, this, new HashMap());
+        scatterMethod, this, new HashMap<>());
   }
 }

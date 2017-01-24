@@ -15,6 +15,13 @@ public class BindingsFactory {
   private final static Logger logger = LoggerFactory.getLogger(BindingsFactory.class);
   
   public static final String MULTIPROTOCOL_KEY = "rabix.multiprotocol";
+
+  private static final ProtocolType[] protocolTypes = {
+      new ProtocolType("org.rabix.bindings.cwl.CWLBindings", 3, "v1.0"),
+      new ProtocolType("org.rabix.bindings.draft2.Draft2Bindings", 4, null),
+      new ProtocolType("org.rabix.bindings.sb.SBBindings", 1, "sbg:draft-2"),
+      new ProtocolType("org.rabix.bindings.draft3.Draft3Bindings", 2, "cwl:draft-3")
+  };
   
   private static SortedSet<Bindings> bindings = new TreeSet<>(new Comparator<Bindings>() {
     @Override
@@ -24,7 +31,7 @@ public class BindingsFactory {
   });
 
   static {
-    for (ProtocolType type : ProtocolType.values()) {
+    for (ProtocolType type : protocolTypes) {
       try {
         Class<?> clazz = Class.forName(type.bindingsClass);
         if (clazz == null) {
