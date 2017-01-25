@@ -62,5 +62,11 @@
 			<artifactId>jersey-media-json-jackson</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.rabix</groupId>
+			<artifactId>rabix-bindings-cwl</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
