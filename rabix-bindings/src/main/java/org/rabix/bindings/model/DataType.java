@@ -241,7 +241,8 @@ public class DataType {
       }
       return true;
     }
-    return type == value.getType();
+    return type == value.getType() ||
+        (type == Type.FLOAT && value.getType() == Type.INT);
   }
 
   public Object toAvro() {
