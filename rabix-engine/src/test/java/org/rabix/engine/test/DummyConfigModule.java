@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -17,6 +18,10 @@ public class DummyConfigModule extends AbstractModule {
 
   public DummyConfigModule(Map<String, Object> config) {
     this.config = config;
+  }
+
+  public DummyConfigModule() {
+    this.config = new HashMap<>();
   }
 
   @Override
