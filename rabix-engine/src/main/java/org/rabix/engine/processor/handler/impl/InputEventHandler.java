@@ -65,7 +65,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       job.resetOutputPortCounters(job.getInputPortIncoming(event.getPortId()));
     }
     
-    variable.addValue(event.getValue(), event.getPosition(), job.isScatterPort(event.getPortId()));
+    variable.addValue(event.getValue(), event.getPosition(), job.isScatterWrapper() && job.isScatterPort(event.getPortId()));
     job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
     
     // scatter
