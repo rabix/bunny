@@ -108,11 +108,11 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
    */
   private void sendValuesToScatteredJobs(JobRecord job, VariableRecord variable, InputUpdateEvent event) throws EventHandlerException {
     List<LinkRecord> links = linkService.findBySourceAndDestinationType(job.getId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
-
+    
     List<Event> events = new ArrayList<>();
     for (LinkRecord link : links) {
       VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
-
+      job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
       Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variable.getValue(), event.getPosition(), event.getEventGroupId());
       events.add(updateInputEvent);
     }
