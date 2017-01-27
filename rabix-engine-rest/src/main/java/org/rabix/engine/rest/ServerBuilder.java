@@ -34,9 +34,11 @@ import org.rabix.engine.rest.backend.stub.BackendStubFactory;
 import org.rabix.engine.rest.db.BackendDB;
 import org.rabix.engine.rest.db.JobDB;
 import org.rabix.engine.rest.service.BackendService;
+import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
+import org.rabix.engine.rest.service.impl.NoOpIntermediaryFilesServiceImpl;
 import org.rabix.transport.backend.BackendPopulator;
 
 import com.google.inject.AbstractModule;
@@ -71,6 +73,7 @@ public class ServerBuilder {
             bind(BackendStubFactory.class).in(Scopes.SINGLETON);
             bind(BackendDispatcher.class).in(Scopes.SINGLETON);
             bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
+            bind(IntermediaryFilesService.class).to(NoOpIntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
           }
         }));
