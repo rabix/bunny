@@ -1,11 +1,12 @@
-package org.rabix.engine.dao;
+package org.rabix.engine.jdbi.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.dao.BackendRepository.BackendMapper;
 import org.rabix.engine.jdbi.bindings.BindJson;
+import org.rabix.engine.jdbi.impl.JDBIBackendRepository.BackendMapper;
+import org.rabix.engine.repository.BackendRepository;
 import org.rabix.transport.backend.Backend;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -15,7 +16,7 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(BackendMapper.class)
-public interface BackendRepository {
+public interface JDBIBackendRepository extends BackendRepository {
 
   @SqlUpdate("insert into backend (id,configuration) values (:id,:configuration)")
   void insert(@Bind("id") String id, @BindJson("configuration") String backend);

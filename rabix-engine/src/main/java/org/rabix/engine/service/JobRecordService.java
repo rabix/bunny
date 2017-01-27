@@ -5,9 +5,9 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.dao.JobRecordRepository;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.PortCounter;
+import org.rabix.engine.repository.JobRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

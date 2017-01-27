@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.dao.VariableRecordRepository;
 import org.rabix.engine.model.VariableRecord;
+import org.rabix.engine.repository.VariableRecordRepository;
 
 import com.google.inject.Inject;
 

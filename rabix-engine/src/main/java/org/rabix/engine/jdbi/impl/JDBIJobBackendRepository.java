@@ -1,11 +1,12 @@
-package org.rabix.engine.dao;
+package org.rabix.engine.jdbi.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 
-import org.rabix.engine.dao.JobBackendRepository.BackendJobMapper;
 import org.rabix.engine.db.JobBackendService.BackendJob;
+import org.rabix.engine.jdbi.impl.JDBIJobBackendRepository.BackendJobMapper;
+import org.rabix.engine.repository.JobBackendRepository;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
@@ -14,7 +15,7 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(BackendJobMapper.class)
-public interface JobBackendRepository {
+public interface JDBIJobBackendRepository extends JobBackendRepository {
 
   @SqlUpdate("insert into job_backend (job_id,root_id,backend_id) values (:job_id,:root_id,:backend_id)")
   int insert(@Bind("job_id") String jobId, @Bind("root_id") String rootId, @Bind("backend_id") String backendId);

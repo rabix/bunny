@@ -3,8 +3,8 @@ package org.rabix.engine.service;
 import java.util.List;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.dao.LinkRecordRepository;
 import org.rabix.engine.model.LinkRecord;
+import org.rabix.engine.repository.LinkRecordRepository;
 
 import com.google.inject.Inject;
 

@@ -1,4 +1,4 @@
-package org.rabix.engine.dao;
+package org.rabix.engine.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -14,8 +14,9 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.dao.VariableRecordRepository.VariableRecordMapper;
+import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
 import org.rabix.engine.model.VariableRecord;
+import org.rabix.engine.repository.VariableRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -28,7 +29,7 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(VariableRecordMapper.class)
-public interface VariableRecordRepository {
+public interface JDBIVariableRecordRepository extends VariableRecordRepository {
 
   @SqlUpdate("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type,:link_merge,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
   int insert(@BindVariableRecord VariableRecord jobRecord);

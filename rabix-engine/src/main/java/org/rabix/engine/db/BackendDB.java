@@ -1,7 +1,7 @@
 package org.rabix.engine.db;
 
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.dao.BackendRepository;
+import org.rabix.engine.repository.BackendRepository;
 import org.rabix.transport.backend.Backend;
 
 import com.google.inject.Inject;

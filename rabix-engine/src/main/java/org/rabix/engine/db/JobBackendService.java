@@ -2,7 +2,7 @@ package org.rabix.engine.db;
 
 import java.util.Set;
 
-import org.rabix.engine.dao.JobBackendRepository;
+import org.rabix.engine.repository.JobBackendRepository;
 
 import com.google.inject.Inject;
 

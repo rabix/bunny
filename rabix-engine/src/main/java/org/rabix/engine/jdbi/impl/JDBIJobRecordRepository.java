@@ -1,4 +1,4 @@
-package org.rabix.engine.dao;
+package org.rabix.engine.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -11,10 +11,11 @@ import java.util.List;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.dao.JobRecordRepository.JobRecordMapper;
+import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.JobRecordMapper;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.PortCounter;
 import org.rabix.engine.model.scatter.ScatterStrategy;
+import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.service.JobRecordService.JobState;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
@@ -30,7 +31,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 @RegisterMapper(JobRecordMapper.class)
-public interface JobRecordRepository {
+public interface JDBIJobRecordRepository extends JobRecordRepository {
 
   @SqlUpdate("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy)")
   int insert(@BindJobRecord JobRecord jobRecord);

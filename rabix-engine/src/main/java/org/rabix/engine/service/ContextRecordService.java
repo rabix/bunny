@@ -1,7 +1,7 @@
 package org.rabix.engine.service;
 
-import org.rabix.engine.dao.ContextRecordRepository;
 import org.rabix.engine.model.ContextRecord;
+import org.rabix.engine.repository.ContextRecordRepository;
 
 import com.google.inject.Inject;
 

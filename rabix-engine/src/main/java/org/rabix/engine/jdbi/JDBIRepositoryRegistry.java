@@ -1,45 +1,45 @@
 package org.rabix.engine.jdbi;
 
-import org.rabix.engine.dao.AppRepository;
-import org.rabix.engine.dao.BackendRepository;
-import org.rabix.engine.dao.ContextRecordRepository;
-import org.rabix.engine.dao.DAGRepository;
-import org.rabix.engine.dao.JobBackendRepository;
-import org.rabix.engine.dao.JobRecordRepository;
-import org.rabix.engine.dao.JobRepository;
-import org.rabix.engine.dao.LinkRecordRepository;
-import org.rabix.engine.dao.VariableRecordRepository;
+import org.rabix.engine.jdbi.impl.JDBIAppRepository;
+import org.rabix.engine.jdbi.impl.JDBIBackendRepository;
+import org.rabix.engine.jdbi.impl.JDBIContextRecordRepository;
+import org.rabix.engine.jdbi.impl.JDBIDAGRepository;
+import org.rabix.engine.jdbi.impl.JDBIJobBackendRepository;
+import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository;
+import org.rabix.engine.jdbi.impl.JDBIJobRepository;
+import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository;
+import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository;
 import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
 import org.skife.jdbi.v2.sqlobject.Transaction;
 
 public abstract class JDBIRepositoryRegistry {
 
   @CreateSqlObject
-  public abstract AppRepository applicationRepository();
+  public abstract JDBIAppRepository applicationRepository();
   
   @CreateSqlObject
-  public abstract BackendRepository backendRepository();
+  public abstract JDBIBackendRepository backendRepository();
   
   @CreateSqlObject
-  public abstract DAGRepository dagRepository();
+  public abstract JDBIDAGRepository dagRepository();
   
   @CreateSqlObject
-  public abstract JobRepository jobRepository();
+  public abstract JDBIJobRepository jobRepository();
   
   @CreateSqlObject
-  public abstract JobBackendRepository jobBackendRepository();
+  public abstract JDBIJobBackendRepository jobBackendRepository();
   
   @CreateSqlObject
-  public abstract JobRecordRepository jobRecordRepository();
+  public abstract JDBIJobRecordRepository jobRecordRepository();
   
   @CreateSqlObject
-  public abstract LinkRecordRepository linkRecordRepository();
+  public abstract JDBILinkRecordRepository linkRecordRepository();
   
   @CreateSqlObject
-  public abstract VariableRecordRepository variableRecordRepository();
+  public abstract JDBIVariableRecordRepository variableRecordRepository();
   
   @CreateSqlObject
-  public abstract ContextRecordRepository contextRecordRepository();
+  public abstract JDBIContextRecordRepository contextRecordRepository();
   
   @Transaction
   public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws TransactionException {
