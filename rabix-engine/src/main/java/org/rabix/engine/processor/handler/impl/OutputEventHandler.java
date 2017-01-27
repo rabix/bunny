@@ -73,11 +73,12 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   public void handle(final OutputUpdateEvent event) throws EventHandlerException {
     JobRecord sourceJob = jobService.find(event.getJobId(), event.getContextId());
     if (event.isFromScatter()) {
-      sourceJob.resetOutputPortCounter(event.getNumberOfScattered(), event.getPortId());
+      jobService.resetOutputPortCounter(sourceJob, event.getNumberOfScattered(), event.getPortId());
     }
     VariableRecord sourceVariable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.OUTPUT, event.getContextId());
-    sourceJob.decrementPortCounter(event.getPortId(), LinkPortType.OUTPUT);
-    sourceVariable.addValue(event.getValue(), event.getPosition(), sourceJob.isScatterWrapper());
+    jobService.decrementPortCounter(sourceJob, event.getPortId(), LinkPortType.OUTPUT);
+    variableService.addValue(sourceVariable, event.getValue(), event.getPosition(), sourceJob.isScatterWrapper());
+    variableService.update(sourceVariable); // TODO wha?
     jobService.update(sourceJob);
     
     if (sourceJob.isCompleted()) {
@@ -97,7 +98,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         Map<String, Object> outputs = new HashMap<>();
         List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
         for (VariableRecord outputVariable : outputVariables) {
-          Object value = CloneHelper.deepCopy(outputVariable.getValue());
+          Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
           outputs.put(outputVariable.getPortId(), value);
         }
         if(sourceJob.isRoot() && sourceJob.isContainer()) {
@@ -126,7 +127,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if (scatterStrategy.isBlocking()) {
         if (sourceJob.isOutputPortReady(event.getPortId())) {
           isValueFromScatterStrategy = true;
-          value = scatterStrategy.values(sourceJob.getId(), event.getPortId(), event.getContextId());
+          value = scatterStrategy.values(variableService, sourceJob.getId(), event.getPortId(), event.getContextId());
         } else {
           return;
         }
@@ -153,7 +154,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
               eventProcessor.send(updateInputEvent);
             } else {
               if (sourceJob.isOutputPortReady(event.getPortId())) {
-                value = value != null ? value : sourceVariable.getValue();
+                value = value != null ? value : variableService.getValue(sourceVariable);
                 Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
                 eventProcessor.send(updateInputEvent);
               }
@@ -163,7 +164,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             destinationJob = jobService.find(destinationVariable.getJobId(), destinationVariable.getContextId());
             if (destinationJob.getOutputPortIncoming(event.getPortId()) > 1) {
               if (sourceJob.isOutputPortReady(event.getPortId())) {
-                value = value != null? value : sourceVariable.getValue();
+                value = value != null? value : variableService.getValue(sourceVariable);
                 Event updateInputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
                 eventProcessor.send(updateInputEvent);
               }
@@ -190,7 +191,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       for (LinkRecord link : links) {
         List<VariableRecord> destinationVariables = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), event.getContextId());
         
-        value = sourceVariable.getValue();
+        value = variableService.getValue(sourceVariable);
         for (VariableRecord destinationVariable : destinationVariables) {
           switch (destinationVariable.getType()) {
           case INPUT:
@@ -228,7 +229,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     Map<String, Object> outputs = new HashMap<>();
     List<VariableRecord> outputVariables = variableService.find(jobRecord.getId(), LinkPortType.OUTPUT, jobRecord.getRootId());
     for (VariableRecord outputVariable : outputVariables) {
-      Object value = CloneHelper.deepCopy(outputVariable.getValue());
+      Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
       outputs.put(outputVariable.getPortId(), value);
     }
     return JobHelper.createRootJob(jobRecord, status, jobService, variableService, linkService, contextService, dagNodeDB, outputs);

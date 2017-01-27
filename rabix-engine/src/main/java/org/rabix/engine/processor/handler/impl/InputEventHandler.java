@@ -59,14 +59,14 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       if (job.isBlocking() || (job.getInputPortIncoming(event.getPortId()) > 1)) {
         return; // guard: should not happen
       } else {
-        job.resetInputPortCounters(event.getNumberOfScattered());
+        jobService.resetInputPortCounters(job, event.getNumberOfScattered());
       }
     } else if ((job.getInputPortIncoming(event.getPortId()) > 1) && job.isScatterPort(event.getPortId()) && !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
-      job.resetOutputPortCounters(job.getInputPortIncoming(event.getPortId()));
+      jobService.resetOutputPortCounters(job, job.getInputPortIncoming(event.getPortId()));
     }
     
-    variable.addValue(event.getValue(), event.getPosition(), job.isScatterWrapper());
-    job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
+    variableService.addValue(variable, event.getValue(), event.getPosition(), job.isScatterWrapper());
+    jobService.decrementPortCounter(job, event.getPortId(), LinkPortType.INPUT);
     
     // scatter
     if (!job.isBlocking() && !job.isScattered()) {
@@ -74,7 +74,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
         if ((job.isInputPortBlocking(node, event.getPortId()))) {
           // it's blocking
           if (job.isInputPortReady(event.getPortId())) {
-            scatterHelper.scatterPort(job, event, event.getPortId(), variable.getValue(), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), false);
+            scatterHelper.scatterPort(job, event, event.getPortId(), variableService.getValue(variable), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), false);
             update(job, variable);
             return;
           }
@@ -85,17 +85,17 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
           return;
         }
       } else if (job.isScatterWrapper()) {
-        sendValuesToScatteredJobs(job, variable, event);
         update(job, variable);
+        sendValuesToScatteredJobs(job, variable, event);
         return;
       }
     }
 
+    update(job, variable);
     if (job.isReady()) {
       JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId());
       eventProcessor.send(jobStatusEvent);
     }
-    update(job, variable);
   }
   
   private void update(JobRecord job, VariableRecord variable) {
@@ -113,7 +113,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     for (LinkRecord link : links) {
       VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
 
-      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variable.getValue(), event.getPosition(), event.getEventGroupId());
+      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {

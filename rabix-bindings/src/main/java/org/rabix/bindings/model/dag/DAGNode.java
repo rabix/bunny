@@ -1,5 +1,6 @@
 package org.rabix.bindings.model.dag;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,20 +38,20 @@ public class DAGNode {
   }
   
   @JsonProperty("id")
-  protected final String id;
+  protected String id;
   @JsonDeserialize(using = ApplicationDeserializer.class)
   @JsonSerialize(using = ApplicationSerializer.class)
   @JsonProperty("app")
-  protected final Application app;
+  protected Application app;
   @JsonProperty("scatterMethod")
-  protected final ScatterMethod scatterMethod;
+  protected ScatterMethod scatterMethod;
   @JsonProperty("inputPorts")
-  protected final List<DAGLinkPort> inputPorts;
+  protected List<DAGLinkPort> inputPorts = new ArrayList<>();
   @JsonProperty("outputPorts")
-  protected final List<DAGLinkPort> outputPorts;
+  protected List<DAGLinkPort> outputPorts = new ArrayList<>();
   
   @JsonProperty("defaults")
-  protected final Map<String, Object> defaults;
+  protected Map<String, Object> defaults;
   
   @JsonCreator
   public DAGNode(@JsonProperty("id") String id, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts, @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("app") Application app, @JsonProperty("defaults") Map<String, Object> defaults) {

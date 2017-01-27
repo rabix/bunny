@@ -231,10 +231,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           VariableRecord sourceVariable = variableRecordService.find(link.getSourceJobId(), link.getSourceJobPort(), LinkPortType.INPUT, contextId);
           VariableRecord destinationVariable = variableRecordService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, contextId);
           if(destinationVariable == null) {
-            VariableRecord stepVariable = new VariableRecord(contextId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, sourceVariable.getValue(), null);
+            VariableRecord stepVariable = new VariableRecord(contextId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), null);
             variableRecordService.create(stepVariable);
           }
-          Event updateEvent = new InputUpdateEvent(contextId, link.getDestinationJobId(), link.getDestinationJobPort(), sourceVariable.getValue(), link.getPosition(), event.getEventGroupId());
+          Event updateEvent = new InputUpdateEvent(contextId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId());
           eventProcessor.send(updateEvent);
         }
       }
@@ -243,7 +243,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       
       for (String port : job.getScatterPorts()) {
         VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, contextId);
-        scatterHelper.scatterPort(job, event, port, variable.getValue(), 1, null, false, false);
+        scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
       }
     }
   }
@@ -325,8 +325,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private void handleLinkPort(JobRecord job, DAGLinkPort linkPort, boolean isSource) {
     if (linkPort.getType().equals(LinkPortType.INPUT)) {
       if (job.getState().equals(JobState.PENDING)) {
-        job.incrementPortCounter(linkPort, LinkPortType.INPUT);
-        job.increaseInputPortIncoming(linkPort.getId());
+        jobRecordService.incrementPortCounter(job, linkPort, LinkPortType.INPUT);
+        jobRecordService.increaseInputPortIncoming(job, linkPort.getId());
         
         if (job.getInputPortIncoming(linkPort.getId()) > 1) {
           if (LinkMerge.isBlocking(linkPort.getLinkMerge())) {
@@ -335,11 +335,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       }
     } else {
-      job.incrementPortCounter(linkPort, LinkPortType.OUTPUT);
+      jobRecordService.incrementPortCounter(job, linkPort, LinkPortType.OUTPUT);
       if (isSource) {
         job.getOutputCounter(linkPort.getId()).updatedAsSource(1);
       }
-      job.increaseOutputPortIncoming(linkPort.getId());
+      jobRecordService.increaseOutputPortIncoming(job, linkPort.getId());
     }
     jobRecordService.update(job);
   }

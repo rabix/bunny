@@ -1,84 +1,137 @@
 package org.rabix.engine.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.dao.VariableRecordRepository;
 import org.rabix.engine.model.VariableRecord;
+
+import com.google.inject.Inject;
 
 public class VariableRecordService {
 
-  private ConcurrentMap<String, List<VariableRecord>> variableRecordsPerContext = new ConcurrentHashMap<String, List<VariableRecord>>();
+  private VariableRecordRepository variableRecordRepository;
 
+  @Inject
+  public VariableRecordService(VariableRecordRepository variableRecordRepository) {
+    this.variableRecordRepository = variableRecordRepository;
+  }
+  
   public void create(VariableRecord variableRecord) {
-    getVariableRecords(variableRecord.getContextId()).add(variableRecord);
+    variableRecordRepository.insert(variableRecord);
   }
   
   public void delete(String rootId) {
-    variableRecordsPerContext.remove(rootId);
+//    variableRecordsPerContext.remove(rootId);
   }
 
   public void update(VariableRecord variableRecord) {
-    for (VariableRecord vr : getVariableRecords(variableRecord.getContextId())) {
-      if (vr.getJobId().equals(variableRecord.getJobId()) && vr.getPortId().equals(variableRecord.getPortId()) && vr.getType().equals(variableRecord.getType()) && vr.getContextId().equals(variableRecord.getContextId())) {
-        vr.setValue(variableRecord.getValue());
-        return;
-      }
-    }
+    variableRecordRepository.update(variableRecord);
   }
   
   public List<VariableRecord> find(String jobId, LinkPortType type, String contextId) {
-    List<VariableRecord> result = new ArrayList<>();
-    for (VariableRecord vr : getVariableRecords(contextId)) {
-      if (vr.getJobId().equals(jobId) && vr.getType().equals(type) && vr.getContextId().equals(contextId)) {
-        result.add(vr);
-      }
-    }
-    return result;
+    return variableRecordRepository.getByType(jobId, type, contextId);
   }
   
   public List<VariableRecord> find(String jobId, String portId, String contextId) {
-    List<VariableRecord> result = new ArrayList<>();
-    for (VariableRecord vr : getVariableRecords(contextId)) {
-      if (vr.getJobId().equals(jobId) && vr.getPortId().equals(portId) && vr.getContextId().equals(contextId)) {
-        result.add(vr);
-      }
-    }
-    return result;
+    return variableRecordRepository.getByPort(jobId, portId, contextId);
   }
 
   public VariableRecord find(String jobId, String portId, LinkPortType type, String contextId) {
-    for (VariableRecord vr : getVariableRecords(contextId)) {
-      if (vr.getJobId().equals(jobId) && vr.getPortId().equals(portId) && vr.getType().equals(type) && vr.getContextId().equals(contextId)) {
-        return vr;
-      }
-    }
-    return null;
+    return variableRecordRepository.get(jobId, portId, type, contextId);
   }
 
-  public List<VariableRecord> findByJobId(String jobId, LinkPortType type, String contextId) {
-    List<VariableRecord> result = new ArrayList<>();
-    for (VariableRecord vr : getVariableRecords(contextId)) {
-      if (vr.getJobId().equals(jobId) && vr.getType().equals(type) && vr.getContextId().equals(contextId)) {
-        result.add(vr);
+  @SuppressWarnings("unchecked")
+  public void addValue(VariableRecord variableRecord, Object value, Integer position, boolean isScatterWrapper) {
+    variableRecord.setNumberOfTimesUpdated(variableRecord.getNumberOfTimesUpdated());
+
+    if (variableRecord.isDefault()) {
+      variableRecord.setValue(null);
+      variableRecord.setDefault(false);
+    }
+    if (variableRecord.getValue() == null) {
+      if (position == 1) {
+        if (isScatterWrapper) {
+          variableRecord.setValue(new ArrayList<>());
+          ((ArrayList<Object>) variableRecord.getValue()).add(value);
+        } else {
+          variableRecord.setValue(value);
+        }
+      } else {
+        List<Object> valueList = new ArrayList<>();
+        expand(valueList, position);
+        valueList.set(position - 1, value);
+        variableRecord.setValue(valueList);
+        variableRecord.setWrapped(true);
+      }
+    } else {
+      if (variableRecord.isWrapped()) {
+        expand((List<Object>) variableRecord.getValue(), position);
+        ((List<Object>) variableRecord.getValue()).set(position - 1, value);
+      } else {
+        List<Object> valueList = new ArrayList<>();
+        valueList.add(variableRecord.getValue());
+        expand(valueList, position);
+        valueList.set(position - 1, value);
+        variableRecord.setValue(valueList);
+        variableRecord.setWrapped(true);
       }
     }
-    return result;
   }
 
-  public List<VariableRecord> find(String contextId) {
-    return getVariableRecords(contextId);
+  public Object linkMerge(VariableRecord variableRecord) {
+    switch (variableRecord.getLinkMerge()) {
+    case merge_nested:
+      return variableRecord.getValue();
+    case merge_flattened:
+      return mergeFlatten(variableRecord.getValue());
+    default:
+      return variableRecord.getValue();
+    }
+  }
+
+  private <T> void expand(List<T> list, Integer position) {
+    int initialSize = list.size();
+    if (initialSize >= position) {
+      return;
+    }
+    for (int i = 0; i < position - initialSize; i++) {
+      list.add(null);
+    }
+    return;
+  }
+
+  @SuppressWarnings("unchecked")
+  private Object mergeFlatten(Object value) {
+    if (value == null) {
+      return null;
+    }
+    if (!(value instanceof List<?>)) {
+      return value;
+    }
+    List<Object> flattenedValues = new ArrayList<>();
+    if (value instanceof List<?>) {
+      for (Object subvalue : ((List<?>) value)) {
+        Object flattenedSubvalue = mergeFlatten(subvalue);
+        if (flattenedSubvalue instanceof List<?>) {
+          flattenedValues.addAll((Collection<? extends Object>) flattenedSubvalue);
+        } else {
+          flattenedValues.add(flattenedSubvalue);
+        }
+      }
+    } else {
+      flattenedValues.add(value);
+    }
+    return flattenedValues;
   }
   
-  public List<VariableRecord> getVariableRecords(String contextId) {
-    List<VariableRecord> variableList = variableRecordsPerContext.get(contextId);
-    if (variableList == null) {
-      variableList = new ArrayList<>();
-      variableRecordsPerContext.put(contextId, variableList);
+  public Object getValue(VariableRecord variableRecord) {
+    if (variableRecord.getLinkMerge() == null) {
+      return variableRecord.getValue();
     }
-    return variableList;
+    return linkMerge(variableRecord);
   }
   
 }

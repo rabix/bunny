@@ -1,58 +1,35 @@
 package org.rabix.engine.db;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.rabix.bindings.model.dag.DAGContainer;
 import org.rabix.bindings.model.dag.DAGNode;
+import org.rabix.common.helper.JSONHelper;
+import org.rabix.engine.dao.DAGRepository;
+
+import com.google.inject.Inject;
 
 /**
  * In-memory {@link DAGNode} repository
  */
 public class DAGNodeDB {
 
-  private final Map<String, Map<String, DAGNode>> nodes;
-  
-  public DAGNodeDB() {
-    this.nodes = new HashMap<>();
+  private DAGRepository dagRepository;
+
+  @Inject
+  public DAGNodeDB(DAGRepository dagRepository) {
+    this.dagRepository = dagRepository;
   }
   
   /**
    * Gets node from the repository 
    */
   public synchronized DAGNode get(String id, String contextId) {
-    Map<String, DAGNode> contextNodes = nodes.get(contextId);
-    return contextNodes == null ? null : contextNodes.get(id);
+    return dagRepository.get(id, contextId);
   }
   
   /**
    * Loads node into the repository recursively
    */
   public synchronized void loadDB(DAGNode node, String contextId) {
-    Map<String, DAGNode> contextNodes = nodes.get(contextId);
-    if (contextNodes == null) {
-      contextNodes = new HashMap<>();
-      nodes.put(contextId, contextNodes);
-    }
-    add(node, contextId);
-    
-    if (node instanceof DAGContainer) {
-      for (DAGNode child : ((DAGContainer) node).getChildren()) {
-        loadDB(child, contextId);
-      }
-    }
-  }
-  
-  /**
-   *  Adds one node to the recursively
-   */
-  private void add(DAGNode node, String contextId) {
-    Map<String, DAGNode> contextNodes = nodes.get(contextId);
-    if (contextNodes == null) {
-      contextNodes = new HashMap<>();
-      nodes.put(contextId, contextNodes);
-    }
-    contextNodes.put(node.getId(), node);
+    dagRepository.insert(contextId, JSONHelper.writeObject(node));
   }
   
 }

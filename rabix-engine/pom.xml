@@ -62,5 +62,21 @@
 			<artifactId>jersey-media-json-jackson</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.jdbi</groupId>
+			<artifactId>jdbi</artifactId>
+			<version>2.77</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.mlk</groupId>
+			<artifactId>jdbi-guice</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.4.1212.jre7</version>
+		</dependency>
 	</dependencies>
 </project>

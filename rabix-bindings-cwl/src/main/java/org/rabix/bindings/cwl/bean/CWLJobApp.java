@@ -331,7 +331,7 @@ public abstract class CWLJobApp extends Application {
   
   @Override
   public String serialize() {
-    return BeanSerializer.serializeFull(this);
+    return BeanSerializer.serializePartial(this);
   }
   
   public abstract CWLJobAppType getType();

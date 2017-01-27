@@ -321,7 +321,7 @@ public abstract class Draft3JobApp extends Application {
   
   @Override
   public String serialize() {
-    return BeanSerializer.serializeFull(this);
+    return BeanSerializer.serializePartial(this);
   }
   
   public abstract Draft3JobAppType getType();

@@ -93,7 +93,7 @@ public class JobHelper {
     
     Map<String, Object> outputs = new HashMap<>();
     for (VariableRecord outputVariable : outputVariables) {
-      outputs.put(outputVariable.getPortId(), outputVariable.getValue());
+      outputs.put(outputVariable.getPortId(), variableRecordService.getValue(outputVariable));
     }
     return Job.cloneWithOutputs(completedJob, outputs);
   }
@@ -111,7 +111,7 @@ public class JobHelper {
     
     Map<String, Object> preprocesedInputs = new HashMap<>();
     for (VariableRecord inputVariable : inputVariables) {
-      Object value = inputVariable.getValue();
+      Object value = variableRecordService.getValue(inputVariable);
       preprocesedInputs.put(inputVariable.getPortId(), value);
     }
     
@@ -125,7 +125,7 @@ public class JobHelper {
         Bindings bindings = BindingsFactory.create(encodedApp);
         
         for (VariableRecord inputVariable : inputVariables) {
-          Object value = CloneHelper.deepCopy(inputVariable.getValue());
+          Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
           ApplicationPort port = node.getApp().getInput(inputVariable.getPortId());
           if (port == null) {
             continue;
@@ -168,7 +168,7 @@ public class JobHelper {
     Map<String, Object> inputs = new HashMap<>();
     List<VariableRecord> inputVariables = variableRecordService.find(job.getId(), LinkPortType.INPUT, job.getRootId());
     for (VariableRecord inputVariable : inputVariables) {
-      Object value = CloneHelper.deepCopy(inputVariable.getValue());
+      Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
       inputs.put(inputVariable.getPortId(), value);
     }
     
@@ -207,7 +207,7 @@ public class JobHelper {
     
     Map<String, Object> outputs = new HashMap<>();
     for (VariableRecord outputVariable : outputVariables) {
-      outputs.put(outputVariable.getPortId(), outputVariable.getValue());
+      outputs.put(outputVariable.getPortId(), variableRecordService.getValue(outputVariable));
     }
     return Job.cloneWithOutputs(job, outputs);
   }
