@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.dao.BackendRepository.BackendMapper;
-import org.rabix.engine.dao.bindings.BindJson;
+import org.rabix.engine.jdbi.bindings.BindJson;
 import org.rabix.transport.backend.Backend;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;

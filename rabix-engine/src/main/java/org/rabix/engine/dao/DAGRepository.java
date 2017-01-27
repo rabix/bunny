@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.dao.DAGRepository.DAGNodeMapper;
-import org.rabix.engine.dao.bindings.BindJson;
+import org.rabix.engine.jdbi.bindings.BindJson;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;

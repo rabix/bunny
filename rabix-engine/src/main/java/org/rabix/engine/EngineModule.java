@@ -1,10 +1,21 @@
 package org.rabix.engine;
 
+import org.apache.commons.configuration.Configuration;
 import org.postgresql.jdbc3.Jdbc3PoolingDataSource;
+import org.rabix.engine.dao.AppRepository;
+import org.rabix.engine.dao.BackendRepository;
+import org.rabix.engine.dao.ContextRecordRepository;
+import org.rabix.engine.dao.DAGRepository;
+import org.rabix.engine.dao.JobBackendRepository;
+import org.rabix.engine.dao.JobRecordRepository;
+import org.rabix.engine.dao.JobRepository;
+import org.rabix.engine.dao.LinkRecordRepository;
+import org.rabix.engine.dao.VariableRecordRepository;
 import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.db.JobDB;
 import org.rabix.engine.db.ReadyJobGroupsDB;
+import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
 import org.rabix.engine.processor.handler.HandlerFactory;
@@ -21,14 +32,17 @@ import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 import org.skife.jdbi.v2.DBI;
 
-import com.github.mlk.guice.JdbiModule;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 
 public class EngineModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    bind(JDBIRepositoryModule.class).in(Scopes.SINGLETON);
+    
     bind(JobDB.class).in(Scopes.SINGLETON);
     bind(BackendDB.class).in(Scopes.SINGLETON);
     bind(DAGNodeDB.class).in(Scopes.SINGLETON);
@@ -50,17 +64,84 @@ public class EngineModule extends AbstractModule {
     bind(EventDispatcherFactory.class).in(Scopes.SINGLETON);
     bind(EventProcessor.class).to(MultiEventProcessorImpl.class).in(Scopes.SINGLETON);
     
-    install(JdbiModule.builder().scan("org.rabix.engine.dao").build());
-    Jdbc3PoolingDataSource source = new Jdbc3PoolingDataSource();
-    source.setDataSourceName("Data Source");
-    source.setServerName("localhost");
-    source.setPortNumber(5433);
-    source.setDatabaseName("bunny");
-    source.setUser("postgres");
-    source.setPassword("postgres");
-    source.setMaxConnections(10);
-
-    bind(DBI.class).toInstance(new DBI(source));
+    install(new JDBIRepositoryModule());
   }
+  
+  public static class JDBIRepositoryModule extends AbstractModule {
+
+    public JDBIRepositoryModule() {
+    }
+    
+    @Override
+    public void configure() {
+    }
+    
+    @Singleton
+    @Provides
+    public DBI provideDBI(Configuration configuration) {
+      Jdbc3PoolingDataSource source = new Jdbc3PoolingDataSource();
+      
+      source.setDataSourceName("Data Source");
+      source.setServerName(configuration.getString("postgres.server"));
+      source.setPortNumber(configuration.getInt("postgres.port"));
+      source.setDatabaseName(configuration.getString("postgres.database"));
+      source.setUser(configuration.getString("postgres.user"));
+      source.setPassword(configuration.getString("postgres.password"));
+      source.setMaxConnections(configuration.getInt("postgres.pool_max_connections"));
+      return new DBI(source);
+    }
+    
+    @Singleton
+    @Provides
+    public JDBIRepositoryRegistry provideJDBIRepositoryRegistry(DBI dbi) {
+      return dbi.onDemand(JDBIRepositoryRegistry.class);
+    }
+
+    @Provides
+    public AppRepository provideAppRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.applicationRepository();
+    }
+    
+    @Provides
+    public BackendRepository provideBackendRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.backendRepository();
+    }
+    
+    @Provides
+    public DAGRepository provideDAGRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.dagRepository();
+    }
+    
+    @Provides
+    public JobRepository provideJobRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.jobRepository();
+    }
+    
+    @Provides
+    public JobBackendRepository provideJobBackendRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.jobBackendRepository();
+    }
+    
+    @Provides
+    public JobRecordRepository provideJobRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.jobRecordRepository();
+    }
+    
+    @Provides
+    public LinkRecordRepository provideLinkRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.linkRecordRepository();
+    }
+    
+    @Provides
+    public VariableRecordRepository provideVariableRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.variableRecordRepository();
+    }
+    
+    @Provides
+    public ContextRecordRepository provideContextRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
+      return repositoryRegistry.contextRecordRepository();
+    }
+  }
+
 
 }
