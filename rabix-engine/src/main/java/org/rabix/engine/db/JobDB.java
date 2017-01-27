@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.dao.JobRepository;
+import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
 

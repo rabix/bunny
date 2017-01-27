@@ -1,4 +1,4 @@
-package org.rabix.engine.dao;
+package org.rabix.engine.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -11,9 +11,10 @@ import java.util.Map;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.dao.ContextRecordRepository.ContextRecordMapper;
+import org.rabix.engine.jdbi.impl.JDBIContextRecordRepository.ContextRecordMapper;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
+import org.rabix.engine.repository.ContextRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -26,7 +27,7 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(ContextRecordMapper.class)
-public interface ContextRecordRepository {
+public interface JDBIContextRecordRepository extends ContextRecordRepository {
 
   @SqlUpdate("insert into context_record (id,status,config) values (:id,:status,:config)")
   int insert(@BindContextRecord ContextRecord contextRecord);

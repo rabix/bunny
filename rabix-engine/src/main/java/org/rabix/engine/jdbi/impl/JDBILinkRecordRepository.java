@@ -1,4 +1,4 @@
-package org.rabix.engine.dao;
+package org.rabix.engine.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -10,8 +10,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.dao.LinkRecordRepository.LinkRecordMapper;
+import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository.LinkRecordMapper;
 import org.rabix.engine.model.LinkRecord;
+import org.rabix.engine.repository.LinkRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -24,7 +25,7 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(LinkRecordMapper.class)
-public interface LinkRecordRepository {
+public interface JDBILinkRecordRepository extends LinkRecordRepository {
 
   @SqlUpdate("insert into link_record (context_id,source_job_id,source_job_port_id,source_type,destination_job_id,destination_job_port_id,destination_type,position) values (:context_id,:source_job_id,:source_job_port_id,:source_type,:destination_job_id,:destination_job_port_id,:destination_type,:position)")
   int insert(@BindLinkRecord LinkRecord linkRecord);

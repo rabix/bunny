@@ -1,4 +1,4 @@
-package org.rabix.engine.dao.bindings;
+package org.rabix.engine.jdbi.bindings;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;

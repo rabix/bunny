@@ -1,12 +1,13 @@
-package org.rabix.engine.dao;
+package org.rabix.engine.jdbi.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.dao.DAGRepository.DAGNodeMapper;
-import org.rabix.engine.dao.bindings.BindJson;
+import org.rabix.engine.jdbi.bindings.BindJson;
+import org.rabix.engine.jdbi.impl.JDBIDAGRepository.DAGNodeMapper;
+import org.rabix.engine.repository.DAGRepository;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
@@ -15,7 +16,7 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(DAGNodeMapper.class)
-public interface DAGRepository {
+public interface JDBIDAGRepository extends DAGRepository {
 
   @SqlUpdate("insert into dag_node (id,dag) values (:id,:dag::jsonb)")
   void insert(@Bind("id") String id, @BindJson("dag") String dag);
