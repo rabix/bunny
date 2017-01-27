@@ -1,9 +1,15 @@
-class: ExpressionTool
+class: Workflow
 cwlVersion: v1.0
 requirements:
   InlineJavascriptRequirement: {}
 inputs:
-  in: string
+  in: string[]
 outputs:
-  out: string
-expression: "$({out: inputs.in})"
+  out: string[]
+steps:
+  one:
+    in:
+      in: in
+    out: [out]
+    scatter: in
+    run: simple.cwl.yml

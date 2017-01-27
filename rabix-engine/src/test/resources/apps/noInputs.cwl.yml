@@ -2,8 +2,7 @@ class: ExpressionTool
 cwlVersion: v1.0
 requirements:
   InlineJavascriptRequirement: {}
-inputs:
-  in: string
+inputs: []
 outputs:
   out: string
-expression: "$(inputs)"
+expression: "$({out: \"42\"})"

@@ -3,7 +3,9 @@ cwlVersion: v1.0
 requirements:
   InlineJavascriptRequirement: {}
 inputs:
-  in: string
+  in1: string[]
+  in2: string
 outputs:
-  out: string
+  out1: string[]
+  out2: string
 expression: "$(inputs)"

@@ -1,9 +1,19 @@
-class: ExpressionTool
+class: Workflow
 cwlVersion: v1.0
 requirements:
   InlineJavascriptRequirement: {}
 inputs:
-  in: string
+  in1: string[]
+  in2: string[]
 outputs:
-  out: string
-expression: "$({out: inputs.in})"
+  out1: string[]
+  out2: string[]
+steps:
+  one:
+    in:
+      in1: in1
+      in2: in2
+    out: [out]
+    scatter: [in1, in2]
+    scatterMethod: nested_crossproduct
+    run: simple2.cwl.yml
