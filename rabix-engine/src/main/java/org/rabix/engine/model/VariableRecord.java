@@ -5,7 +5,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 
 public class VariableRecord {
 
-  private String contextId;
+  private String rootId;
 
   private String jobId;
   private String portId;
@@ -21,17 +21,17 @@ public class VariableRecord {
   private boolean isDefault = true;
   private Object transform;
 
-  public VariableRecord(String contextId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {  
+  public VariableRecord(String rootId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
     this.jobId = jobId;
     this.portId = portId;
     this.type = type;
     this.value = value;
-    this.contextId = contextId;
+    this.rootId = rootId;
     this.linkMerge = linkMerge;
   }
 
-  public String getContextId() {
-    return contextId;
+  public String getRootId() {
+    return rootId;
   }
   
   public Object getTransform() {
@@ -110,8 +110,8 @@ public class VariableRecord {
     return value;
   }
 
-  public void setContextId(String contextId) {
-    this.contextId = contextId;
+  public void setRootId(String rootId) {
+    this.rootId = rootId;
   }
 
   public void setNumberOfGlobals(int numberOfGlobals) {
@@ -124,7 +124,7 @@ public class VariableRecord {
 
   @Override
   public String toString() {
-    return "VariableRecord [contextId=" + contextId + ", jobId=" + jobId + ", portId=" + portId + ", type=" + type
+    return "VariableRecord [rootId=" + rootId + ", jobId=" + jobId + ", portId=" + portId + ", type=" + type
         + ", value=" + value + ", isWrapped=" + isWrapped + ", numberOfGlobals=" + numberOfGlobals + ", linkMerge=" + linkMerge + "]";
   }
 

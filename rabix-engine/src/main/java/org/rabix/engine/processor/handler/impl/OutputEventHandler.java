@@ -145,7 +145,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         for (VariableRecord destinationVariable : destinationVariables) {
           switch (destinationVariable.getType()) {
           case INPUT:
-            destinationJob = jobService.find(destinationVariable.getJobId(), destinationVariable.getContextId());
+            destinationJob = jobService.find(destinationVariable.getJobId(), destinationVariable.getRootId());
             isDestinationPortScatterable = destinationJob.isScatterPort(destinationVariable.getPortId());
             if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
               value = value != null ? value : event.getValue();
@@ -161,7 +161,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             }
             break;
           case OUTPUT:
-            destinationJob = jobService.find(destinationVariable.getJobId(), destinationVariable.getContextId());
+            destinationJob = jobService.find(destinationVariable.getJobId(), destinationVariable.getRootId());
             if (destinationJob.getOutputPortIncoming(event.getPortId()) > 1) {
               if (sourceJob.isOutputPortReady(event.getPortId())) {
                 value = value != null? value : variableService.getValue(sourceVariable);
