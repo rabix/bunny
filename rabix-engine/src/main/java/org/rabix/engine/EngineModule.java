@@ -3,7 +3,6 @@ package org.rabix.engine;
 import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.db.JobDB;
-import org.rabix.engine.db.ReadyJobGroupsDB;
 import org.rabix.engine.jdbi.JDBIRepositoryModule;
 import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
@@ -34,7 +33,6 @@ public class EngineModule extends AbstractModule {
     bind(JobDB.class).in(Scopes.SINGLETON);
     bind(BackendDB.class).in(Scopes.SINGLETON);
     bind(DAGNodeDB.class).in(Scopes.SINGLETON);
-    bind(ReadyJobGroupsDB.class).in(Scopes.SINGLETON);
     bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
     
     bind(JobRecordService.class).in(Scopes.SINGLETON);

@@ -53,7 +53,6 @@ public class BackendServiceImpl implements BackendService {
           throw new TransactionException(e);
         }
         backendDispatcher.addBackendStub(backendStub);
-
         logger.info("Backend {} registered.", populated.getId());
         return backend;
       }

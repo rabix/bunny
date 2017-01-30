@@ -49,6 +49,7 @@ import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
 import org.rabix.engine.EngineModule;
 import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.db.JobDB;
+import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
@@ -88,7 +89,6 @@ import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
 import org.rabix.transport.backend.BackendPopulator;
 import org.rabix.transport.backend.impl.BackendLocal;
-import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -457,7 +457,7 @@ public class BackendCommandLine {
     } catch (IOException e) {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
-    } catch (JobServiceException | TransportPluginException | InterruptedException e) {
+    } catch (JobServiceException | TransactionException | InterruptedException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }
