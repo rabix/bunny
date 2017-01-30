@@ -5,42 +5,88 @@ import java.util.Collection;
 import java.util.List;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.cache.Cachable;
+import org.rabix.engine.cache.Cache;
+import org.rabix.engine.cache.CacheItem.Action;
 import org.rabix.engine.model.VariableRecord;
+import org.rabix.engine.model.VariableRecord.VariableRecordCacheKey;
 import org.rabix.engine.repository.VariableRecordRepository;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class VariableRecordService {
 
+  private CacheService cacheService;
   private VariableRecordRepository variableRecordRepository;
 
   @Inject
-  public VariableRecordService(VariableRecordRepository variableRecordRepository) {
+  public VariableRecordService(VariableRecordRepository variableRecordRepository, CacheService cacheService) {
+    this.cacheService = cacheService;
     this.variableRecordRepository = variableRecordRepository;
   }
   
   public void create(VariableRecord variableRecord) {
-    variableRecordRepository.insert(variableRecord);
+    Cache cache = cacheService.getCache(variableRecord.getRootId(), VariableRecord.CACHE_NAME);
+    cache.put(variableRecord, Action.INSERT);
   }
   
   public void delete(String rootId) {
-//    variableRecordsPerContext.remove(rootId);
   }
 
   public void update(VariableRecord variableRecord) {
-    variableRecordRepository.update(variableRecord);
+    Cache cache = cacheService.getCache(variableRecord.getRootId(), VariableRecord.CACHE_NAME);
+    cache.put(variableRecord, Action.UPDATE);
   }
   
   public List<VariableRecord> find(String jobId, LinkPortType type, String contextId) {
-    return variableRecordRepository.getByType(jobId, type, contextId);
+    Cache cache = cacheService.getCache(contextId, VariableRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new VariableRecordCacheKey(jobId, null, contextId, type));
+    if (!records.isEmpty()) {
+      return Lists.transform(records, new Function<Cachable, VariableRecord>() {
+        @Override
+        public VariableRecord apply(Cachable input) {
+          return (VariableRecord) input;
+        }
+      });
+    }
+    List<VariableRecord> fromDB = variableRecordRepository.getByType(jobId, type, contextId);
+    for (VariableRecord variableRecord : fromDB) {
+      cache.put(variableRecord, Action.UPDATE);
+    }
+    return fromDB;
   }
   
   public List<VariableRecord> find(String jobId, String portId, String contextId) {
-    return variableRecordRepository.getByPort(jobId, portId, contextId);
+    Cache cache = cacheService.getCache(contextId, VariableRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new VariableRecordCacheKey(jobId, portId, contextId, null));
+    if (!records.isEmpty()) {
+      return Lists.transform(records, new Function<Cachable, VariableRecord>() {
+        @Override
+        public VariableRecord apply(Cachable input) {
+          return (VariableRecord) input;
+        }
+      });
+    }
+    List<VariableRecord> fromDB = variableRecordRepository.getByPort(jobId, portId, contextId);
+    for (VariableRecord variableRecord : fromDB) {
+      cache.put(variableRecord, Action.UPDATE);
+    }
+    return fromDB;
   }
 
   public VariableRecord find(String jobId, String portId, LinkPortType type, String contextId) {
-    return variableRecordRepository.get(jobId, portId, type, contextId);
+    Cache cache = cacheService.getCache(contextId, VariableRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new VariableRecordCacheKey(jobId, portId, contextId, type));
+    if (!records.isEmpty()) {
+      return (VariableRecord) records.get(0);
+    }
+    VariableRecord record = variableRecordRepository.get(jobId, portId, type, contextId);
+    if (record != null) { // TODO why?
+      cache.put(record, Action.UPDATE);
+    }
+    return record;
   }
 
   @SuppressWarnings("unchecked")

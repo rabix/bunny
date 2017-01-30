@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -52,6 +53,8 @@ public class BackendDispatcher {
 
   private final TransactionHelper transactionHelper;
 
+  private final AtomicBoolean scheduleRequest = new AtomicBoolean(true);
+  
   @Inject
   public BackendDispatcher(Configuration configuration, JobBackendService jobBackendService, JobService jobService,
       TransactionHelper repositoriesFactory) {
@@ -67,6 +70,10 @@ public class BackendDispatcher {
       @Override
       public void run() {
         try {
+          if (!scheduleRequest.get()) {
+            return;
+          }
+          scheduleRequest.set(false);
           transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
             @Override
             public Void call() throws TransactionException {
@@ -79,7 +86,7 @@ public class BackendDispatcher {
           logger.error("Failed to schedule jobs", e);
         }
       }
-    }, 0, 1, TimeUnit.MINUTES);
+    }, 0, 100, TimeUnit.MILLISECONDS);
 
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
   }
@@ -88,7 +95,7 @@ public class BackendDispatcher {
     for (Job job : jobs) {
       jobBackendService.insert(job.getId(), job.getRootId(), null);
     }
-    schedule();
+    scheduleRequest.set(true);
   }
 
   private void schedule() {

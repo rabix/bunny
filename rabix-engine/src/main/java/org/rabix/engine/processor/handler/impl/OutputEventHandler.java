@@ -25,6 +25,7 @@ import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
+import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobRecordService.JobState;
@@ -44,6 +45,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
   private final static Logger logger = LoggerFactory.getLogger(OutputEventHandler.class);
   
+  private CacheService cacheService;
   private JobRecordService jobService;
   private LinkRecordService linkService;
   private VariableRecordService variableService;
@@ -56,13 +58,15 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   private EngineStatusCallback engineStatusCallback;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, JobDB jobDB) {
+  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, JobDB jobDB, CacheService cacheService) {
     this.dagNodeDB = dagNodeDB;
     this.jobDB = jobDB;
+    
     this.jobService = jobService;
     this.linkService = linkService;
     this.contextService = contextService;
     this.variableService = variableService;
+    this.cacheService = cacheService;
     this.eventProcessor = eventProcessor;
   }
 
@@ -216,6 +220,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if (event.getEventGroupId() != null && event.getEventGroupId().equals(sourceJob.getExternalId()) && sourceJob.isCompleted()) {
         Set<Job> readyJobs = jobDB.getJobsByGroupId(event.getEventGroupId());
         try {
+          cacheService.flush(event.getContextId());
           engineStatusCallback.onJobsReady(readyJobs);
         } catch (EngineStatusCallbackException e) {
           logger.error("Failed to call onJobsReady() callback", e);

@@ -20,7 +20,7 @@ public class ManualTest {
   }
   
   public static void runTask() {
-    for (int i=0;i<1;i++) {
+    for (int i=0;i<1000;i++) {
       Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
       WebTarget webTarget = client.target("http://localhost" + ":" + 8081 + "/v0/engine/jobs");
 

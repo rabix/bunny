@@ -2,22 +2,34 @@ package org.rabix.engine.repository;
 
 import java.util.List;
 
+import org.rabix.engine.cache.Cachable;
+import org.rabix.engine.cache.CachableRepository;
 import org.rabix.engine.model.JobRecord;
 
-public interface JobRecordRepository {
+public abstract class JobRecordRepository implements CachableRepository {
 
-  int insert(JobRecord jobRecord);
+  @Override
+  public int insert(Cachable record) {
+    return insert((JobRecord) record);
+  }
   
-  int update(JobRecord jobRecord);
+  @Override
+  public int update(Cachable record) {
+    return update((JobRecord) record);
+  }
+
+  public abstract int insert(JobRecord jobRecord);
   
-  List<JobRecord> get(String rootId);
+  public abstract int update(JobRecord jobRecord);
   
-  JobRecord getRoot(String rootId);
+  public abstract List<JobRecord> get(String rootId);
   
-  JobRecord get(String id, String rootId);
+  public abstract JobRecord getRoot(String rootId);
   
-  List<JobRecord> getByParent(String parentId, String rootId);
+  public abstract JobRecord get(String id, String rootId);
   
-  List<JobRecord> getReady(String rootId);
+  public abstract List<JobRecord> getByParent(String parentId, String rootId);
+  
+  public abstract List<JobRecord> getReady(String rootId);
   
 }

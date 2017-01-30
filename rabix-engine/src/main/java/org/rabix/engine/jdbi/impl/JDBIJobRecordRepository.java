@@ -31,28 +31,28 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 @RegisterMapper(JobRecordMapper.class)
-public interface JDBIJobRecordRepository extends JobRecordRepository {
+public abstract class JDBIJobRecordRepository extends JobRecordRepository {
 
   @SqlUpdate("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy)")
-  int insert(@BindJobRecord JobRecord jobRecord);
+  public abstract int insert(@BindJobRecord JobRecord jobRecord);
   
   @SqlUpdate("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy where id=:id and root_id=:root_id")
-  int update(@BindJobRecord JobRecord jobRecord);
+  public abstract int update(@BindJobRecord JobRecord jobRecord);
   
   @SqlQuery("select * from job_record where root_id=:root_id")
-  List<JobRecord> get(@Bind("root_id") String rootId);
+  public abstract List<JobRecord> get(@Bind("root_id") String rootId);
   
   @SqlQuery("select * from job_record where id='root' and root_id=:root_id")
-  JobRecord getRoot(@Bind("root_id") String rootId);
+  public abstract JobRecord getRoot(@Bind("root_id") String rootId);
   
   @SqlQuery("select * from job_record where id=:id and root_id=:root_id")
-  JobRecord get(@Bind("id") String id, @Bind("root_id") String rootId);
+  public abstract JobRecord get(@Bind("id") String id, @Bind("root_id") String rootId);
   
   @SqlQuery("select * from job_record where parent_id=:parent_id and root_id=:root_id")
-  List<JobRecord> getByParent(@Bind("parent_id") String parentId, @Bind("root_id") String rootId);
+  public abstract List<JobRecord> getByParent(@Bind("parent_id") String parentId, @Bind("root_id") String rootId);
   
   @SqlQuery("select * from job_record where job_state='ready' and root_id=?")
-  List<JobRecord> getReady(@Bind("root_id") String rootId);
+  public abstract List<JobRecord> getReady(@Bind("root_id") String rootId);
   
   @BindingAnnotation(BindJobRecord.JobBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)

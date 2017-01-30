@@ -16,6 +16,7 @@ import org.rabix.engine.processor.handler.impl.OutputEventHandler;
 import org.rabix.engine.processor.handler.impl.ScatterHandler;
 import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
 import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
@@ -29,6 +30,8 @@ public class EngineModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new JDBIRepositoryModule());
+    
+    bind(CacheService.class).in(Scopes.SINGLETON);
     
     bind(JobDB.class).in(Scopes.SINGLETON);
     bind(BackendDB.class).in(Scopes.SINGLETON);

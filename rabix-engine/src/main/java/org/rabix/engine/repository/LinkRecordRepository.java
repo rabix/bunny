@@ -3,20 +3,32 @@ package org.rabix.engine.repository;
 import java.util.List;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.cache.Cachable;
+import org.rabix.engine.cache.CachableRepository;
 import org.rabix.engine.model.LinkRecord;
 
-public interface LinkRecordRepository {
+public abstract class LinkRecordRepository implements CachableRepository {
 
-  int insert(LinkRecord linkRecord);
+  @Override
+  public int insert(Cachable record) {
+    return insert((LinkRecord) record);
+  }
   
-  int update(LinkRecord linkRecord);
+  @Override
+  public int update(Cachable record) {
+    return update((LinkRecord) record);
+  }
   
-  List<LinkRecord> getBySource(String sourceJobId, String sourceJobPortId, String rootId);
+  public abstract int insert(LinkRecord linkRecord);
   
-  List<LinkRecord> getBySourceJobId(String sourceJobId, String rootId);
+  public abstract int update(LinkRecord linkRecord);
   
-  List<LinkRecord> getBySourceAndSourceType(String sourceJobId, LinkPortType sourceType, String rootId);
+  public abstract List<LinkRecord> getBySource(String sourceJobId, String sourceJobPortId, String rootId);
   
-  List<LinkRecord> getBySourceAndDestinationType(String sourceJobId, String sourceJobPortId, LinkPortType destinationType, String rootId);
+  public abstract List<LinkRecord> getBySourceJobId(String sourceJobId, String rootId);
+  
+  public abstract List<LinkRecord> getBySourceAndSourceType(String sourceJobId, LinkPortType sourceType, String rootId);
+  
+  public abstract List<LinkRecord> getBySourceAndDestinationType(String sourceJobId, String sourceJobPortId, LinkPortType destinationType, String rootId);
   
 }

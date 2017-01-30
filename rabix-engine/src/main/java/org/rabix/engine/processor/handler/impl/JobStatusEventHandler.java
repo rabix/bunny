@@ -32,6 +32,7 @@ import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
+import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobRecordService.JobState;
@@ -57,14 +58,16 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final VariableRecordService variableRecordService;
   private final ContextRecordService contextRecordService;
   
+  private final CacheService cacheService;
   private EngineStatusCallback engineStatusCallback;
 
   @Inject
-  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final JobDB jobDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final ContextRecordService contextRecordService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper) {
+  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final JobDB jobDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final ContextRecordService contextRecordService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper, final CacheService cacheService) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
+    this.cacheService = cacheService;
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
     this.contextRecordService = contextRecordService;
@@ -94,6 +97,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             jobDB.add(job, event.getEventGroupId());
           } else {
             try {
+              cacheService.flush(event.getContextId());
               jobDB.add(job, null);
               engineStatusCallback.onJobReady(job);
             } catch (Exception e) {

@@ -14,6 +14,7 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.repository.VariableRecordRepository;
@@ -29,22 +30,27 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(VariableRecordMapper.class)
-public interface JDBIVariableRecordRepository extends VariableRecordRepository {
+public abstract class JDBIVariableRecordRepository extends VariableRecordRepository {
 
+  @Override
+  public int insert(Cachable record) {
+    return insert((VariableRecord) record);
+  }
+  
   @SqlUpdate("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type,:link_merge,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
-  int insert(@BindVariableRecord VariableRecord jobRecord);
+  public abstract int insert(@BindVariableRecord VariableRecord jobRecord);
   
   @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type")
-  int update(@BindVariableRecord VariableRecord jobRecord);
+  public abstract int update(@BindVariableRecord VariableRecord jobRecord);
   
   @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and type=:type and context_id=:context_id")
-  VariableRecord get(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("context_id") String rootId);
+  public abstract VariableRecord get(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("context_id") String rootId);
  
   @SqlQuery("select * from variable_record where job_id=:job_id and type=:type and context_id=:context_id")
-  List<VariableRecord> getByType(@Bind("job_id") String jobId, @Bind("type") LinkPortType type, @Bind("context_id") String rootId);
+  public abstract List<VariableRecord> getByType(@Bind("job_id") String jobId, @Bind("type") LinkPortType type, @Bind("context_id") String rootId);
   
   @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and context_id=:context_id")
-  List<VariableRecord> getByPort(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("context_id") String rootId);
+  public abstract List<VariableRecord> getByPort(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("context_id") String rootId);
  
   @BindingAnnotation(BindVariableRecord.VariableBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
