@@ -5,6 +5,7 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.db.JobDB;
 import org.rabix.engine.db.ReadyJobGroupsDB;
 import org.rabix.engine.jdbi.JDBIRepositoryModule;
+import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
 import org.rabix.engine.processor.handler.HandlerFactory;
@@ -15,6 +16,7 @@ import org.rabix.engine.processor.handler.impl.JobStatusEventHandler;
 import org.rabix.engine.processor.handler.impl.OutputEventHandler;
 import org.rabix.engine.processor.handler.impl.ScatterHandler;
 import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
+import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
@@ -27,10 +29,13 @@ public class EngineModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    install(new JDBIRepositoryModule());
+    
     bind(JobDB.class).in(Scopes.SINGLETON);
     bind(BackendDB.class).in(Scopes.SINGLETON);
     bind(DAGNodeDB.class).in(Scopes.SINGLETON);
     bind(ReadyJobGroupsDB.class).in(Scopes.SINGLETON);
+    bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
     
     bind(JobRecordService.class).in(Scopes.SINGLETON);
     bind(VariableRecordService.class).in(Scopes.SINGLETON);
@@ -47,8 +52,6 @@ public class EngineModule extends AbstractModule {
     bind(HandlerFactory.class).in(Scopes.SINGLETON);
     bind(EventDispatcherFactory.class).in(Scopes.SINGLETON);
     bind(EventProcessor.class).to(MultiEventProcessorImpl.class).in(Scopes.SINGLETON);
-    
-    install(new JDBIRepositoryModule());
   }
   
 }

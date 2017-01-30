@@ -137,7 +137,7 @@ public class JobDataServiceImpl implements JobDataService {
               continue;
             }
             save(JobData.cloneWithStatus(jobData, JobDataStatus.READY));
-
+            
             jobHandlerCommandDispatcher.dispatch(jobData, startCommandProvider.get(), engineStub);
             jobHandlerCommandDispatcher.dispatch(jobData, statusCommandProvider.get(), engineStub);
           } catch (BindingException e) {

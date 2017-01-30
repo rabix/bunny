@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T extends TransportPlugin<Q>> {
 
+  public final static long DEFAULT_HEARTBEAT_TIME = 60000L;
+  
   protected final Logger logger = LoggerFactory.getLogger(getClass());
   
   protected B backend;
@@ -35,6 +37,8 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
   protected Q sendToBackendControlQueue;
   protected Q receiveFromBackendQueue;
   protected Q receiveFromBackendHeartbeatQueue;
+  
+  protected Long heartbeatTimeMills;
   
   protected FileService fileService;
   protected ExecutorService executorService;
@@ -80,7 +84,7 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
       public void run() {
         transportPlugin.send(receiveFromBackendHeartbeatQueue, new HeartbeatInfo(backend.getId(), System.currentTimeMillis()));
       }
-    }, 0, 1, TimeUnit.SECONDS);
+    }, 0, heartbeatTimeMills, TimeUnit.MILLISECONDS);
   }
 
   public void stop() {

@@ -12,6 +12,7 @@ import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.LinkRecordRepository;
 import org.rabix.engine.repository.VariableRecordRepository;
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.logging.SLF4JLog;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -38,7 +39,10 @@ public class JDBIRepositoryModule extends AbstractModule {
     source.setUser(configuration.getString("postgres.user"));
     source.setPassword(configuration.getString("postgres.password"));
     source.setMaxConnections(configuration.getInt("postgres.pool_max_connections"));
-    return new DBI(source);
+    
+    DBI dbi = new DBI(source);
+    dbi.setSQLLog(new SLF4JLog());
+    return dbi;
   }
   
   @Singleton

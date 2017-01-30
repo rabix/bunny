@@ -19,6 +19,8 @@ import org.rabix.engine.processor.dispatcher.EventDispatcher;
 import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
+import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.slf4j.Logger;
@@ -46,18 +48,22 @@ public class EventProcessorImpl implements EventProcessor {
   
   private final ContextRecordService contextRecordService;
   
+  private final TransactionHelper transactionHelper;
+  
   private final ConcurrentMap<String, Integer> iterations = new ConcurrentHashMap<>();
   
   @Inject
-  public EventProcessorImpl(HandlerFactory handlerFactory, EventDispatcherFactory eventDispatcherFactory, ContextRecordService contextRecordService) {
+  public EventProcessorImpl(HandlerFactory handlerFactory, EventDispatcherFactory eventDispatcherFactory, ContextRecordService contextRecordService, TransactionHelper transactionHelper) {
     this.handlerFactory = handlerFactory;
     this.contextRecordService = contextRecordService;
+    this.transactionHelper = transactionHelper;
     this.eventDispatcher = eventDispatcherFactory.create(EventDispatcher.Type.SYNC);
   }
 
   public void start(final List<IterationCallback> iterationCallbacks, EngineStatusCallback engineStatusCallback) {
     this.handlerFactory.initialize(engineStatusCallback);
     
+    final AtomicBoolean shouldSkipIteration = new AtomicBoolean(false);
     executorService.execute(new Runnable() {
       @Override
       public void run() {
@@ -70,13 +76,30 @@ public class EventProcessorImpl implements EventProcessor {
               Thread.sleep(SLEEP);
               continue;
             }
-            ContextRecord context = contextRecordService.find(event.getContextId());
-            if (context != null && context.getStatus().equals(ContextStatus.FAILED)) {
-              logger.info("Skip event {}. Context {} has been invalidated.", event, context.getId());
+            final Event finalEvent = event;
+            transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
+              @Override
+              public Void call() throws TransactionException {
+                ContextRecord context = contextRecordService.find(finalEvent.getContextId());
+                if (context != null && context.getStatus().equals(ContextStatus.FAILED)) {
+                  logger.info("Skip event {}. Context {} has been invalidated.", finalEvent, context.getId());
+                  shouldSkipIteration.set(true);
+                  return null;
+                }
+                running.set(true);
+                try {
+                  handlerFactory.get(finalEvent.getType()).handle(finalEvent);
+                } catch (EventHandlerException e) {
+                  throw new TransactionException(e);
+                }
+                return null;
+              }
+            });
+            
+            if (shouldSkipIteration.get()) {
+              shouldSkipIteration.set(false);
               continue;
             }
-            running.set(true);
-            handlerFactory.get(event.getType()).handle(event);
 
             Integer iteration = iterations.get(event.getContextId());
             if (iteration == null) {

@@ -14,6 +14,8 @@ public class EngineStubLocal extends EngineStub<TransportQueueLocal, BackendLoca
     this.executorService = executorService;
     this.transportPlugin = new TransportPluginLocal(configuration);
     
+    this.heartbeatTimeMills = configuration.getLong("rabbitmq.backend.heartbeatTimeMills", DEFAULT_HEARTBEAT_TIME);
+    
     this.sendToBackendQueue = new TransportQueueLocal(BackendLocal.SEND_TO_BACKEND_QUEUE);
     this.sendToBackendControlQueue = new TransportQueueLocal(BackendLocal.SEND_TO_BACKEND_CONTROL_QUEUE);
     this.receiveFromBackendQueue = new TransportQueueLocal(BackendLocal.RECEIVE_FROM_BACKEND_QUEUE);
