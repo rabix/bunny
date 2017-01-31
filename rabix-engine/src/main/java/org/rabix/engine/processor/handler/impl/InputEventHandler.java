@@ -65,7 +65,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       job.resetOutputPortCounters(job.getInputPortIncoming(event.getPortId()));
     }
     
-    variable.addValue(event.getValue(), event.getPosition(), job.isScatterWrapper() && job.isScatterPort(event.getPortId()));
+    variable.addValue(event.getValue(), event.getPosition(), false);
     job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
     
     // scatter
@@ -112,12 +112,12 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     List<Event> events = new ArrayList<>();
     for (LinkRecord link : links) {
       VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
-      job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
       Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variable.getValue(), event.getPosition(), event.getEventGroupId());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {
       eventProcessor.send(subevent);
+      job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
     }
   }
 
