@@ -251,11 +251,6 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
   private void processPorts(CWLJob parentJob, CWLJob job, List<? extends ApplicationPort> ports) throws CWLException {
     for (ApplicationPort port : ports) {
       setScatter(job, port);  // if it's a container
-      if (parentJob != null) {
-        // it it's an embedded container
-        setScatter(parentJob, port);
-      }
-      
       if (parentJob != null && parentJob.getApp().isWorkflow()) {
         // if it's a container
         CWLWorkflow workflowApp = (CWLWorkflow) parentJob.getApp();
