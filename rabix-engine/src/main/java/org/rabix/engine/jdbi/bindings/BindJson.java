@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import java.sql.SQLException;
 
 import org.postgresql.util.PGobject;
+import org.rabix.common.helper.JSONHelper;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.sqlobject.Binder;
 import org.skife.jdbi.v2.sqlobject.BinderFactory;
@@ -21,13 +22,13 @@ public @interface BindJson {
 
   public static class JsonBinderFactory implements BinderFactory<Annotation> {
 
-    public Binder<BindJson, String> build(Annotation annotation) {
-      return new Binder<BindJson, String>() {
-        public void bind(SQLStatement<?> q, BindJson bind, String jsonString) {
+    public Binder<BindJson, Object> build(Annotation annotation) {
+      return new Binder<BindJson, Object>() {
+        public void bind(SQLStatement<?> q, BindJson bind, Object bean) {
           try {
             PGobject data = new PGobject();
             data.setType("jsonb");
-            data.setValue(jsonString);
+            data.setValue(JSONHelper.writeObject(bean));
             q.bind(bind.value(), data);
           } catch (SQLException ex) {
             throw new IllegalStateException("Error Binding JSON", ex);
