@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.jdbi.impl.JDBIBackendRepository.BackendMapper;
 import org.rabix.engine.repository.BackendRepository;
@@ -23,13 +22,12 @@ public interface JDBIBackendRepository extends BackendRepository {
   void insert(@BindBackend Backend backend);
   
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
-
   void update(@BindBackend Backend backend);
 
   @SqlQuery("select * from backend where id=:id")
   Backend get(@Bind("id") UUID id);
 
-  @SqlQuery("select * from backend where id=:id")
+  @SqlQuery("select * from backend where name=:name")
   Backend getByName(@Bind("name") String name);
   
   public static class BackendMapper implements ResultSetMapper<Backend> {

@@ -7,6 +7,7 @@ import java.util.UUID;
 public interface BackendRepository {
 
   void insert(Backend backend);
+
   
   void update(Backend configuration);
 
