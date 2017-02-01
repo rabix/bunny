@@ -60,10 +60,10 @@ public class SchedulerServiceImpl implements SchedulerService {
     this.jobBackendService = jobBackendService;
     this.transactionHelper = repositoriesFactory;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
-    start();
   }
 
-  private void start() {
+  @Override
+  public void start() {
     executorService.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {

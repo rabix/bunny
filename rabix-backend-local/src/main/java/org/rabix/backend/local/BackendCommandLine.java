@@ -395,6 +395,9 @@ public class BackendCommandLine {
         }
       }
 
+      final SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
+      schedulerService.start();
+      
       final JobService jobService = injector.getInstance(JobService.class);
       final BackendService backendService = injector.getInstance(BackendService.class);
       final ExecutorService executorService = injector.getInstance(ExecutorService.class);

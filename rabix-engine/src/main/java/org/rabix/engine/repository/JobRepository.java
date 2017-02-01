@@ -6,9 +6,9 @@ import org.rabix.bindings.model.Job;
 
 public interface JobRepository {
 
-  void insert(String id, String rootId, String job, String groupId);
+  void insert(String id, String rootId, Job job, String groupId);
   
-  void update(String id, String job);
+  void update(String id, Job job);
   
   Job get(String id);
   

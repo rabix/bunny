@@ -5,6 +5,8 @@ import org.rabix.engine.rest.backend.stub.BackendStub;
 
 public interface SchedulerService {
 
+  void start();
+  
   void send(Job... jobs);
 
   boolean stop(Job... jobs);

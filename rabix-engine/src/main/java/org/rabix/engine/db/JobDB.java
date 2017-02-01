@@ -3,7 +3,6 @@ package org.rabix.engine.db;
 import java.util.Set;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
@@ -18,15 +17,15 @@ public class JobDB {
   }
   
   public void add(Job job) {
-    jobRepository.insert(job.getId(), job.getRootId(), JSONHelper.writeObject(job), null);
+    jobRepository.insert(job.getId(), job.getRootId(), job, null);
   }
   
   public void add(Job job, String groupId) {
-    jobRepository.insert(job.getId(), job.getRootId(), JSONHelper.writeObject(job), groupId);
+    jobRepository.insert(job.getId(), job.getRootId(), job, groupId);
   }
   
   public void update(Job job) {
-    jobRepository.update(job.getId(), JSONHelper.writeObject(job));
+    jobRepository.update(job.getId(), job);
   }
   
   public Job get(String id) {

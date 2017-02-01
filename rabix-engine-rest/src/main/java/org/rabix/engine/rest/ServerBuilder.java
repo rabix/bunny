@@ -78,6 +78,9 @@ public class ServerBuilder {
 
     Configuration configuration = injector.getInstance(Configuration.class);
 
+    SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
+    schedulerService.start();
+    
     int enginePort = configuration.getInt(ENGINE_PORT_KEY);
     Server server = new Server(enginePort);
 

@@ -20,10 +20,10 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 public interface JDBIJobRepository extends JobRepository {
 
   @SqlUpdate("insert into job (id,root_id,job,group_id) values (:id,:root_id,:job::jsonb,:group_id)")
-  void insert(@Bind("id") String id, @Bind("root_id") String rootId, @BindJson("job") String job, @Bind("group_id") String groupId);
+  void insert(@Bind("id") String id, @Bind("root_id") String rootId, @BindJson("job") Job job, @Bind("group_id") String groupId);
   
   @SqlUpdate("update job set job=:job where id=:id")
-  void update(@Bind("id") String id, @BindJson("job") String job);
+  void update(@Bind("id") String id, @BindJson("job") Job job);
   
   @SqlQuery("select * from job where id=:id")
   Job get(@Bind("id") String id);
