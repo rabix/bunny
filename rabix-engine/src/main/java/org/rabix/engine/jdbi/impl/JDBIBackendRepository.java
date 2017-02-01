@@ -19,10 +19,10 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 public interface JDBIBackendRepository extends BackendRepository {
 
   @SqlUpdate("insert into backend (id,configuration) values (:id,:configuration)")
-  void insert(@Bind("id") String id, @BindJson("configuration") String backend);
+  void insert(@Bind("id") String id, @BindJson("configuration") Backend backend);
   
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
-  void update(@Bind("id") String id, @BindJson("configuration") String configuration);
+  void update(@Bind("id") String id, @BindJson("configuration") Backend configuration);
   
   @SqlQuery("select * from backend where id=:id")
   Backend get(@Bind("id") String id);

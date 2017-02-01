@@ -29,7 +29,7 @@ public class DAGNodeDB {
    * Loads node into the repository recursively
    */
   public void loadDB(DAGNode node, String contextId) {
-    dagRepository.insert(contextId, JSONHelper.writeObject(node));
+    dagRepository.insert(contextId, node);
   }
   
 }

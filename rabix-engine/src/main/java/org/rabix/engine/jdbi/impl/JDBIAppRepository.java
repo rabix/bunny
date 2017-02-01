@@ -16,7 +16,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 public interface JDBIAppRepository extends AppRepository {
 
   @SqlUpdate("INSERT INTO APPLICATION (ID,APP) SELECT :id,:app WHERE NOT EXISTS (SELECT ID FROM APPLICATION WHERE ID=:id)")
-  void insert(@Bind("id") String id, @BindJson("app") String app);
+  void insert(@Bind("id") String id, @BindJson("app") Application app);
   
   @SqlQuery("SELECT APP FROM APPLICATION WHERE ID=:id;")
   Application get(@Bind("id") String id);
