@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.UUID;
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ 
     @Type(value = BackendActiveMQ.class, name = "ACTIVE_MQ"),
@@ -20,20 +22,54 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public abstract class Backend {
 
   @JsonProperty("id")
-  protected String id;
-  
+  protected UUID id;
+
+  @JsonProperty("name")
+  protected String name;
+
+
+  public Backend() {
+    this(UUID.randomUUID());
+  }
+
+  public Backend(UUID id) {
+    this(id, id.toString());
+  }
+
+  public Backend(String name) {
+    this.name = name;
+    try {
+      id = UUID.fromString(name);
+    } catch (IllegalArgumentException e) {
+      id = UUID.randomUUID();
+    }
+  }
+
+  public Backend(UUID id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+
   public static enum BackendType {
     LOCAL,
     ACTIVE_MQ,
     RABBIT_MQ
   }
 
-  public String getId() {
+  public UUID getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(UUID id) {
     this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public abstract BackendType getType();

@@ -115,7 +115,7 @@ public class JobHelper {
       preprocesedInputs.put(inputVariable.getPortId(), value);
     }
     
-    ContextRecord contextRecord = contextRecordService.find(job.getRootId());
+    ContextRecord contextRecord = contextRecordService.findByExternalId(job.getRootId());
     String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
     
     Set<String> visiblePorts = findVisiblePorts(job, jobRecordService, linkRecordService, variableRecordService);
@@ -172,7 +172,7 @@ public class JobHelper {
       inputs.put(inputVariable.getPortId(), value);
     }
     
-    ContextRecord contextRecord = contextRecordService.find(job.getRootId());
+    ContextRecord contextRecord = contextRecordService.findByExternalId(job.getRootId());
     String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
     return new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, inputs, outputs, contextRecord.getConfig(), null, null);
   }

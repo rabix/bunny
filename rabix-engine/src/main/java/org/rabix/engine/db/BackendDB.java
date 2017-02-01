@@ -6,6 +6,8 @@ import org.rabix.transport.backend.Backend;
 
 import com.google.inject.Inject;
 
+import java.util.UUID;
+
 public class BackendDB {
 
   private BackendRepository backendRepository;
@@ -16,15 +18,19 @@ public class BackendDB {
   }
   
   public void add(Backend backend) {
-    backendRepository.insert(backend.getId(), BeanSerializer.serializeFull(backend));
+    backendRepository.insert(backend);
   }
   
   public void update(Backend backend) {
-    backendRepository.update(backend.getId(), BeanSerializer.serializeFull(backend));
+    backendRepository.update(backend);
   }
   
-  public Backend get(String id) {
+  public Backend get(UUID id) {
     return backendRepository.get(id);
+  }
+
+  public Backend getByName(String name) {
+    return backendRepository.getByName(name);
   }
   
 }
