@@ -5,6 +5,8 @@ import org.rabix.engine.repository.ContextRecordRepository;
 
 import com.google.inject.Inject;
 
+import java.util.UUID;
+
 public class ContextRecordService {
 
   private ContextRecordRepository contextRecordRepository;
@@ -22,8 +24,12 @@ public class ContextRecordService {
     contextRecordRepository.update(context);
   }
   
-  public synchronized ContextRecord find(String id) {
+  public synchronized ContextRecord find(UUID id) {
     return contextRecordRepository.get(id);
+  }
+
+  public synchronized ContextRecord findByExternalId(String externalId) {
+    return contextRecordRepository.getByExternalId(externalId);
   }
   
 }

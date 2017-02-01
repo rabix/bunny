@@ -107,7 +107,7 @@ public class BackendDispatcher {
     for (BackendJob freeJob : freeJobs) {
       BackendStub<?, ?, ?> backendStub = nextBackend();
 
-      jobBackendService.update(freeJob.getJobId(), backendStub.getBackend().getId());
+      jobBackendService.update(freeJob.getJobId(), backendStub.getBackend().getId().toString());
       backendStub.send(jobService.get(freeJob.getJobId()));
       logger.info("Job {} sent to {}.", freeJob.getJobId(), backendStub.getBackend().getId());
     }
@@ -131,7 +131,7 @@ public class BackendDispatcher {
       dispatcherLock.lock();
       backendStub.start(heartbeatInfo);
       this.backendStubs.add(backendStub);
-      this.heartbeatInfo.put(backendStub.getBackend().getId(), System.currentTimeMillis());
+      this.heartbeatInfo.put(backendStub.getBackend().getName(), System.currentTimeMillis());
     } finally {
       dispatcherLock.unlock();
     }
@@ -191,7 +191,7 @@ public class BackendDispatcher {
                 backendIterator.remove();
                 logger.info("Removing Backend {}", backendStub.getBackend().getId());
 
-                Set<BackendJob> backendJobs = jobBackendService.getByBackendId(backend.getId());
+                Set<BackendJob> backendJobs = jobBackendService.getByBackendId(backend.getId().toString());
 
                 for (BackendJob backendJob : backendJobs) {
                   jobBackendService.update(backendJob.getJobId(), null);

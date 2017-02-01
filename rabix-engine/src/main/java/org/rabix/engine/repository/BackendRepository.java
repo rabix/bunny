@@ -2,12 +2,16 @@ package org.rabix.engine.repository;
 
 import org.rabix.transport.backend.Backend;
 
+import java.util.UUID;
+
 public interface BackendRepository {
 
-  void insert(String id, Backend backend);
+  void insert(Backend backend);
   
-  void update(String id, Backend configuration);
-  
-  Backend get(String id);
+  void update(Backend configuration);
+
+  Backend get(UUID id);
+
+  Backend getByName(String name);
   
 }

@@ -2,6 +2,7 @@ package org.rabix.engine.processor.handler.impl;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGContainer;
 import org.rabix.bindings.model.dag.DAGLinkPort;
@@ -47,7 +48,14 @@ public class InitEventHandler implements EventHandler<InitEvent> {
   }
 
   public void handle(final InitEvent event) throws EventHandlerException {
-    ContextRecord context = new ContextRecord(event.getRootId(), event.getConfig(), ContextStatus.RUNNING);
+    String externalId = event.getRootId();
+    UUID id;
+    try {
+      id = UUID.fromString(externalId);
+    } catch (IllegalArgumentException e) {
+      id = UUID.randomUUID();
+    }
+    ContextRecord context = new ContextRecord(id, externalId, event.getConfig(), ContextStatus.RUNNING);
     
     contextRecordService.create(context);
     nodeDB.loadDB(event.getNode(), event.getContextId());

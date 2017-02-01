@@ -16,8 +16,8 @@ public class BackendRabbitMQ extends Backend {
   private BackendConfiguration backendConfiguration;
   
   @JsonCreator
-  public BackendRabbitMQ(@JsonProperty("id") String id, @JsonProperty("host") String host, @JsonProperty("engine_configuration") EngineConfiguration engineConfiguration, @JsonProperty("backend_configuration") BackendConfiguration backendConfiguration) {
-    this.id = id;
+  public BackendRabbitMQ(@JsonProperty("name") String name, @JsonProperty("host") String host, @JsonProperty("engine_configuration") EngineConfiguration engineConfiguration, @JsonProperty("backend_configuration") BackendConfiguration backendConfiguration) {
+    super(name);
     this.host = host;
     this.engineConfiguration = engineConfiguration;
     this.backendConfiguration = backendConfiguration;

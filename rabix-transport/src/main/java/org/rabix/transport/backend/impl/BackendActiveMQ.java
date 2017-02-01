@@ -18,8 +18,8 @@ public class BackendActiveMQ extends Backend {
   @JsonProperty("fromBackendHeartbeatQueue")
   private String fromBackendHeartbeatQueue;
   
-  public BackendActiveMQ(@JsonProperty("id") String id, @JsonProperty("broker") String broker, @JsonProperty("toBackendQueue") String toBackendQueue, @JsonProperty("toBackendControlQueue") String toBackendControlQueue, @JsonProperty("fromBackendQueue") String fromBackendQueue, @JsonProperty("fromBackendHeartbeatQueue") String fromBackendHeartbeatQueue) {
-    this.id = id;
+  public BackendActiveMQ(@JsonProperty("name") String name, @JsonProperty("broker") String broker, @JsonProperty("toBackendQueue") String toBackendQueue, @JsonProperty("toBackendControlQueue") String toBackendControlQueue, @JsonProperty("fromBackendQueue") String fromBackendQueue, @JsonProperty("fromBackendHeartbeatQueue") String fromBackendHeartbeatQueue) {
+    super(name);
     this.broker = broker;
     this.toBackendQueue = toBackendQueue;
     this.toBackendControlQueue = toBackendControlQueue;

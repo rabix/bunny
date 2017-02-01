@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
@@ -29,15 +30,18 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(ContextRecordMapper.class)
 public interface JDBIContextRecordRepository extends ContextRecordRepository {
 
-  @SqlUpdate("insert into context_record (id,status,config) values (:id,:status,:config)")
+  @SqlUpdate("insert into context_record (id,external_id, status,config) values (:id,:external_id,:status,:config)")
   int insert(@BindContextRecord ContextRecord contextRecord);
   
   @SqlUpdate("update context_record set status=:status,config=:config where id=:id")
   int update(@BindContextRecord ContextRecord contextRecord);
   
   @SqlQuery("select * from context_record where id=:id")
-  ContextRecord get(@Bind("id") String id);
-  
+  ContextRecord get(@Bind("id") UUID id);
+
+  @SqlQuery("select * from context_record where external_id=:external_id")
+  ContextRecord getByExternalId(@Bind("external_id") String externalId);
+
   @BindingAnnotation(BindContextRecord.ContextBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })
@@ -47,6 +51,7 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
         return new Binder<BindContextRecord, ContextRecord>() {
           public void bind(SQLStatement<?> q, BindContextRecord bind, ContextRecord contextRecord) {
             q.bind("id", contextRecord.getId());
+            q.bind("external_id", contextRecord.getExternalId());
             q.bind("status", contextRecord.getStatus());
             try {
               PGobject data = new PGobject();
@@ -64,12 +69,13 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
   
   public static class ContextRecordMapper implements ResultSetMapper<ContextRecord> {
     public ContextRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
-      String id = resultSet.getString("ID");
+      UUID id = resultSet.getObject("ID", UUID.class);
+      String externalId = resultSet.getString("EXTERNAL_ID");
       String config = resultSet.getString("CONFIG");
       String status = resultSet.getString("STATUS");
 
       Map<String, Object> configObject = JSONHelper.readMap(config);
-      return new ContextRecord(id, configObject, ContextStatus.valueOf(status));
+      return new ContextRecord(id, externalId, configObject, ContextStatus.valueOf(status));
     }
   }
 }

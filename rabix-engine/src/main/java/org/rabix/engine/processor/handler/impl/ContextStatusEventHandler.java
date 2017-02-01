@@ -19,7 +19,7 @@ public class ContextStatusEventHandler implements EventHandler<ContextStatusEven
   
   @Override
   public void handle(ContextStatusEvent event) throws EventHandlerException {
-    ContextRecord contextRecord = contextRecordService.find(event.getContextId());
+    ContextRecord contextRecord = contextRecordService.findByExternalId(event.getContextId());
     contextRecord.setStatus(event.getStatus());
     contextRecordService.update(contextRecord);
   }

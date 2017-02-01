@@ -82,7 +82,7 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
     scheduledHeartbeatService.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
-        transportPlugin.send(receiveFromBackendHeartbeatQueue, new HeartbeatInfo(backend.getId(), System.currentTimeMillis()));
+        transportPlugin.send(receiveFromBackendHeartbeatQueue, new HeartbeatInfo(backend.getName(), System.currentTimeMillis()));
       }
     }, 0, heartbeatTimeMills, TimeUnit.MILLISECONDS);
   }

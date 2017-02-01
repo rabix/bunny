@@ -80,7 +80,7 @@ public class EventProcessorImpl implements EventProcessor {
             transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws TransactionException {
-                ContextRecord context = contextRecordService.find(finalEvent.getContextId());
+                ContextRecord context = contextRecordService.findByExternalId(finalEvent.getContextId());
                 if (context != null && context.getStatus().equals(ContextStatus.FAILED)) {
                   logger.info("Skip event {}. Context {} has been invalidated.", finalEvent, context.getId());
                   shouldSkipIteration.set(true);
