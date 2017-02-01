@@ -16,11 +16,11 @@ public class BackendDB {
   }
   
   public void add(Backend backend) {
-    backendRepository.insert(backend.getId(), BeanSerializer.serializeFull(backend));
+    backendRepository.insert(backend.getId(), backend);
   }
   
   public void update(Backend backend) {
-    backendRepository.update(backend.getId(), BeanSerializer.serializeFull(backend));
+    backendRepository.update(backend.getId(), backend);
   }
   
   public Backend get(String id) {

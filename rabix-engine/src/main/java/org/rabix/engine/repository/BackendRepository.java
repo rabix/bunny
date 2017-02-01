@@ -4,9 +4,9 @@ import org.rabix.transport.backend.Backend;
 
 public interface BackendRepository {
 
-  void insert(String id, String backend);
+  void insert(String id, Backend backend);
   
-  void update(String id, String configuration);
+  void update(String id, Backend configuration);
   
   Backend get(String id);
   
