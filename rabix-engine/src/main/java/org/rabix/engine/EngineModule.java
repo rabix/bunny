@@ -6,7 +6,6 @@ import org.rabix.engine.db.JobDB;
 import org.rabix.engine.jdbi.JDBIRepositoryModule;
 import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.processor.handler.impl.ContextStatusEventHandler;
 import org.rabix.engine.processor.handler.impl.InitEventHandler;
@@ -51,7 +50,6 @@ public class EngineModule extends AbstractModule {
     bind(ContextStatusEventHandler.class).in(Scopes.SINGLETON);
     
     bind(HandlerFactory.class).in(Scopes.SINGLETON);
-    bind(EventDispatcherFactory.class).in(Scopes.SINGLETON);
     bind(EventProcessor.class).to(MultiEventProcessorImpl.class).in(Scopes.SINGLETON);
   }
   

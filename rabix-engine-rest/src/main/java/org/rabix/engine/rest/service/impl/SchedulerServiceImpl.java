@@ -34,6 +34,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 
   private final static Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
+  private final static long SCHEDULE_PERIOD = TimeUnit.SECONDS.toMillis(1);
   private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(2);
 
   private final List<BackendStub<?, ?, ?>> backendStubs = new ArrayList<>();
@@ -80,7 +81,7 @@ public class SchedulerServiceImpl implements SchedulerService {
           logger.error("Failed to schedule jobs", e);
         }
       }
-    }, 0, 1, TimeUnit.SECONDS);
+    }, 0, SCHEDULE_PERIOD, TimeUnit.MILLISECONDS);
 
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
   }
