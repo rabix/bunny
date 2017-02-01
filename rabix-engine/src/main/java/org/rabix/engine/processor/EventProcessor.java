@@ -17,6 +17,8 @@ public interface EventProcessor {
   void send(Event event) throws EventHandlerException;
 
   void addToQueue(Event event);
+  
+  void addToExternalQueue(Event event);
 
   /**
    * Post iteration callback

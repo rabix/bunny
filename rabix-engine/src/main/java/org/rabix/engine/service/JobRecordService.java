@@ -1,5 +1,6 @@
 package org.rabix.engine.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,12 +55,16 @@ public class JobRecordService {
     cache.put(jobRecord, Action.UPDATE);
   }
   
-  public List<JobRecord> find(String contextId) {
-    return jobRecordRepository.get(contextId);
-  }
-  
   public List<JobRecord> findReady(String contextId) {
-    return jobRecordRepository.getReady(contextId);
+    Cache cache = cacheService.getCache(contextId, "JOB_RECORD");
+    List<Cachable> jobRecords = cache.get(new JobRecord.JobCacheKey(null, contextId));
+    List<JobRecord> readyJobRecords = new ArrayList<>();
+    for (Cachable jobRecord : jobRecords) {
+      if (((JobRecord) jobRecord).isReady()) {
+        readyJobRecords.add((JobRecord) jobRecord);
+      }
+    }
+    return readyJobRecords;
   }
   
   // get from DB and put to cache with UPDATE action - don't override

@@ -34,6 +34,7 @@ public class ManualTest {
       
       Invocation.Builder invocationBuilder = webTarget.request(javax.ws.rs.core.MediaType.APPLICATION_JSON);
       invocationBuilder.post(Entity.entity(job, javax.ws.rs.core.MediaType.APPLICATION_JSON));
+      System.out.println(i);
     }
   }
   

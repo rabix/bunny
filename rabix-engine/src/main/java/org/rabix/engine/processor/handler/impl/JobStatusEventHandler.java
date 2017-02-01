@@ -97,7 +97,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             jobDB.add(job, event.getEventGroupId());
           } else {
             try {
-              cacheService.flush(event.getContextId());
               jobDB.add(job, null);
               engineStatusCallback.onJobReady(job);
             } catch (Exception e) {

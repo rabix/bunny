@@ -53,8 +53,6 @@ public class BackendDispatcher {
 
   private final TransactionHelper transactionHelper;
 
-  private final AtomicBoolean scheduleRequest = new AtomicBoolean(true);
-  
   @Inject
   public BackendDispatcher(Configuration configuration, JobBackendService jobBackendService, JobService jobService,
       TransactionHelper repositoriesFactory) {
@@ -70,10 +68,6 @@ public class BackendDispatcher {
       @Override
       public void run() {
         try {
-          if (!scheduleRequest.get()) {
-            return;
-          }
-          scheduleRequest.set(false);
           transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
             @Override
             public Void call() throws TransactionException {
@@ -86,7 +80,7 @@ public class BackendDispatcher {
           logger.error("Failed to schedule jobs", e);
         }
       }
-    }, 0, 100, TimeUnit.MILLISECONDS);
+    }, 0, 1, TimeUnit.SECONDS);
 
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
   }
@@ -95,7 +89,6 @@ public class BackendDispatcher {
     for (Job job : jobs) {
       jobBackendService.insert(job.getId(), job.getRootId(), null);
     }
-    scheduleRequest.set(true);
   }
 
   private void schedule() {

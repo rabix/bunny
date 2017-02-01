@@ -134,7 +134,7 @@ public class JobServiceImpl implements JobService {
               break;
             }
             jobDB.update(job);
-            eventProcessor.addToQueue(statusEvent);
+            eventProcessor.addToExternalQueue(statusEvent);
           } catch (JobStateValidationException e) {
             // TODO handle exception
             logger.warn("Failed to update Job state from {} to {}", jobRecord.getState(), job.getStatus());
@@ -169,10 +169,8 @@ public class JobServiceImpl implements JobService {
       jobDB.add(job);
 
       InitEvent initEvent = new InitEvent(job.getConfig(), job.getRootId(), node, job.getInputs());
-      eventProcessor.send(initEvent);
+      eventProcessor.addToExternalQueue(initEvent);
       return job;
-    } catch (EventHandlerException e) {
-      throw new JobServiceException("Failed to start job", e);
     } catch (Exception e) {
       logger.error("Failed to create Bindings", e);
       throw new JobServiceException("Failed to create Bindings", e);

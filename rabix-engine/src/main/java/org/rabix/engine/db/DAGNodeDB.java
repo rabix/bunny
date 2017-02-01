@@ -21,14 +21,14 @@ public class DAGNodeDB {
   /**
    * Gets node from the repository 
    */
-  public synchronized DAGNode get(String id, String contextId) {
+  public DAGNode get(String id, String contextId) {
     return dagRepository.get(id, contextId);
   }
   
   /**
    * Loads node into the repository recursively
    */
-  public synchronized void loadDB(DAGNode node, String contextId) {
+  public void loadDB(DAGNode node, String contextId) {
     dagRepository.insert(contextId, JSONHelper.writeObject(node));
   }
   
