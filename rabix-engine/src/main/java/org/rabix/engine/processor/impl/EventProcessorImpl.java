@@ -13,8 +13,6 @@ import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.processor.dispatcher.EventDispatcher;
-import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.repository.TransactionHelper;
@@ -45,7 +43,6 @@ public class EventProcessorImpl implements EventProcessor {
   private final AtomicBoolean running = new AtomicBoolean(false);
 
   private final HandlerFactory handlerFactory;
-  private final EventDispatcher eventDispatcher;
   
   private final ContextRecordService contextRecordService;
   
@@ -53,12 +50,11 @@ public class EventProcessorImpl implements EventProcessor {
   private final CacheService cacheService;
   
   @Inject
-  public EventProcessorImpl(HandlerFactory handlerFactory, EventDispatcherFactory eventDispatcherFactory, ContextRecordService contextRecordService, TransactionHelper transactionHelper, CacheService cacheService) {
+  public EventProcessorImpl(HandlerFactory handlerFactory, ContextRecordService contextRecordService, TransactionHelper transactionHelper, CacheService cacheService) {
     this.handlerFactory = handlerFactory;
     this.contextRecordService = contextRecordService;
     this.transactionHelper = transactionHelper;
     this.cacheService = cacheService;
-    this.eventDispatcher = eventDispatcherFactory.create(EventDispatcher.Type.SYNC);
   }
 
   public void start(final List<IterationCallback> iterationCallbacks, EngineStatusCallback engineStatusCallback) {
@@ -141,7 +137,7 @@ public class EventProcessorImpl implements EventProcessor {
       addToQueue(event);
       return;
     }
-    eventDispatcher.send(event);
+    handlerFactory.get(event.getType()).handle(event);
   }
 
   public void addToQueue(Event event) {
