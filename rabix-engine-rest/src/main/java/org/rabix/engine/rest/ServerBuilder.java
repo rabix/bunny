@@ -29,14 +29,15 @@ import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
-import org.rabix.engine.rest.backend.BackendDispatcher;
 import org.rabix.engine.rest.backend.stub.BackendStubFactory;
 import org.rabix.engine.rest.service.BackendService;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
+import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
 import org.rabix.engine.rest.service.impl.NoOpIntermediaryFilesServiceImpl;
+import org.rabix.engine.rest.service.impl.SchedulerServiceImpl;
 import org.rabix.transport.backend.BackendPopulator;
 
 import com.google.inject.AbstractModule;
@@ -67,7 +68,7 @@ public class ServerBuilder {
             bind(BackendPopulator.class).in(Scopes.SINGLETON);
             bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendStubFactory.class).in(Scopes.SINGLETON);
-            bind(BackendDispatcher.class).in(Scopes.SINGLETON);
+            bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
             bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
             bind(IntermediaryFilesService.class).to(NoOpIntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);

@@ -1,4 +1,4 @@
-package org.rabix.engine.rest.backend;
+package org.rabix.engine.rest.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,15 +23,16 @@ import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.service.JobService;
+import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.transport.backend.Backend;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class BackendDispatcher {
+public class SchedulerServiceImpl implements SchedulerService {
 
-  private final static Logger logger = LoggerFactory.getLogger(BackendDispatcher.class);
+  private final static Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
   private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(2);
 
@@ -54,7 +54,7 @@ public class BackendDispatcher {
   private final TransactionHelper transactionHelper;
 
   @Inject
-  public BackendDispatcher(Configuration configuration, JobBackendService jobBackendService, JobService jobService,
+  public SchedulerServiceImpl(Configuration configuration, JobBackendService jobBackendService, JobService jobService,
       TransactionHelper repositoriesFactory) {
     this.jobService = jobService;
     this.jobBackendService = jobBackendService;
@@ -63,7 +63,7 @@ public class BackendDispatcher {
     start();
   }
 
-  private synchronized void start() {
+  private void start() {
     executorService.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {

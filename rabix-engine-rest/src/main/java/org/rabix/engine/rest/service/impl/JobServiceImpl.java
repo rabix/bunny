@@ -25,14 +25,13 @@ import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
-import org.rabix.engine.rest.backend.BackendDispatcher;
 import org.rabix.engine.rest.helpers.IntermediaryFilesHelper;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
+import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobRecordService.JobState;
@@ -60,7 +59,7 @@ public class JobServiceImpl implements JobService {
   private final DAGNodeDB dagNodeDB;
   
   private final EventProcessor eventProcessor;
-  private final BackendDispatcher backendDispatcher;
+  private final SchedulerService backendDispatcher;
   private final IntermediaryFilesService intermediaryFilesService;
   
   private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -73,7 +72,7 @@ public class JobServiceImpl implements JobService {
   private final TransactionHelper transactionHelper;
   
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, BackendDispatcher backendDispatcher, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB, TransactionHelper transactionHelper) {
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService backendDispatcher, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB, TransactionHelper transactionHelper) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
     this.eventProcessor = eventProcessor;

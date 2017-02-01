@@ -3,11 +3,11 @@ package org.rabix.engine.rest.service.impl;
 import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
-import org.rabix.engine.rest.backend.BackendDispatcher;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStubFactory;
 import org.rabix.engine.rest.service.BackendService;
 import org.rabix.engine.rest.service.JobService;
+import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.BackendPopulator;
 import org.rabix.transport.mechanism.TransportPluginException;
@@ -23,12 +23,12 @@ public class BackendServiceImpl implements BackendService {
   private final BackendDB backendDB;
   private final JobService jobService;
   private final BackendPopulator backendPopulator;
-  private final BackendDispatcher backendDispatcher;
+  private final SchedulerService backendDispatcher;
   private final BackendStubFactory backendStubFactory;
   private final TransactionHelper transactionHelper;
   
   @Inject
-  public BackendServiceImpl(JobService jobService, BackendPopulator backendPopulator, BackendStubFactory backendStubFactory, BackendDB backendDB, BackendDispatcher backendDispatcher, TransactionHelper transactionHelper) {
+  public BackendServiceImpl(JobService jobService, BackendPopulator backendPopulator, BackendStubFactory backendStubFactory, BackendDB backendDB, SchedulerService backendDispatcher, TransactionHelper transactionHelper) {
     this.backendDB = backendDB;
     this.jobService = jobService;
     this.backendPopulator = backendPopulator;

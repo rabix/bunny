@@ -25,7 +25,6 @@ import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobRecordService.JobState;
@@ -45,7 +44,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
   private final static Logger logger = LoggerFactory.getLogger(OutputEventHandler.class);
   
-  private CacheService cacheService;
   private JobRecordService jobService;
   private LinkRecordService linkService;
   private VariableRecordService variableService;
@@ -58,7 +56,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   private EngineStatusCallback engineStatusCallback;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, JobDB jobDB, CacheService cacheService) {
+  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, JobDB jobDB) {
     this.dagNodeDB = dagNodeDB;
     this.jobDB = jobDB;
     
@@ -66,7 +64,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     this.linkService = linkService;
     this.contextService = contextService;
     this.variableService = variableService;
-    this.cacheService = cacheService;
     this.eventProcessor = eventProcessor;
   }
 

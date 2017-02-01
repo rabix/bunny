@@ -1,6 +1,5 @@
 package org.rabix.engine.db;
 
-import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.repository.BackendRepository;
 import org.rabix.transport.backend.Backend;
 
