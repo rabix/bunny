@@ -59,6 +59,7 @@ public class VariableRecord {
         if (isScatterWrapper) {
           this.value = new ArrayList<>();
           ((ArrayList<Object>) this.value).add(value);
+          this.isWrapped = true;
         } else {
           this.value = value;
         }
