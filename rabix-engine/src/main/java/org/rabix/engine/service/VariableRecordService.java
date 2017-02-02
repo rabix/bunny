@@ -100,6 +100,7 @@ public class VariableRecordService {
     if (variableRecord.getValue() == null) {
       if (position == 1) {
         if (isScatterWrapper) {
+          variableRecord.setWrapped(true);
           variableRecord.setValue(new ArrayList<>());
           ((ArrayList<Object>) variableRecord.getValue()).add(value);
         } else {
@@ -126,7 +127,7 @@ public class VariableRecordService {
       }
     }
   }
-
+  
   public Object linkMerge(VariableRecord variableRecord) {
     switch (variableRecord.getLinkMerge()) {
     case merge_nested:
