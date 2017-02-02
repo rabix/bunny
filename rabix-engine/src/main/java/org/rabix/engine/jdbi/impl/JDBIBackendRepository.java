@@ -19,8 +19,8 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendMapper.class)
 public interface JDBIBackendRepository extends BackendRepository {
 
-  @SqlUpdate("insert into backend (id,configuration) values (:id,:configuration)")
-  void insert(@Bind("id") String id, @BindJson("configuration") Backend backend);
+  @SqlUpdate("insert into backend (id,configuration,heartbeat_info) values (:id,:configuration,:heartbeat_info)")
+  void insert(@Bind("id") String id, @BindJson("configuration") Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo);
   
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
   void update(@Bind("id") String id, @BindJson("configuration") Backend configuration);

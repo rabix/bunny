@@ -6,7 +6,7 @@ import org.rabix.transport.backend.Backend;
 
 public interface BackendRepository {
 
-  void insert(String id, Backend backend);
+  void insert(String id, Backend backend, Timestamp heartbeatInfo);
   
   void update(String id, Backend configuration);
   

@@ -134,10 +134,6 @@ public class SchedulerServiceImpl implements SchedulerService {
         }
       });
       this.backendStubs.add(backendStub);
-      backendService.updateHeartbeatInfo(new HeartbeatInfo(backendStub.getBackend().getId(), System.currentTimeMillis()));
-    } catch (TransactionException e) {
-      logger.error("Failed to update heartbeat", e);
-      throw new BackendServiceException(e);
     } finally {
       dispatcherLock.unlock();
     }

@@ -1,5 +1,7 @@
 package org.rabix.engine.db;
 
+import java.sql.Timestamp;
+
 import org.rabix.engine.repository.BackendRepository;
 import org.rabix.transport.backend.Backend;
 
@@ -14,8 +16,8 @@ public class BackendDB {
     this.backendRepository = backendRepository;
   }
   
-  public void add(Backend backend) {
-    backendRepository.insert(backend.getId(), backend);
+  public void add(Backend backend, Long heartbeatInfo) {
+    backendRepository.insert(backend.getId(), backend, new Timestamp(heartbeatInfo));
   }
   
   public void update(Backend backend) {

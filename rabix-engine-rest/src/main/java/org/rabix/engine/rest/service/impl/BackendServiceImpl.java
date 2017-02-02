@@ -59,8 +59,8 @@ public class BackendServiceImpl implements BackendService {
       @Override
       public Backend call() throws TransactionException {
         Backend populated = populate(backend);
-        backendDB.add(populated);
-
+        backendDB.add(populated, System.currentTimeMillis());
+        
         BackendStub<?, ?, ?> backendStub;
         try {
           backendStub = backendStubFactory.create(jobService, populated);

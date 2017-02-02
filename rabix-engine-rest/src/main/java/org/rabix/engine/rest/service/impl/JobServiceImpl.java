@@ -59,7 +59,7 @@ public class JobServiceImpl implements JobService {
   private final DAGNodeDB dagNodeDB;
   
   private final EventProcessor eventProcessor;
-  private final SchedulerService backendDispatcher;
+  private final SchedulerService scheduler;
   private final IntermediaryFilesService intermediaryFilesService;
   
   private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -72,7 +72,7 @@ public class JobServiceImpl implements JobService {
   private final TransactionHelper transactionHelper;
   
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService backendDispatcher, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB, TransactionHelper transactionHelper) {
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB, TransactionHelper transactionHelper) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
     this.eventProcessor = eventProcessor;
@@ -81,7 +81,7 @@ public class JobServiceImpl implements JobService {
     this.linkRecordService = linkRecordService;
     this.variableRecordService = variableRecordService;
     this.contextRecordService = contextRecordService;
-    this.backendDispatcher = backendDispatcher;
+    this.scheduler = scheduler;
     this.transactionHelper = transactionHelper;
     
     this.intermediaryFilesService = intermediaryFilesService;
@@ -183,9 +183,9 @@ public class JobServiceImpl implements JobService {
     Job job = jobDB.get(id);
     if (job.isRoot()) {
       Set<Job> jobs = jobDB.getJobs(id);
-      backendDispatcher.stop(jobs.toArray(new Job[jobs.size()]));
+      scheduler.stop(jobs.toArray(new Job[jobs.size()]));
     } else {
-      backendDispatcher.stop(job);
+      scheduler.stop(job);
     }
   }
   
@@ -238,7 +238,7 @@ public class JobServiceImpl implements JobService {
         job = Job.cloneWithResources(job, resources);
       }
       jobDB.update(job);
-      backendDispatcher.send(job);
+      scheduler.send(job);
     }
     
     @Override
@@ -313,7 +313,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public void onJobRootCompleted(Job job) throws EngineStatusCallbackException {
       if (deleteFilesUponExecution) {
-        backendDispatcher.freeBackend(job);
+        scheduler.freeBackend(job);
         
         if (isLocalBackend) {
           try {
@@ -332,7 +332,7 @@ public class JobServiceImpl implements JobService {
     public void onJobRootFailed(Job job) throws EngineStatusCallbackException {
       synchronized (stoppingRootIds) {
         if (deleteFilesUponExecution) {
-          backendDispatcher.freeBackend(job);
+          scheduler.freeBackend(job);
           
           if (isLocalBackend) {
             try {
@@ -344,7 +344,7 @@ public class JobServiceImpl implements JobService {
         job = Job.cloneWithStatus(job, JobStatus.FAILED);
         jobDB.update(job);
 
-        backendDispatcher.remove(job);
+        scheduler.remove(job);
         stoppingRootIds.remove(job.getId());
         logger.info("Root Job {} failed. Failed {}.", job.getId(), failCount.incrementAndGet());
       }
