@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.Cache;
 import org.rabix.engine.cache.CacheItem.Action;
@@ -56,7 +57,7 @@ public class JobRecordService {
   }
   
   public List<JobRecord> findReady(String contextId) {
-    Cache cache = cacheService.getCache(contextId, "JOB_RECORD");
+    Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
     List<Cachable> jobRecords = cache.get(new JobRecord.JobCacheKey(null, contextId));
     List<JobRecord> readyJobRecords = new ArrayList<>();
     for (Cachable jobRecord : jobRecords) {
@@ -66,10 +67,15 @@ public class JobRecordService {
     }
     return readyJobRecords;
   }
-  
-  // get from DB and put to cache with UPDATE action - don't override
+
   public List<JobRecord> findByParent(String parentId, String contextId) {
-    return jobRecordRepository.getByParent(parentId, contextId);
+    List<JobRecord> recordsByParent = jobRecordRepository.getByParent(parentId, contextId);
+
+    if (recordsByParent != null) {
+      Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
+      return cache.<JobRecord> merge(recordsByParent, JobRecord.class);
+    }
+    return recordsByParent;
   }
   
   public JobRecord find(String id, String contextId) {
@@ -83,9 +89,15 @@ public class JobRecordService {
     return record;
   }
   
-  // get from DB
   public JobRecord findRoot(String contextId) {
-    return jobRecordRepository.getRoot(contextId);
+    Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(InternalSchemaHelper.ROOT_NAME, contextId));
+    if (!records.isEmpty()) {
+      return (JobRecord) records.get(0);
+    }
+    JobRecord record = jobRecordRepository.getRoot(contextId);
+    cache.put(record, Action.UPDATE);
+    return record;
   }
   
   public void increaseInputPortIncoming(JobRecord jobRecord, String port) {

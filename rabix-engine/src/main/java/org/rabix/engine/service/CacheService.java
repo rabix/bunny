@@ -2,6 +2,8 @@ package org.rabix.engine.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.cache.Cache;
@@ -14,7 +16,7 @@ import com.google.inject.Inject;
 
 public class CacheService {
 
-  private Map<String, Map<String, Cache>> caches = new HashMap<>();
+  private ConcurrentMap<String, Map<String, Cache>> caches = new ConcurrentHashMap<String, Map<String, Cache>>();
   
   private JobRecordRepository jobRecordRepository;
   private LinkRecordRepository linkRecordRepository;
@@ -31,7 +33,7 @@ public class CacheService {
   }
   
   public Cache getCache(String rootId, String entity) {
-    String index = "" + EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors());
+    String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
     
     Map<String, Cache> singleCache = caches.get(index);
     if (singleCache == null) {
@@ -45,7 +47,7 @@ public class CacheService {
     if (rootId == null) {
       return;
     }
-    String index = "" + EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors());
+    String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
     Map<String, Cache> singleCache = caches.get(index);
     if (singleCache == null) {
       return;

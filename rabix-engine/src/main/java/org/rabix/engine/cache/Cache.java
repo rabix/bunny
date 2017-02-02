@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.rabix.engine.cache.CacheItem.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,24 @@ public class Cache {
     }
   }
 
+  public <T extends Cachable> List<T> merge(List<T> cachables, Class<T> clazz) {
+    if (cachables == null) {
+      return null;
+    }
+    List<T> merged = new ArrayList<T>();
+    for (Cachable cachable : cachables) {
+      List<Cachable> cached = get(cachable.getCacheKey());
+      if (!CollectionUtils.isEmpty(cached)) {
+        merged.add(clazz.cast(cached.get(0)));
+      } else {
+        put(cachable, Action.UPDATE);
+        merged.add(clazz.cast(cachable));
+      }
+    }
+    return merged;
+  }
+  
+  
   public List<Cachable> get(CacheKey search) {
     List<Cachable> result = new ArrayList<>();
     for (Entry<CacheKey, CacheItem> entry : cache.entrySet()) {

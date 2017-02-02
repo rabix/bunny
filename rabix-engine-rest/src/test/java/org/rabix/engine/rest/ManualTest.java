@@ -28,7 +28,7 @@ public class ManualTest {
     
     Job job = new Job("file:///Users/janko/Desktop/examples/dna2protein/dna2protein.cwl.json", inputs);
     
-    for (int i=0;i<100;i++) {
+    for (int i=0;i<1;i++) {
       Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
       WebTarget webTarget = client.target("http://localhost" + ":" + 8081 + "/v0/engine/jobs");
 
