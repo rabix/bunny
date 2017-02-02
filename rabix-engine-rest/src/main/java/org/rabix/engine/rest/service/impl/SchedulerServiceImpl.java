@@ -1,11 +1,9 @@
 package org.rabix.engine.rest.service.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -22,9 +20,13 @@ import org.rabix.engine.db.JobBackendService.BackendJob;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.backend.stub.BackendStub;
+import org.rabix.engine.rest.backend.stub.BackendStub.HeartbeatCallback;
+import org.rabix.engine.rest.service.BackendService;
+import org.rabix.engine.rest.service.BackendServiceException;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.HeartbeatInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +37,9 @@ public class SchedulerServiceImpl implements SchedulerService {
   private final static Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
   private final static long SCHEDULE_PERIOD = TimeUnit.SECONDS.toMillis(1);
-  private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(2);
+  private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(5);
 
   private final List<BackendStub<?, ?, ?>> backendStubs = new ArrayList<>();
-  private final Map<String, Long> heartbeatInfo = new HashMap<>();
 
   private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
   private ScheduledExecutorService heartbeatService = Executors.newSingleThreadScheduledExecutor();
@@ -50,14 +51,15 @@ public class SchedulerServiceImpl implements SchedulerService {
   private final long heartbeatPeriod;
 
   private final JobService jobService;
+  private final BackendService backendService;
   private final JobBackendService jobBackendService;
 
   private final TransactionHelper transactionHelper;
 
   @Inject
-  public SchedulerServiceImpl(Configuration configuration, JobBackendService jobBackendService, JobService jobService,
-      TransactionHelper repositoriesFactory) {
+  public SchedulerServiceImpl(Configuration configuration, JobBackendService jobBackendService, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory) {
     this.jobService = jobService;
+    this.backendService = backendService;
     this.jobBackendService = jobBackendService;
     this.transactionHelper = repositoriesFactory;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
@@ -109,23 +111,33 @@ public class SchedulerServiceImpl implements SchedulerService {
 
   public boolean stop(Job... jobs) {
     for (Job job : jobs) {
-      String backendId = jobBackendService.getByJobId(job.getId()).getBackendId();
-      if (backendId != null) {
-        BackendStub<?, ?, ?> backendStub = getBackendStub(backendId);
-        if (backendStub != null) {
-          backendStub.send(new EngineControlStopMessage(job.getId(), job.getRootId()));
+      Set<BackendJob> backendJobs = jobBackendService.getByRootId(job.getId());
+      for (BackendJob backendJob : backendJobs) {
+        if (backendJob.getBackendId() != null) {
+          BackendStub<?, ?, ?> backendStub = getBackendStub(backendJob.getBackendId());
+          if (backendStub != null) {
+            backendStub.send(new EngineControlStopMessage(job.getId(), job.getRootId()));
+          }
         }
       }
     }
     return true;
   }
 
-  public void addBackendStub(BackendStub<?, ?, ?> backendStub) {
+  public void addBackendStub(BackendStub<?, ?, ?> backendStub) throws BackendServiceException {
     try {
       dispatcherLock.lock();
-      backendStub.start(heartbeatInfo);
+      backendStub.start(new HeartbeatCallback() {
+        @Override
+        public void save(HeartbeatInfo info) throws Exception {
+          backendService.updateHeartbeatInfo(info);
+        }
+      });
       this.backendStubs.add(backendStub);
-      this.heartbeatInfo.put(backendStub.getBackend().getId(), System.currentTimeMillis());
+      backendService.updateHeartbeatInfo(new HeartbeatInfo(backendStub.getBackend().getId(), System.currentTimeMillis()));
+    } catch (TransactionException e) {
+      logger.error("Failed to update heartbeat", e);
+      throw new BackendServiceException(e);
     } finally {
       dispatcherLock.unlock();
     }
@@ -180,7 +192,9 @@ public class SchedulerServiceImpl implements SchedulerService {
               BackendStub<?, ?, ?> backendStub = backendIterator.next();
               Backend backend = backendStub.getBackend();
 
-              if (currentTime - heartbeatInfo.get(backend.getId()) > heartbeatPeriod) {
+              Long heartbeatInfo = backendService.getHeartbeatInfo(backend.getId());
+              
+              if (currentTime - heartbeatInfo > heartbeatPeriod) {
                 backendStub.stop();
                 backendIterator.remove();
                 logger.info("Removing Backend {}", backendStub.getBackend().getId());

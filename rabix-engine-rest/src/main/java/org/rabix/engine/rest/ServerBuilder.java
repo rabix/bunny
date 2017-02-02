@@ -38,7 +38,6 @@ import org.rabix.engine.rest.service.impl.BackendServiceImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
 import org.rabix.engine.rest.service.impl.NoOpIntermediaryFilesServiceImpl;
 import org.rabix.engine.rest.service.impl.SchedulerServiceImpl;
-import org.rabix.transport.backend.BackendPopulator;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -65,7 +64,6 @@ public class ServerBuilder {
           @Override
           protected void configure() {
             bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
-            bind(BackendPopulator.class).in(Scopes.SINGLETON);
             bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendStubFactory.class).in(Scopes.SINGLETON);
             bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);

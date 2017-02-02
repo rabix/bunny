@@ -2,6 +2,7 @@ package org.rabix.engine.jdbi.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.jdbi.bindings.BindJson;
@@ -26,6 +27,12 @@ public interface JDBIBackendRepository extends BackendRepository {
   
   @SqlQuery("select * from backend where id=:id")
   Backend get(@Bind("id") String id);
+  
+  @SqlUpdate("update backend set heartbeat_info=:heartbeat_info where id=:id")
+  void updateHeartbeatInfo(@Bind("id") String id, @Bind("heartbeat_info") Timestamp heartbeatInfo);
+  
+  @SqlQuery("select heartbeat_info from backend where id=:id")
+  Timestamp getHeartbeatInfo(@Bind("id") String id);
   
   public static class BackendMapper implements ResultSetMapper<Backend> {
     public Backend map(int index, ResultSet r, StatementContext ctx) throws SQLException {

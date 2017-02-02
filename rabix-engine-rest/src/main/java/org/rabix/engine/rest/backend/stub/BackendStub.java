@@ -1,6 +1,5 @@
 package org.rabix.engine.rest.backend.stub;
 
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,7 +33,11 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
 
   private ExecutorService executorService = Executors.newFixedThreadPool(2);
   
-  public void start(final Map<String, Long> heartbeatInfo) {
+  public static interface HeartbeatCallback {
+    void save(HeartbeatInfo info) throws Exception;
+  }
+  
+  public void start(HeartbeatCallback heartbeatCallback) {
     transportPlugin.startReceiver(receiveFromBackendQueue, Job.class, new ReceiveCallback<Job>() {
       @Override
       public void handleReceive(Job job) throws TransportPluginException {
@@ -56,7 +59,12 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
           @Override
           public void handleReceive(HeartbeatInfo entity) throws TransportPluginException {
             logger.debug("Got heartbeat info from {}", entity.getId());
-            heartbeatInfo.put(entity.getId(), entity.getTimestamp());
+            try {
+              heartbeatCallback.save(entity);
+            } catch (Exception e) {
+              logger.error("Failed to update heartbeat", e);
+              throw new TransportPluginException(e);
+            }
           }
         }, new ErrorCallback() {
           @Override

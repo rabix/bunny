@@ -11,7 +11,7 @@ public interface SchedulerService {
 
   boolean stop(Job... jobs);
 
-  void addBackendStub(BackendStub<?, ?, ?> backendStub);
+  void addBackendStub(BackendStub<?, ?, ?> backendStub) throws BackendServiceException;
 
   void freeBackend(Job rootJob);
 
