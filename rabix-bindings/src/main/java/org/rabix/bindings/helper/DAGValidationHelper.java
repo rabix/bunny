@@ -58,7 +58,7 @@ public class DAGValidationHelper {
     List<DAGNode> adjacentNodes = new ArrayList<DAGNode>();
     for (DAGLink dataLink : containerNode.getLinks()) {
       String nodeId = dataLink.getSource().getDagNodeId();
-      if (nodeId.equals(dagNode.getName()) && dataLink.getDestination().getDagNodeId() != containerNode.getName()) {
+      if (nodeId.equals(dagNode.getName()) && dataLink.getDestination().getDagNodeId().equals(containerNode.getName())) {
         if (dataLink.getDestination().getDagNodeId().equals(containerNode.getName())) {
           continue;
         }

@@ -1,11 +1,6 @@
 package org.rabix.engine.model.scatter.impl;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import org.rabix.bindings.BindingException;
@@ -83,7 +78,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, String contextId) {
+  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
@@ -95,7 +90,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
       LinkedList<Object> result = new LinkedList<>();
       for (Combination combination : combinations) {
         String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
+        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, rootId);
         result.addLast(variableRecordService.getValue(variableRecord));
       }
       return result;
@@ -112,7 +107,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
           position++;
         }
         String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
+        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, rootId);
         subresult.addLast(variableRecordService.getValue(variableRecord));
       }
       result.addLast(subresult);

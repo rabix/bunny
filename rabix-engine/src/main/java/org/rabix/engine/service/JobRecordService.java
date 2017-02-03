@@ -37,8 +37,8 @@ public class JobRecordService {
     this.jobRecordRepository = jobRecordRepository;
   }
   
-  public static String generateUniqueId() {
-    return UUID.randomUUID().toString();
+  public static UUID generateUniqueId() {
+    return UUID.randomUUID();
   }
   
   public void create(JobRecord jobRecord) {
@@ -54,16 +54,16 @@ public class JobRecordService {
     cache.put(jobRecord, Action.UPDATE);
   }
   
-  public List<JobRecord> find(String contextId) {
-    return jobRecordRepository.get(contextId);
+  public List<JobRecord> find(UUID rootId) {
+    return jobRecordRepository.get(rootId);
   }
   
-  public List<JobRecord> findReady(String contextId) {
-    return jobRecordRepository.getReady(contextId);
+  public List<JobRecord> findReady(UUID rootId) {
+    return jobRecordRepository.getReady(rootId);
   }
   
   // get from DB and put to cache with UPDATE action - don't override
-  public List<JobRecord> findByParent(String parentId, String contextId) {
+  public List<JobRecord> findByParent(UUID parentId, UUID contextId) {
     return jobRecordRepository.getByParent(parentId, contextId);
   }
   
@@ -79,8 +79,8 @@ public class JobRecordService {
   }
   
   // get from DB
-  public JobRecord findRoot(String contextId) {
-    return jobRecordRepository.getRoot(contextId);
+  public JobRecord findRoot(UUID rootId) {
+    return jobRecordRepository.getRoot(rootId);
   }
   
   public void increaseInputPortIncoming(JobRecord jobRecord, String port) {

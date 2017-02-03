@@ -2,6 +2,7 @@ package org.rabix.engine.processor.handler.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.LinkMerge;
@@ -100,7 +101,7 @@ public class ScatterHandler {
     }
   }
   
-  public JobRecord createJobRecord(String id, String parentId, DAGNode node, boolean isScattered, String contextId) {
+  public JobRecord createJobRecord(String name, UUID parentId, DAGNode node, boolean isScattered, UUID rootId) {
     boolean isBlocking = false;
     for (LinkMerge linkMerge : node.getLinkMergeSet(LinkPortType.INPUT)) {
       if (LinkMerge.isBlocking(linkMerge)) {
@@ -111,7 +112,7 @@ public class ScatterHandler {
     if (ScatterMethod.isBlocking(node.getScatterMethod())) {
       isBlocking = true;
     }
-    return new JobRecord(contextId, id, JobRecordService.generateUniqueId(), parentId, JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking);
+    return new JobRecord(rootId, name, JobRecordService.generateUniqueId(), parentId, JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking);
   }
   
   private void createScatteredJobs(JobRecord job, Event event, String port, Object value, DAGNode node, Integer numberOfScattered, Integer position) throws EventHandlerException {
@@ -122,7 +123,7 @@ public class ScatterHandler {
     try {
       mappings = scatterStrategy.enabled();
     } catch (BindingException e) {
-      throw new EventHandlerException("Failed to enable ScatterStrategy for node " + node.getId(), e);
+      throw new EventHandlerException("Failed to enable ScatterStrategy for node " + node.getName(), e);
     }
     scatterStrategy.commit(mappings);
     

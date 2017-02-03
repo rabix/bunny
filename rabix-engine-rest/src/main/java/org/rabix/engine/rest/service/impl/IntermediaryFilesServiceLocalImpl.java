@@ -7,6 +7,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
+import java.util.UUID;
 
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.slf4j.Logger;
@@ -24,7 +25,7 @@ public class IntermediaryFilesServiceLocalImpl extends IntermediaryFilesService 
   }
   
   @Override
-  public void handleUnusedFiles(String rootId) {
+  public void handleUnusedFiles(UUID rootId) {
     Set<String> unusedFiles = getUnusedFiles(rootId);
     for (String p : unusedFiles) {
       Path path = Paths.get(p);

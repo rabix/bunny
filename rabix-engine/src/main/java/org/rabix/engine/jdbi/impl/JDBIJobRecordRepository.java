@@ -41,19 +41,19 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   public abstract int update(@BindJobRecord JobRecord jobRecord);
   
   @SqlQuery("select * from job_record where root_id=:root_id")
-  public abstract List<JobRecord> get(@Bind("root_id") String rootId);
+  public abstract List<JobRecord> get(@Bind("root_id") UUID rootId);
   
   @SqlQuery("select * from job_record where id='root' and root_id=:root_id")
-  public abstract JobRecord getRoot(@Bind("root_id") String rootId);
+  public abstract JobRecord getRoot(@Bind("root_id") UUID rootId);
   
   @SqlQuery("select * from job_record where id=:id and root_id=:root_id")
-  public abstract JobRecord get(@Bind("id") String id, @Bind("root_id") String rootId);
+  public abstract JobRecord get(@Bind("id") String name, @Bind("root_id") UUID rootId);
   
   @SqlQuery("select * from job_record where parent_id=:parent_id and root_id=:root_id")
-  public abstract List<JobRecord> getByParent(@Bind("parent_id") String parentId, @Bind("root_id") UUID rootId);
+  public abstract List<JobRecord> getByParent(@Bind("parent_id") UUID parentId, @Bind("root_id") UUID rootId);
   
   @SqlQuery("select * from job_record where job_state='ready' and root_id=?")
-  public abstract List<JobRecord> getReady(@Bind("root_id") String rootId);
+  public abstract List<JobRecord> getReady(@Bind("root_id") UUID rootId);
   
   @BindingAnnotation(BindJobRecord.JobBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
@@ -110,10 +110,10 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   
   public static class JobRecordMapper implements ResultSetMapper<JobRecord> {
     public JobRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
-      String id = resultSet.getString("id");
-      String externalId = resultSet.getString("external_id");
-      String rootId = resultSet.getString("root_id");
-      String parentId = resultSet.getString("parent_id");
+      String name = resultSet.getString("id");
+      UUID id = resultSet.getObject("id", UUID.class);
+      UUID rootId = resultSet.getObject("root_id", UUID.class);
+      UUID parentId = resultSet.getObject("parent_id", UUID.class);
       Boolean isBlocking = resultSet.getBoolean("blocking");
       String jobState = resultSet.getString("job_state");
       String inputCounters = resultSet.getString("input_counters");
@@ -125,7 +125,7 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
       Integer globalOutputsCount = resultSet.getInt("global_outputs_count");
       String scatterStrategy = resultSet.getString("scatter_strategy");
 
-      JobRecord jobRecord = new JobRecord(rootId, id, externalId, parentId, JobState.valueOf(jobState), isContainer, isScattered, externalId.equals(rootId), isBlocking);
+      JobRecord jobRecord = new JobRecord(rootId, name, id, parentId, JobState.valueOf(jobState), isContainer, isScattered, id.equals(rootId), isBlocking);
       jobRecord.setScatterWrapper(isScatterWrapper);
       jobRecord.setNumberOfGlobalInputs(globalInputsCount);
       jobRecord.setNumberOfGlobalOutputs(globalOutputsCount);

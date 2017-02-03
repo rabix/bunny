@@ -31,12 +31,12 @@ public class LinkRecordService {
     cache.put(link, Action.INSERT);
   }
 
-  public void delete(String rootId) {
+  public void delete(UUID rootId) {
   }
   
-  public List<LinkRecord> findBySourceJobId(String jobId, String contextId) {
-    Cache cache = cacheService.getCache(contextId, LinkRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new LinkRecordCacheKey(contextId, jobId, null, null, null, null, null));
+  public List<LinkRecord> findBySourceJobId(String jobId, UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new LinkRecordCacheKey(rootId, jobId, null, null, null, null, null));
     if (!records.isEmpty()) {
       return Lists.transform(records, new Function<Cachable, LinkRecord>() {
         @Override
@@ -45,7 +45,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceJobId(jobId, contextId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourceJob(jobId, rootId);
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }
@@ -63,7 +63,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, varType, rootId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourceJobAndSourceType(jobId, varType, rootId);
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }
@@ -81,7 +81,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, portId, rootId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourcePort(jobId, portId, rootId);
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }
@@ -99,7 +99,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndDestinationType(jobName, portId, varType, rootId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourcePortAndDestinationType(jobName, portId, varType, rootId);
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }

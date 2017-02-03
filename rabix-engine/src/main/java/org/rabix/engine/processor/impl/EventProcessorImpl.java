@@ -1,6 +1,7 @@
 package org.rabix.engine.processor.impl;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -50,7 +51,7 @@ public class EventProcessorImpl implements EventProcessor {
   
   private final TransactionHelper transactionHelper;
   
-  private final ConcurrentMap<String, Integer> iterations = new ConcurrentHashMap<>();
+  private final ConcurrentMap<UUID, Integer> iterations = new ConcurrentHashMap<>();
   
   @Inject
   public EventProcessorImpl(HandlerFactory handlerFactory, EventDispatcherFactory eventDispatcherFactory, RootJobService rootJobService, TransactionHelper transactionHelper) {
@@ -80,7 +81,7 @@ public class EventProcessorImpl implements EventProcessor {
             transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws TransactionException {
-                RootJob context = rootJobService.findByExternalId(finalEvent.getContextId());
+                RootJob context = rootJobService.find(finalEvent.getRootId());
                 if (context != null && context.getStatus().equals(RootJobStatus.FAILED)) {
                   logger.info("Skip event {}. Context {} has been invalidated.", finalEvent, context.getId());
                   shouldSkipIteration.set(true);
@@ -101,7 +102,7 @@ public class EventProcessorImpl implements EventProcessor {
               continue;
             }
 
-            Integer iteration = iterations.get(event.getContextId());
+            Integer iteration = iterations.get(event.getRootId());
             if (iteration == null) {
               iteration = 0;
             }
@@ -109,16 +110,16 @@ public class EventProcessorImpl implements EventProcessor {
             iteration++;
             if (iterationCallbacks != null) {
               for (IterationCallback callback : iterationCallbacks) {
-                callback.call(EventProcessorImpl.this, event.getContextId(), iteration);
+                callback.call(EventProcessorImpl.this, event.getRootId(), iteration);
               }
             }
-            iterations.put(event.getContextId(), iteration);
+            iterations.put(event.getRootId(), iteration);
           } catch (Exception e) {
             logger.error("EventProcessor failed to process event {}.", event, e);
             try {
-              invalidateContext(event.getContextId());
+              invalidateContext(event.getRootId());
             } catch (EventHandlerException ehe) {
-              logger.error("Failed to invalidate Context {}.", event.getContextId(), ehe);
+              logger.error("Failed to invalidate Context {}.", event.getRootId(), ehe);
               stop();
             }
           }
@@ -130,8 +131,8 @@ public class EventProcessorImpl implements EventProcessor {
   /**
    * Invalidates context 
    */
-  private void invalidateContext(String contextId) throws EventHandlerException {
-    handlerFactory.get(Event.EventType.CONTEXT_STATUS_UPDATE).handle(new RootJobStatusEvent(contextId, RootJobStatus.FAILED));
+  private void invalidateContext(UUID rootId) throws EventHandlerException {
+    handlerFactory.get(Event.EventType.CONTEXT_STATUS_UPDATE).handle(new RootJobStatusEvent(rootId, RootJobStatus.FAILED));
   }
   
   @Override

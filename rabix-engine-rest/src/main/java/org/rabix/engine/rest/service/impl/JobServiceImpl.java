@@ -152,9 +152,9 @@ public class JobServiceImpl implements JobService {
   public Job start(Job job, Map<String, Object> config) throws JobServiceException {
     logger.debug("Start Job {}", job);
     
-    String rootId = job.getRootId();
-    if (StringUtils.isEmpty(rootId)) {
-      rootId = UUID.randomUUID().toString();
+    UUID rootId = job.getRootId();
+    if (rootId == null) {
+      rootId = UUID.randomUUID();
     }
     job = Job.cloneWithIds(job, rootId, rootId);
     
@@ -180,7 +180,7 @@ public class JobServiceImpl implements JobService {
   }
   
   @Override
-  public void stop(String id) throws JobServiceException {
+  public void stop(UUID id) throws JobServiceException {
     logger.debug("Stop Job {}", id);
     
     Job job = jobDB.get(id);
@@ -193,8 +193,8 @@ public class JobServiceImpl implements JobService {
   }
   
   @Override
-  public Set<Job> getReady(EventProcessor eventProcessor, String contextId) throws JobServiceException {
-    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, rootJobService, dagNodeDB, contextId);
+  public Set<Job> getReady(EventProcessor eventProcessor, UUID rootId) throws JobServiceException {
+    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, rootJobService, dagNodeDB, rootId);
   }
   
   @Override
@@ -203,7 +203,7 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public Job get(String id) {
+  public Job get(UUID id) {
     return jobDB.get(id);
   }
 
@@ -217,7 +217,7 @@ public class JobServiceImpl implements JobService {
     private AtomicInteger failCount = new AtomicInteger(0);
     private AtomicInteger successCount = new AtomicInteger(0);
 
-    private Set<String> stoppingRootIds = new HashSet<>();
+    private Set<UUID> stoppingRootIds = new HashSet<>();
     
     public EngineStatusCallbackImpl(boolean setResources, boolean stopOnFail) {
       this.stopOnFail = stopOnFail;

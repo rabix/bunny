@@ -1,12 +1,6 @@
 package org.rabix.engine.rest.backend;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -107,7 +101,7 @@ public class BackendDispatcher {
     for (BackendJob freeJob : freeJobs) {
       BackendStub<?, ?, ?> backendStub = nextBackend();
 
-      jobBackendService.update(freeJob.getJobId(), backendStub.getBackend().getId().toString());
+      jobBackendService.update(freeJob.getJobId(), backendStub.getBackend().getId());
       backendStub.send(jobService.get(freeJob.getJobId()));
       logger.info("Job {} sent to {}.", freeJob.getJobId(), backendStub.getBackend().getId());
     }
@@ -115,7 +109,7 @@ public class BackendDispatcher {
 
   public boolean stop(Job... jobs) {
     for (Job job : jobs) {
-      String backendId = jobBackendService.getByJobId(job.getId()).getBackendId();
+      UUID backendId = jobBackendService.getByJobId(job.getId()).getBackendId();
       if (backendId != null) {
         BackendStub<?, ?, ?> backendStub = getBackendStub(backendId);
         if (backendStub != null) {
@@ -160,7 +154,7 @@ public class BackendDispatcher {
     return backendStub;
   }
 
-  private BackendStub<?, ?, ?> getBackendStub(String id) {
+  private BackendStub<?, ?, ?> getBackendStub(UUID id) {
     for (BackendStub<?, ?, ?> backendStub : backendStubs) {
       if (backendStub.getBackend().getId().equals(id)) {
         return backendStub;
@@ -191,7 +185,7 @@ public class BackendDispatcher {
                 backendIterator.remove();
                 logger.info("Removing Backend {}", backendStub.getBackend().getId());
 
-                Set<BackendJob> backendJobs = jobBackendService.getByBackendId(backend.getId().toString());
+                Set<BackendJob> backendJobs = jobBackendService.getByBackendId(backend.getId());
 
                 for (BackendJob backendJob : backendJobs) {
                   jobBackendService.update(backendJob.getJobId(), null);

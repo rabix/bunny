@@ -23,14 +23,14 @@ public abstract class JobRecordRepository implements CachableRepository {
   
   public abstract int update(JobRecord jobRecord);
   
-  public abstract List<JobRecord> get(String rootId);
+  public abstract List<JobRecord> get(UUID rootId);
   
-  public abstract JobRecord getRoot(String rootId);
+  public abstract JobRecord getRoot(UUID rootId);
   
-  public abstract JobRecord get(String id, UUID rootId);
+  public abstract JobRecord get(String jobName, UUID rootId);
   
-  public abstract List<JobRecord> getByParent(String parentId, String rootId);
+  public abstract List<JobRecord> getByParent(UUID parentId, UUID rootId);
   
-  public abstract List<JobRecord> getReady(String rootId);
+  public abstract List<JobRecord> getReady(UUID rootId);
   
 }

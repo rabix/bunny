@@ -16,6 +16,20 @@ CREATE TABLE backend (
 CREATE INDEX backend_id_index ON backend (id);
 CREATE INDEX backend_name_index ON backend (name);
 
+
+CREATE TYPE root_job_status AS ENUM('RUNNING', 'COMPLETED', 'FAILED');
+
+CREATE TABLE root_job (
+    id          uuid primary key,
+    status      root_job_status not null,
+    config      jsonb
+);
+
+create index root_job_id_index on root_job(id);
+create index root_job_status_index on root_job(status);
+
+
+
 CREATE TYPE job_status as enum ('PENDING', 'READY', 'STARTED', 'ABORTED', 'FAILED', 'COMPLETED', 'RUNNING');
 CREATE TYPE resources as (
     cpu             bigint,
@@ -30,7 +44,7 @@ CREATE TYPE resources as (
 
 CREATE TABLE job (
     id			    uuid primary key,
-    root_id 	    uuid references job,
+    root_id 	    uuid references root_job,
     name            text not null,
     parent_id       uuid not null,
     status          job_status not null,
@@ -39,8 +53,7 @@ CREATE TABLE job (
     outputs         jsonb,
     resources       resources,
     group_id	    uuid,
-    visible_ports   text[],
-    config          jsonb
+    visible_ports   text[]
 );
 
 create index job_id_index on job(id);
@@ -66,16 +79,12 @@ CREATE TABLE job_record (
     scatter_strategy		jsonb
 );
 
-
---DROP TABLE dag_node;
-
 CREATE TABLE dag_node (
 	id		text,
     dag 	jsonb
 );
 
-
---DROP TABLE link_record;
+CREATE TYPE link_type as ENUM ('INPUT', 'OUTPUT')
 
 CREATE TABLE link_record (
     root_id				    uuid,

@@ -20,6 +20,7 @@ CREATE TABLE backend (
 
 CREATE TYPE scatter_methods AS ENUM ('EXECUTABLE', 'CONTAINER');
 
+
 CREATE TABLE dag_node (
     id  text PRIMARY KEY,
     app text NOT NULL references application,

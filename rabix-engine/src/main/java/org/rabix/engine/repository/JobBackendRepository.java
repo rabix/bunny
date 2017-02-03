@@ -1,25 +1,26 @@
 package org.rabix.engine.repository;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.rabix.engine.db.JobBackendService.BackendJob;
 
 public interface JobBackendRepository {
 
-  int insert(String jobId, String rootId, String backendId);
+  int insert(UUID jobId, UUID rootId, UUID backendId);
   
-  int update(String jobId, String backendId);
+  int update(UUID jobId, UUID backendId);
   
-  int delete(String jobId);
+  int delete(UUID jobId);
   
-  BackendJob getByJobId(String jobId);
+  BackendJob getByJobId(UUID jobId);
   
-  Set<BackendJob> getByRootId(String rootId);
+  Set<BackendJob> getByRootId(UUID rootId);
   
-  Set<BackendJob> getByBackendId(String backendId);
+  Set<BackendJob> getByBackendId(UUID backendId);
   
   Set<BackendJob> getFreeJobs();
   
-  Set<BackendJob> getFreeJobs(String rootId);
+  Set<BackendJob> getFreeJobs(UUID rootId);
 
 }

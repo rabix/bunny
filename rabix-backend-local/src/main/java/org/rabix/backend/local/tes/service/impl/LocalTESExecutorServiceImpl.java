@@ -3,11 +3,7 @@ package org.rabix.backend.local.tes.service.impl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -169,7 +165,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         public FileValue transform(FileValue fileValue) throws BindingException {
           String location = fileValue.getPath();
           if (location.startsWith(TESStorageService.DOCKER_PATH_PREFIX)) {
-            location = Paths.get(finalJob.getId() , location.substring(TESStorageService.DOCKER_PATH_PREFIX.length() + 1)).toString();
+            location = Paths.get(finalJob.getId().toString() , location.substring(TESStorageService.DOCKER_PATH_PREFIX.length() + 1)).toString();
           }
           if (!location.startsWith(File.pathSeparator)) {
             location = Paths.get(baseStorageDir, location).toString();
@@ -221,7 +217,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public void start(Job job, String contextId) {
+  public void start(Job job, UUID rootId) {
     pendingResults.add(new PendingResult(job, taskPoolExecutor.submit(new TaskRunCallable(job))));
   }
 
@@ -236,7 +232,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
   
   private File createJobDir(SharedFileStorage sharedFileStorage, Job job) {
-    File jobDir = new File(sharedFileStorage.getBaseDir(), job.getId());
+    File jobDir = new File(sharedFileStorage.getBaseDir(), job.getId().toString());
     if (!jobDir.exists()) {
       jobDir.mkdirs();
     }
@@ -252,7 +248,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
   
   private String getWorkingDirRelativePath(Job job) {
-    return Paths.get(job.getId(), WORKING_DIR).toString();
+    return Paths.get(job.getId().toString(), WORKING_DIR).toString();
   }
   
   public class TaskRunCallable implements Callable<TESJob> {
@@ -291,13 +287,13 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         File jobFile = new File(jobDir, "job.json");
         FileUtils.writeStringToFile(jobFile, JSONHelper.writeObject(job));
-        inputs.add(new TESTaskParameter("job.json", null, Paths.get(job.getId(), "job.json").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "job.json").toString(), FileType.File.name(), true));
+        inputs.add(new TESTaskParameter("job.json", null, Paths.get(job.getId().toString(), "job.json").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "job.json").toString(), FileType.File.name(), true));
         
         List<TESTaskParameter> outputs = new ArrayList<>();
         outputs.add(new TESTaskParameter(WORKING_DIR, null, workingDirRelativePath, Paths.get(TESStorageService.DOCKER_PATH_PREFIX, WORKING_DIR).toString(), FileType.Directory.name(), false));    
         if (!bindings.isSelfExecutable(job)) {
-          outputs.add(new TESTaskParameter("command.sh", null, Paths.get(job.getId(), "command.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "command.sh").toString(), FileType.File.name(), false));
-          outputs.add(new TESTaskParameter("environment.sh", null, Paths.get(job.getId(), "environment.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "environment.sh").toString(), FileType.File.name(), false));
+          outputs.add(new TESTaskParameter("command.sh", null, Paths.get(job.getId().toString(), "command.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "command.sh").toString(), FileType.File.name(), false));
+          outputs.add(new TESTaskParameter("environment.sh", null, Paths.get(job.getId().toString(), "environment.sh").toString(), Paths.get(TESStorageService.DOCKER_PATH_PREFIX, "environment.sh").toString(), FileType.File.name(), false));
         }
         
         List<String> firstCommandLineParts = new ArrayList<>();
@@ -365,7 +361,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         volumes.add(new TESVolume("vol_work", 1, null, TESStorageService.DOCKER_PATH_PREFIX));
         TESResources resources = new TESResources(null, false, null, volumes, null);
 
-        TESTask task = new TESTask(job.getName(), DEFAULT_PROJECT, null, inputs, outputs, resources, job.getId(), dockerExecutors);
+        TESTask task = new TESTask(job.getName(), DEFAULT_PROJECT, null, inputs, outputs, resources, job.getId().toString(), dockerExecutors);
         
         TESJobId tesJobId = tesHttpClient.runTask(task);
 
@@ -400,12 +396,12 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
   
   @Override
-  public void stop(List<String> ids, String contextId) {
+  public void stop(List<UUID> ids, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
   }
 
   @Override
-  public void free(String rootId, Map<String, Object> config) {
+  public void free(UUID rootId, Map<String, Object> config) {
     throw new NotImplementedException("This method is not implemented");
   }
 
@@ -415,12 +411,12 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public boolean isRunning(String id, String contextId) {
+  public boolean isRunning(UUID id, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
   }
 
   @Override
-  public Map<String, Object> getResult(String id, String contextId) {
+  public Map<String, Object> getResult(UUID id, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
   }
 
@@ -430,7 +426,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public JobStatus findStatus(String id, String contextId) {
+  public JobStatus findStatus(UUID id, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
   }
 

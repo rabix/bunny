@@ -1,6 +1,7 @@
 package org.rabix.engine.processor.impl;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -52,12 +53,12 @@ public class MultiEventProcessorImpl implements EventProcessor {
 
   @Override
   public void send(Event event) throws EventHandlerException {
-    getEventProcessor(event.getContextId()).send(event);
+    getEventProcessor(event.getRootId()).send(event);
   }
 
   @Override
   public void addToQueue(Event event) {
-    getEventProcessor(event.getContextId()).addToQueue(event);
+    getEventProcessor(event.getRootId()).addToQueue(event);
   }
   
   @Override
@@ -72,7 +73,7 @@ public class MultiEventProcessorImpl implements EventProcessor {
    * @param rootId  Root ID
    * @return        EventProcessor instance
    */
-  private EventProcessor getEventProcessor(String rootId) {
+  private EventProcessor getEventProcessor(UUID rootId) {
     int index = Math.abs(rootId.hashCode() % eventProcessorCount);
     logger.debug("Root Job {} goes to EventProcessor {}", rootId, index);
     return eventProcessors.get(index);

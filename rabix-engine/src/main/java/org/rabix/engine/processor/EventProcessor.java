@@ -27,7 +27,7 @@ public interface EventProcessor {
     /**
      * Call this method to execute something after one iteration
      */
-    void call(EventProcessor eventProcessor, String contextId, int iteration) throws Exception;
+    void call(EventProcessor eventProcessor, UUID rootId, int iteration) throws Exception;
 
   }
 

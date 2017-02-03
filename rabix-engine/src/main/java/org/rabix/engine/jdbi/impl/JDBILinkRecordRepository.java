@@ -35,16 +35,16 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   public abstract int update(@BindLinkRecord LinkRecord linkRecord);
   
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and context_id=:context_id")
-  public abstract List<LinkRecord> getBySource(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("context_id") String rootId);
+  public abstract List<LinkRecord> getBySourcePort(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("context_id") UUID rootId);
   
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and context_id=:context_id")
-  public abstract List<LinkRecord> getBySourceJobId(@Bind("source_job_id") String sourceJobId, @Bind("context_id") String rootId);
+  public abstract List<LinkRecord> getBySourceJob(@Bind("source_job_id") String sourceJobId, @Bind("context_id") UUID rootId);
   
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_type=:source_type and context_id=:context_id")
-  public abstract List<LinkRecord> getBySourceAndSourceType(@Bind("source_job_id") String sourceJobId, @Bind("source_type") LinkPortType sourceType, @Bind("context_id") String rootId);
+  public abstract List<LinkRecord> getBySourceJobAndSourceType(@Bind("source_job_id") String sourceJobId, @Bind("source_type") LinkPortType sourceType, @Bind("context_id") UUID rootId);
   
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and destination_type=:destination_type and context_id=:context_id")
-  public abstract List<LinkRecord> getBySourceAndDestinationType(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("destination_type") LinkPortType destinationType, @Bind("context_id") UUID rootId);
+  public abstract List<LinkRecord> getBySourcePortAndDestinationType(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("destination_type") LinkPortType destinationType, @Bind("context_id") UUID rootId);
   
   @BindingAnnotation(BindLinkRecord.LinkBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)

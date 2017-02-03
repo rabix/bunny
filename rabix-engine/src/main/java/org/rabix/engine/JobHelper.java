@@ -60,9 +60,9 @@ public class JobHelper {
     return null;
   }
   
-  public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, RootJobService rootJobService, DAGNodeDB dagNodeDB, String contextId) {
+  public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, RootJobService rootJobService, DAGNodeDB dagNodeDB, UUID rootId) {
     Set<Job> jobs = new HashSet<>();
-    List<JobRecord> jobRecords = jobRecordService.findReady(contextId);
+    List<JobRecord> jobRecords = jobRecordService.findReady(rootId);
 
     if (!jobRecords.isEmpty()) {
       for (JobRecord job : jobRecords) {
@@ -115,7 +115,7 @@ public class JobHelper {
       preprocesedInputs.put(inputVariable.getPortId(), value);
     }
     
-    RootJob rootJob = rootJobService.findByExternalId(job.getRootId());
+    RootJob rootJob = rootJobService.find(job.getRootId());
     String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
     
     Set<String> visiblePorts = findVisiblePorts(job, jobRecordService, linkRecordService, variableRecordService);
@@ -172,7 +172,7 @@ public class JobHelper {
       inputs.put(inputVariable.getPortId(), value);
     }
     
-    RootJob rootJob = rootJobService.findByExternalId(job.getRootId());
+    RootJob rootJob = rootJobService.find(job.getRootId());
     String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
     return new Job(job.getId(), job.getParentId(), job.getRootId(), job.getName(), encodedApp, status, null, inputs, outputs, rootJob.getConfig(), null, null);
   }
@@ -188,7 +188,7 @@ public class JobHelper {
     return visiblePorts;
   }
   
-  private static boolean isRoot(String portId, String jobId, String rootId, LinkRecordService linkRecordService) {
+  private static boolean isRoot(String portId, String jobId, UUID rootId, LinkRecordService linkRecordService) {
     List<LinkRecord> links = linkRecordService.findBySourceAndDestinationType(jobId, portId, LinkPortType.OUTPUT, rootId);
 
     for (LinkRecord link : links) {

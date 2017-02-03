@@ -24,12 +24,12 @@ public abstract class LinkRecordRepository implements CachableRepository {
   
   public abstract int update(LinkRecord linkRecord);
   
-  public abstract List<LinkRecord> getBySource(String sourceJobId, String sourceJobPortId, String rootId);
+  public abstract List<LinkRecord> getBySourcePort(String sourceJobName, String sourceJobPortId, UUID rootId);
   
-  public abstract List<LinkRecord> getBySourceJobId(String sourceJobId, String rootId);
+  public abstract List<LinkRecord> getBySourceJob(String sourceJobName, UUID rootId);
   
-  public abstract List<LinkRecord> getBySourceAndSourceType(String sourceJobId, LinkPortType sourceType, String rootId);
+  public abstract List<LinkRecord> getBySourceJobAndSourceType(String sourceJobName, LinkPortType sourceType, UUID rootId);
   
-  public abstract List<LinkRecord> getBySourceAndDestinationType(String sourceJobId, String sourceJobPortId, LinkPortType destinationType, UUID rootId);
+  public abstract List<LinkRecord> getBySourcePortAndDestinationType(String sourceJobName, String sourceJobPortId, LinkPortType destinationType, UUID rootId);
   
 }
