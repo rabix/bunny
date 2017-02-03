@@ -2,21 +2,29 @@ package org.rabix.engine.event.impl;
 
 import org.rabix.engine.event.Event;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * This event is used to update one output (per port) for the specific Job. Potentially, it can produce one ore more output and inputs events. 
  */
 public class OutputUpdateEvent implements Event {
 
+  @JsonProperty("jobId")
   private final String jobId;
+  @JsonProperty("contextId")
   private final String contextId;
-  
+  @JsonProperty("value")
   private final Object value;
+  @JsonProperty("portId")
   private final String portId;
-  
+  @JsonProperty("position")
   private final Integer position;
+  @JsonProperty("fromScatter")
   private final boolean fromScatter;            // it's a scatter event
+  @JsonProperty("numberOfScattered")
   private final Integer numberOfScattered;      // number of scattered nodes
-  
+  @JsonProperty("eventGroupId")
   private final String eventGroupId;
 
   public OutputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position, String eventGroupId) {
@@ -34,6 +42,21 @@ public class OutputUpdateEvent implements Event {
     this.numberOfScattered = numberOfScattered;
   }
   
+  @JsonCreator
+  public OutputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") String contextId,
+      @JsonProperty("value") Object value, @JsonProperty("portId") String portId,
+      @JsonProperty("position") Integer position, @JsonProperty("fromScatter") boolean fromScatter,
+      @JsonProperty("numberOfScattered") Integer numberOfScattered, @JsonProperty("eventGroupId") String eventGroupId) {
+    this.jobId = jobId;
+    this.contextId = contextId;
+    this.value = value;
+    this.portId = portId;
+    this.position = position;
+    this.fromScatter = fromScatter;
+    this.numberOfScattered = numberOfScattered;
+    this.eventGroupId = eventGroupId;
+  }
+
   public String getJobId() {
     return jobId;
   }

@@ -2,12 +2,12 @@ package org.rabix.engine.repository;
 
 public abstract class TransactionHelper {
 
-  public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws TransactionException {
+  public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws Exception {
     return callback.call();
   }
   
   public static interface TransactionCallback<Result> {
-    Result call() throws TransactionException;
+    Result call() throws Exception;
   }
   
   public static class TransactionException extends Exception {

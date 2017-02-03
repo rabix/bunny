@@ -1,5 +1,6 @@
 package org.rabix.engine.repository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.rabix.engine.event.Event;
@@ -11,5 +12,7 @@ public interface EventRepository {
   void insert(UUID id, PersistentEventType type, Event event, EventStatus status);
   
   void update(UUID id, PersistentEventType type, EventStatus status);
+  
+  List<Event> findUnprocessed();
   
 }

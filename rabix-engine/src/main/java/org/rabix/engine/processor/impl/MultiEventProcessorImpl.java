@@ -61,8 +61,8 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
   
   @Override
-  public void addToExternalQueue(Event event) {
-    getEventProcessor(event.getContextId()).addToExternalQueue(event);
+  public void addToExternalQueue(Event event, boolean persist) {
+    getEventProcessor(event.getContextId()).addToExternalQueue(event, persist);
   }
   
   @Override

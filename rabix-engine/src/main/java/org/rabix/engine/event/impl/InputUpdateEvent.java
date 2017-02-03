@@ -2,21 +2,29 @@ package org.rabix.engine.event.impl;
 
 import org.rabix.engine.event.Event;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * This event is used to update one input (per port) for the specific Job. It triggers the algorithm cycle.
  */
 public class InputUpdateEvent implements Event {
 
+  @JsonProperty("jobId")
   private final String jobId;
+  @JsonProperty("contextId")
   private final String contextId;
-  
+  @JsonProperty("portId")
   private final String portId;
+  @JsonProperty("value")
   private final Object value;
-
+  @JsonProperty("position")
   private final Integer position;
+  @JsonProperty("numberOfScattered")
   private final Integer numberOfScattered;      // number of scattered nodes
+  @JsonProperty("isLookAhead")
   private final boolean isLookAhead;            // it's a look ahead event
-  
+  @JsonProperty("eventGroupId")
   private final String eventGroupId;
   
   public InputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position, String eventGroupId) {
@@ -31,6 +39,21 @@ public class InputUpdateEvent implements Event {
     this.isLookAhead = isLookAhead;
     this.numberOfScattered = scatteredNodes;
     this.position = position;
+    this.eventGroupId = eventGroupId;
+  }
+
+  @JsonCreator
+  public InputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") String contextId,
+      @JsonProperty("portId") String portId, @JsonProperty("value") Object value,
+      @JsonProperty("position") Integer position, @JsonProperty("numberOfScattered") Integer numberOfScattered,
+      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") String eventGroupId) {
+    this.jobId = jobId;
+    this.contextId = contextId;
+    this.portId = portId;
+    this.value = value;
+    this.position = position;
+    this.numberOfScattered = numberOfScattered;
+    this.isLookAhead = isLookAhead;
     this.eventGroupId = eventGroupId;
   }
 

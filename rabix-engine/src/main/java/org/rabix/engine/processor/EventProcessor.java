@@ -18,7 +18,7 @@ public interface EventProcessor {
 
   void addToQueue(Event event);
   
-  void addToExternalQueue(Event event);
+  void addToExternalQueue(Event event, boolean persist);
 
   /**
    * Post iteration callback

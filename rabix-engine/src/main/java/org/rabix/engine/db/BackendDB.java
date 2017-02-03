@@ -3,6 +3,7 @@ package org.rabix.engine.db;
 import java.sql.Timestamp;
 
 import org.rabix.engine.repository.BackendRepository;
+import org.rabix.engine.repository.BackendRepository.BackendStatus;
 import org.rabix.transport.backend.Backend;
 
 import com.google.inject.Inject;
@@ -17,7 +18,7 @@ public class BackendDB {
   }
   
   public void add(Backend backend, Long heartbeatInfo) {
-    backendRepository.insert(backend.getId(), backend, new Timestamp(heartbeatInfo));
+    backendRepository.insert(backend.getId(), backend, new Timestamp(heartbeatInfo), BackendStatus.ACTIVE);
   }
   
   public void update(Backend backend) {

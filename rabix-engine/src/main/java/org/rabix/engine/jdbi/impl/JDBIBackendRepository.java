@@ -3,6 +3,7 @@ package org.rabix.engine.jdbi.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.List;
 
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.jdbi.bindings.BindJson;
@@ -19,14 +20,20 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendMapper.class)
 public interface JDBIBackendRepository extends BackendRepository {
 
-  @SqlUpdate("insert into backend (id,configuration,heartbeat_info) values (:id,:configuration,:heartbeat_info)")
-  void insert(@Bind("id") String id, @BindJson("configuration") Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo);
+  @SqlUpdate("insert into backend (id,configuration,heartbeat_info,status) values (:id,:configuration,:heartbeat_info,:status)")
+  void insert(@Bind("id") String id, @BindJson("configuration") Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo, @Bind("status") BackendStatus status);
   
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
   void update(@Bind("id") String id, @BindJson("configuration") Backend configuration);
   
   @SqlQuery("select * from backend where id=:id")
   Backend get(@Bind("id") String id);
+  
+  @SqlQuery("select * from backend where status='ACTIVE'")
+  List<Backend> getActive();
+  
+  @SqlUpdate("update backend set status=:status where id=:id")
+  void updateStatus(@Bind("id") String id, @Bind("status") BackendStatus status);
   
   @SqlUpdate("update backend set heartbeat_info=:heartbeat_info where id=:id")
   void updateHeartbeatInfo(@Bind("id") String id, @Bind("heartbeat_info") Timestamp heartbeatInfo);

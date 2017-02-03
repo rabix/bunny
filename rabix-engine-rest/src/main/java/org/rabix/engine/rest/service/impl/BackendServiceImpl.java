@@ -8,6 +8,7 @@ import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.repository.BackendRepository;
 import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.engine.repository.BackendRepository.BackendStatus;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStubFactory;
@@ -54,29 +55,35 @@ public class BackendServiceImpl implements BackendService {
   
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends Backend> T create(T backend) throws TransactionException {
-    return (T) transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Backend>() {
-      @Override
-      public Backend call() throws TransactionException {
-        Backend populated = populate(backend);
-        backendDB.add(populated, System.currentTimeMillis());
-        
-        BackendStub<?, ?, ?> backendStub;
-        try {
-          backendStub = backendStubFactory.create(jobService, populated);
-        } catch (TransportPluginException e) {
-          throw new TransactionException(e);
+  public <T extends Backend> T create(T backend) throws BackendServiceException {
+    try {
+      return (T) transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Backend>() {
+        @Override
+        public Backend call() throws Exception {
+          try {
+            Backend populated = populate(backend);
+            backendDB.add(populated, System.currentTimeMillis());
+            startBackend(populated);
+            logger.info("Backend {} registered.", populated.getId());
+            return backend;
+          } catch (BackendServiceException e) {
+            throw new TransactionException(e);
+          }
         }
-        try {
-          scheduler.addBackendStub(backendStub);
-        } catch (BackendServiceException e) {
-          logger.error("Failed to add Backend stub", e);
-          throw new TransactionException(e);
-        }
-        logger.info("Backend {} registered.", populated.getId());
-        return backend;
-      }
-    });
+      });
+    } catch (Exception e) {
+      throw new BackendServiceException(e);
+    }
+  }
+  
+  public void startBackend(Backend backend) throws BackendServiceException {
+    BackendStub<?, ?, ?> backendStub;
+    try {
+      backendStub = backendStubFactory.create(jobService, backend);
+    } catch (TransportPluginException e) {
+      throw new BackendServiceException(e);
+    }
+    scheduler.addBackendStub(backendStub);
   }
   
   private <T extends Backend> T populate(T backend) {
@@ -120,7 +127,7 @@ public class BackendServiceImpl implements BackendService {
   }
 
   @Override
-  public void updateHeartbeatInfo(HeartbeatInfo info) throws TransactionException {
+  public void updateHeartbeatInfo(HeartbeatInfo info) throws BackendServiceException {
     backendRepository.updateHeartbeatInfo(info.getId(), new Timestamp(info.getTimestamp()));
   }
 
@@ -128,6 +135,11 @@ public class BackendServiceImpl implements BackendService {
   public Long getHeartbeatInfo(String id) {
     Timestamp timestamp = backendRepository.getHeartbeatInfo(id);
     return timestamp != null ? timestamp.getTime() : null;
+  }
+
+  @Override
+  public void stopBackend(Backend backend) throws BackendServiceException {
+    backendRepository.updateStatus(backend.getId(), BackendStatus.INACTIVE);
   }
   
 }

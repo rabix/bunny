@@ -47,7 +47,7 @@ public abstract class JDBIRepositoryRegistry extends TransactionHelper {
   public abstract JDBIEventRepository eventRepository();
   
   @Transaction
-  public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws TransactionException {
+  public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws Exception {
     return callback.call();
   }
   

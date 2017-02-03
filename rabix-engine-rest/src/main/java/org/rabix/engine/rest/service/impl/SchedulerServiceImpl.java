@@ -18,7 +18,6 @@ import org.rabix.common.engine.control.EngineControlStopMessage;
 import org.rabix.engine.db.JobBackendService;
 import org.rabix.engine.db.JobBackendService.BackendJob;
 import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStub.HeartbeatCallback;
 import org.rabix.engine.rest.service.BackendService;
@@ -73,12 +72,12 @@ public class SchedulerServiceImpl implements SchedulerService {
         try {
           transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
             @Override
-            public Void call() throws TransactionException {
+            public Void call() throws Exception {
               schedule();
               return null;
             }
           });
-        } catch (TransactionException e) {
+        } catch (Exception e) {
           // TODO handle exception
           logger.error("Failed to schedule jobs", e);
         }
@@ -177,7 +176,7 @@ public class SchedulerServiceImpl implements SchedulerService {
       try {
         transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
           @Override
-          public Void call() throws TransactionException {
+          public Void call() throws Exception {
             logger.info("Checking Backend heartbeats...");
 
             long currentTime = System.currentTimeMillis();
@@ -201,13 +200,14 @@ public class SchedulerServiceImpl implements SchedulerService {
                   jobBackendService.update(backendJob.getJobId(), null);
                   logger.info("Reassign Job {} to free Jobs", backendJob.getJobId());
                 }
+                backendService.stopBackend(backend);
               }
             }
             logger.info("Heartbeats checked");
             return null;
           }
         });
-      } catch (TransactionException e) {
+      } catch (Exception e) {
         // TODO handle exception
         logger.error("Failed to check heartbeats", e);
       }

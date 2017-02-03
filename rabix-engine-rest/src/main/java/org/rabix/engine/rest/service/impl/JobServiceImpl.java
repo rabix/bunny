@@ -26,7 +26,6 @@ import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.helpers.IntermediaryFilesHelper;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
@@ -102,7 +101,7 @@ public class JobServiceImpl implements JobService {
     try {
       transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
         @Override
-        public Void call() throws TransactionException {
+        public Void call() throws Exception {
           JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
           try {
             JobStatusEvent statusEvent = null;
@@ -133,7 +132,7 @@ public class JobServiceImpl implements JobService {
               break;
             }
             jobDB.update(job);
-            eventProcessor.addToExternalQueue(statusEvent);
+            eventProcessor.addToExternalQueue(statusEvent, true);
           } catch (JobStateValidationException e) {
             // TODO handle exception
             logger.warn("Failed to update Job state from {} to {}", jobRecord.getState(), job.getStatus());
@@ -141,7 +140,7 @@ public class JobServiceImpl implements JobService {
           return null;
         }
       });
-    } catch (TransactionException e) {
+    } catch (Exception e) {
       throw new JobServiceException("Failed to update Job", e);
     }
     
@@ -168,7 +167,7 @@ public class JobServiceImpl implements JobService {
       jobDB.add(job);
 
       InitEvent initEvent = new InitEvent(UUID.randomUUID().toString(), job.getConfig(), job.getRootId(), node, job.getInputs());
-      eventProcessor.addToExternalQueue(initEvent);
+      eventProcessor.addToExternalQueue(initEvent, true);
       return job;
     } catch (Exception e) {
       logger.error("Failed to create Bindings", e);
