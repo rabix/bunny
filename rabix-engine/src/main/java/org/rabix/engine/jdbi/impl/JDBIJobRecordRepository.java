@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
@@ -49,7 +50,7 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   public abstract JobRecord get(@Bind("id") String id, @Bind("root_id") String rootId);
   
   @SqlQuery("select * from job_record where parent_id=:parent_id and root_id=:root_id")
-  public abstract List<JobRecord> getByParent(@Bind("parent_id") String parentId, @Bind("root_id") String rootId);
+  public abstract List<JobRecord> getByParent(@Bind("parent_id") String parentId, @Bind("root_id") UUID rootId);
   
   @SqlQuery("select * from job_record where job_state='ready' and root_id=?")
   public abstract List<JobRecord> getReady(@Bind("root_id") String rootId);
@@ -62,8 +63,8 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
       public Binder<BindJobRecord, JobRecord> build(Annotation annotation) {
         return new Binder<BindJobRecord, JobRecord>() {
           public void bind(SQLStatement<?> q, BindJobRecord bind, JobRecord jobRecord) {
-            q.bind("id", jobRecord.getId());
-            q.bind("external_id", jobRecord.getExternalId());
+            q.bind("id", jobRecord.getName());
+            q.bind("external_id", jobRecord.getId());
             q.bind("root_id", jobRecord.getRootId());
             q.bind("parent_id", jobRecord.getParentId());
             q.bind("blocking", jobRecord.isBlocking());

@@ -3,6 +3,7 @@ package org.rabix.bindings.draft2.bean;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
@@ -34,7 +35,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -68,7 +70,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
       Assert.assertNotNull(resultList);
@@ -87,7 +90,8 @@ public class Draft2CommandLineToolTest {
 
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       CommandLine commandLine = bindings.buildCommandLineObject(job, null, null);
 
@@ -115,7 +119,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -135,7 +140,8 @@ public class Draft2CommandLineToolTest {
 
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       String commandLine = bindings.buildCommandLineObject(job, null, null).build();
       
@@ -181,7 +187,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -212,7 +219,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id",encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id",encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -242,7 +250,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -276,7 +285,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -303,7 +313,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -330,7 +341,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -357,7 +369,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 
@@ -384,7 +397,8 @@ public class Draft2CommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+      UUID id = UUID.randomUUID();
+      Job job = new Job(id, id, id, "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
       Bindings bindings = new Draft2Bindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
 

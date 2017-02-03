@@ -1,6 +1,7 @@
 package org.rabix.engine.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.cache.Cachable;
@@ -26,7 +27,7 @@ public class LinkRecordService {
   }
   
   public void create(LinkRecord link) {
-    Cache cache = cacheService.getCache(link.getContextId(), LinkRecord.CACHE_NAME);
+    Cache cache = cacheService.getCache(link.getRootId(), LinkRecord.CACHE_NAME);
     cache.put(link, Action.INSERT);
   }
 
@@ -51,9 +52,9 @@ public class LinkRecordService {
     return fromDB;
   }
   
-  public List<LinkRecord> findBySourceAndSourceType(String jobId, LinkPortType varType, String contextId) {
-    Cache cache = cacheService.getCache(contextId, LinkRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new LinkRecordCacheKey(contextId, jobId, null, varType, null, null, null));
+  public List<LinkRecord> findBySourceAndSourceType(String jobId, LinkPortType varType, UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new LinkRecordCacheKey(rootId, jobId, null, varType, null, null, null));
     if (!records.isEmpty()) {
       return Lists.transform(records, new Function<Cachable, LinkRecord>() {
         @Override
@@ -62,16 +63,16 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, varType, contextId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, varType, rootId);
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }
     return fromDB;
   }
   
-  public List<LinkRecord> findBySource(String jobId, String portId, String contextId) {
-    Cache cache = cacheService.getCache(contextId, LinkRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new LinkRecordCacheKey(contextId, jobId, portId, null, null, null, null));
+  public List<LinkRecord> findBySource(String jobId, String portId, UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new LinkRecordCacheKey(rootId, jobId, portId, null, null, null, null));
     if (!records.isEmpty()) {
       return Lists.transform(records, new Function<Cachable, LinkRecord>() {
         @Override
@@ -80,16 +81,16 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, portId, contextId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, portId, rootId);
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }
     return fromDB;
   }
   
-  public List<LinkRecord> findBySourceAndDestinationType(String jobId, String portId, LinkPortType varType, String contextId) {
-    Cache cache = cacheService.getCache(contextId, LinkRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new LinkRecordCacheKey(contextId, jobId, portId, null, null, null, varType));
+  public List<LinkRecord> findBySourceAndDestinationType(String jobName, String portId, LinkPortType varType, UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new LinkRecordCacheKey(rootId, jobName, portId, null, null, null, varType));
     if (!records.isEmpty()) {
       return Lists.transform(records, new Function<Cachable, LinkRecord>() {
         @Override
@@ -98,7 +99,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndDestinationType(jobId, portId, varType, contextId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndDestinationType(jobName, portId, varType, rootId);
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }

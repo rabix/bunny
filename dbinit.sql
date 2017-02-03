@@ -1,4 +1,53 @@
---DROP TABLE job_record;
+CREATE TABLE APPLICATION (
+	id	    uuid primary key,
+    app     bytea
+);
+
+CREATE INDEX application_id_index ON application (id);
+
+CREATE TYPE backend_type as enum ('LOCAL', 'ACTIVE_MQ', 'RABBIT_MQ');
+
+CREATE TABLE backend (
+	id				uuid primary key
+	type            backend_type not null,
+    configuration 	jsonb
+);
+
+CREATE INDEX backend_id_index ON backend (id);
+CREATE INDEX backend_name_index ON backend (name);
+
+CREATE TYPE job_status as enum ('PENDING', 'READY', 'STARTED', 'ABORTED', 'FAILED', 'COMPLETED', 'RUNNING');
+CREATE TYPE resources as (
+    cpu             bigint,
+    mem_mb          bigint,
+    disk_space_mb   bigint,
+    network_access  boolean,
+    working_dir     text,
+    tmp_dir         text
+    out_dir_size    bigint,
+    tmp_dir_size    bigint
+);
+
+CREATE TABLE job (
+    id			    uuid primary key,
+    root_id 	    uuid references job,
+    name            text not null,
+    parent_id       uuid not null,
+    status          job_status not null,
+    message         text,
+    inputs          jsonb,
+    outputs         jsonb,
+    resources       resources,
+    group_id	    uuid,
+    visible_ports   text[],
+    config          jsonb
+);
+
+create index job_id_index on job(id);
+create index job_parents_index on job(parents);
+create index job_status_index on job(status);
+create unique index job_root_name_index on job(root_id, name);
+
 
 CREATE TABLE job_record (
     id						text,
@@ -17,42 +66,7 @@ CREATE TABLE job_record (
     scatter_strategy		jsonb
 );
 
-CREATE TYPE backend_type as enum ('LOCAL', 'ACTIVE_MQ', 'RABBIT_MQ');
 
-DROP TABLE backend;
-
-CREATE TABLE backend (
-	id				uuid primary key,
-	name            text not null unique,
-	type            backend_type not null,
-    configuration 	jsonb
-);
-
-CREATE INDEX backend_id_index ON backend (id);
-CREATE INDEX backend_name_index ON backend (name);
-
---DROP TABLE APPLICATION;
-
-CREATE TABLE APPLICATION (
-	id	text,
-    app jsonb
-);
-
---DROP TABLE context_record;
-
-CREATE TYPE context_status as enum ('RUNNING', 'COMPLETED', 'FAILED');
-
-CREATE TABLE context_record (
-    id		        uuid primary key,
-    external_id     text unique not null,
-    status	        context_status not null,
-    config	        jsonb
-    );
-
-CREATE INDEX contect_id_index ON context_record (id);
-CREATE INDEX contect_external_id_index ON context_record (external_id);
-
-    
 --DROP TABLE dag_node;
 
 CREATE TABLE dag_node (
@@ -60,27 +74,11 @@ CREATE TABLE dag_node (
     dag 	jsonb
 );
 
---DROP TABLE job_backend;
-
-CREATE TABLE job_backend (
-    job_id		text,
-    root_id 	text,
-    backend_id 	text
-);
-
---DROP TABLE job;
-
-CREATE TABLE job (
-    id			uuid,
-    root_id 	uuid references context_record,
-    job			jsonb,
-    group_id	text
-);
 
 --DROP TABLE link_record;
 
 CREATE TABLE link_record (
-    context_id				text,
+    root_id				    uuid,
     source_job_id			text,
     source_job_port_id		text,
     source_type				text,

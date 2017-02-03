@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository.LinkRecordMapper;
@@ -43,7 +44,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   public abstract List<LinkRecord> getBySourceAndSourceType(@Bind("source_job_id") String sourceJobId, @Bind("source_type") LinkPortType sourceType, @Bind("context_id") String rootId);
   
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and destination_type=:destination_type and context_id=:context_id")
-  public abstract List<LinkRecord> getBySourceAndDestinationType(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("destination_type") LinkPortType destinationType, @Bind("context_id") String rootId);
+  public abstract List<LinkRecord> getBySourceAndDestinationType(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("destination_type") LinkPortType destinationType, @Bind("context_id") UUID rootId);
   
   @BindingAnnotation(BindLinkRecord.LinkBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
@@ -53,7 +54,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
       public Binder<BindLinkRecord, LinkRecord> build(Annotation annotation) {
         return new Binder<BindLinkRecord, LinkRecord>() {
           public void bind(SQLStatement<?> q, BindLinkRecord bind, LinkRecord linkRecord) {
-            q.bind("context_id", linkRecord.getContextId());
+            q.bind("context_id", linkRecord.getRootId());
             q.bind("source_job_id", linkRecord.getSourceJobId());
             q.bind("source_job_port_id", linkRecord.getSourceJobPort());
             q.bind("source_type", linkRecord.getSourceVarType());
@@ -69,7 +70,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   
   public static class LinkRecordMapper implements ResultSetMapper<LinkRecord> {
     public LinkRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
-      String contextId = resultSet.getString("context_id");
+      UUID rootId = resultSet.getObject("context_id", UUID.class);
       String sourceJobId = resultSet.getString("source_job_id");
       String sourceJobPortId = resultSet.getString("source_job_port_id");
       String sourceType = resultSet.getString("source_type");
@@ -77,7 +78,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
       String destinationJobPortId = resultSet.getString("destination_job_port_id");
       String destinationType = resultSet.getString("destination_type");
       Integer position = resultSet.getInt("position");
-      return new LinkRecord(contextId, sourceJobId, sourceJobPortId, LinkPortType.valueOf(sourceType), destinationJobId, destinationJobPortId, LinkPortType.valueOf(destinationType), position);
+      return new LinkRecord(rootId, sourceJobId, sourceJobPortId, LinkPortType.valueOf(sourceType), destinationJobId, destinationJobPortId, LinkPortType.valueOf(destinationType), position);
     }
   }
   

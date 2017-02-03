@@ -1,5 +1,6 @@
 package org.rabix.executor.execution.command;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -33,8 +34,8 @@ public class StatusCommand extends JobHandlerCommand {
   }
 
   @Override
-  public Result run(JobData jobData, JobHandler jobHandler, String contextId) {
-    String jobId = jobData.getJob().getId();
+  public Result run(JobData jobData, JobHandler jobHandler, UUID rootId) {
+    UUID jobId = jobData.getJob().getId();
     logger.debug("Check status for {} command line tool.", jobId);
 
     if (!JobDataStatus.STARTED.equals(jobData.getStatus())) {

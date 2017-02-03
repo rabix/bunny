@@ -8,7 +8,7 @@ import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
 import org.rabix.engine.processor.handler.HandlerFactory;
-import org.rabix.engine.processor.handler.impl.ContextStatusEventHandler;
+import org.rabix.engine.processor.handler.impl.RootJobStatusEventHandler;
 import org.rabix.engine.processor.handler.impl.InitEventHandler;
 import org.rabix.engine.processor.handler.impl.InputEventHandler;
 import org.rabix.engine.processor.handler.impl.JobStatusEventHandler;
@@ -17,7 +17,7 @@ import org.rabix.engine.processor.handler.impl.ScatterHandler;
 import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.CacheService;
-import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.RootJobService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
@@ -41,14 +41,14 @@ public class EngineModule extends AbstractModule {
     bind(JobRecordService.class).in(Scopes.SINGLETON);
     bind(VariableRecordService.class).in(Scopes.SINGLETON);
     bind(LinkRecordService.class).in(Scopes.SINGLETON);
-    bind(ContextRecordService.class).in(Scopes.SINGLETON);
+    bind(RootJobService.class).in(Scopes.SINGLETON);
 
     bind(ScatterHandler.class).in(Scopes.SINGLETON);
     bind(InitEventHandler.class).in(Scopes.SINGLETON);
     bind(InputEventHandler.class).in(Scopes.SINGLETON);
     bind(OutputEventHandler.class).in(Scopes.SINGLETON);
     bind(JobStatusEventHandler.class).in(Scopes.SINGLETON);
-    bind(ContextStatusEventHandler.class).in(Scopes.SINGLETON);
+    bind(RootJobStatusEventHandler.class).in(Scopes.SINGLETON);
     
     bind(HandlerFactory.class).in(Scopes.SINGLETON);
     bind(EventDispatcherFactory.class).in(Scopes.SINGLETON);

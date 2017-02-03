@@ -1,30 +1,31 @@
 package org.rabix.engine.event.impl;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.engine.event.Event;
 import org.rabix.engine.service.JobRecordService.JobState;
 
 public class JobStatusEvent implements Event {
 
-  private final String jobId;
+  private final String jobName;
   private final JobState state;
-  private final String contextId;
+  private final UUID rootId;
   
   private final Map<String, Object> result;
   
-  private final String eventGroupId;
+  private final UUID eventGroupId;
   
-  public JobStatusEvent(String jobId, String contextId, JobState state, Map<String, Object> result, String eventGroupId) {
-    this.jobId = jobId;
-    this.contextId = contextId;
+  public JobStatusEvent(String jobName, UUID rootId, JobState state, Map<String, Object> result, UUID eventGroupId) {
+    this.jobName = jobName;
+    this.rootId = rootId;
     this.state = state;
     this.result = result;
     this.eventGroupId = eventGroupId;
   }
   
-  public String getJobId() {
-    return jobId;
+  public String getJobName() {
+    return jobName;
   }
   
   public JobState getState() {
@@ -32,8 +33,8 @@ public class JobStatusEvent implements Event {
   }
 
   @Override
-  public String getContextId() {
-    return contextId;
+  public UUID getRootId() {
+    return rootId;
   }
   
   public Map<String, Object> getResult() {
@@ -41,7 +42,7 @@ public class JobStatusEvent implements Event {
   }
   
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
   }
   
@@ -54,8 +55,8 @@ public class JobStatusEvent implements Event {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((contextId == null) ? 0 : contextId.hashCode());
-    result = prime * result + ((jobId == null) ? 0 : jobId.hashCode());
+    result = prime * result + ((rootId == null) ? 0 : rootId.hashCode());
+    result = prime * result + ((jobName == null) ? 0 : jobName.hashCode());
     result = prime * result + ((this.result == null) ? 0 : this.result.hashCode());
     result = prime * result + ((state == null) ? 0 : state.hashCode());
     return result;
@@ -70,15 +71,15 @@ public class JobStatusEvent implements Event {
     if (getClass() != obj.getClass())
       return false;
     JobStatusEvent other = (JobStatusEvent) obj;
-    if (contextId == null) {
-      if (other.contextId != null)
+    if (rootId == null) {
+      if (other.rootId != null)
         return false;
-    } else if (!contextId.equals(other.contextId))
+    } else if (!rootId.equals(other.rootId))
       return false;
-    if (jobId == null) {
-      if (other.jobId != null)
+    if (jobName == null) {
+      if (other.jobName != null)
         return false;
-    } else if (!jobId.equals(other.jobId))
+    } else if (!jobName.equals(other.jobName))
       return false;
     if (result == null) {
       if (other.result != null)
@@ -92,7 +93,7 @@ public class JobStatusEvent implements Event {
 
   @Override
   public String toString() {
-    return "JobStatusEvent [jobId=" + jobId + ", state=" + state + ", contextId=" + contextId + ", result=" + result + "]";
+    return "JobStatusEvent [jobName=" + jobName + ", state=" + state + ", contextId=" + rootId + ", result=" + result + "]";
   }
 
 }

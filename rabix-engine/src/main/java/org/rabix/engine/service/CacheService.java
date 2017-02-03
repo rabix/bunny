@@ -2,6 +2,7 @@ package org.rabix.engine.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.cache.Cache;
@@ -30,7 +31,7 @@ public class CacheService {
     this.variableRecordRepository = variableRecordRepository;
   }
   
-  public Cache getCache(String rootId, String entity) {
+  public Cache getCache(UUID rootId, String entity) {
     String index = "" + EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors());
     
     Map<String, Cache> singleCache = caches.get(index);
@@ -41,7 +42,7 @@ public class CacheService {
     return singleCache.get(entity);
   }
   
-  public void flush(String rootId) {
+  public void flush(UUID rootId) {
     if (rootId == null) {
       return;
     }

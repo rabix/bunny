@@ -5,11 +5,13 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CacheKey;
 
+import java.util.UUID;
+
 public class VariableRecord implements Cachable {
 
   public final static String CACHE_NAME = "VARIABLE_RECORD";
   
-  private String rootId;
+  private UUID rootId;
 
   private String jobId;
   private String portId;
@@ -25,7 +27,7 @@ public class VariableRecord implements Cachable {
   private boolean isDefault = true;
   private Object transform;
 
-  public VariableRecord(String rootId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
+  public VariableRecord(UUID rootId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
     this.jobId = jobId;
     this.portId = portId;
     this.type = type;
@@ -34,7 +36,7 @@ public class VariableRecord implements Cachable {
     this.linkMerge = linkMerge;
   }
 
-  public String getRootId() {
+  public UUID getRootId() {
     return rootId;
   }
   
@@ -114,7 +116,7 @@ public class VariableRecord implements Cachable {
     return value;
   }
 
-  public void setRootId(String rootId) {
+  public void setRootId(UUID rootId) {
     this.rootId = rootId;
   }
 
@@ -145,7 +147,7 @@ public class VariableRecord implements Cachable {
   public static class VariableRecordCacheKey implements CacheKey {
     private String jobId;
     private String portId;
-    private String rootId;
+    private UUID rootId;
     private LinkPortType type;
     
     public VariableRecordCacheKey(VariableRecord variableRecord) {
@@ -155,7 +157,7 @@ public class VariableRecord implements Cachable {
       this.type = variableRecord.getType();
     }
     
-    public VariableRecordCacheKey(String jobId, String portId, String rootId, LinkPortType type) {
+    public VariableRecordCacheKey(String jobId, String portId, UUID rootId, LinkPortType type) {
       this.jobId = jobId;
       this.portId = portId;
       this.rootId = rootId;
@@ -191,7 +193,7 @@ public class VariableRecord implements Cachable {
       return portId;
     }
 
-    public String getRootId() {
+    public UUID getRootId() {
       return rootId;
     }
 

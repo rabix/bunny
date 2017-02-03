@@ -1,6 +1,7 @@
 package org.rabix.engine.repository;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CachableRepository;
@@ -26,7 +27,7 @@ public abstract class JobRecordRepository implements CachableRepository {
   
   public abstract JobRecord getRoot(String rootId);
   
-  public abstract JobRecord get(String id, String rootId);
+  public abstract JobRecord get(String id, UUID rootId);
   
   public abstract List<JobRecord> getByParent(String parentId, String rootId);
   

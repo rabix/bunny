@@ -26,7 +26,7 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.CacheService;
-import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.RootJobService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.LinkRecordService;
@@ -49,7 +49,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   private JobRecordService jobService;
   private LinkRecordService linkService;
   private VariableRecordService variableService;
-  private ContextRecordService contextService;
+  private RootJobService contextService;
     
   private final EventProcessor eventProcessor;
   
@@ -58,7 +58,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   private EngineStatusCallback engineStatusCallback;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, JobDB jobDB, CacheService cacheService) {
+  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, RootJobService contextService, DAGNodeDB dagNodeDB, JobDB jobDB, CacheService cacheService) {
     this.dagNodeDB = dagNodeDB;
     this.jobDB = jobDB;
     
@@ -75,11 +75,11 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   }
   
   public void handle(final OutputUpdateEvent event) throws EventHandlerException {
-    JobRecord sourceJob = jobService.find(event.getJobId(), event.getContextId());
+    JobRecord sourceJob = jobService.find(event.getJobName(), event.getContextId());
     if (event.isFromScatter()) {
       jobService.resetOutputPortCounter(sourceJob, event.getNumberOfScattered(), event.getPortId());
     }
-    VariableRecord sourceVariable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.OUTPUT, event.getContextId());
+    VariableRecord sourceVariable = variableService.find(event.getJobName(), event.getPortId(), LinkPortType.OUTPUT, event.getContextId());
     jobService.decrementPortCounter(sourceJob, event.getPortId(), LinkPortType.OUTPUT);
     variableService.addValue(sourceVariable, event.getValue(), event.getPosition(), sourceJob.isScatterWrapper());
     variableService.update(sourceVariable); // TODO wha?
@@ -93,21 +93,21 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobService, variableService, linkService, contextService, dagNodeDB);
         engineStatusCallback.onJobCompleted(completedJob);
       } catch (BindingException e) {
-        logger.error("Failed to create Job " + sourceJob.getId(), e);
+        logger.error("Failed to create Job " + sourceJob.getName(), e);
       } catch (EngineStatusCallbackException e) {
-        logger.error("Failed to call onJobCompleted callback for Job " + sourceJob.getId(), e);
+        logger.error("Failed to call onJobCompleted callback for Job " + sourceJob.getName(), e);
       }
       
       if (sourceJob.isRoot()) {
         Map<String, Object> outputs = new HashMap<>();
-        List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
+        List<VariableRecord> outputVariables = variableService.find(sourceJob.getName(), LinkPortType.OUTPUT, sourceJob.getRootId());
         for (VariableRecord outputVariable : outputVariables) {
           Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
           outputs.put(outputVariable.getPortId(), value);
         }
         if(sourceJob.isRoot() && sourceJob.isContainer()) {
           // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
-          eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId()));
+          eventProcessor.send(new JobStatusEvent(sourceJob.getName(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId()));
         }
         return;
       }
@@ -117,8 +117,8 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       try {
         engineStatusCallback.onJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())));
       } catch (EngineStatusCallbackException e) {
-        logger.error("Failed to call onReady callback for Job " + sourceJob.getId(), e);
-        throw new EventHandlerException("Failed to call onJobRootPartiallyCompleted callback for Job " + sourceJob.getId(), e);
+        logger.error("Failed to call onReady callback for Job " + sourceJob.getName(), e);
+        throw new EventHandlerException("Failed to call onJobRootPartiallyCompleted callback for Job " + sourceJob.getName(), e);
       }
     }
     
@@ -131,7 +131,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if (scatterStrategy.isBlocking()) {
         if (sourceJob.isOutputPortReady(event.getPortId())) {
           isValueFromScatterStrategy = true;
-          value = scatterStrategy.values(variableService, sourceJob.getId(), event.getPortId(), event.getContextId());
+          value = scatterStrategy.values(variableService, sourceJob.getName(), event.getPortId(), event.getContextId());
         } else {
           return;
         }
@@ -191,7 +191,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     }
     
     if (sourceJob.isOutputPortReady(event.getPortId())) {
-      List<LinkRecord> links = linkService.findBySource(event.getJobId(), event.getPortId(), event.getContextId());
+      List<LinkRecord> links = linkService.findBySource(event.getJobName(), event.getPortId(), event.getContextId());
       for (LinkRecord link : links) {
         List<VariableRecord> destinationVariables = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), event.getContextId());
         
@@ -205,7 +205,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           case OUTPUT:
             if (sourceJob.isScattered()) {
               int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-              int position = InternalSchemaHelper.getScatteredNumber(sourceJob.getId());
+              int position = InternalSchemaHelper.getScatteredNumber(sourceJob.getName());
               Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, position, event.getEventGroupId());
               eventProcessor.send(updateOutputEvent);
             } else {
@@ -217,7 +217,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
       }
       
-      if (event.getEventGroupId() != null && event.getEventGroupId().equals(sourceJob.getExternalId()) && sourceJob.isCompleted()) {
+      if (event.getEventGroupId() != null && event.getEventGroupId().equals(sourceJob.getId()) && sourceJob.isCompleted()) {
         Set<Job> readyJobs = jobDB.getJobsByGroupId(event.getEventGroupId());
         try {
           cacheService.flush(event.getContextId());
@@ -232,7 +232,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   
   private Job createRootJob(JobRecord jobRecord, JobStatus status) {
     Map<String, Object> outputs = new HashMap<>();
-    List<VariableRecord> outputVariables = variableService.find(jobRecord.getId(), LinkPortType.OUTPUT, jobRecord.getRootId());
+    List<VariableRecord> outputVariables = variableService.find(jobRecord.getName(), LinkPortType.OUTPUT, jobRecord.getRootId());
     for (VariableRecord outputVariable : outputVariables) {
       Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
       outputs.put(outputVariable.getPortId(), value);

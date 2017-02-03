@@ -1,6 +1,7 @@
 package org.rabix.engine.db;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.JSONHelper;
@@ -18,18 +19,19 @@ public class JobDB {
   }
   
   public void add(Job job) {
-    jobRepository.insert(job.getId(), job.getRootId(), JSONHelper.writeObject(job), null);
+    jobRepository.insert(job);
   }
   
-  public void add(Job job, String groupId) {
-    jobRepository.insert(job.getId(), job.getRootId(), JSONHelper.writeObject(job), groupId);
+  public void add(Job job, UUID groupId) {
+
+    jobRepository.insertToGroup(job, groupId);
   }
   
   public void update(Job job) {
-    jobRepository.update(job.getId(), JSONHelper.writeObject(job));
+    jobRepository.update(job);
   }
   
-  public Job get(String id) {
+  public Job get(UUID id) {
     return jobRepository.get(id);
   }
   
@@ -37,11 +39,11 @@ public class JobDB {
     return jobRepository.get();
   }
   
-  public Set<Job> getJobs(String rootId) {
+  public Set<Job> getJobs(UUID rootId) {
     return jobRepository.getByRootId(rootId);
   }
   
-  public Set<Job> getJobsByGroupId(String groupId) {
-    return jobRepository.getJobsByGroupId(groupId);
+  public Set<Job> getJobsByGroupId(UUID groupId) {
+    return jobRepository.getByGroupId(groupId);
   }
 }

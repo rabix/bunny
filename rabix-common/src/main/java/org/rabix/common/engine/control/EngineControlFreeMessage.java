@@ -1,6 +1,7 @@
 package org.rabix.common.engine.control;
 
 import java.util.Map;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,7 +13,7 @@ public class EngineControlFreeMessage extends EngineControlMessage {
   private Map<String, Object> config;
   
   @JsonCreator
-  public EngineControlFreeMessage(@JsonProperty("config") Map<String, Object> config, @JsonProperty("rootId") String rootId) {
+  public EngineControlFreeMessage(@JsonProperty("config") Map<String, Object> config, @JsonProperty("rootId") UUID rootId) {
     super(rootId);
   }
 

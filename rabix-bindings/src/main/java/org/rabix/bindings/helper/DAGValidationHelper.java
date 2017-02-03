@@ -45,7 +45,7 @@ public class DAGValidationHelper {
     List<DAGNode> rootNodes = new ArrayList<DAGNode>();
     for (DAGNode node : containerNode.getChildren()) {
       for (DAGLink dataLink : containerNode.getLinks()) {
-        if (dataLink.getDestination().getDagNodeId().equals(node.getId()) && dataLink.getSource().getDagNodeId().equals(containerNode.getId())) {
+        if (dataLink.getDestination().getDagNodeId().equals(node.getName()) && dataLink.getSource().getDagNodeId().equals(containerNode.getName())) {
           rootNodes.add(node);
           break;
         }
@@ -58,8 +58,8 @@ public class DAGValidationHelper {
     List<DAGNode> adjacentNodes = new ArrayList<DAGNode>();
     for (DAGLink dataLink : containerNode.getLinks()) {
       String nodeId = dataLink.getSource().getDagNodeId();
-      if (nodeId.equals(dagNode.getId()) && dataLink.getDestination().getDagNodeId() != containerNode.getId()) {
-        if (dataLink.getDestination().getDagNodeId().equals(containerNode.getId())) {
+      if (nodeId.equals(dagNode.getName()) && dataLink.getDestination().getDagNodeId() != containerNode.getName()) {
+        if (dataLink.getDestination().getDagNodeId().equals(containerNode.getName())) {
           continue;
         }
         adjacentNodes.add(getNodeFromId(containerNode, dataLink.getDestination().getDagNodeId()));
@@ -70,7 +70,7 @@ public class DAGValidationHelper {
 
   private static DAGNode getNodeFromId(DAGContainer containerNode, String id) throws BindingException {
     for (DAGNode node : containerNode.getChildren()) {
-      if (node.getId().equals(id)) {
+      if (node.getName().equals(id)) {
         return node;
       }
     }

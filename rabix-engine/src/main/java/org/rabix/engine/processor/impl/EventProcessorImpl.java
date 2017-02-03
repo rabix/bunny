@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.Event.EventType;
-import org.rabix.engine.event.impl.ContextStatusEvent;
-import org.rabix.engine.model.ContextRecord;
-import org.rabix.engine.model.ContextRecord.ContextStatus;
+import org.rabix.engine.event.impl.RootJobStatusEvent;
+import org.rabix.engine.model.RootJob;
+import org.rabix.engine.model.RootJob.RootJobStatus;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.dispatcher.EventDispatcher;
 import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
@@ -21,7 +21,7 @@ import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
-import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.RootJobService;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,16 +46,16 @@ public class EventProcessorImpl implements EventProcessor {
   private final HandlerFactory handlerFactory;
   private final EventDispatcher eventDispatcher;
   
-  private final ContextRecordService contextRecordService;
+  private final RootJobService rootJobService;
   
   private final TransactionHelper transactionHelper;
   
   private final ConcurrentMap<String, Integer> iterations = new ConcurrentHashMap<>();
   
   @Inject
-  public EventProcessorImpl(HandlerFactory handlerFactory, EventDispatcherFactory eventDispatcherFactory, ContextRecordService contextRecordService, TransactionHelper transactionHelper) {
+  public EventProcessorImpl(HandlerFactory handlerFactory, EventDispatcherFactory eventDispatcherFactory, RootJobService rootJobService, TransactionHelper transactionHelper) {
     this.handlerFactory = handlerFactory;
-    this.contextRecordService = contextRecordService;
+    this.rootJobService = rootJobService;
     this.transactionHelper = transactionHelper;
     this.eventDispatcher = eventDispatcherFactory.create(EventDispatcher.Type.SYNC);
   }
@@ -80,8 +80,8 @@ public class EventProcessorImpl implements EventProcessor {
             transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws TransactionException {
-                ContextRecord context = contextRecordService.findByExternalId(finalEvent.getContextId());
-                if (context != null && context.getStatus().equals(ContextStatus.FAILED)) {
+                RootJob context = rootJobService.findByExternalId(finalEvent.getContextId());
+                if (context != null && context.getStatus().equals(RootJobStatus.FAILED)) {
                   logger.info("Skip event {}. Context {} has been invalidated.", finalEvent, context.getId());
                   shouldSkipIteration.set(true);
                   return null;
@@ -131,7 +131,7 @@ public class EventProcessorImpl implements EventProcessor {
    * Invalidates context 
    */
   private void invalidateContext(String contextId) throws EventHandlerException {
-    handlerFactory.get(Event.EventType.CONTEXT_STATUS_UPDATE).handle(new ContextStatusEvent(contextId, ContextStatus.FAILED));
+    handlerFactory.get(Event.EventType.CONTEXT_STATUS_UPDATE).handle(new RootJobStatusEvent(contextId, RootJobStatus.FAILED));
   }
   
   @Override

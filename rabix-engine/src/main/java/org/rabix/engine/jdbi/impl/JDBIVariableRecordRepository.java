@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.bindings.model.FileValue;
@@ -44,13 +45,13 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   public abstract int update(@BindVariableRecord VariableRecord jobRecord);
   
   @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and type=:type and context_id=:context_id")
-  public abstract VariableRecord get(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("context_id") String rootId);
+  public abstract VariableRecord get(@Bind("job_id") String jobName, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("context_id") UUID rootId);
  
   @SqlQuery("select * from variable_record where job_id=:job_id and type=:type and context_id=:context_id")
-  public abstract List<VariableRecord> getByType(@Bind("job_id") String jobId, @Bind("type") LinkPortType type, @Bind("context_id") String rootId);
+  public abstract List<VariableRecord> getByType(@Bind("job_id") String jobName, @Bind("type") LinkPortType type, @Bind("context_id") UUID rootId);
   
   @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and context_id=:context_id")
-  public abstract List<VariableRecord> getByPort(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("context_id") String rootId);
+  public abstract List<VariableRecord> getByPort(@Bind("job_id") String jobName, @Bind("port_id") String portId, @Bind("context_id") UUID rootId);
  
   @BindingAnnotation(BindVariableRecord.VariableBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
@@ -105,7 +106,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
       Boolean isWrapped = resultSet.getBoolean("is_wrapped");
       Integer globalsCount = resultSet.getInt("globals_count");
       Integer timesUpdatedCount = resultSet.getInt("times_updated_count");
-      String rootId = resultSet.getString("context_id");
+      UUID rootId = resultSet.getObject("context_id", UUID.class);
       Boolean isDefault = resultSet.getBoolean("is_default");
 
       Object valueObject = FileValue.deserialize(JSONHelper.transform(JSONHelper.readJsonNode(value)));

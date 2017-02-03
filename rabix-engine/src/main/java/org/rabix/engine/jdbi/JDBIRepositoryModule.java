@@ -4,7 +4,6 @@ import org.apache.commons.configuration.Configuration;
 import org.postgresql.jdbc3.Jdbc3PoolingDataSource;
 import org.rabix.engine.repository.AppRepository;
 import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.ContextRecordRepository;
 import org.rabix.engine.repository.DAGRepository;
 import org.rabix.engine.repository.JobBackendRepository;
 import org.rabix.engine.repository.JobRecordRepository;
@@ -91,8 +90,8 @@ public class JDBIRepositoryModule extends AbstractModule {
     return repositoryRegistry.variableRecordRepository();
   }
   
-  @Provides
-  public ContextRecordRepository provideContextRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
-    return repositoryRegistry.contextRecordRepository();
-  }
+//  @Provides
+//  public RootJobRepository provideContextRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
+//    return repositoryRegistry.contextRecordRepository();
+//  }
 }

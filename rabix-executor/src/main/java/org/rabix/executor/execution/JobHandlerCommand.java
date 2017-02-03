@@ -1,6 +1,7 @@
 package org.rabix.executor.execution;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -40,14 +41,14 @@ public abstract class JobHandlerCommand {
   /**
    * Find {@link JobData} and run command 
    */
-  public Result run(String id, String contextId, JobHandler handler) {
+  public Result run(UUID id, UUID rootId, JobHandler handler) {
     JobData data = null;
     try {
-      data = jobDataService.find(id, contextId);
+      data = jobDataService.find(id, rootId);
       if (data == null) {
         throw new RuntimeException("No JobData assocated for ID = " + id);
       }
-      return run(data, handler, contextId);
+      return run(data, handler, rootId);
     } catch (Exception e) {
       failed(data, "Executor faced a runtime exception.", handler.getEngineStub(), e);
       data = jobDataService.save(data, "Executor faced a runtime exception.", JobDataStatus.FAILED);
@@ -58,7 +59,7 @@ public abstract class JobHandlerCommand {
   /**
    * Run command using the {@link JobData} 
    */
-  public abstract Result run(JobData jobData, JobHandler handler, String contextId);
+  public abstract Result run(JobData jobData, JobHandler handler, UUID rootId);
 
   /**
    * Get repeat information. By default, the command is not repeatable.

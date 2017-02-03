@@ -1,6 +1,7 @@
 package org.rabix.engine.event.impl;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.event.Event;
@@ -12,10 +13,10 @@ public class InitEvent implements Event {
 
   private final DAGNode node;
   private final Map<String, Object> value;
-  private final String rootId;
+  private final UUID rootId;
   private final Map<String, Object> config;
   
-  public InitEvent(Map<String, Object> config, String rootId, DAGNode node, Map<String, Object> value) {
+  public InitEvent(Map<String, Object> config, UUID rootId, DAGNode node, Map<String, Object> value) {
     this.node = node;
     this.value = value;
     this.rootId = rootId;
@@ -29,18 +30,14 @@ public class InitEvent implements Event {
   public Map<String, Object> getValue() {
     return value;
   }
-  
-  public String getRootId() {
+
+  @Override
+  public UUID getRootId() {
     return rootId;
   }
   
   @Override
-  public String getContextId() {
-    return rootId;
-  }
-  
-  @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return null;
   }
   

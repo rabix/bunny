@@ -1,5 +1,7 @@
 package org.rabix.engine.event;
 
+import java.util.UUID;
+
 /**
  * Describes event interface used in the algorithm 
  */
@@ -18,7 +20,7 @@ public interface Event {
    */
   EventType getType();
   
-  String getContextId();
-  
-  String getEventGroupId();
+  UUID getRootId();
+
+  UUID getEventGroupId();
 }

@@ -3,6 +3,7 @@ package org.rabix.bindings.cwl.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.cwl.CWLBindings;
@@ -52,7 +53,8 @@ public class CWLGlobServiceTest {
     String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(cwlJob.getApp()));
     
     Map<String, Object> inputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(cwlJob.getInputs());
-    Job job = new Job("id", "id", "id", "id", encodedApp, null, null, inputs, null, null, null, null);
+    UUID id = UUID.randomUUID();
+    Job job = new Job(id, id, id, "id", encodedApp, null, null, inputs, null, null, null, null);
 
     Bindings bindings = new CWLBindings();
     job = bindings.postprocess(job, workingDir, null, null);

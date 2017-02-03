@@ -46,7 +46,7 @@ public class JobRecordService {
     cache.put(jobRecord, Action.INSERT);
   }
 
-  public void delete(String rootId) {
+  public void delete(UUID rootId) {
   }
   
   public void update(JobRecord jobRecord) {
@@ -67,13 +67,13 @@ public class JobRecordService {
     return jobRecordRepository.getByParent(parentId, contextId);
   }
   
-  public JobRecord find(String id, String contextId) {
-    Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(id, contextId));
+  public JobRecord find(String jobName, UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(jobName, rootId));
     if (!records.isEmpty()) {
       return (JobRecord) records.get(0);
     }
-    JobRecord record = jobRecordRepository.get(id, contextId);
+    JobRecord record = jobRecordRepository.get(jobName, rootId);
     cache.put(record, Action.UPDATE);
     return record;
   }
@@ -130,7 +130,7 @@ public class JobRecordService {
   }
   
   public void decrementPortCounter(JobRecord jobRecord, String portId, LinkPortType type) {
-    logger.info("JobRecord {}. Decrementing port {}.", jobRecord.getId(), portId);
+    logger.info("JobRecord {}. Decrementing port {}.", jobRecord.getName(), portId);
     List<PortCounter> counters = type.equals(LinkPortType.INPUT) ? jobRecord.getInputCounters() : jobRecord.getOutputCounters();
     for (PortCounter portCounter : counters) {
       if (portCounter.port.equals(portId)) {
@@ -142,7 +142,7 @@ public class JobRecordService {
   }
   
   private void printInputPortCounters(JobRecord jobRecord) {
-    StringBuilder builder = new StringBuilder("\nJob ").append(jobRecord.getId()).append(" input counters:\n");
+    StringBuilder builder = new StringBuilder("\nJob ").append(jobRecord.getName()).append(" input counters:\n");
     for (PortCounter inputPortCounter : jobRecord.getInputCounters()) {
       builder.append(" -- Input port ").append(inputPortCounter.getPort()).append(", counter=").append(inputPortCounter.counter).append("\n");
     }
@@ -150,7 +150,7 @@ public class JobRecordService {
   }
   
   private void printOutputPortCounters(JobRecord jobRecord) {
-    StringBuilder builder = new StringBuilder("\nJob ").append(jobRecord.getId()).append(" output counters:\n");
+    StringBuilder builder = new StringBuilder("\nJob ").append(jobRecord.getName()).append(" output counters:\n");
     for (PortCounter inputPortCounter : jobRecord.getOutputCounters()) {
       builder.append(" -- Output port ").append(inputPortCounter.getPort()).append(", counter=").append(inputPortCounter.counter).append("\n");
     }
@@ -181,7 +181,7 @@ public class JobRecordService {
   }
   
   public void resetOutputPortCounter(JobRecord jobRecord, int value, String port) {
-    logger.info("Reset output port counter {} for {} to {}", port, jobRecord.getId(), value);
+    logger.info("Reset output port counter {} for {} to {}", port, jobRecord.getName(), value);
     for (PortCounter pc : jobRecord.getOutputCounters()) {
       if (pc.port.equals(port)) {
         int oldValue = pc.globalCounter;
@@ -204,7 +204,7 @@ public class JobRecordService {
   }
   
   public void resetOutputPortCounters(JobRecord jobRecord, int value) {
-    logger.info("Reset output port counters for {} to {}", jobRecord.getId(), value);
+    logger.info("Reset output port counters for {} to {}", jobRecord.getName(), value);
     if (jobRecord.getNumberOfGlobalOutputs() == value) {
       return;
     }
