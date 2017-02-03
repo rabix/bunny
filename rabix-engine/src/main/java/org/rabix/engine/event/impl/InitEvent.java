@@ -10,13 +10,15 @@ import org.rabix.engine.event.Event;
  */
 public class InitEvent implements Event {
 
+  private final String eventId;
   private final DAGNode node;
   private final Map<String, Object> value;
   private final String rootId;
   private final Map<String, Object> config;
   
-  public InitEvent(Map<String, Object> config, String rootId, DAGNode node, Map<String, Object> value) {
+  public InitEvent(String eventId, Map<String, Object> config, String rootId, DAGNode node, Map<String, Object> value) {
     this.node = node;
+    this.eventId = eventId;
     this.value = value;
     this.rootId = rootId;
     this.config = config;
@@ -41,7 +43,7 @@ public class InitEvent implements Event {
   
   @Override
   public String getEventGroupId() {
-    return null;
+    return eventId;
   }
   
   public Map<String, Object> getConfig() {
@@ -99,6 +101,11 @@ public class InitEvent implements Event {
   @Override
   public String toString() {
     return "InitEvent [node=" + node + ", value=" + value + ", rootId=" + rootId + ", config=" + config + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    return PersistentEventType.INIT;
   }
 
 }

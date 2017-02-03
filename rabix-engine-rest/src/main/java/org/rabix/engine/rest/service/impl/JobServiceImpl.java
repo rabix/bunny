@@ -113,14 +113,14 @@ public class JobServiceImpl implements JobService {
                 return null;
               }
               JobStateValidator.checkState(jobRecord, JobState.RUNNING);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), null);
+              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), job.getId());
               break;
             case FAILED:
               if (JobState.FAILED.equals(jobRecord.getState())) {
                 return null;
               }
               JobStateValidator.checkState(jobRecord, JobState.FAILED);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, null);
+              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, job.getId());
               break;
             case COMPLETED:
               if (JobState.COMPLETED.equals(jobRecord.getState())) {
@@ -167,7 +167,7 @@ public class JobServiceImpl implements JobService {
       job = Job.cloneWithConfig(job, config);
       jobDB.add(job);
 
-      InitEvent initEvent = new InitEvent(job.getConfig(), job.getRootId(), node, job.getInputs());
+      InitEvent initEvent = new InitEvent(UUID.randomUUID().toString(), job.getConfig(), job.getRootId(), node, job.getInputs());
       eventProcessor.addToExternalQueue(initEvent);
       return job;
     } catch (Exception e) {

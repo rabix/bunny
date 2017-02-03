@@ -65,4 +65,9 @@ public class ContextStatusEvent implements Event {
     return "ContextStatusEvent [contextId=" + contextId + ", status=" + status + "]";
   }
 
+  @Override
+  public PersistentEventType getPersistentType() {
+    return null;
+  }
+
 }

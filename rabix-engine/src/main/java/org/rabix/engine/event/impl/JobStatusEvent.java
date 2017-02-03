@@ -95,4 +95,17 @@ public class JobStatusEvent implements Event {
     return "JobStatusEvent [jobId=" + jobId + ", state=" + state + ", contextId=" + contextId + ", result=" + result + "]";
   }
 
+  @Override
+  public PersistentEventType getPersistentType() {
+    switch (state) {
+    case RUNNING:
+      return PersistentEventType.JOB_STATUS_UPDATE_RUNNING;
+    case COMPLETED:
+      return PersistentEventType.JOB_STATUS_UPDATE_COMPLETED;
+    default:
+      break;
+    }
+    return null;
+  }
+
 }

@@ -12,13 +12,27 @@ public interface Event {
     JOB_STATUS_UPDATE,
     CONTEXT_STATUS_UPDATE
   }
+  
+  public enum PersistentEventType {
+    INIT,
+    JOB_STATUS_UPDATE_RUNNING,
+    JOB_STATUS_UPDATE_COMPLETED
+  }
 
+  public enum EventStatus {
+    PROCESSED,
+    UNPROCESSED
+  }
+  
   /**
    * Gets type of the event 
    */
   EventType getType();
   
+  PersistentEventType getPersistentType();
+  
   String getContextId();
   
   String getEventGroupId();
+  
 }

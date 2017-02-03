@@ -130,4 +130,9 @@ public class InputUpdateEvent implements Event {
     return "InputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", portId=" + portId + ", value=" + value + ", numberOfScattered=" + numberOfScattered + ", isLookAhead=" + isLookAhead + "]";
   }
 
+  @Override
+  public PersistentEventType getPersistentType() {
+    return null;
+  }
+
 }
