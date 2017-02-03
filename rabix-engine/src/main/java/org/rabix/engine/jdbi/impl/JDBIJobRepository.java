@@ -3,15 +3,12 @@ package org.rabix.engine.jdbi.impl;
 import java.lang.annotation.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.jdbi.bindings.BindJson;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobMapper;
 import org.rabix.engine.repository.JobRepository;
 import org.skife.jdbi.v2.SQLStatement;
@@ -53,6 +50,9 @@ public interface JDBIJobRepository extends JobRepository {
 
     @Override
     public Resources mapColumn(ResultSet resultSet, String s, StatementContext statementContext) throws SQLException {
+      System.out.println(resultSet);
+      System.out.println(s);
+      System.out.println(statementContext);
       return new Resources(0L, 0L, 0L, false, "", "", 0L, 0L);
     }
   }

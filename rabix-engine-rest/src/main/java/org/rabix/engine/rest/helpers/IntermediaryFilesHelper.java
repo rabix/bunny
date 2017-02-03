@@ -43,10 +43,10 @@ public class IntermediaryFilesHelper {
           List<LinkRecord> links = linkRecordService.findBySource(job.getName(), entry.getKey(), job.getRootId());
           Integer count = links.size();
           for (LinkRecord link : links) {
-            if(link.getDestinationJobId().equals(InternalSchemaHelper.getJobIdFromScatteredId(job.getName())) && InternalSchemaHelper.getScatteredNumber(job.getName()) != null) {
+            if(link.getDestinationJobName().equals(InternalSchemaHelper.getJobIdFromScatteredId(job.getName())) && InternalSchemaHelper.getScatteredNumber(job.getName()) != null) {
               isScattered = true;
             }
-            if(!link.getDestinationJobId().equals(InternalSchemaHelper.ROOT_NAME) && link.getDestinationVarType().equals(LinkPortType.OUTPUT)) {
+            if(!link.getDestinationJobName().equals(InternalSchemaHelper.ROOT_NAME) && link.getDestinationVarType().equals(LinkPortType.OUTPUT)) {
               count--;
             }
           }

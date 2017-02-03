@@ -25,10 +25,10 @@ public abstract class JDBIRepositoryRegistry extends TransactionHelper {
   
   @CreateSqlObject
   public abstract JDBIJobRepository jobRepository();
-  
+
   @CreateSqlObject
   public abstract JDBIJobBackendRepository jobBackendRepository();
-  
+
   @CreateSqlObject
   public abstract JDBIJobRecordRepository jobRecordRepository();
   

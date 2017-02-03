@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Job;
@@ -35,7 +34,6 @@ import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.service.RootJobService;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.status.EngineStatusCallback;
@@ -110,25 +108,25 @@ public class JobServiceImpl implements JobService {
             JobStatus status = job.getStatus();
             switch (status) {
             case RUNNING:
-              if (JobState.RUNNING.equals(jobRecord.getState())) {
+              if (JobRecord.JobState.RUNNING.equals(jobRecord.getState())) {
                 return null;
               }
-              JobStateValidator.checkState(jobRecord, JobState.RUNNING);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), null);
+              JobStateValidator.checkState(jobRecord, JobRecord.JobState.RUNNING);
+              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.RUNNING, job.getOutputs(), null);
               break;
             case FAILED:
-              if (JobState.FAILED.equals(jobRecord.getState())) {
+              if (JobRecord.JobState.FAILED.equals(jobRecord.getState())) {
                 return null;
               }
-              JobStateValidator.checkState(jobRecord, JobState.FAILED);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, null);
+              JobStateValidator.checkState(jobRecord, JobRecord.JobState.FAILED);
+              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.FAILED, null, null);
               break;
             case COMPLETED:
-              if (JobState.COMPLETED.equals(jobRecord.getState())) {
+              if (JobRecord.JobState.COMPLETED.equals(jobRecord.getState())) {
                 return null;
               }
-              JobStateValidator.checkState(jobRecord, JobState.COMPLETED);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs(), job.getId());
+              JobStateValidator.checkState(jobRecord, JobRecord.JobState.COMPLETED);
+              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.COMPLETED, job.getOutputs(), job.getId());
               break;
             default:
               break;

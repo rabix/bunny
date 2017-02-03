@@ -39,7 +39,7 @@ public interface JDBIDAGRepository extends DAGRepository {
       public Binder<JDBIDAGRepository.BindDAGNode, DAGNode> build(Annotation annotation) {
         return new Binder<JDBIDAGRepository.BindDAGNode, DAGNode>() {
           public void bind(SQLStatement<?> q, JDBIDAGRepository.BindDAGNode bind, DAGNode dag) {
-
+            q.bind("dag", BeanSerializer.serializeFull(dag));
           }
         };
       }

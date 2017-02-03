@@ -28,7 +28,7 @@ import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.service.RootJobService;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.model.JobRecord.JobState;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 import org.slf4j.Logger;
@@ -192,10 +192,10 @@ public class JobHelper {
     List<LinkRecord> links = linkRecordService.findBySourceAndDestinationType(jobId, portId, LinkPortType.OUTPUT, rootId);
 
     for (LinkRecord link : links) {
-      if (link.getDestinationJobId().equals(InternalSchemaHelper.ROOT_NAME)) {
+      if (link.getDestinationJobName().equals(InternalSchemaHelper.ROOT_NAME)) {
         return true;
       } else {
-        return isRoot(link.getDestinationJobPort(), link.getDestinationJobId(), rootId, linkRecordService);
+        return isRoot(link.getDestinationJobPort(), link.getDestinationJobName(), rootId, linkRecordService);
       }
     }
     return false;

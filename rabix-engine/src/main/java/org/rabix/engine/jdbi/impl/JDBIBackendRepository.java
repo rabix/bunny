@@ -18,7 +18,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendMapper.class)
 public interface JDBIBackendRepository extends BackendRepository {
 
-  @SqlUpdate("insert into backend (id, name, type, configuration) values (:id, :name, :type, :configuration)")
+  @SqlUpdate("insert into backend (id, type, configuration) values (:id, :type, :configuration)")
   void insert(@BindBackend Backend backend);
   
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
@@ -45,8 +45,8 @@ public interface JDBIBackendRepository extends BackendRepository {
         return new Binder<JDBIBackendRepository.BindBackend, Backend>() {
           public void bind(SQLStatement<?> q, JDBIBackendRepository.BindBackend bind, Backend backend) {
             q.bind("id", backend.getId());
-            q.bind("name", backend.getType());
             q.bind("type", backend.getType());
+            q.bind("configuration", BeanSerializer.serializeFull(backend));
           }
         };
       }

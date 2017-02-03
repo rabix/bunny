@@ -13,7 +13,7 @@ public class VariableRecord implements Cachable {
   
   private UUID rootId;
 
-  private String jobId;
+  private String jobName;
   private String portId;
   private LinkPortType type;
   private Object value;
@@ -27,8 +27,8 @@ public class VariableRecord implements Cachable {
   private boolean isDefault = true;
   private Object transform;
 
-  public VariableRecord(UUID rootId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
-    this.jobId = jobId;
+  public VariableRecord(UUID rootId, String jobName, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
+    this.jobName = jobName;
     this.portId = portId;
     this.type = type;
     this.value = value;
@@ -48,16 +48,16 @@ public class VariableRecord implements Cachable {
     this.transform = transform;
   }
   
-  public String getJobId() {
-    return jobId;
+  public String getJobName() {
+    return jobName;
   }
 
   public int getNumberOfTimesUpdated() {
     return numberOfTimesUpdated;
   }
 
-  public void setJobId(String jobId) {
-    this.jobId = jobId;
+  public void setJobName(String jobName) {
+    this.jobName = jobName;
   }
 
   public String getPortId() {
@@ -130,7 +130,7 @@ public class VariableRecord implements Cachable {
 
   @Override
   public String toString() {
-    return "VariableRecord [rootId=" + rootId + ", jobId=" + jobId + ", portId=" + portId + ", type=" + type
+    return "VariableRecord [rootId=" + rootId + ", jobName=" + jobName + ", portId=" + portId + ", type=" + type
         + ", value=" + value + ", isWrapped=" + isWrapped + ", numberOfGlobals=" + numberOfGlobals + ", linkMerge=" + linkMerge + "]";
   }
 
@@ -151,7 +151,7 @@ public class VariableRecord implements Cachable {
     private LinkPortType type;
     
     public VariableRecordCacheKey(VariableRecord variableRecord) {
-      this.jobId = variableRecord.getJobId();
+      this.jobId = variableRecord.getJobName();
       this.portId = variableRecord.getPortId();
       this.rootId = variableRecord.getRootId();
       this.type = variableRecord.getType();
@@ -243,7 +243,7 @@ public class VariableRecord implements Cachable {
 
     @Override
     public String toString() {
-      return "VariableRecordCacheKey [jobId=" + jobId + ", portId=" + portId + ", rootId=" + rootId + ", type=" + type + "]";
+      return "VariableRecordCacheKey [jobName=" + jobId + ", portId=" + portId + ", rootId=" + rootId + ", type=" + type + "]";
     }
 
   }

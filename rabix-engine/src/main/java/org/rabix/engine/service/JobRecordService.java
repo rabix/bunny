@@ -19,14 +19,6 @@ import com.google.inject.Inject;
 public class JobRecordService {
 
   private final static Logger logger = LoggerFactory.getLogger(JobRecordService.class);
-  
-  public static enum JobState {
-    PENDING,
-    READY,
-    RUNNING,
-    COMPLETED,
-    FAILED
-  }
 
   private CacheService cacheService;
   private JobRecordRepository jobRecordRepository;

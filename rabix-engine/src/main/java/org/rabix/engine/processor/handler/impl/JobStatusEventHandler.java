@@ -2,7 +2,6 @@ package org.rabix.engine.processor.handler.impl;
 
 import java.util.*;
 
-import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -32,7 +31,6 @@ import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.RootJobService;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.status.EngineStatusCallback;
@@ -81,7 +79,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
 
     switch (event.getState()) {
     case READY:
-      jobRecord.setState(JobState.READY);
+      jobRecord.setState(JobRecord.JobState.READY);
       jobRecordService.update(jobRecord);
       
       ready(jobRecord, event);
@@ -123,7 +121,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case RUNNING:
-      jobRecord.setState(JobState.RUNNING);
+      jobRecord.setState(JobRecord.JobState.RUNNING);
       jobRecordService.update(jobRecord);
       break;
     case COMPLETED:
@@ -168,7 +166,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, rootJobService, dagNodeDB);
           engineStatusCallback.onJobFailed(failedJob);
           
-          eventProcessor.send(new JobStatusEvent("root", event.getRootId(), JobState.FAILED, null, event.getEventGroupId())); // TODO remove hardcoded 'root' value
+          eventProcessor.send(new JobStatusEvent("root", event.getRootId(), JobRecord.JobState.FAILED, null, event.getEventGroupId())); // TODO remove hardcoded 'root' value
         } catch (Exception e) {
           logger.error("Failed to call onFailed callback for Job " + jobRecord.getName(), e);
           throw new EventHandlerException("Failed to call onFailed callback for Job " + jobRecord.getName(), e);
@@ -190,7 +188,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
    * Job is ready
    */
   public void ready(JobRecord job, Event event) throws EventHandlerException {
-    job.setState(JobState.READY);
+    job.setState(JobRecord.JobState.READY);
     
     UUID rootId = event.getRootId();
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), rootId);
@@ -203,7 +201,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     logger.debug(readyJobLogging.toString());
     
     if (job.isContainer()) {
-      job.setState(JobState.RUNNING);
+      job.setState(JobRecord.JobState.RUNNING);
 
       DAGContainer containerNode;
       if (job.isScattered()) {
@@ -222,24 +220,24 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         	ready(childJobRecord, event);  
           }
           else {
-            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getName(), rootId, JobState.READY, null, event.getEventGroupId());
+            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getName(), rootId, JobRecord.JobState.READY, null, event.getEventGroupId());
             eventProcessor.send(jobStatusEvent);
           }
         }
       } else {
         for (LinkRecord link : containerLinks) {
-          VariableRecord sourceVariable = variableRecordService.find(link.getSourceJobId(), link.getSourceJobPort(), LinkPortType.INPUT, rootId);
-          VariableRecord destinationVariable = variableRecordService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, rootId);
+          VariableRecord sourceVariable = variableRecordService.find(link.getSourceJobName(), link.getSourceJobPort(), LinkPortType.INPUT, rootId);
+          VariableRecord destinationVariable = variableRecordService.find(link.getDestinationJobName(), link.getDestinationJobPort(), LinkPortType.INPUT, rootId);
           if(destinationVariable == null) {
-            VariableRecord stepVariable = new VariableRecord(rootId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), null);
+            VariableRecord stepVariable = new VariableRecord(rootId, link.getDestinationJobName(), sourceVariable.getPortId(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), null);
             variableRecordService.create(stepVariable);
           }
-          Event updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId());
+          Event updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobName(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId());
           eventProcessor.send(updateEvent);
         }
       }
     } else if (!job.isScattered() && job.getScatterPorts().size() > 0) {
-      job.setState(JobState.RUNNING);
+      job.setState(JobRecord.JobState.RUNNING);
       
       for (String port : job.getScatterPorts()) {
         VariableRecord variable = variableRecordService.find(job.getName(), port, LinkPortType.INPUT, rootId);
@@ -324,7 +322,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
    */
   private void handleLinkPort(JobRecord job, DAGLinkPort linkPort, boolean isSource) {
     if (linkPort.getType().equals(LinkPortType.INPUT)) {
-      if (job.getState().equals(JobState.PENDING)) {
+      if (job.getState().equals(JobRecord.JobState.PENDING)) {
         jobRecordService.incrementPortCounter(job, linkPort, LinkPortType.INPUT);
         jobRecordService.increaseInputPortIncoming(job, linkPort.getId());
         

@@ -25,7 +25,6 @@ import org.rabix.engine.model.scatter.ScatterStrategyFactory;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 
@@ -112,7 +111,7 @@ public class ScatterHandler {
     if (ScatterMethod.isBlocking(node.getScatterMethod())) {
       isBlocking = true;
     }
-    return new JobRecord(rootId, name, JobRecordService.generateUniqueId(), parentId, JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking);
+    return new JobRecord(rootId, name, JobRecordService.generateUniqueId(), parentId, JobRecord.JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking);
   }
   
   private void createScatteredJobs(JobRecord job, Event event, String port, Object value, DAGNode node, Integer numberOfScattered, Integer position) throws EventHandlerException {
@@ -131,7 +130,7 @@ public class ScatterHandler {
     int newScatteredNumber = job.getNumberOfGlobalOutputs();
     
     for (RowMapping mapping : mappings) {
-      job.setState(JobState.RUNNING);
+      job.setState(JobRecord.JobState.RUNNING);
       jobRecordService.update(job);
 
       List<Event> events = new ArrayList<>();
@@ -150,7 +149,7 @@ public class ScatterHandler {
           continue;
         }
         
-        if (jobN.getState().equals(JobState.PENDING)) {
+        if (jobN.getState().equals(JobRecord.JobState.PENDING)) {
           jobRecordService.incrementPortCounter(jobN, inputPort, LinkPortType.INPUT);
         }
         LinkRecord link = new LinkRecord(job.getRootId(), job.getName(), inputPort.getId(), LinkPortType.INPUT, jobNId, inputPort.getId(), LinkPortType.INPUT, 1);
@@ -176,7 +175,7 @@ public class ScatterHandler {
         linkRecordService.create(link);
       }
 
-      job.setState(JobState.RUNNING);
+      job.setState(JobRecord.JobState.RUNNING);
       job.setScatterWrapper(true);
       
       newScatteredNumber = getNumberOfScattered(job, numberOfScattered);

@@ -10,7 +10,6 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CacheKey;
 import org.rabix.engine.model.scatter.ScatterStrategy;
-import org.rabix.engine.service.JobRecordService.JobState;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,7 +42,8 @@ public class JobRecord implements Cachable {
   public JobRecord() {
   }
   
-  public JobRecord(UUID rootId, String name, UUID uniqueId, UUID parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking) {
+  public JobRecord(UUID rootId, String name, UUID id, UUID parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking) {
+    this.name = name;
     this.id = id;
     this.rootId = rootId;
     this.parentId = parentId;
@@ -268,6 +268,14 @@ public class JobRecord implements Cachable {
   @Override
   public CacheKey getCacheKey() {
     return new JobCacheKey(this);
+  }
+
+  public static enum JobState {
+    PENDING,
+    READY,
+    RUNNING,
+    COMPLETED,
+    FAILED
   }
 
   public static class PortCounter {

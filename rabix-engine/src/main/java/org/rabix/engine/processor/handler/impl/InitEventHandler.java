@@ -21,7 +21,6 @@ import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.RootJobService;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.VariableRecordService;
 
 import com.google.inject.Inject;
@@ -54,10 +53,10 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     nodeDB.loadDB(event.getNode(), event.getRootId());
     
     DAGNode node = nodeDB.get(event.getNode().getName(), event.getRootId());
-    JobRecord job = new JobRecord(event.getRootId(), event.getNode().getName(), event.getRootId(), null, JobState.PENDING, node instanceof DAGContainer, false, true, false);
+    JobRecord job = new JobRecord(event.getRootId(), event.getNode().getName(), event.getRootId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false);
 
     for (DAGLinkPort inputPort : node.getInputPorts()) {
-      if (job.getState().equals(JobState.PENDING)) {
+      if (job.getState().equals(JobRecord.JobState.PENDING)) {
         jobRecordService.incrementPortCounter(job, inputPort, LinkPortType.INPUT);
       }
       Object defaultValue = node.getDefaults().get(inputPort.getId());
@@ -75,7 +74,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
 
     if (node.getInputPorts().isEmpty()) {
       // the node is ready
-      eventProcessor.send(new JobStatusEvent(job.getName(), event.getRootId(), JobState.READY, null, event.getEventGroupId()));
+      eventProcessor.send(new JobStatusEvent(job.getName(), event.getRootId(), JobRecord.JobState.READY, null, event.getEventGroupId()));
       return;
     }
     

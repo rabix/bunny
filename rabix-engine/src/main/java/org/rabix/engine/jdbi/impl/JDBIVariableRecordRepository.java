@@ -38,20 +38,20 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
     return insert((VariableRecord) record);
   }
   
-  @SqlUpdate("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type,:link_merge,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
+  @SqlUpdate("insert into variable_record (job_name,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,root_id,is_default,transform) values (:job_name,:value,:port_id,:type,:link_merge,:is_wrapped,:globals_count,:times_updated_count,:root_id,:is_default,:transform)")
   public abstract int insert(@BindVariableRecord VariableRecord jobRecord);
   
-  @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type")
+  @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and root_id=:root_id and job_name=:job_name and type=:type")
   public abstract int update(@BindVariableRecord VariableRecord jobRecord);
   
-  @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and type=:type and context_id=:context_id")
-  public abstract VariableRecord get(@Bind("job_id") String jobName, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("context_id") UUID rootId);
+  @SqlQuery("select * from variable_record where job_name=:job_name and port_id=:port_id and type=:type and root_id=:root_id")
+  public abstract VariableRecord get(@Bind("job_name") String jobName, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("root_id") UUID rootId);
  
-  @SqlQuery("select * from variable_record where job_id=:job_id and type=:type and context_id=:context_id")
-  public abstract List<VariableRecord> getByType(@Bind("job_id") String jobName, @Bind("type") LinkPortType type, @Bind("context_id") UUID rootId);
+  @SqlQuery("select * from variable_record where job_name=:job_name and type=:type and root_id=:root_id")
+  public abstract List<VariableRecord> getByType(@Bind("job_name") String jobName, @Bind("type") LinkPortType type, @Bind("root_id") UUID rootId);
   
-  @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and context_id=:context_id")
-  public abstract List<VariableRecord> getByPort(@Bind("job_id") String jobName, @Bind("port_id") String portId, @Bind("context_id") UUID rootId);
+  @SqlQuery("select * from variable_record where job_name=:job_name and port_id=:port_id and root_id=:root_id")
+  public abstract List<VariableRecord> getByPort(@Bind("job_name") String jobName, @Bind("port_id") String portId, @Bind("root_id") UUID rootId);
  
   @BindingAnnotation(BindVariableRecord.VariableBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
@@ -61,7 +61,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
       public Binder<BindVariableRecord, VariableRecord> build(Annotation annotation) {
         return new Binder<BindVariableRecord, VariableRecord>() {
           public void bind(SQLStatement<?> q, BindVariableRecord bind, VariableRecord variableRecord) {
-            q.bind("job_id", variableRecord.getJobId());
+            q.bind("job_name", variableRecord.getJobName());
             
             try {
               PGobject data = new PGobject();
@@ -87,7 +87,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
             q.bind("is_wrapped", variableRecord.isWrapped());
             q.bind("globals_count", variableRecord.getNumberOfGlobals());
             q.bind("times_updated_count", variableRecord.getNumberOfTimesUpdated());
-            q.bind("context_id", variableRecord.getRootId());
+            q.bind("root_id", variableRecord.getRootId());
             q.bind("is_default", variableRecord.isDefault());
           }
         };
@@ -97,7 +97,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   
   public static class VariableRecordMapper implements ResultSetMapper<VariableRecord> {
     public VariableRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
-      String jobId = resultSet.getString("job_id");
+      String jobId = resultSet.getString("job_name");
       String value = resultSet.getString("value");
       String transform = resultSet.getString("transform");
       String portId = resultSet.getString("port_id");
@@ -106,7 +106,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
       Boolean isWrapped = resultSet.getBoolean("is_wrapped");
       Integer globalsCount = resultSet.getInt("globals_count");
       Integer timesUpdatedCount = resultSet.getInt("times_updated_count");
-      UUID rootId = resultSet.getObject("context_id", UUID.class);
+      UUID rootId = resultSet.getObject("root_id", UUID.class);
       Boolean isDefault = resultSet.getBoolean("is_default");
 
       Object valueObject = FileValue.deserialize(JSONHelper.transform(JSONHelper.readJsonNode(value)));

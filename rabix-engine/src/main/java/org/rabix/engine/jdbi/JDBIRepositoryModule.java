@@ -69,7 +69,7 @@ public class JDBIRepositoryModule extends AbstractModule {
   public JobRepository provideJobRepository(JDBIRepositoryRegistry repositoryRegistry) {
     return repositoryRegistry.jobRepository();
   }
-  
+
   @Provides
   public JobBackendRepository provideJobBackendRepository(JDBIRepositoryRegistry repositoryRegistry) {
     return repositoryRegistry.jobBackendRepository();

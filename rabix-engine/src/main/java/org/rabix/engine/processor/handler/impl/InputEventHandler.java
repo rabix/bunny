@@ -18,7 +18,6 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 
@@ -93,7 +92,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
     update(job, variable);
     if (job.isReady()) {
-      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getName(), event.getRootId(), JobState.READY, null, event.getEventGroupId());
+      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getName(), event.getRootId(), JobRecord.JobState.READY, null, event.getEventGroupId());
       eventProcessor.send(jobStatusEvent);
     }
   }
@@ -111,9 +110,9 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
     List<Event> events = new ArrayList<>();
     for (LinkRecord link : links) {
-      VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getRootId());
+      VariableRecord destinationVariable = variableService.find(link.getDestinationJobName(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getRootId());
 
-      Event updateInputEvent = new InputUpdateEvent(event.getRootId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId());
+      Event updateInputEvent = new InputUpdateEvent(event.getRootId(), destinationVariable.getJobName(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {

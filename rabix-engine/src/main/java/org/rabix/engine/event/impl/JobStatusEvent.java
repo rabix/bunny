@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.rabix.engine.event.Event;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.model.JobRecord.JobState;
 
 public class JobStatusEvent implements Event {
 

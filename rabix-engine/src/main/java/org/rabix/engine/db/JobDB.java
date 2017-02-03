@@ -8,6 +8,7 @@ import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
+import org.rabix.transport.backend.Backend;
 
 public class JobDB {
 
@@ -30,7 +31,16 @@ public class JobDB {
   public void update(Job job) {
     jobRepository.update(job);
   }
-  
+
+
+  public void scheduleToBackend(Job job, Backend backend) {
+    jobRepository.scheduleToBackend(job.getId(), backend.getId());
+  }
+
+  public void unschedule(Job job) {
+    jobRepository.unschedule(job.getId());
+  }
+
   public Job get(UUID id) {
     return jobRepository.get(id);
   }
@@ -46,4 +56,13 @@ public class JobDB {
   public Set<Job> getJobsByGroupId(UUID groupId) {
     return jobRepository.getByGroupId(groupId);
   }
+
+  public Set<Job> getByBackendId(UUID backendId) {
+    return jobRepository.getByBackendId(backendId);
+  }
+
+  public Set<Job> getUnscheduled() {
+    return jobRepository.getUnscheduled();
+  }
+
 }

@@ -12,23 +12,23 @@ public class LinkRecord implements Cachable {
   
   private UUID rootId;
   
-  private String sourceJobId;
+  private String sourceJobName;
   private String sourceJobPort;
   private LinkPortType sourceVarType;
   
-  private String destinationJobId;
+  private String destinationJobName;
   private String destinationJobPort;
   private LinkPortType destinationVarType;
 
   private Integer position;
   
-  public LinkRecord(UUID rootId, String sourceJobId, String sourceJobPort, LinkPortType sourceVarType, String destinationJobId, String destinationJobPort, LinkPortType destinationVarType, Integer position) {
+  public LinkRecord(UUID rootId, String sourceJobName, String sourceJobPort, LinkPortType sourceVarType, String destinationJobName, String destinationJobPort, LinkPortType destinationVarType, Integer position) {
     this.position = position;
     this.rootId = rootId;
-    this.sourceJobId = sourceJobId;
+    this.sourceJobName = sourceJobName;
     this.sourceJobPort = sourceJobPort;
     this.sourceVarType = sourceVarType;
-    this.destinationJobId = destinationJobId;
+    this.destinationJobName = destinationJobName;
     this.destinationJobPort = destinationJobPort;
     this.destinationVarType = destinationVarType;
   }
@@ -41,12 +41,12 @@ public class LinkRecord implements Cachable {
     return position;
   }
   
-  public String getSourceJobId() {
-    return sourceJobId;
+  public String getSourceJobName() {
+    return sourceJobName;
   }
 
-  public void setSourceJobId(String sourceJobId) {
-    this.sourceJobId = sourceJobId;
+  public void setSourceJobName(String sourceJobName) {
+    this.sourceJobName = sourceJobName;
   }
 
   public String getSourceJobPort() {
@@ -65,12 +65,12 @@ public class LinkRecord implements Cachable {
     this.sourceVarType = sourceVarType;
   }
 
-  public String getDestinationJobId() {
-    return destinationJobId;
+  public String getDestinationJobName() {
+    return destinationJobName;
   }
 
-  public void setDestinationJobId(String destinationJobId) {
-    this.destinationJobId = destinationJobId;
+  public void setDestinationJobName(String destinationJobName) {
+    this.destinationJobName = destinationJobName;
   }
 
   public String getDestinationJobPort() {
@@ -91,7 +91,7 @@ public class LinkRecord implements Cachable {
 
   @Override
   public String toString() {
-    return "LinkRecord [rootId=" + rootId + ", sourceJobId=" + sourceJobId + ", sourceJobPort=" + sourceJobPort + ", sourceVarType=" + sourceVarType + ", destinationJobId=" + destinationJobId + ", destinationJobPort=" + destinationJobPort + ", destinationVarType=" + destinationVarType + ", position=" + position + "]";
+    return "LinkRecord [rootId=" + rootId + ", sourceJobName=" + sourceJobName + ", sourceJobPort=" + sourceJobPort + ", sourceVarType=" + sourceVarType + ", destinationJobName=" + destinationJobName + ", destinationJobPort=" + destinationJobPort + ", destinationVarType=" + destinationVarType + ", position=" + position + "]";
   }
 
   @Override
@@ -128,10 +128,10 @@ public class LinkRecord implements Cachable {
 
     public LinkRecordCacheKey(LinkRecord linkRecord) {
       this.rootId = linkRecord.rootId;
-      this.sourceJobId = linkRecord.sourceJobId;
+      this.sourceJobId = linkRecord.sourceJobName;
       this.sourceJobPort = linkRecord.sourceJobPort;
       this.sourceVarType = linkRecord.sourceVarType;
-      this.destinationJobId = linkRecord.destinationJobId;
+      this.destinationJobId = linkRecord.destinationJobName;
       this.destinationJobPort = linkRecord.destinationJobPort;
       this.destinationVarType = linkRecord.destinationVarType;
     }
