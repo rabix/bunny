@@ -28,7 +28,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(LinkRecordMapper.class)
 public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
 
-  @SqlUpdate("insert into link_record (root_id,source_job_name,source_job_port,source_type,destination_job_name,destination_job_port,destination_type,position) values (:root_id,:source_job_name,:source_job_port,:source_type,:destination_job_name,:destination_job_port,:destination_type,:position)")
+  @SqlUpdate("insert into link_record (root_id,source_job_name,source_job_port,source_type,destination_job_name,destination_job_port,destination_type,position) values (:root_id,:source_job_name,:source_job_port,:source_type::port_type,:destination_job_name,:destination_job_port,:destination_type::port_type,:position)")
   public abstract int insert(@BindLinkRecord LinkRecord linkRecord);
   
   @SqlUpdate("update link_record set root_id=:root_id,source_job_name=:source_job_name,source_job_port=:source_job_port,source_type=:source_type,destination_job_name=:destination_job_name,destination_job_port=:destination_job_port,destination_type=:destination_type,position=:position where root_id=:root_id and source_job_name=:source_job_name and source_job_port=:source_job_port and source_type=:source_type and destination_job_name=:destination_job_name and destination_job_port=:destination_job_port and destination_type=:destination_type")

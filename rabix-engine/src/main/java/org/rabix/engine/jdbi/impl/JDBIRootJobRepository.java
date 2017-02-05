@@ -30,7 +30,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(ContextRecordMapper.class)
 public interface JDBIRootJobRepository extends RootJobRepository {
 
-  @SqlUpdate("insert into context_record (id,external_id, status,config) values (:id,:external_id,:status,:config)")
+  @SqlUpdate("insert into context_record (id,external_id, status,config) values (:id,:external_id,:status::root_job_status,:config)")
   int insert(@BindContextRecord RootJob rootJob);
   
   @SqlUpdate("update context_record set status=:status,config=:config where id=:id")

@@ -1,5 +1,6 @@
 package org.rabix.transport.backend;
 
+import org.apache.commons.lang.StringUtils;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
@@ -37,16 +38,24 @@ public abstract class Backend {
   }
 
   public Backend(String name) {
-    this.name = name;
+    UUID id;
     try {
       id = UUID.fromString(name);
-    } catch (IllegalArgumentException e) {
+    } catch (Exception e) {
       id = UUID.randomUUID();
     }
+    init(id, name);
   }
 
   public Backend(UUID id, String name) {
+    init(id, name);
+  }
+
+  private void init(UUID id, String name) {
     this.id = id;
+    if (StringUtils.isEmpty(name)) {
+      name = id.toString();
+    }
     this.name = name;
   }
 

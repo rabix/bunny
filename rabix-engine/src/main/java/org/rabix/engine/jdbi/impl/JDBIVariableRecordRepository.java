@@ -38,10 +38,10 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
     return insert((VariableRecord) record);
   }
   
-  @SqlUpdate("insert into variable_record (job_name,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,root_id,is_default,transform) values (:job_name,:value,:port_id,:type,:link_merge,:is_wrapped,:globals_count,:times_updated_count,:root_id,:is_default,:transform)")
+  @SqlUpdate("insert into variable_record (job_name,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,root_id,is_default,transform) values (:job_name,:value,:port_id,:type::port_type,:link_merge::link_merge_type,:is_wrapped,:globals_count,:times_updated_count,:root_id,:is_default,:transform)")
   public abstract int insert(@BindVariableRecord VariableRecord jobRecord);
   
-  @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and root_id=:root_id and job_name=:job_name and type=:type")
+  @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and root_id=:root_id and job_name=:job_name and type=:typeport_type")
   public abstract int update(@BindVariableRecord VariableRecord jobRecord);
   
   @SqlQuery("select * from variable_record where job_name=:job_name and port_id=:port_id and type=:type and root_id=:root_id")

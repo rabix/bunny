@@ -18,7 +18,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendMapper.class)
 public interface JDBIBackendRepository extends BackendRepository {
 
-  @SqlUpdate("insert into backend (id, type, configuration) values (:id, :type, :configuration)")
+  @SqlUpdate("insert into backend (id, type, configuration) values (:id, :type::backend_type, :configuration::jsonb)")
   void insert(@BindBackend Backend backend);
   
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
@@ -36,7 +36,7 @@ public interface JDBIBackendRepository extends BackendRepository {
     }
   }
 
-  @BindingAnnotation(JDBIJobRecordRepository.BindJobRecord.JobBinderFactory.class)
+  @BindingAnnotation(JDBIBackendRepository.BindBackend.BackendBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })
   public static @interface BindBackend {

@@ -1,3 +1,5 @@
+-- Application
+
 CREATE TABLE APPLICATION (
 	id	    uuid primary key,
     app     bytea
@@ -5,17 +7,21 @@ CREATE TABLE APPLICATION (
 
 CREATE INDEX application_id_index ON application (id);
 
+
+-- Backend
+
 CREATE TYPE backend_type as enum ('LOCAL', 'ACTIVE_MQ', 'RABBIT_MQ');
 
 CREATE TABLE backend (
-	id				uuid primary key
+	id				uuid primary key,
 	type            backend_type not null,
     configuration 	jsonb
 );
 
 CREATE INDEX backend_id_index ON backend (id);
-CREATE INDEX backend_name_index ON backend (name);
 
+
+-- Root Job
 
 CREATE TYPE root_job_status AS ENUM('RUNNING', 'COMPLETED', 'FAILED');
 
@@ -29,24 +35,26 @@ create index root_job_id_index on root_job(id);
 create index root_job_status_index on root_job(status);
 
 
+-- Job
 
 CREATE TYPE job_status as enum ('PENDING', 'READY', 'STARTED', 'ABORTED', 'FAILED', 'COMPLETED', 'RUNNING');
+
 CREATE TYPE resources as (
-    cpu             bigint not null,
-    mem_mb          bigint not null,
-    disk_space_mb   bigint not null,
-    network_access  boolean not null,
-    working_dir     text not null,
-    tmp_dir         text  not null,
-    out_dir_size    bigint not null,
-    tmp_dir_size    bigint not null
+    cpu             bigint,
+    mem_mb          bigint,
+    disk_space_mb   bigint,
+    network_access  boolean,
+    working_dir     text,
+    tmp_dir         text,
+    out_dir_size    bigint,
+    tmp_dir_size    bigint
 );
 
 CREATE TABLE job (
     id			    uuid primary key,
     root_id 	    uuid references root_job,
     name            text not null,
-    parent_id       uuid not null,
+    parent_id       uuid,
     status          job_status not null,
     message         text,
     inputs          jsonb,
@@ -54,11 +62,12 @@ CREATE TABLE job (
     resources       resources,
     group_id	    uuid,
     backend_id      uuid references backend on delete SET NULL,
-    visible_ports   text[]
+    visible_ports   text[],
+    app             text
 );
 
 create index job_id_index on job(id);
-create index job_parents_index on job(parents);
+create index job_parent_index on job(parent_id);
 create index job_status_index on job(status);
 create index job_root_index on job(root_id);
 create unique index job_root_name_index on job(root_id, name);
@@ -68,6 +77,8 @@ create index job_backend_status_index on job(backend_id, status);
 create index job_backend_status_root_index on job(backend_id, status, root_id);
 
 
+-- JobRecord
+
 CREATE TYPE job_record_state as ENUM ('PENDING', 'READY', 'RUNNING', 'COMPLETED', 'FAILED');
 
 CREATE TABLE job_record (
@@ -75,7 +86,7 @@ CREATE TABLE job_record (
     name					text not null,
     root_id					uuid references root_job,
     parent_id				uuid,
-    blocking    			boolean, not null
+    blocking    			boolean not null,
     job_state				job_record_state not null,
     input_counters			jsonb not null,
     output_counters			jsonb not null,
@@ -92,10 +103,16 @@ CREATE INDEX job_record_root_index on job_record (root_id);
 CREATE INDEX job_record_parent_index on job_record (root_id, parent_id);
 CREATE INDEX job_record_state_index on job_record (root_id, job_state);
 
+
+-- DagNode
+
 CREATE TABLE dag_node (
 	root_id		uuid references root_job,
     dag 	    jsonb
 );
+
+
+-- LinkRecords
 
 CREATE TYPE port_type as ENUM ('INPUT', 'OUTPUT');
 
@@ -116,7 +133,11 @@ CREATE INDEX link_record_source_job_index on link_record (root_id, source_job_na
 CREATE INDEX link_record_source_type_index on link_record (root_id, source_job_name, source_type);
 CREATE INDEX link_record_source_port_destination_type_index on link_record (root_id, source_job_name, source_job_port, destination_type);
 
-Create TYPE link_merge_type as ENUM ('merge_nested', 'merge_flattened')
+
+
+-- VariableRecord
+
+Create TYPE link_merge_type as ENUM ('merge_nested', 'merge_flattened');
 
 CREATE TABLE variable_record (
     job_name			text not null,
@@ -132,6 +153,6 @@ CREATE TABLE variable_record (
     transform			jsonb
 );
 
-CREATE UNIQUE INDEX variable_record_index on variable_record (job_id, port_id, type, root_id);
-CREATE INDEX variable_record_type_index on variable_record (job_id, type, root_id);
-CREATE INDEX variable_record_port_index on variable_record (job_id, port_id, root_id);
+CREATE UNIQUE INDEX variable_record_index on variable_record (job_name, port_id, type, root_id);
+CREATE INDEX variable_record_type_index on variable_record (job_name, type, root_id);
+CREATE INDEX variable_record_port_index on variable_record (job_name, port_id, root_id);

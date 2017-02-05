@@ -2,14 +2,7 @@ package org.rabix.engine.jdbi;
 
 import org.apache.commons.configuration.Configuration;
 import org.postgresql.jdbc3.Jdbc3PoolingDataSource;
-import org.rabix.engine.repository.AppRepository;
-import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.DAGRepository;
-import org.rabix.engine.repository.JobBackendRepository;
-import org.rabix.engine.repository.JobRecordRepository;
-import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.repository.LinkRecordRepository;
-import org.rabix.engine.repository.VariableRecordRepository;
+import org.rabix.engine.repository.*;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.logging.SLF4JLog;
 
@@ -90,8 +83,8 @@ public class JDBIRepositoryModule extends AbstractModule {
     return repositoryRegistry.variableRecordRepository();
   }
   
-//  @Provides
-//  public RootJobRepository provideContextRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
-//    return repositoryRegistry.contextRecordRepository();
-//  }
+  @Provides
+  public RootJobRepository provideContextRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
+    return repositoryRegistry.rootJobRepository();
+  }
 }

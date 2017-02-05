@@ -179,7 +179,11 @@ public class Job implements Serializable {
   public Set<String> getVisiblePorts() {
     return visiblePorts;
   }
-  
+
+  public String getMessage() {
+    return message;
+  }
+
   @SuppressWarnings("unchecked")
   public Map<String, Object> getInputs() {
     try {

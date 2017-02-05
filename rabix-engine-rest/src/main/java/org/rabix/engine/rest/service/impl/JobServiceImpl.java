@@ -155,6 +155,7 @@ public class JobServiceImpl implements JobService {
       rootId = UUID.randomUUID();
     }
     job = Job.cloneWithIds(job, rootId, rootId);
+    job = Job.cloneWithName(job, "root");
     
     Bindings bindings = null;
     try {

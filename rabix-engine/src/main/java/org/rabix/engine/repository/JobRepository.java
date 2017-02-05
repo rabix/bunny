@@ -13,9 +13,9 @@ public interface JobRepository {
   
   void update(Job job);
 
-  void scheduleToBackend(UUID jobId, UUID backendId);
-
-  void unschedule(UUID jobId);
+//  void scheduleToBackend(UUID jobId, UUID backendId);
+//
+//  void unschedule(UUID jobId);
 
   Job get(UUID id);
   
@@ -27,8 +27,8 @@ public interface JobRepository {
   
   Set<Job> getByGroupId(UUID groupId);
 
-  Set<Job> getByBackendId(UUID backendId);
-
-  Set<Job> getUnscheduled();
+//  Set<Job> getByBackendId(UUID backendId);
+//
+//  Set<Job> getUnscheduled();
   
 }

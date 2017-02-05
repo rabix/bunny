@@ -33,7 +33,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 @RegisterMapper(JobRecordMapper.class)
 public abstract class JDBIJobRecordRepository extends JobRecordRepository {
 
-  @SqlUpdate("insert into job_record (id,name,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy)")
+  @SqlUpdate("insert into job_record (id,name,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state::job_record_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy)")
   public abstract int insert(@BindJobRecord JobRecord jobRecord);
   
   @SqlUpdate("update job_record set name=:name,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy where id=:id")
