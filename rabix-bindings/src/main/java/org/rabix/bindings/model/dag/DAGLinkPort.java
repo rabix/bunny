@@ -28,7 +28,13 @@ public class DAGLinkPort {
   private LinkMerge linkMerge;
     
   @JsonCreator
-  public DAGLinkPort(@JsonProperty("id") String id, @JsonProperty("dagNodeId") String dagNodeId, @JsonProperty("type") LinkPortType type, @JsonProperty("linkMerge") LinkMerge linkMerge, @JsonProperty("scatter") boolean scatter, @JsonProperty("default") Object defaultValue, @JsonProperty("transform") Object transform) {
+  public DAGLinkPort(@JsonProperty("id") String id,
+                     @JsonProperty("dagNodeId") String dagNodeId,
+                     @JsonProperty("type") LinkPortType type,
+                     @JsonProperty("linkMerge") LinkMerge linkMerge,
+                     @JsonProperty("scatter") boolean scatter,
+                     @JsonProperty("default") Object defaultValue,
+                     @JsonProperty("transform") Object transform) {
     this.id = id;
     this.type = type;
     this.scatter = scatter;
