@@ -91,7 +91,7 @@ public class JobServiceImpl implements JobService {
     keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);
     
     isLocalBackend = configuration.getBoolean("local.backend", false);
-    this.eventProcessor.start(null, new EngineStatusCallbackImpl(isLocalBackend, isLocalBackend));
+    this.eventProcessor.start(new EngineStatusCallbackImpl(isLocalBackend, isLocalBackend));
   }
   
   @Override

@@ -1,6 +1,5 @@
 package org.rabix.engine.processor.impl;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -69,7 +68,7 @@ public class EventProcessorImpl implements EventProcessor {
     this.eventRepository = eventRepository;
   }
 
-  public void start(final List<IterationCallback> iterationCallbacks, EngineStatusCallback engineStatusCallback) {
+  public void start(EngineStatusCallback engineStatusCallback) {
     this.handlerFactory.initialize(engineStatusCallback);
     
     executorService.execute(new Runnable() {
