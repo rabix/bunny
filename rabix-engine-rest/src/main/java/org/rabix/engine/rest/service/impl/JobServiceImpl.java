@@ -9,7 +9,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Job;
@@ -134,10 +133,7 @@ public class JobServiceImpl implements JobService {
   public Job start(Job job, Map<String, Object> config) throws JobServiceException {
     logger.debug("Start Job {}", job);
     
-    String rootId = job.getRootId();
-    if (StringUtils.isEmpty(rootId)) {
-      rootId = UUID.randomUUID().toString();
-    }
+    String rootId = UUID.randomUUID().toString();
     job = Job.cloneWithIds(job, rootId, rootId);
     
     Bindings bindings = null;

@@ -1,5 +1,7 @@
 package org.rabix.engine.rest.service;
 
+import java.util.List;
+
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
 
@@ -14,5 +16,7 @@ public interface BackendService {
   void updateHeartbeatInfo(HeartbeatInfo info) throws BackendServiceException;
 
   Long getHeartbeatInfo(String id);
+  
+  List<Backend> getActiveBackends();
   
 }

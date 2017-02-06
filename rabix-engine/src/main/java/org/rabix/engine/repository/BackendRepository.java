@@ -25,5 +25,5 @@ public interface BackendRepository {
   void updateStatus(String id, BackendStatus status);
   
   Timestamp getHeartbeatInfo(String id);
-  
+
 }

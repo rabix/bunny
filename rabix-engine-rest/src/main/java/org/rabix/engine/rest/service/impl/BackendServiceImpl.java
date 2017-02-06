@@ -1,6 +1,7 @@
 package org.rabix.engine.rest.service.impl;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
@@ -128,6 +129,11 @@ public class BackendServiceImpl implements BackendService {
   public Long getHeartbeatInfo(String id) {
     Timestamp timestamp = backendRepository.getHeartbeatInfo(id);
     return timestamp != null ? timestamp.getTime() : null;
+  }
+  
+  @Override
+  public List<Backend> getActiveBackends() {
+    return backendRepository.getByStatus(BackendStatus.ACTIVE);
   }
 
   @Override
