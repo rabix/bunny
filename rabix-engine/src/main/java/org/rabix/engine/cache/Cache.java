@@ -61,7 +61,7 @@ public class Cache {
       repository.update(item.cachable);
     }
     cache.clear();
-    logger.debug("Flushed " + size + " item(s).");
+    logger.debug("{} flushed {} item(s).", repository, size);
   }
 
   public void put(Cachable cachable, Action action) {
@@ -90,7 +90,6 @@ public class Cache {
     }
     return merged;
   }
-  
   
   public List<Cachable> get(CacheKey search) {
     List<Cachable> result = new ArrayList<>();

@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
@@ -210,9 +209,6 @@ public class JobServiceImpl implements JobService {
     
     private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
     
-    private AtomicInteger failCount = new AtomicInteger(0);
-    private AtomicInteger successCount = new AtomicInteger(0);
-
     private Set<String> stoppingRootIds = new HashSet<>();
     
     public EngineStatusCallbackImpl(boolean setResources, boolean stopOnFail) {
@@ -324,7 +320,6 @@ public class JobServiceImpl implements JobService {
       job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
       job = JobHelper.fillOutputs(job, jobRecordService, variableRecordService);
       jobDB.update(job);
-      logger.info("Root Job {} completed. Successfull {}.", job.getId(), successCount.incrementAndGet());
     }
 
     @Override
@@ -345,7 +340,6 @@ public class JobServiceImpl implements JobService {
 
         scheduler.remove(job);
         stoppingRootIds.remove(job.getId());
-        logger.info("Root Job {} failed. Failed {}.", job.getId(), failCount.incrementAndGet());
       }
     }
 
