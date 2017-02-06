@@ -11,6 +11,7 @@ import org.rabix.engine.jdbi.impl.JDBIJobRepository;
 import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository;
 import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository;
 import org.rabix.engine.repository.TransactionHelper;
+import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
 import org.skife.jdbi.v2.sqlobject.Transaction;
 
@@ -46,7 +47,7 @@ public abstract class JDBIRepositoryRegistry extends TransactionHelper {
   @CreateSqlObject
   public abstract JDBIEventRepository eventRepository();
   
-  @Transaction
+  @Transaction(TransactionIsolationLevel.READ_UNCOMMITTED)
   public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws Exception {
     return callback.call();
   }

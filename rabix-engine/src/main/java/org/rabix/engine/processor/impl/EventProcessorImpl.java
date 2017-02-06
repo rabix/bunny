@@ -99,6 +99,7 @@ public class EventProcessorImpl implements EventProcessor {
                   logger.error("Failed to call onJobsReady() callback", e);
                   // TODO handle exception
                 }
+                eventRepository.delete(UUID.fromString(finalEvent.getEventGroupId()));
                 return null;
               }
             });

@@ -13,6 +13,8 @@ public interface EventRepository {
   
   void update(UUID id, PersistentEventType type, EventStatus status);
   
+  void delete(UUID id);
+  
   List<Event> findUnprocessed();
   
 }

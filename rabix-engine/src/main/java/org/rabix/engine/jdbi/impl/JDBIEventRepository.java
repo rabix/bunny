@@ -31,6 +31,10 @@ public interface JDBIEventRepository extends EventRepository {
   void update(@Bind("id") UUID id, @Bind("type") PersistentEventType type, @Bind("status") EventStatus status);
   
   @Override
+  @SqlUpdate("delete from event where id=:id")
+  void delete(@Bind("id") UUID id);
+  
+  @Override
   @SqlQuery("select * from event where status='UNPROCESSED'")
   List<Event> findUnprocessed();
   
