@@ -29,8 +29,8 @@ public interface JDBIBackendRepository extends BackendRepository {
   @SqlQuery("select * from backend where id=:id")
   Backend get(@Bind("id") String id);
   
-  @SqlQuery("select * from backend where status='ACTIVE'")
-  List<Backend> getActive();
+  @SqlQuery("select * from backend where status=:status")
+  List<Backend> getByStatus(@Bind("status") BackendStatus status);
   
   @SqlUpdate("update backend set status=:status where id=:id")
   void updateStatus(@Bind("id") String id, @Bind("status") BackendStatus status);

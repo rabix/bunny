@@ -5,10 +5,9 @@ import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.BackendRepository.BackendStatus;
+import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStubFactory;
@@ -31,7 +30,7 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
   
-  private final BackendDB backendDB;
+//  private final BackendDB backendDB;
   private final JobService jobService;
   private final SchedulerService scheduler;
   private final BackendStubFactory backendStubFactory;
@@ -41,10 +40,9 @@ public class BackendServiceImpl implements BackendService {
   private final BackendRepository backendRepository;
 
   @Inject
-  public BackendServiceImpl(JobService jobService, BackendStubFactory backendStubFactory, BackendDB backendDB,
+  public BackendServiceImpl(JobService jobService, BackendStubFactory backendStubFactory,
       SchedulerService backendDispatcher, TransactionHelper transactionHelper, BackendRepository backendRepository,
       Configuration configuration) {
-    this.backendDB = backendDB;
     this.jobService = jobService;
     this.scheduler = backendDispatcher;
     this.backendStubFactory = backendStubFactory;
@@ -62,7 +60,7 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            backendDB.add(populated, System.currentTimeMillis());
+            backendRepository.insert(backend.getId(), backend, new Timestamp(System.currentTimeMillis()), BackendStatus.ACTIVE);
             startBackend(populated);
             logger.info("Backend {} registered.", populated.getId());
             return backend;

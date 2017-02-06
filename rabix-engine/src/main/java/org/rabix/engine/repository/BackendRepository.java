@@ -18,7 +18,7 @@ public interface BackendRepository {
   
   Backend get(String id);
   
-  List<Backend> getActive();
+  List<Backend> getByStatus(BackendStatus status);
   
   void updateHeartbeatInfo(String id, Timestamp heartbeatInfo);
   

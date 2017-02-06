@@ -6,6 +6,7 @@ import java.util.List;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.BackendRepository;
+import org.rabix.engine.repository.BackendRepository.BackendStatus;
 import org.rabix.engine.repository.EventRepository;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.rest.service.BackendService;
@@ -39,7 +40,7 @@ public class BootstrapServiceImpl implements BootstrapService {
       transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
         @Override
         public Void call() throws Exception {
-          List<Backend> activeBackends = backendRepository.getActive();
+          List<Backend> activeBackends = backendRepository.getByStatus(BackendStatus.ACTIVE);
           
           for (Backend backend : activeBackends) {
             backendRepository.updateHeartbeatInfo(backend.getId(), new Timestamp(System.currentTimeMillis()));

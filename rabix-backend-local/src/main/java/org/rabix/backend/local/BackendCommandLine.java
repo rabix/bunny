@@ -47,7 +47,6 @@ import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
 import org.rabix.engine.EngineModule;
-import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.db.JobDB;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
@@ -235,7 +234,6 @@ public class BackendCommandLine {
               
               bind(JobDB.class).in(Scopes.SINGLETON);
               bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
-              bind(BackendDB.class).in(Scopes.SINGLETON);
               bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceLocalImpl.class).in(Scopes.SINGLETON);
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
