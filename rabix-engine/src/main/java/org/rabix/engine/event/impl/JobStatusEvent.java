@@ -5,14 +5,22 @@ import java.util.Map;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.service.JobRecordService.JobState;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class JobStatusEvent implements Event {
 
+  @JsonProperty("jobId")
   private final String jobId;
+  @JsonProperty("state")
   private final JobState state;
+  @JsonProperty("contextId")
   private final String contextId;
   
+  @JsonProperty("result")
   private final Map<String, Object> result;
   
+  @JsonProperty("eventGroupId")
   private final String eventGroupId;
   
   public JobStatusEvent(String jobId, String contextId, JobState state, Map<String, Object> result, String eventGroupId) {
@@ -23,6 +31,17 @@ public class JobStatusEvent implements Event {
     this.eventGroupId = eventGroupId;
   }
   
+  @JsonCreator
+  public JobStatusEvent(@JsonProperty("jobId") String jobId, @JsonProperty("state") JobState state,
+      @JsonProperty("contextId") String contextId, @JsonProperty("result") Map<String, Object> result,
+      @JsonProperty("eventGroupId") String eventGroupId) {
+    this.jobId = jobId;
+    this.state = state;
+    this.contextId = contextId;
+    this.result = result;
+    this.eventGroupId = eventGroupId;
+  }
+
   public String getJobId() {
     return jobId;
   }
@@ -93,6 +112,19 @@ public class JobStatusEvent implements Event {
   @Override
   public String toString() {
     return "JobStatusEvent [jobId=" + jobId + ", state=" + state + ", contextId=" + contextId + ", result=" + result + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    switch (state) {
+    case RUNNING:
+      return PersistentEventType.JOB_STATUS_UPDATE_RUNNING;
+    case COMPLETED:
+      return PersistentEventType.JOB_STATUS_UPDATE_COMPLETED;
+    default:
+      break;
+    }
+    return null;
   }
 
 }

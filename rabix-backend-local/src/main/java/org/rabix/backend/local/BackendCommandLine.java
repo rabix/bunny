@@ -47,14 +47,13 @@ import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
 import org.rabix.engine.EngineModule;
-import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.db.JobDB;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
 import org.rabix.engine.rest.service.BackendService;
+import org.rabix.engine.rest.service.BackendServiceException;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
@@ -88,7 +87,6 @@ import org.rabix.executor.service.impl.JobFitterImpl;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
-import org.rabix.transport.backend.BackendPopulator;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -236,7 +234,6 @@ public class BackendCommandLine {
               
               bind(JobDB.class).in(Scopes.SINGLETON);
               bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
-              bind(BackendDB.class).in(Scopes.SINGLETON);
               bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceLocalImpl.class).in(Scopes.SINGLETON);
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
@@ -460,7 +457,10 @@ public class BackendCommandLine {
     } catch (IOException e) {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
-    } catch (JobServiceException | TransactionException | InterruptedException e) {
+    } catch (JobServiceException | InterruptedException e) {
+      logger.error("Encountered an error while starting local backend.", e);
+      System.exit(10);
+    } catch (BackendServiceException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }

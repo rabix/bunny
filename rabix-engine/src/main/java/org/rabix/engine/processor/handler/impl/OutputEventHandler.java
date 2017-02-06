@@ -3,7 +3,6 @@ package org.rabix.engine.processor.handler.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
@@ -13,7 +12,6 @@ import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.db.JobDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
@@ -51,14 +49,12 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     
   private final EventProcessor eventProcessor;
   
-  private JobDB jobDB;
   private DAGNodeDB dagNodeDB;
   private EngineStatusCallback engineStatusCallback;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, JobDB jobDB) {
+  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB) {
     this.dagNodeDB = dagNodeDB;
-    this.jobDB = jobDB;
     
     this.jobService = jobService;
     this.linkService = linkService;
@@ -211,16 +207,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             }
             break;
           }
-        }
-      }
-      
-      if (event.getEventGroupId() != null && event.getEventGroupId().equals(sourceJob.getExternalId()) && sourceJob.isCompleted()) {
-        Set<Job> readyJobs = jobDB.getJobsByGroupId(event.getEventGroupId());
-        try {
-          engineStatusCallback.onJobsReady(readyJobs);
-        } catch (EngineStatusCallbackException e) {
-          logger.error("Failed to call onJobsReady() callback", e);
-          throw new EventHandlerException(e);
         }
       }
     }

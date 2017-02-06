@@ -1,6 +1,5 @@
 package org.rabix.engine.processor.impl;
 
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -35,9 +34,9 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
 
   @Override
-  public void start(List<IterationCallback> iterationCallbacks, EngineStatusCallback engineStatusCallback) {
+  public void start(EngineStatusCallback engineStatusCallback) {
     for (EventProcessorImpl singleEventProcessor : eventProcessors.values()) {
-      singleEventProcessor.start(iterationCallbacks, engineStatusCallback);
+      singleEventProcessor.start(engineStatusCallback);
     }
     this.isRunning = true;
   }
@@ -61,8 +60,8 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
   
   @Override
-  public void addToExternalQueue(Event event) {
-    getEventProcessor(event.getContextId()).addToExternalQueue(event);
+  public void addToExternalQueue(Event event, boolean persist) {
+    getEventProcessor(event.getContextId()).addToExternalQueue(event, persist);
   }
   
   @Override

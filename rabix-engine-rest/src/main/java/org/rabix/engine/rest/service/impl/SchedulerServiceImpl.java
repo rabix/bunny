@@ -18,7 +18,6 @@ import org.rabix.common.engine.control.EngineControlStopMessage;
 import org.rabix.engine.db.JobBackendService;
 import org.rabix.engine.db.JobBackendService.BackendJob;
 import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStub.HeartbeatCallback;
 import org.rabix.engine.rest.service.BackendService;
@@ -27,6 +26,9 @@ import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
+import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
+import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +38,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 
   private final static Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
-  private final static long SCHEDULE_PERIOD = TimeUnit.SECONDS.toMillis(1);
+  private final static long SCHEDULE_PERIOD = TimeUnit.SECONDS.toMillis(3);
   private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(5);
 
   private final List<BackendStub<?, ?, ?>> backendStubs = new ArrayList<>();
@@ -73,12 +75,12 @@ public class SchedulerServiceImpl implements SchedulerService {
         try {
           transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
             @Override
-            public Void call() throws TransactionException {
+            public Void call() throws Exception {
               schedule();
               return null;
             }
           });
-        } catch (TransactionException e) {
+        } catch (Exception e) {
           // TODO handle exception
           logger.error("Failed to schedule jobs", e);
         }
@@ -132,6 +134,26 @@ public class SchedulerServiceImpl implements SchedulerService {
         public void save(HeartbeatInfo info) throws Exception {
           backendService.updateHeartbeatInfo(info);
         }
+      }, new ReceiveCallback<Job>() {
+        @Override
+        public void handleReceive(Job job) throws TransportPluginException {
+          try {
+            transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
+              @Override
+              public Void call() throws Exception {
+                jobService.update(job);
+                return null;
+              }
+            });
+          } catch (Exception e) {
+            throw new TransportPluginException("Failed to update Job", e);
+          }
+        }
+      }, new ErrorCallback() {
+        @Override
+        public void handleError(Exception error) {
+          logger.error("Failed to receive message.", error);
+        }
       });
       this.backendStubs.add(backendStub);
     } finally {
@@ -177,7 +199,7 @@ public class SchedulerServiceImpl implements SchedulerService {
       try {
         transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
           @Override
-          public Void call() throws TransactionException {
+          public Void call() throws Exception {
             logger.info("Checking Backend heartbeats...");
 
             long currentTime = System.currentTimeMillis();
@@ -201,13 +223,14 @@ public class SchedulerServiceImpl implements SchedulerService {
                   jobBackendService.update(backendJob.getJobId(), null);
                   logger.info("Reassign Job {} to free Jobs", backendJob.getJobId());
                 }
+                backendService.stopBackend(backend);
               }
             }
             logger.info("Heartbeats checked");
             return null;
           }
         });
-      } catch (TransactionException e) {
+      } catch (Exception e) {
         // TODO handle exception
         logger.error("Failed to check heartbeats", e);
       }

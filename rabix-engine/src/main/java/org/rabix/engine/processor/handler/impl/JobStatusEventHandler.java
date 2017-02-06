@@ -92,14 +92,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
           if (!StringUtils.isEmpty(event.getEventGroupId())) {
             jobDB.add(job, event.getEventGroupId());
-          } else {
-            try {
-              jobDB.add(job, null);
-              engineStatusCallback.onJobReady(job);
-            } catch (Exception e) {
-              logger.error("Failed to call onReady callback for Job " + job.getId(), e);
-              throw new EventHandlerException("Failed to call onReady callback for Job " + job.getId(), e);
-            }
           }
         } catch (BindingException e1) {
           logger.info("Failed to create job", e1);

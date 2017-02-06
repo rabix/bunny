@@ -1,6 +1,7 @@
 package org.rabix.engine.rest.api;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -16,7 +17,7 @@ import org.rabix.bindings.model.Job;
 public interface JobHTTPService {
 
   @POST
-  Response create(Job job);
+  Response create(Job job, @HeaderParam("batch") Integer batch);
   
   @PUT
   @Path("/{id}")

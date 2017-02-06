@@ -16,26 +16,23 @@ import org.rabix.bindings.model.Job;
 public class ManualTest {
 
   public static void main(String[] args) {
-    runTask();
+    runTask(100);
   }
   
-  public static void runTask() {
+  private static void runTask(int times) {
+    Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
+    WebTarget webTarget = client.target("http://localhost" + ":" + 8081 + "/v0/engine/jobs");
+
     Map<String, Object> inputs = new HashMap<>();
     Map<String, Object> file = new HashMap<>();
     file.put("class", "File");
     file.put("path", "/Users/janko/Desktop/examples/dna2protein/data/input.txt");
     inputs.put("input_file", file);
-    
-    Job job = new Job("file:///Users/janko/Desktop/examples/dna2protein/dna2protein.cwl.json", inputs);
-    
-    for (int i=0;i<1;i++) {
-      Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
-      WebTarget webTarget = client.target("http://localhost" + ":" + 8081 + "/v0/engine/jobs");
 
-      Invocation.Builder invocationBuilder = webTarget.request(javax.ws.rs.core.MediaType.APPLICATION_JSON);
-      invocationBuilder.post(Entity.entity(job, javax.ws.rs.core.MediaType.APPLICATION_JSON));
-      System.out.println(i);
-    }
+    Job job = new Job("file:///Users/janko/Desktop/examples/dna2protein/dna2protein.cwl.json", inputs);
+
+    Invocation.Builder invocationBuilder = webTarget.request(javax.ws.rs.core.MediaType.APPLICATION_JSON).header("batch", times);
+    invocationBuilder.post(Entity.entity(job, javax.ws.rs.core.MediaType.APPLICATION_JSON));
   }
   
 }
