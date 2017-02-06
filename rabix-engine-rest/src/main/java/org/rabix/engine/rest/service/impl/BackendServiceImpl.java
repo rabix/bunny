@@ -30,7 +30,6 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
   
-//  private final BackendDB backendDB;
   private final JobService jobService;
   private final SchedulerService scheduler;
   private final BackendStubFactory backendStubFactory;
@@ -84,7 +83,7 @@ public class BackendServiceImpl implements BackendService {
     scheduler.addBackendStub(backendStub);
   }
   
-  private <T extends Backend> T populate(T backend) {
+  private <T extends Backend> T populate(T backend) throws BackendServiceException {
     if (backend.getId() == null) {
       backend.setId(generateUniqueBackendId());
     }
@@ -103,14 +102,10 @@ public class BackendServiceImpl implements BackendService {
         return backend;
       }
       break;
-    case ACTIVE_MQ:
-      // TODO implement
-      break;
     case LOCAL:
-      // TODO implement
       break;
     default:
-      break;
+      throw new BackendServiceException("Unknown backend type " + backend.getType());
     }
     return backend;
   }

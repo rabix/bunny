@@ -26,6 +26,9 @@ import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
+import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
+import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,6 +133,26 @@ public class SchedulerServiceImpl implements SchedulerService {
         @Override
         public void save(HeartbeatInfo info) throws Exception {
           backendService.updateHeartbeatInfo(info);
+        }
+      }, new ReceiveCallback<Job>() {
+        @Override
+        public void handleReceive(Job job) throws TransportPluginException {
+          try {
+            transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
+              @Override
+              public Void call() throws Exception {
+                jobService.update(job);
+                return null;
+              }
+            });
+          } catch (Exception e) {
+            throw new TransportPluginException("Failed to update Job", e);
+          }
+        }
+      }, new ErrorCallback() {
+        @Override
+        public void handleError(Exception error) {
+          logger.error("Failed to receive message.", error);
         }
       });
       this.backendStubs.add(backendStub);

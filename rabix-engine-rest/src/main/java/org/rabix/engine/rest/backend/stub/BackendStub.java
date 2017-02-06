@@ -6,7 +6,6 @@ import java.util.concurrent.Executors;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlMessage;
 import org.rabix.engine.rest.service.JobService;
-import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.mechanism.TransportPlugin;
@@ -37,22 +36,8 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
     void save(HeartbeatInfo info) throws Exception;
   }
   
-  public void start(HeartbeatCallback heartbeatCallback) {
-    transportPlugin.startReceiver(receiveFromBackendQueue, Job.class, new ReceiveCallback<Job>() {
-      @Override
-      public void handleReceive(Job job) throws TransportPluginException {
-        try {
-          jobService.update(job);
-        } catch (JobServiceException e) {
-          throw new TransportPluginException("Failed to update Job", e);
-        }
-      }
-    }, new ErrorCallback() {
-      @Override
-      public void handleError(Exception error) {
-        logger.error("Failed to receive message.", error);
-      }
-    });
+  public void start(HeartbeatCallback heartbeatCallback, ReceiveCallback<Job> receiveCallback, ErrorCallback errorCallback) {
+    transportPlugin.startReceiver(receiveFromBackendQueue, Job.class, receiveCallback, errorCallback);
 
     transportPlugin.startReceiver(receiveFromBackendHeartbeatQueue, HeartbeatInfo.class,
         new ReceiveCallback<HeartbeatInfo>() {

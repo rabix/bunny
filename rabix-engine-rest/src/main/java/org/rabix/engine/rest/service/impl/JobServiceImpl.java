@@ -24,7 +24,6 @@ import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.rest.helpers.IntermediaryFilesHelper;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
@@ -67,10 +66,8 @@ public class JobServiceImpl implements JobService {
   private boolean deleteIntermediaryFiles;
   private boolean keepInputFiles;
   
-  private final TransactionHelper transactionHelper;
-  
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB, TransactionHelper transactionHelper) {
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
     this.eventProcessor = eventProcessor;
@@ -80,7 +77,6 @@ public class JobServiceImpl implements JobService {
     this.variableRecordService = variableRecordService;
     this.contextRecordService = contextRecordService;
     this.scheduler = scheduler;
-    this.transactionHelper = transactionHelper;
     
     this.intermediaryFilesService = intermediaryFilesService;
 
@@ -96,53 +92,42 @@ public class JobServiceImpl implements JobService {
   @Override
   public void update(Job job) throws JobServiceException {
     logger.debug("Update Job {}", job.getId());
-    
+
+    JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
     try {
-      transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
-        @Override
-        public Void call() throws Exception {
-          JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
-          try {
-            JobStatusEvent statusEvent = null;
-            JobStatus status = job.getStatus();
-            switch (status) {
-            case RUNNING:
-              if (JobState.RUNNING.equals(jobRecord.getState())) {
-                return null;
-              }
-              JobStateValidator.checkState(jobRecord, JobState.RUNNING);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), job.getId());
-              break;
-            case FAILED:
-              if (JobState.FAILED.equals(jobRecord.getState())) {
-                return null;
-              }
-              JobStateValidator.checkState(jobRecord, JobState.FAILED);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, job.getId());
-              break;
-            case COMPLETED:
-              if (JobState.COMPLETED.equals(jobRecord.getState())) {
-                return null;
-              }
-              JobStateValidator.checkState(jobRecord, JobState.COMPLETED);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs(), job.getId());
-              break;
-            default:
-              break;
-            }
-            jobDB.update(job);
-            eventProcessor.addToExternalQueue(statusEvent, true);
-          } catch (JobStateValidationException e) {
-            // TODO handle exception
-            logger.warn("Failed to update Job state from {} to {}", jobRecord.getState(), job.getStatus());
-          }
-          return null;
+      JobStatusEvent statusEvent = null;
+      JobStatus status = job.getStatus();
+      switch (status) {
+      case RUNNING:
+        if (JobState.RUNNING.equals(jobRecord.getState())) {
+          return;
         }
-      });
-    } catch (Exception e) {
-      throw new JobServiceException("Failed to update Job", e);
+        JobStateValidator.checkState(jobRecord, JobState.RUNNING);
+        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), job.getId());
+        break;
+      case FAILED:
+        if (JobState.FAILED.equals(jobRecord.getState())) {
+          return;
+        }
+        JobStateValidator.checkState(jobRecord, JobState.FAILED);
+        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, job.getId());
+        break;
+      case COMPLETED:
+        if (JobState.COMPLETED.equals(jobRecord.getState())) {
+          return;
+        }
+        JobStateValidator.checkState(jobRecord, JobState.COMPLETED);
+        statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs(), job.getId());
+        break;
+      default:
+        break;
+      }
+      jobDB.update(job);
+      eventProcessor.addToExternalQueue(statusEvent, true);
+    } catch (JobStateValidationException e) {
+      // TODO handle exception
+      logger.warn("Failed to update Job state from {} to {}", jobRecord.getState(), job.getStatus());
     }
-    
   }
   
   @Override
