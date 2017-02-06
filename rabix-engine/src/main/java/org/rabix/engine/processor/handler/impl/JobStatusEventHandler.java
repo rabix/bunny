@@ -192,7 +192,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     job.setState(JobState.READY);
     
     String contextId = event.getContextId();
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), contextId);
+    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), contextId, job);
 
     StringBuilder readyJobLogging = new StringBuilder(" --- JobRecord ").append(job.getId()).append(" is ready.").append(" Job isBlocking=").append(job.isBlocking()).append("\n");
     for (PortCounter portCounter : job.getInputCounters()) {
@@ -269,7 +269,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     for (DAGNode node : containerNode.getChildren()) {
       String newJobId = InternalSchemaHelper.concatenateIds(job.getId(), InternalSchemaHelper.getLastPart(node.getId()));
       
-      JobRecord childJob = scatterHelper.createJobRecord(newJobId, job.getExternalId(), node, false, contextId);
+      JobRecord childJob = scatterHelper.createJobRecord(newJobId, job.getExternalId(), node, false, contextId, job.getDagCache());
       jobRecordService.create(childJob);
 
       StringBuilder childJobLogBuilder = new StringBuilder("\n -- JobRecord ").append(newJobId).append(", isBlocking ").append(childJob.isBlocking()).append("\n");
