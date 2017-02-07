@@ -118,6 +118,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     }
     for (Event subevent : events) {
       eventProcessor.send(subevent);
+      jobService.decrementPortCounter(job, event.getPortId(), LinkPortType.INPUT);
     }
   }
 

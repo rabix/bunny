@@ -37,11 +37,15 @@ public class LRUCache<K, V> {
     }
     cache.put(key, val);
   }
+  
+  public int size() {
+    return cache.size();
+  }
 
   private boolean cacheFull() {
     return cache.size() == cacheSize;
   }
-
+  
   private void remove() {
     Iterator<Map.Entry<K, V>> it = cache.entrySet().iterator();
     Map.Entry<K, V> remove = it.next();

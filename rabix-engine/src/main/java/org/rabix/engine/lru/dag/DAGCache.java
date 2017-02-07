@@ -6,12 +6,11 @@ import java.util.Map;
 import org.rabix.bindings.model.dag.DAGContainer;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.ChecksumHelper;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.lru.LRUCache;
 import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.processor.handler.impl.JobStatusEventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +38,7 @@ public class DAGCache extends LRUCache<String, DAGNode> {
     if(rootIdDag.containsKey(rootId)) {
       res = get(rootIdDag.get(rootId));
       logger.debug(String.format("DAGNode rootId=%s, id=%s found in cache", rootId, id));
+      logger.debug(String.format("Cache size=%d", size()));
     }
     return res != null ? getIdFromDAG(id, res) : null;
   }
@@ -47,12 +47,14 @@ public class DAGCache extends LRUCache<String, DAGNode> {
     DAGNode res = null;
     if(job.getDagCache() != null) {
       res = get(job.getDagCache());
-      logger.debug(String.format("DAGNode rootId=%s, id=%s found in cache: ", rootId, id));
+      logger.debug(String.format("DAGNode rootId=%s, id=%s found in cache", rootId, id));
+      logger.debug(String.format("Cache size=%d", size()));
     }
     else if(rootIdDag.containsKey(rootId) && res == null) {
       job.setDagCache(rootIdDag.get(rootId));
       res = get(rootIdDag.get(rootId));
-      logger.debug(String.format("DAGNode rootId={}, id={} found in cache: ", rootId, id));
+      logger.debug(String.format("DAGNode rootId=%s, id=%s found in cache", rootId, id));
+      logger.debug(String.format("Cache size=%d", size()));
     }
     return res != null ? getIdFromDAG(id, res) : null;    
   }
