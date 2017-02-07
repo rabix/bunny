@@ -32,6 +32,7 @@ public class CWLTranslator implements ProtocolTranslator {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     DAGNode dagNode = processBatchInfo(cwlJob, transformToGeneric(cwlJob.getId(), cwlJob));
     DAGValidationHelper.detectLoop(dagNode);
+    DAGValidationHelper.detectUnconnectedOutputs(dagNode);
     processPorts(dagNode);
     return dagNode;
   }

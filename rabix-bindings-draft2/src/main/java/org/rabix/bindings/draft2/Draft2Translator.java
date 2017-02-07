@@ -31,6 +31,7 @@ public class Draft2Translator implements ProtocolTranslator {
     Draft2Job draft2Job = Draft2JobHelper.getDraft2Job(job);
     DAGNode dagNode = processBatchInfo(draft2Job, transformToGeneric(draft2Job.getId(), draft2Job));
     DAGValidationHelper.detectLoop(dagNode);
+    DAGValidationHelper.detectUnconnectedOutputs(dagNode);
     processPorts(dagNode);
     return dagNode;
   }
