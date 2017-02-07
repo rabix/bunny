@@ -26,6 +26,10 @@ public class LRUCache<K, V> {
   public String getCacheName() {
     return cacheName;
   }
+  
+  public int getCacheSize() {
+    return cacheSize;
+  }
 
   public V get(K key) {
     return cache.get(key) != null ? cache.get(key) : null;
@@ -58,21 +62,6 @@ public class LRUCache<K, V> {
       result.append(entry.getKey() + ": " + entry.getValue() + "\n");
     }
     return result.toString();
-  }
-  
-  
-  public static void main(String[] args) {
-    LRUCache<String, Integer> cache = new LRUCache<String, Integer>("Test", 8);
-    cache.put("1", 1);
-    cache.put("2", 2);
-    cache.put("3", 3);
-    cache.put("4", 4);
-    cache.get("2");
-    cache.get("3");
-    cache.get("4");
-    cache.get("2");
-    cache.put("5", 5);
-    System.out.println(cache);
   }
   
 }
