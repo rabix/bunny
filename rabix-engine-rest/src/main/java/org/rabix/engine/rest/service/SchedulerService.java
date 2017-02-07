@@ -7,7 +7,7 @@ public interface SchedulerService {
 
   void start();
   
-  void send(Job... jobs);
+  void allocate(Job... jobs);
 
   boolean stop(Job... jobs);
 
@@ -15,6 +15,6 @@ public interface SchedulerService {
 
   void freeBackend(Job rootJob);
 
-  void remove(Job job);
+  void deallocate(Job job);
   
 }

@@ -2,7 +2,6 @@ package org.rabix.engine.event.impl;
 
 import java.util.Map;
 
-import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -15,8 +14,6 @@ public class InitEvent implements Event {
 
   @JsonProperty("eventGroupId")
   private final String eventGroupId;
-  @JsonProperty("node")
-  private final DAGNode node;
   @JsonProperty("value")
   private final Map<String, Object> value;
   @JsonProperty("rootId")
@@ -24,28 +21,14 @@ public class InitEvent implements Event {
   @JsonProperty("config")
   private final Map<String, Object> config;
   
-  public InitEvent(String eventGroupId, Map<String, Object> config, String rootId, DAGNode node, Map<String, Object> value) {
-    this.node = node;
-    this.eventGroupId = eventGroupId;
-    this.value = value;
-    this.rootId = rootId;
-    this.config = config;
-  }
-  
   @JsonCreator
-  public InitEvent(@JsonProperty("eventGroupId") String eventGroupId, @JsonProperty("node") DAGNode node,
-      @JsonProperty("value") Map<String, Object> value, @JsonProperty("rootId") String rootId,
-      @JsonProperty("config") Map<String, Object> config) {
+  public InitEvent(@JsonProperty("eventGroupId") String eventGroupId, @JsonProperty("value") Map<String, Object> value,
+      @JsonProperty("rootId") String rootId, @JsonProperty("config") Map<String, Object> config) {
     super();
     this.eventGroupId = eventGroupId;
-    this.node = node;
     this.value = value;
     this.rootId = rootId;
     this.config = config;
-  }
-
-  public DAGNode getNode() {
-    return node;
   }
 
   public Map<String, Object> getValue() {
@@ -80,7 +63,6 @@ public class InitEvent implements Event {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((config == null) ? 0 : config.hashCode());
-    result = prime * result + ((node == null) ? 0 : node.hashCode());
     result = prime * result + ((rootId == null) ? 0 : rootId.hashCode());
     result = prime * result + ((value == null) ? 0 : value.hashCode());
     return result;
@@ -100,11 +82,6 @@ public class InitEvent implements Event {
         return false;
     } else if (!config.equals(other.config))
       return false;
-    if (node == null) {
-      if (other.node != null)
-        return false;
-    } else if (!node.equals(other.node))
-      return false;
     if (rootId == null) {
       if (other.rootId != null)
         return false;
@@ -120,7 +97,7 @@ public class InitEvent implements Event {
 
   @Override
   public String toString() {
-    return "InitEvent [node=" + node + ", value=" + value + ", rootId=" + rootId + ", config=" + config + "]";
+    return "InitEvent [value=" + value + ", rootId=" + rootId + ", config=" + config + "]";
   }
 
   @Override

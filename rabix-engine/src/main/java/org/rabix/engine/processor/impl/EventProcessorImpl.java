@@ -90,7 +90,6 @@ public class EventProcessorImpl implements EventProcessor {
               public Void call() throws TransactionException {
                 handle(finalEvent);
                 cacheService.flush(finalEvent.getContextId());
-                eventRepository.update(UUID.fromString(finalEvent.getEventGroupId()), finalEvent.getPersistentType(), EventStatus.PROCESSED);
                 
                 Set<Job> readyJobs = jobDB.getJobsByGroupId(finalEvent.getEventGroupId());
                 try {

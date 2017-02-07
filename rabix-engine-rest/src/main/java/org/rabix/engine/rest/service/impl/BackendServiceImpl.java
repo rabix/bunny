@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.repository.BackendRepository;
 import org.rabix.engine.repository.BackendRepository.BackendStatus;
@@ -30,6 +31,8 @@ import com.google.inject.Inject;
 public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
+  
+  private final static String DEV_BACKEND_ID = "backend_id";
   
   private final JobService jobService;
   private final SchedulerService scheduler;
@@ -85,6 +88,13 @@ public class BackendServiceImpl implements BackendService {
   }
   
   private <T extends Backend> T populate(T backend) throws BackendServiceException {
+    String id = backend.getId();
+    
+    if (!StringUtils.isEmpty(id)) {
+      Backend backendFromDB = backendRepository.get(id);
+      // TODO implement rest
+    }
+    
     if (backend.getId() == null) {
       backend.setId(generateUniqueBackendId());
     }
@@ -117,7 +127,8 @@ public class BackendServiceImpl implements BackendService {
   }
   
   private String generateUniqueBackendId() {
-    return UUID.randomUUID().toString();
+    boolean isDev = configuration.getBoolean("backend.dev", false);
+    return isDev? DEV_BACKEND_ID : UUID.randomUUID().toString();
   }
 
   @Override
