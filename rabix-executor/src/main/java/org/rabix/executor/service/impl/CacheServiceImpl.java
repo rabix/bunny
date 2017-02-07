@@ -35,6 +35,7 @@ public class CacheServiceImpl implements CacheService {
   public CacheServiceImpl(StorageConfiguration storageConfig, Configuration configuration) {
     this.storageConfig = storageConfig;
     this.configuration = configuration;
+    if(isCacheEnabled())
     this.cacheDirectory = new File(configuration.getString("cache.directory"));
   }
 
