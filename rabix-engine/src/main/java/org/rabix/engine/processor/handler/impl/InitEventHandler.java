@@ -74,7 +74,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
 
     if (node.getInputPorts().isEmpty()) {
       // the node is ready
-      eventProcessor.send(new JobStatusEvent(job.getName(), event.getRootId(), JobRecord.JobState.READY, null, event.getEventGroupId()));
+      eventProcessor.send(new JobStatusEvent(job.getName(), JobRecord.JobState.READY, event.getRootId(), null, event.getEventGroupId()));
       return;
     }
     

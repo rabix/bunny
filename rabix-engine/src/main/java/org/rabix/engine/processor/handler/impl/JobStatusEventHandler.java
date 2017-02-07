@@ -53,16 +53,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final VariableRecordService variableRecordService;
   private final RootJobService rootJobService;
   
-  private final CacheService cacheService;
   private EngineStatusCallback engineStatusCallback;
 
   @Inject
-  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final JobDB jobDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final RootJobService rootJobService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper, final CacheService cacheService) {
+  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final JobDB jobDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final RootJobService rootJobService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
-    this.cacheService = cacheService;
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
     this.rootJobService = rootJobService;
@@ -90,15 +88,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, rootJobService, dagNodeDB);
           if (event.getEventGroupId() != null) {
             jobDB.add(job, event.getEventGroupId());
-          } else {
-            try {
-              cacheService.flush(event.getRootId());
-              jobDB.add(job, null);
-              engineStatusCallback.onJobReady(job);
-            } catch (Exception e) {
-              logger.error("Failed to call onReady callback for Job " + job.getId(), e);
-              throw new EventHandlerException("Failed to call onReady callback for Job " + job.getId(), e);
-            }
           }
         } catch (BindingException e1) {
           logger.info("Failed to create job", e1);
@@ -166,7 +155,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, rootJobService, dagNodeDB);
           engineStatusCallback.onJobFailed(failedJob);
           
-          eventProcessor.send(new JobStatusEvent("root", event.getRootId(), JobRecord.JobState.FAILED, null, event.getEventGroupId())); // TODO remove hardcoded 'root' value
+          eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, JobRecord.JobState.FAILED, event.getRootId(), null, event.getEventGroupId()));
         } catch (Exception e) {
           logger.error("Failed to call onFailed callback for Job " + jobRecord.getName(), e);
           throw new EventHandlerException("Failed to call onFailed callback for Job " + jobRecord.getName(), e);
@@ -220,7 +209,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         	ready(childJobRecord, event);  
           }
           else {
-            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getName(), rootId, JobRecord.JobState.READY, null, event.getEventGroupId());
+            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getName(), JobRecord.JobState.READY, rootId, null, event.getEventGroupId());
             eventProcessor.send(jobStatusEvent);
           }
         }

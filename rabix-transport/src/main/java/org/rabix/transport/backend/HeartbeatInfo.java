@@ -3,23 +3,25 @@ package org.rabix.transport.backend;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.UUID;
+
 public class HeartbeatInfo {
   @JsonProperty("id")
-  private String id;
+  private UUID id;
   @JsonProperty("timestamp")
   private Long timestamp;
   
   @JsonCreator
-  public HeartbeatInfo(@JsonProperty("id") String id, @JsonProperty("timestamp") Long timestamp) {
+  public HeartbeatInfo(@JsonProperty("id") UUID id, @JsonProperty("timestamp") Long timestamp) {
     this.id = id;
     this.timestamp = timestamp;
   }
 
-  public String getId() {
+  public UUID getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(UUID id) {
     this.id = id;
   }
 

@@ -3,36 +3,50 @@ package org.rabix.engine.event.impl;
 import org.rabix.engine.event.Event;
 
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This event is used to update one input (per port) for the specific Job. It triggers the algorithm cycle.
  */
 public class InputUpdateEvent implements Event {
 
+  @JsonProperty("jobName")
   private final String jobName;
+
+  @JsonProperty("rootId")
   private final UUID rootId;
   
+  @JsonProperty("portId")
   private final String portId;
+  @JsonProperty("value")
   private final Object value;
-
+  @JsonProperty("position")
   private final Integer position;
+  @JsonProperty("numberOfScattered")
   private final Integer numberOfScattered;      // number of scattered nodes
+  @JsonProperty("isLookAhead")
   private final boolean isLookAhead;            // it's a look ahead event
-  
+
+  @JsonProperty("eventGroupId")
   private final UUID eventGroupId;
-  
+
   public InputUpdateEvent(UUID rootId, String jobName, String portId, Object value, Integer position, UUID eventGroupId) {
-    this(rootId, jobName, portId, value, false, null, position, eventGroupId);
+    this(jobName, rootId, portId, value, position, null, false, eventGroupId);
   }
 
-  public InputUpdateEvent(UUID rootId, String jobName, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, UUID eventGroupId) {
+  @JsonCreator
+  public InputUpdateEvent(@JsonProperty("jobName") String jobName, @JsonProperty("rootId") UUID rootId,
+      @JsonProperty("portId") String portId, @JsonProperty("value") Object value,
+      @JsonProperty("position") Integer position, @JsonProperty("numberOfScattered") Integer numberOfScattered,
+      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") UUID eventGroupId) {
     this.jobName = jobName;
+    this.rootId = rootId;
     this.portId = portId;
     this.value = value;
-    this.rootId = rootId;
-    this.isLookAhead = isLookAhead;
-    this.numberOfScattered = scatteredNodes;
     this.position = position;
+    this.numberOfScattered = numberOfScattered;
+    this.isLookAhead = isLookAhead;
     this.eventGroupId = eventGroupId;
   }
 
@@ -130,6 +144,11 @@ public class InputUpdateEvent implements Event {
   @Override
   public String toString() {
     return "InputUpdateEvent [jobName=" + jobName + ", contextId=" + rootId + ", portId=" + portId + ", value=" + value + ", numberOfScattered=" + numberOfScattered + ", isLookAhead=" + isLookAhead + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    return null;
   }
 
 }

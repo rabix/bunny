@@ -23,8 +23,14 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response create(Job job) {
+  public Response create(Job job, Integer batch) {
     try {
+      if (batch != null) {
+        for (int i=0;i<batch;i++) {
+          jobService.start(job, null);
+        }
+        return ok("success");
+      }
       return ok(jobService.start(job, null));
     } catch (Exception e) {
       return internalError("Error while creating a job.");

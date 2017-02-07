@@ -1,12 +1,10 @@
 package org.rabix.engine;
 
-import org.rabix.engine.db.BackendDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.db.JobDB;
 import org.rabix.engine.jdbi.JDBIRepositoryModule;
 import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.processor.dispatcher.EventDispatcherFactory;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.processor.handler.impl.RootJobStatusEventHandler;
 import org.rabix.engine.processor.handler.impl.InitEventHandler;
@@ -34,7 +32,6 @@ public class EngineModule extends AbstractModule {
     bind(CacheService.class).in(Scopes.SINGLETON);
     
     bind(JobDB.class).in(Scopes.SINGLETON);
-    bind(BackendDB.class).in(Scopes.SINGLETON);
     bind(DAGNodeDB.class).in(Scopes.SINGLETON);
     bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
     
@@ -51,7 +48,6 @@ public class EngineModule extends AbstractModule {
     bind(RootJobStatusEventHandler.class).in(Scopes.SINGLETON);
     
     bind(HandlerFactory.class).in(Scopes.SINGLETON);
-    bind(EventDispatcherFactory.class).in(Scopes.SINGLETON);
     bind(EventProcessor.class).to(MultiEventProcessorImpl.class).in(Scopes.SINGLETON);
   }
   

@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
@@ -24,7 +23,6 @@ public class JobDB {
   }
   
   public void add(Job job, UUID groupId) {
-
     jobRepository.insertToGroup(job, groupId);
   }
   

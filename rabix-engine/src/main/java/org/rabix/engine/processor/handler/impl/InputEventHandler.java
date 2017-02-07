@@ -64,7 +64,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       jobService.resetOutputPortCounters(job, job.getInputPortIncoming(event.getPortId()));
     }
     
-    variableService.addValue(variable, event.getValue(), event.getPosition(), job.isScatterWrapper());
+    variableService.addValue(variable, event.getValue(), event.getPosition(), false);
     jobService.decrementPortCounter(job, event.getPortId(), LinkPortType.INPUT);
     
     // scatter
@@ -92,7 +92,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
     update(job, variable);
     if (job.isReady()) {
-      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getName(), event.getRootId(), JobRecord.JobState.READY, null, event.getEventGroupId());
+      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getName(), JobRecord.JobState.READY, event.getRootId(), null, event.getEventGroupId());
       eventProcessor.send(jobStatusEvent);
     }
   }

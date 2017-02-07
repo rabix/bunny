@@ -5,12 +5,20 @@ import org.rabix.engine.model.RootJob.RootJobStatus;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+
 public class RootJobStatusEvent implements Event {
 
+  @JsonProperty("rootId")
   private final UUID rootId;
+
+  @JsonProperty("status")
   private final RootJobStatus status;
   
-  public RootJobStatusEvent(UUID rootId, RootJobStatus status) {
+  @JsonCreator
+  public RootJobStatusEvent(@JsonProperty("rootId") UUID rootId, @JsonProperty("status") RootJobStatus status) {
     this.status = status;
     this.rootId = rootId;
   }
@@ -65,6 +73,11 @@ public class RootJobStatusEvent implements Event {
   @Override
   public String toString() {
     return "RootJobStatusEvent [contextId=" + rootId + ", status=" + status + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    return null;
   }
 
 }

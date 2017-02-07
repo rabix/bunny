@@ -1,10 +1,12 @@
 package org.rabix.engine.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.Cache;
 import org.rabix.engine.cache.CacheItem.Action;
@@ -46,17 +48,31 @@ public class JobRecordService {
     cache.put(jobRecord, Action.UPDATE);
   }
   
+
   public List<JobRecord> find(UUID rootId) {
     return jobRecordRepository.get(rootId);
   }
-  
+
   public List<JobRecord> findReady(UUID rootId) {
-    return jobRecordRepository.getReady(rootId);
+    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
+    List<Cachable> jobRecords = cache.get(new JobRecord.JobCacheKey(null, rootId));
+    List<JobRecord> readyJobRecords = new ArrayList<>();
+    for (Cachable jobRecord : jobRecords) {
+      if (((JobRecord) jobRecord).isReady()) {
+        readyJobRecords.add((JobRecord) jobRecord);
+      }
+    }
+    return readyJobRecords;
   }
-  
-  // get from DB and put to cache with UPDATE action - don't override
+
   public List<JobRecord> findByParent(UUID parentId, UUID contextId) {
-    return jobRecordRepository.getByParent(parentId, contextId);
+    List<JobRecord> recordsByParent = jobRecordRepository.getByParent(parentId, contextId);
+
+    if (recordsByParent != null) {
+      Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
+      return cache.<JobRecord> merge(recordsByParent, JobRecord.class);
+    }
+    return recordsByParent;
   }
   
   public JobRecord find(String jobName, UUID rootId) {
@@ -70,9 +86,15 @@ public class JobRecordService {
     return record;
   }
   
-  // get from DB
   public JobRecord findRoot(UUID rootId) {
-    return jobRecordRepository.getRoot(rootId);
+    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(InternalSchemaHelper.ROOT_NAME, rootId));
+    if (!records.isEmpty()) {
+      return (JobRecord) records.get(0);
+    }
+    JobRecord record = jobRecordRepository.getRoot(rootId);
+    cache.put(record, Action.UPDATE);
+    return record;
   }
   
   public void increaseInputPortIncoming(JobRecord jobRecord, String port) {

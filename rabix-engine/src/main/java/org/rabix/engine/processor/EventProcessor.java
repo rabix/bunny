@@ -1,6 +1,5 @@
 package org.rabix.engine.processor;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.rabix.engine.event.Event;
@@ -9,7 +8,7 @@ import org.rabix.engine.status.EngineStatusCallback;
 
 public interface EventProcessor {
 
-  void start(List<IterationCallback> iterationCallbacks, EngineStatusCallback engineStatusCallback);
+  void start(EngineStatusCallback engineStatusCallback);
 
   void stop();
 
@@ -19,17 +18,7 @@ public interface EventProcessor {
 
   void addToQueue(Event event);
 
-  /**
-   * Post iteration callback
-   */
-  public static interface IterationCallback {
-
-    /**
-     * Call this method to execute something after one iteration
-     */
-    void call(EventProcessor eventProcessor, UUID rootId, int iteration) throws Exception;
-
-  }
+  void addToExternalQueue(Event event, boolean persist);
 
   public static class EventProcessorDispatcher {
 

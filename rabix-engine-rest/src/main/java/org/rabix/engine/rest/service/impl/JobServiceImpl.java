@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.Bindings;
@@ -24,15 +23,12 @@ import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
-import org.rabix.engine.rest.backend.BackendDispatcher;
 import org.rabix.engine.rest.helpers.IntermediaryFilesHelper;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.service.RootJobService;
+import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
@@ -58,7 +54,7 @@ public class JobServiceImpl implements JobService {
   private final DAGNodeDB dagNodeDB;
   
   private final EventProcessor eventProcessor;
-  private final BackendDispatcher backendDispatcher;
+  private final SchedulerService scheduler;
   private final IntermediaryFilesService intermediaryFilesService;
   
   private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -68,10 +64,8 @@ public class JobServiceImpl implements JobService {
   private boolean deleteIntermediaryFiles;
   private boolean keepInputFiles;
   
-  private final TransactionHelper transactionHelper;
-  
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, RootJobService rootJobService, BackendDispatcher backendDispatcher, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB, TransactionHelper transactionHelper) {
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, RootJobService rootJobService, SchedulerService scheduler, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
     this.eventProcessor = eventProcessor;
@@ -80,9 +74,8 @@ public class JobServiceImpl implements JobService {
     this.linkRecordService = linkRecordService;
     this.variableRecordService = variableRecordService;
     this.rootJobService = rootJobService;
-    this.backendDispatcher = backendDispatcher;
-    this.transactionHelper = transactionHelper;
-    
+    this.scheduler = scheduler;
+
     this.intermediaryFilesService = intermediaryFilesService;
 
     deleteFilesUponExecution = configuration.getBoolean("rabix.delete_files_upon_execution", false);
@@ -91,59 +84,48 @@ public class JobServiceImpl implements JobService {
     keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);
     
     isLocalBackend = configuration.getBoolean("local.backend", false);
-    this.eventProcessor.start(null, new EngineStatusCallbackImpl(isLocalBackend, isLocalBackend));
+    this.eventProcessor.start(new EngineStatusCallbackImpl(isLocalBackend, isLocalBackend));
   }
   
   @Override
   public void update(Job job) throws JobServiceException {
     logger.debug("Update Job {}", job.getId());
-    
+
+    JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
     try {
-      transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
-        @Override
-        public Void call() throws TransactionException {
-          JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
-          try {
-            JobStatusEvent statusEvent = null;
-            JobStatus status = job.getStatus();
-            switch (status) {
-            case RUNNING:
-              if (JobRecord.JobState.RUNNING.equals(jobRecord.getState())) {
-                return null;
-              }
-              JobStateValidator.checkState(jobRecord, JobRecord.JobState.RUNNING);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.RUNNING, job.getOutputs(), null);
-              break;
-            case FAILED:
-              if (JobRecord.JobState.FAILED.equals(jobRecord.getState())) {
-                return null;
-              }
-              JobStateValidator.checkState(jobRecord, JobRecord.JobState.FAILED);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.FAILED, null, null);
-              break;
-            case COMPLETED:
-              if (JobRecord.JobState.COMPLETED.equals(jobRecord.getState())) {
-                return null;
-              }
-              JobStateValidator.checkState(jobRecord, JobRecord.JobState.COMPLETED);
-              statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.COMPLETED, job.getOutputs(), job.getId());
-              break;
-            default:
-              break;
-            }
-            jobDB.update(job);
-            eventProcessor.addToQueue(statusEvent);
-          } catch (JobStateValidationException e) {
-            // TODO handle exception
-            logger.warn("Failed to update Job state from {} to {}", jobRecord.getState(), job.getStatus());
-          }
-          return null;
+      JobStatusEvent statusEvent = null;
+      JobStatus status = job.getStatus();
+      switch (status) {
+      case RUNNING:
+        if (JobRecord.JobState.RUNNING.equals(jobRecord.getState())) {
+          return;
         }
-      });
-    } catch (TransactionException e) {
-      throw new JobServiceException("Failed to update Job", e);
+        JobStateValidator.checkState(jobRecord, JobRecord.JobState.RUNNING);
+        statusEvent = new JobStatusEvent(job.getName(), JobRecord.JobState.RUNNING, job.getRootId(), job.getOutputs(), job.getId());
+        break;
+      case FAILED:
+        if (JobRecord.JobState.FAILED.equals(jobRecord.getState())) {
+          return;
+        }
+        JobStateValidator.checkState(jobRecord, JobRecord.JobState.FAILED);
+        statusEvent = new JobStatusEvent(job.getName(), JobRecord.JobState.FAILED, job.getRootId(), null, job.getId());
+        break;
+      case COMPLETED:
+        if (JobRecord.JobState.COMPLETED.equals(jobRecord.getState())) {
+          return;
+        }
+        JobStateValidator.checkState(jobRecord, JobRecord.JobState.COMPLETED);
+        statusEvent = new JobStatusEvent(job.getName(), JobRecord.JobState.COMPLETED, job.getRootId(), job.getOutputs(), job.getId());
+        break;
+      default:
+        break;
+      }
+      jobDB.update(job);
+      eventProcessor.addToExternalQueue(statusEvent, true);
+    } catch (JobStateValidationException e) {
+      // TODO handle exception
+      logger.warn("Failed to update Job state from {} to {}", jobRecord.getState(), job.getStatus());
     }
-    
   }
   
   @Override
@@ -167,11 +149,9 @@ public class JobServiceImpl implements JobService {
       job = Job.cloneWithConfig(job, config);
       jobDB.add(job);
 
-      InitEvent initEvent = new InitEvent(job.getConfig(), job.getRootId(), node, job.getInputs());
-      eventProcessor.send(initEvent);
+      InitEvent initEvent = new InitEvent(UUID.randomUUID(), node, job.getConfig(), job.getRootId(), job.getInputs());
+      eventProcessor.addToExternalQueue(initEvent, true);
       return job;
-    } catch (EventHandlerException e) {
-      throw new JobServiceException("Failed to start job", e);
     } catch (Exception e) {
       logger.error("Failed to create Bindings", e);
       throw new JobServiceException("Failed to create Bindings", e);
@@ -185,9 +165,9 @@ public class JobServiceImpl implements JobService {
     Job job = jobDB.get(id);
     if (job.isRoot()) {
       Set<Job> jobs = jobDB.getJobs(id);
-      backendDispatcher.stop(jobs.toArray(new Job[jobs.size()]));
+      scheduler.stop(jobs.toArray(new Job[jobs.size()]));
     } else {
-      backendDispatcher.stop(job);
+      scheduler.stop(job);
     }
   }
   
@@ -212,12 +192,9 @@ public class JobServiceImpl implements JobService {
     private boolean setResources;
     
     private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
-    
-    private AtomicInteger failCount = new AtomicInteger(0);
-    private AtomicInteger successCount = new AtomicInteger(0);
 
     private Set<UUID> stoppingRootIds = new HashSet<>();
-    
+
     public EngineStatusCallbackImpl(boolean setResources, boolean stopOnFail) {
       this.stopOnFail = stopOnFail;
       this.setResources = setResources;
@@ -240,7 +217,7 @@ public class JobServiceImpl implements JobService {
         job = Job.cloneWithResources(job, resources);
       }
       jobDB.update(job);
-      backendDispatcher.send(job);
+      scheduler.send(job);
     }
     
     @Override
@@ -315,7 +292,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public void onJobRootCompleted(Job job) throws EngineStatusCallbackException {
       if (deleteFilesUponExecution) {
-        backendDispatcher.freeBackend(job);
+        scheduler.freeBackend(job);
         
         if (isLocalBackend) {
           try {
@@ -327,14 +304,13 @@ public class JobServiceImpl implements JobService {
       job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
       job = JobHelper.fillOutputs(job, jobRecordService, variableRecordService);
       jobDB.update(job);
-      logger.info("Root Job {} completed. Successfull {}.", job.getId(), successCount.incrementAndGet());
     }
 
     @Override
     public void onJobRootFailed(Job job) throws EngineStatusCallbackException {
       synchronized (stoppingRootIds) {
         if (deleteFilesUponExecution) {
-          backendDispatcher.freeBackend(job);
+          scheduler.freeBackend(job);
           
           if (isLocalBackend) {
             try {
@@ -346,9 +322,8 @@ public class JobServiceImpl implements JobService {
         job = Job.cloneWithStatus(job, JobStatus.FAILED);
         jobDB.update(job);
 
-        backendDispatcher.remove(job);
+        scheduler.remove(job);
         stoppingRootIds.remove(job.getId());
-        logger.info("Root Job {} failed. Failed {}.", job.getId(), failCount.incrementAndGet());
       }
     }
 

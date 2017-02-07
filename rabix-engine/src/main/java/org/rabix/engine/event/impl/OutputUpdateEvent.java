@@ -3,39 +3,54 @@ package org.rabix.engine.event.impl;
 import org.rabix.engine.event.Event;
 
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This event is used to update one output (per port) for the specific Job. Potentially, it can produce one ore more output and inputs events. 
  */
 public class OutputUpdateEvent implements Event {
 
+  @JsonProperty("jobName")
   private final String jobName;
+
+  @JsonProperty("rootId")
   private final UUID rootId;
-  
+
+  @JsonProperty("value")
   private final Object value;
+  @JsonProperty("portId")
   private final String portId;
-  
+  @JsonProperty("position")
   private final Integer position;
+  @JsonProperty("fromScatter")
   private final boolean fromScatter;            // it's a scatter event
+  @JsonProperty("numberOfScattered")
   private final Integer numberOfScattered;      // number of scattered nodes
-  
+
+  @JsonProperty("eventGroupId")
   private final UUID eventGroupId;
 
   public OutputUpdateEvent(UUID rootId, String jobName, String portId, Object value, Integer position, UUID eventGroupId) {
-    this(rootId, jobName, portId, value, false, null, position, eventGroupId);
+    this(jobName, rootId, value, portId, null, false, position, eventGroupId);
   }
+
   
-  public OutputUpdateEvent(UUID rootId, String jobName, String portId, Object outputValue, boolean fromScatter, Integer numberOfScattered, Integer position, UUID eventGroupId) {
+  @JsonCreator
+  public OutputUpdateEvent(@JsonProperty("jobName") String jobName, @JsonProperty("rootId") UUID rootId,
+      @JsonProperty("value") Object value, @JsonProperty("portId") String portId,
+      @JsonProperty("position") Integer position, @JsonProperty("fromScatter") boolean fromScatter,
+      @JsonProperty("numberOfScattered") Integer numberOfScattered, @JsonProperty("eventGroupId") UUID eventGroupId) {
     this.jobName = jobName;
     this.rootId = rootId;
+    this.value = value;
     this.portId = portId;
-    this.value = outputValue;
     this.position = position;
     this.fromScatter = fromScatter;
-    this.eventGroupId = eventGroupId;
     this.numberOfScattered = numberOfScattered;
+    this.eventGroupId = eventGroupId;
   }
-  
+
   public String getJobName() {
     return jobName;
   }
@@ -130,6 +145,11 @@ public class OutputUpdateEvent implements Event {
   @Override
   public String toString() {
     return "OutputUpdateEvent [jobName=" + jobName + ", contextId=" + rootId + ", portId=" + portId + ", value=" + value + ", fromScatter=" + fromScatter + ", numberOfScattered=" + numberOfScattered + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    return null;
   }
   
 }

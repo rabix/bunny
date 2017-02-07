@@ -1,10 +1,9 @@
-package org.rabix.engine.rest.backend;
+package org.rabix.engine.rest.service.impl;
 
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -15,23 +14,30 @@ import org.rabix.common.engine.control.EngineControlStopMessage;
 import org.rabix.engine.db.JobBackendService;
 import org.rabix.engine.db.JobBackendService.BackendJob;
 import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.rest.backend.stub.BackendStub;
+import org.rabix.engine.rest.backend.stub.BackendStub.HeartbeatCallback;
+import org.rabix.engine.rest.service.BackendService;
+import org.rabix.engine.rest.service.BackendServiceException;
 import org.rabix.engine.rest.service.JobService;
+import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.HeartbeatInfo;
+import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
+import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class BackendDispatcher {
+public class SchedulerServiceImpl implements SchedulerService {
 
-  private final static Logger logger = LoggerFactory.getLogger(BackendDispatcher.class);
+  private final static Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
-  private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(2);
+  private final static long SCHEDULE_PERIOD = TimeUnit.SECONDS.toMillis(3);
+  private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(5);
 
   private final List<BackendStub<?, ?, ?>> backendStubs = new ArrayList<>();
-  private final Map<String, Long> heartbeatInfo = new HashMap<>();
 
   private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
   private ScheduledExecutorService heartbeatService = Executors.newSingleThreadScheduledExecutor();
@@ -43,44 +49,39 @@ public class BackendDispatcher {
   private final long heartbeatPeriod;
 
   private final JobService jobService;
+  private final BackendService backendService;
   private final JobBackendService jobBackendService;
 
   private final TransactionHelper transactionHelper;
 
-  private final AtomicBoolean scheduleRequest = new AtomicBoolean(true);
-  
   @Inject
-  public BackendDispatcher(Configuration configuration, JobBackendService jobBackendService, JobService jobService,
-      TransactionHelper repositoriesFactory) {
+  public SchedulerServiceImpl(Configuration configuration, JobBackendService jobBackendService, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory) {
     this.jobService = jobService;
+    this.backendService = backendService;
     this.jobBackendService = jobBackendService;
     this.transactionHelper = repositoriesFactory;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
-    start();
   }
 
-  private synchronized void start() {
+  @Override
+  public void start() {
     executorService.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
         try {
-          if (!scheduleRequest.get()) {
-            return;
-          }
-          scheduleRequest.set(false);
           transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
             @Override
-            public Void call() throws TransactionException {
+            public Void call() throws Exception {
               schedule();
               return null;
             }
           });
-        } catch (TransactionException e) {
+        } catch (Exception e) {
           // TODO handle exception
           logger.error("Failed to schedule jobs", e);
         }
       }
-    }, 0, 100, TimeUnit.MILLISECONDS);
+    }, 0, SCHEDULE_PERIOD, TimeUnit.MILLISECONDS);
 
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
   }
@@ -89,7 +90,6 @@ public class BackendDispatcher {
     for (Job job : jobs) {
       jobBackendService.insert(job.getId(), job.getRootId(), null);
     }
-    scheduleRequest.set(true);
   }
 
   private void schedule() {
@@ -116,16 +116,49 @@ public class BackendDispatcher {
           backendStub.send(new EngineControlStopMessage(job.getId(), job.getRootId()));
         }
       }
+      Set<BackendJob> backendJobs = jobBackendService.getByRootId(job.getId());
+      for (BackendJob backendJob : backendJobs) {
+        if (backendJob.getBackendId() != null) {
+          BackendStub<?, ?, ?> backendStub = getBackendStub(backendJob.getBackendId());
+          if (backendStub != null) {
+            backendStub.send(new EngineControlStopMessage(job.getId(), job.getRootId()));
+          }
+        }
+      }
     }
     return true;
   }
 
-  public void addBackendStub(BackendStub<?, ?, ?> backendStub) {
+  public void addBackendStub(BackendStub<?, ?, ?> backendStub) throws BackendServiceException {
     try {
       dispatcherLock.lock();
-      backendStub.start(heartbeatInfo);
+      backendStub.start(new HeartbeatCallback() {
+        @Override
+        public void save(HeartbeatInfo info) throws Exception {
+          backendService.updateHeartbeatInfo(info);
+        }
+      }, new ReceiveCallback<Job>() {
+        @Override
+        public void handleReceive(Job job) throws TransportPluginException {
+          try {
+            transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
+              @Override
+              public Void call() throws Exception {
+                jobService.update(job);
+                return null;
+              }
+            });
+          } catch (Exception e) {
+            throw new TransportPluginException("Failed to update Job", e);
+          }
+        }
+      }, new ErrorCallback() {
+        @Override
+        public void handleError(Exception error) {
+          logger.error("Failed to receive message.", error);
+        }
+      });
       this.backendStubs.add(backendStub);
-      this.heartbeatInfo.put(backendStub.getBackend().getName(), System.currentTimeMillis());
     } finally {
       dispatcherLock.unlock();
     }
@@ -169,7 +202,7 @@ public class BackendDispatcher {
       try {
         transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
           @Override
-          public Void call() throws TransactionException {
+          public Void call() throws Exception {
             logger.info("Checking Backend heartbeats...");
 
             long currentTime = System.currentTimeMillis();
@@ -180,7 +213,9 @@ public class BackendDispatcher {
               BackendStub<?, ?, ?> backendStub = backendIterator.next();
               Backend backend = backendStub.getBackend();
 
-              if (currentTime - heartbeatInfo.get(backend.getId()) > heartbeatPeriod) {
+              Long heartbeatInfo = backendService.getHeartbeatInfo(backend.getId());
+              
+              if (currentTime - heartbeatInfo > heartbeatPeriod) {
                 backendStub.stop();
                 backendIterator.remove();
                 logger.info("Removing Backend {}", backendStub.getBackend().getId());
@@ -191,13 +226,14 @@ public class BackendDispatcher {
                   jobBackendService.update(backendJob.getJobId(), null);
                   logger.info("Reassign Job {} to free Jobs", backendJob.getJobId());
                 }
+                backendService.stopBackend(backend);
               }
             }
             logger.info("Heartbeats checked");
             return null;
           }
         });
-      } catch (TransactionException e) {
+      } catch (Exception e) {
         // TODO handle exception
         logger.error("Failed to check heartbeats", e);
       }

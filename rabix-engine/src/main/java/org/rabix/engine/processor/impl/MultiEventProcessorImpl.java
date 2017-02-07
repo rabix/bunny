@@ -1,6 +1,5 @@
 package org.rabix.engine.processor.impl;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -36,9 +35,9 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
 
   @Override
-  public void start(List<IterationCallback> iterationCallbacks, EngineStatusCallback engineStatusCallback) {
+  public void start(EngineStatusCallback engineStatusCallback) {
     for (EventProcessorImpl singleEventProcessor : eventProcessors.values()) {
-      singleEventProcessor.start(iterationCallbacks, engineStatusCallback);
+      singleEventProcessor.start(engineStatusCallback);
     }
     this.isRunning = true;
   }
@@ -62,6 +61,11 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
   
   @Override
+  public void addToExternalQueue(Event event, boolean persist) {
+    getEventProcessor(event.getRootId()).addToExternalQueue(event, persist);
+  }
+  
+  @Override
   public boolean isRunning() {
     return isRunning;
   }
@@ -74,7 +78,7 @@ public class MultiEventProcessorImpl implements EventProcessor {
    * @return        EventProcessor instance
    */
   private EventProcessor getEventProcessor(UUID rootId) {
-    int index = Math.abs(rootId.hashCode() % eventProcessorCount);
+    int index = EventProcessorDispatcher.dispatch(rootId, eventProcessorCount);
     logger.debug("Root Job {} goes to EventProcessor {}", rootId, index);
     return eventProcessors.get(index);
   }

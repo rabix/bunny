@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.transport.backend.Backend;
 
 public interface JobService {
 

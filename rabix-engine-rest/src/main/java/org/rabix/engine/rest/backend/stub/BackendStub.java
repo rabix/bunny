@@ -1,13 +1,11 @@
 package org.rabix.engine.rest.backend.stub;
 
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlMessage;
 import org.rabix.engine.rest.service.JobService;
-import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.mechanism.TransportPlugin;
@@ -34,29 +32,24 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
 
   private ExecutorService executorService = Executors.newFixedThreadPool(2);
   
-  public void start(final Map<String, Long> heartbeatInfo) {
-    transportPlugin.startReceiver(receiveFromBackendQueue, Job.class, new ReceiveCallback<Job>() {
-      @Override
-      public void handleReceive(Job job) throws TransportPluginException {
-        try {
-          jobService.update(job);
-        } catch (JobServiceException e) {
-          throw new TransportPluginException("Failed to update Job", e);
-        }
-      }
-    }, new ErrorCallback() {
-      @Override
-      public void handleError(Exception error) {
-        logger.error("Failed to receive message.", error);
-      }
-    });
+  public static interface HeartbeatCallback {
+    void save(HeartbeatInfo info) throws Exception;
+  }
+  
+  public void start(HeartbeatCallback heartbeatCallback, ReceiveCallback<Job> receiveCallback, ErrorCallback errorCallback) {
+    transportPlugin.startReceiver(receiveFromBackendQueue, Job.class, receiveCallback, errorCallback);
 
     transportPlugin.startReceiver(receiveFromBackendHeartbeatQueue, HeartbeatInfo.class,
         new ReceiveCallback<HeartbeatInfo>() {
           @Override
           public void handleReceive(HeartbeatInfo entity) throws TransportPluginException {
             logger.debug("Got heartbeat info from {}", entity.getId());
-            heartbeatInfo.put(entity.getId(), entity.getTimestamp());
+            try {
+              heartbeatCallback.save(entity);
+            } catch (Exception e) {
+              logger.error("Failed to update heartbeat", e);
+              throw new TransportPluginException(e);
+            }
           }
         }, new ErrorCallback() {
           @Override

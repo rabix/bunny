@@ -6,17 +6,33 @@ import java.util.UUID;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.event.Event;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * This event is a starter event. It triggers the algorithm start. 
  */
 public class InitEvent implements Event {
 
+  @JsonProperty("eventGroupId")
+  private final UUID eventGroupId;
+  @JsonProperty("node")
   private final DAGNode node;
+  @JsonProperty("value")
   private final Map<String, Object> value;
+
+  @JsonProperty("rootId")
   private final UUID rootId;
+
+  @JsonProperty("config")
   private final Map<String, Object> config;
-  
-  public InitEvent(Map<String, Object> config, UUID rootId, DAGNode node, Map<String, Object> value) {
+
+  @JsonCreator
+  public InitEvent(@JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("node") DAGNode node,
+      @JsonProperty("value") Map<String, Object> value, @JsonProperty("rootId") UUID rootId,
+      @JsonProperty("config") Map<String, Object> config) {
+    super();
+    this.eventGroupId = eventGroupId;
     this.node = node;
     this.value = value;
     this.rootId = rootId;
@@ -38,7 +54,7 @@ public class InitEvent implements Event {
   
   @Override
   public UUID getEventGroupId() {
-    return null;
+    return eventGroupId;
   }
   
   public Map<String, Object> getConfig() {
@@ -96,6 +112,11 @@ public class InitEvent implements Event {
   @Override
   public String toString() {
     return "InitEvent [node=" + node + ", value=" + value + ", rootId=" + rootId + ", config=" + config + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    return PersistentEventType.INIT;
   }
 
 }

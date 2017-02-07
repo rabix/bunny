@@ -35,7 +35,7 @@ public interface JDBIJobRepository extends JobRepository {
 
   @SqlUpdate("update job set job=:job where id=:id")
   void update(@BindJob Job job);
-  
+
   @SqlQuery("select * from job where id=:id")
   Job get(@Bind("id") UUID id);
   

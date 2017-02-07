@@ -4,6 +4,8 @@ import java.lang.annotation.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
+import java.sql.Timestamp;
+import java.util.List;
 
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.jdbi.impl.JDBIBackendRepository.BackendMapper;
@@ -18,8 +20,8 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendMapper.class)
 public interface JDBIBackendRepository extends BackendRepository {
 
-  @SqlUpdate("insert into backend (id, type, configuration) values (:id, :type::backend_type, :configuration::jsonb)")
-  void insert(@BindBackend Backend backend);
+  @SqlUpdate("insert into backend (id,type,configuration,heartbeat_info,status) values (:id,:type,:configuration,:heartbeat_info,:status)")
+  void insert(@BindBackend Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo, @Bind("status") BackendStatus status);
   
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
   void update(@BindBackend Backend backend);
@@ -29,6 +31,18 @@ public interface JDBIBackendRepository extends BackendRepository {
 
   @SqlQuery("select * from backend where name=:name")
   Backend getByName(@Bind("name") String name);
+  
+  @SqlQuery("select * from backend where status=:status")
+  List<Backend> getByStatus(@Bind("status") BackendStatus status);
+  
+  @SqlUpdate("update backend set status=:status where id=:id")
+  void updateStatus(@Bind("id") String id, @Bind("status") BackendStatus status);
+  
+  @SqlUpdate("update backend set heartbeat_info=:heartbeat_info where id=:id")
+  void updateHeartbeatInfo(@Bind("id") String id, @Bind("heartbeat_info") Timestamp heartbeatInfo);
+  
+  @SqlQuery("select heartbeat_info from backend where id=:id")
+  Timestamp getHeartbeatInfo(@Bind("id") String id);
   
   public static class BackendMapper implements ResultSetMapper<Backend> {
     public Backend map(int index, ResultSet r, StatementContext ctx) throws SQLException {

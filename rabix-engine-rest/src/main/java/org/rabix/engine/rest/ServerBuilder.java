@@ -29,15 +29,20 @@ import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
-import org.rabix.engine.rest.backend.BackendDispatcher;
 import org.rabix.engine.rest.backend.stub.BackendStubFactory;
 import org.rabix.engine.rest.service.BackendService;
+import org.rabix.engine.rest.service.BootstrapService;
+import org.rabix.engine.rest.service.BootstrapServiceException;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
+import org.rabix.engine.rest.service.SchedulerService;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
+import org.rabix.engine.rest.service.impl.BootstrapServiceImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
 import org.rabix.engine.rest.service.impl.NoOpIntermediaryFilesServiceImpl;
-import org.rabix.transport.backend.BackendPopulator;
+import org.rabix.engine.rest.service.impl.SchedulerServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -48,6 +53,8 @@ import com.squarespace.jersey2.guice.BootstrapUtils;
 
 public class ServerBuilder {
 
+  private final static Logger logger = LoggerFactory.getLogger(ServerBuilder.class);
+  
   private final static String ENGINE_PORT_KEY = "engine.port";
 
   private File configDir;
@@ -64,10 +71,10 @@ public class ServerBuilder {
           @Override
           protected void configure() {
             bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
-            bind(BackendPopulator.class).in(Scopes.SINGLETON);
+            bind(BootstrapService.class).to(BootstrapServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendStubFactory.class).in(Scopes.SINGLETON);
-            bind(BackendDispatcher.class).in(Scopes.SINGLETON);
+            bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
             bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
             bind(IntermediaryFilesService.class).to(NoOpIntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
@@ -77,6 +84,17 @@ public class ServerBuilder {
 
     Configuration configuration = injector.getInstance(Configuration.class);
 
+    SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
+    schedulerService.start();
+    
+    BootstrapService eventService = injector.getInstance(BootstrapService.class);
+    try {
+      eventService.replay();
+    } catch (BootstrapServiceException e) {
+      logger.error("Failed to bootstrap engine", e);
+      System.exit(-1);
+    }
+    
     int enginePort = configuration.getInt(ENGINE_PORT_KEY);
     Server server = new Server(enginePort);
 

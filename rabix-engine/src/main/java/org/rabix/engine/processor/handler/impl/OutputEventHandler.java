@@ -3,7 +3,6 @@ package org.rabix.engine.processor.handler.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
@@ -13,7 +12,6 @@ import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.db.JobDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
@@ -44,7 +42,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
   private final static Logger logger = LoggerFactory.getLogger(OutputEventHandler.class);
   
-  private CacheService cacheService;
   private JobRecordService jobService;
   private LinkRecordService linkService;
   private VariableRecordService variableService;
@@ -52,20 +49,17 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     
   private final EventProcessor eventProcessor;
   
-  private JobDB jobDB;
   private DAGNodeDB dagNodeDB;
   private EngineStatusCallback engineStatusCallback;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, RootJobService contextService, DAGNodeDB dagNodeDB, JobDB jobDB, CacheService cacheService) {
+  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, RootJobService contextService, DAGNodeDB dagNodeDB) {
     this.dagNodeDB = dagNodeDB;
-    this.jobDB = jobDB;
     
     this.jobService = jobService;
     this.linkService = linkService;
     this.contextService = contextService;
     this.variableService = variableService;
-    this.cacheService = cacheService;
     this.eventProcessor = eventProcessor;
   }
 
@@ -106,7 +100,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
         if(sourceJob.isRoot() && sourceJob.isContainer()) {
           // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
-          eventProcessor.send(new JobStatusEvent(sourceJob.getName(), event.getRootId(), JobRecord.JobState.COMPLETED, outputs, event.getEventGroupId()));
+          eventProcessor.send(new JobStatusEvent(sourceJob.getName(), JobRecord.JobState.COMPLETED, event.getRootId(), outputs, event.getEventGroupId()));
         }
         return;
       }
@@ -153,7 +147,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
               value = value != null ? value : event.getValue();
               int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-              Event updateInputEvent = new InputUpdateEvent(event.getRootId(), destinationVariable.getJobName(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId());
+              Event updateInputEvent = new InputUpdateEvent(destinationVariable.getJobName(), event.getRootId(), destinationVariable.getPortId(), value, event.getPosition(), numberOfScattered, true, event.getEventGroupId());
               eventProcessor.send(updateInputEvent);
             } else {
               if (sourceJob.isOutputPortReady(event.getPortId())) {
@@ -174,11 +168,11 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             } else {
               value = value != null? value : event.getValue();
               if (isValueFromScatterStrategy) {
-                Event updateOutputEvent = new OutputUpdateEvent(event.getRootId(), destinationVariable.getJobName(), destinationVariable.getPortId(), value, false, 1, 1, event.getEventGroupId());
+                Event updateOutputEvent = new OutputUpdateEvent(destinationVariable.getJobName(), event.getRootId(), value, destinationVariable.getPortId(), 1, false, 1, event.getEventGroupId());
                 eventProcessor.send(updateOutputEvent);
               } else {
                 int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-                Event updateOutputEvent = new OutputUpdateEvent(event.getRootId(), destinationVariable.getJobName(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId());
+                Event updateOutputEvent = new OutputUpdateEvent(destinationVariable.getJobName(), event.getRootId(), value, destinationVariable.getPortId(), numberOfScattered, true, event.getPosition(), event.getEventGroupId());
                 eventProcessor.send(updateOutputEvent);
               }
             }
@@ -205,7 +199,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             if (sourceJob.isScattered()) {
               int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
               int position = InternalSchemaHelper.getScatteredNumber(sourceJob.getName());
-              Event updateOutputEvent = new OutputUpdateEvent(event.getRootId(), destinationVariable.getJobName(), destinationVariable.getPortId(), value, true, numberOfScattered, position, event.getEventGroupId());
+              Event updateOutputEvent = new OutputUpdateEvent(destinationVariable.getJobName(), event.getRootId(), value, destinationVariable.getPortId(), numberOfScattered, true, position, event.getEventGroupId());
               eventProcessor.send(updateOutputEvent);
             } else {
               Event updateOutputEvent = new OutputUpdateEvent(event.getRootId(), destinationVariable.getJobName(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
@@ -213,17 +207,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             }
             break;
           }
-        }
-      }
-      
-      if (event.getEventGroupId() != null && event.getEventGroupId().equals(sourceJob.getId()) && sourceJob.isCompleted()) {
-        Set<Job> readyJobs = jobDB.getJobsByGroupId(event.getEventGroupId());
-        try {
-          cacheService.flush(event.getRootId());
-          engineStatusCallback.onJobsReady(readyJobs);
-        } catch (EngineStatusCallbackException e) {
-          logger.error("Failed to call onJobsReady() callback", e);
-          throw new EventHandlerException(e);
         }
       }
     }

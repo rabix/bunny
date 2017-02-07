@@ -10,7 +10,7 @@ public interface JobRepository {
   void insert(Job job);
 
   void insertToGroup(Job job, UUID groupId);
-  
+
   void update(Job job);
 
 //  void scheduleToBackend(UUID jobId, UUID backendId);
