@@ -26,6 +26,10 @@ public class LRUCache<K, V> {
   public String getCacheName() {
     return cacheName;
   }
+  
+  public int getCacheSize() {
+    return cacheSize;
+  }
 
   public V get(K key) {
     return cache.get(key) != null ? cache.get(key) : null;

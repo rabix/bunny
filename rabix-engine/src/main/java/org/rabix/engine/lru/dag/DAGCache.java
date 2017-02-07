@@ -3,6 +3,7 @@ package org.rabix.engine.lru.dag;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.dag.DAGContainer;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.ChecksumHelper;
@@ -18,15 +19,17 @@ import com.google.inject.Inject;
 public class DAGCache extends LRUCache<String, DAGNode> {
   
   private final Logger logger = LoggerFactory.getLogger(DAGCache.class);
-  
+  private final static String CACHE_NAME = "DAGCache";
+  private static int DEFAULT_CACHE_SIZE = 16;
   
   @Inject
-  public DAGCache() {
-    super("DAGCache");
+  public DAGCache(Configuration configuration) {
+    super(CACHE_NAME, configuration.getInteger("dagcache.size", DEFAULT_CACHE_SIZE));
+    logger.debug(String.format("%s initialized with size=%d", CACHE_NAME, getCacheSize()));
   }
   
   public DAGCache(int cacheSize) {
-    super("DAGCache", cacheSize);
+    super(CACHE_NAME, cacheSize);
   }
   
   public DAGNode get(String id, String rootId, String dagHash) {
