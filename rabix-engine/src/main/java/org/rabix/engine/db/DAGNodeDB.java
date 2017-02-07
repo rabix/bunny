@@ -3,7 +3,6 @@ package org.rabix.engine.db;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.lru.dag.DAGCache;
-import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.repository.DAGRepository;
 
 import com.google.inject.Inject;
@@ -26,17 +25,8 @@ public class DAGNodeDB {
    * Gets node from the repository 
    */
   
-  public DAGNode get(String id, String contextId) {
-    DAGNode res = dagCache.get(id, contextId);
-    if(res == null) {
-      res = dagRepository.get(id, contextId);
-      dagCache.put(dagRepository.get(InternalSchemaHelper.ROOT_NAME, contextId), contextId);
-    }
-    return res;
-  }
-  
-  public DAGNode get(String id, String contextId, JobRecord job) {
-    DAGNode res = dagCache.get(id, contextId, job);
+  public DAGNode get(String id, String contextId, String dagHash) {
+    DAGNode res = dagCache.get(id, contextId, dagHash);
     if(res == null) {
       res = dagRepository.get(id, contextId);
       dagCache.put(dagRepository.get(InternalSchemaHelper.ROOT_NAME, contextId), contextId);
@@ -47,9 +37,10 @@ public class DAGNodeDB {
   /**
    * Loads node into the repository recursively
    */
-  public void loadDB(DAGNode node, String contextId) {
-    dagCache.put(node, contextId);
+  public String loadDB(DAGNode node, String contextId) {
+    String dagHash = dagCache.put(node, contextId);
     dagRepository.insert(contextId, node);
+    return dagHash;
   }
   
 }

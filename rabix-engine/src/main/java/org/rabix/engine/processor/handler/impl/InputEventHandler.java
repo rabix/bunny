@@ -53,7 +53,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     JobRecord job = jobService.find(event.getJobId(), event.getContextId());
     VariableRecord variable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
 
-    DAGNode node = nodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), event.getContextId(), job);
+    DAGNode node = nodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), event.getContextId(), job.getDagHash());
 
     if (event.isLookAhead()) {
       if (job.isBlocking() || (job.getInputPortIncoming(event.getPortId()) > 1)) {
