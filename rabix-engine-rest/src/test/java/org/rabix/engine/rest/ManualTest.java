@@ -16,7 +16,7 @@ import org.rabix.bindings.model.Job;
 public class ManualTest {
 
   public static void main(String[] args) {
-    runTask(100);
+    runTask(1000);
   }
   
 

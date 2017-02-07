@@ -8,12 +8,14 @@ import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
+import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.RootJob;
 import org.rabix.engine.model.RootJob.RootJobStatus;
+import org.rabix.engine.lru.dag.DAGCache;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
@@ -46,28 +48,26 @@ public class InitEventHandler implements EventHandler<InitEvent> {
   }
 
   public void handle(final InitEvent event) throws EventHandlerException {
-
     RootJob context = new RootJob(event.getRootId(), event.getConfig(), RootJobStatus.RUNNING);
     
     rootJobService.create(context);
-    nodeDB.loadDB(event.getNode(), event.getRootId());
     
-    DAGNode node = nodeDB.get(event.getNode().getName(), event.getRootId());
-    JobRecord job = new JobRecord(event.getRootId(), event.getNode().getName(), event.getRootId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false);
+    DAGNode node = nodeDB.get(InternalSchemaHelper.ROOT_NAME, event.getRootId());
+    JobRecord job = new JobRecord(event.getRootId(), node.getName(), event.getRootId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false, DAGCache.cacheDagNode(node));
 
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       if (job.getState().equals(JobRecord.JobState.PENDING)) {
         jobRecordService.incrementPortCounter(job, inputPort, LinkPortType.INPUT);
       }
       Object defaultValue = node.getDefaults().get(inputPort.getId());
-      VariableRecord variable = new VariableRecord(event.getRootId(), event.getNode().getName(), inputPort.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(inputPort.getId(), inputPort.getType()));
+      VariableRecord variable = new VariableRecord(event.getRootId(), node.getName(), inputPort.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(inputPort.getId(), inputPort.getType()));
       variableRecordService.create(variable);
     }
 
     for (DAGLinkPort outputPort : node.getOutputPorts()) {
       jobRecordService.incrementPortCounter(job, outputPort, LinkPortType.OUTPUT);
 
-      VariableRecord variable = new VariableRecord(event.getRootId(), event.getNode().getName(), outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()));
+      VariableRecord variable = new VariableRecord(event.getRootId(), node.getName(), outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()));
       variableRecordService.create(variable);
     }
     jobRecordService.create(job);
@@ -81,7 +81,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     Map<String, Object> mixedInputs = mixInputs(node, event.getValue());
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       Object value = mixedInputs.get(inputPort.getId());
-      eventProcessor.send(new InputUpdateEvent(event.getRootId(), event.getNode().getName(), inputPort.getId(), value, 1, event.getEventGroupId()));
+      eventProcessor.send(new InputUpdateEvent(event.getRootId(), node.getName(), inputPort.getId(), value, 1, event.getEventGroupId()));
     }
   }
   

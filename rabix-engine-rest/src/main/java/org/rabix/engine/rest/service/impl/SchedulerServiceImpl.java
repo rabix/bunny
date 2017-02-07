@@ -34,7 +34,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 
   private final static Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
-  private final static long SCHEDULE_PERIOD = TimeUnit.SECONDS.toMillis(3);
+  private final static long SCHEDULE_PERIOD = TimeUnit.SECONDS.toMillis(1);
   private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(5);
 
   private final List<BackendStub<?, ?, ?>> backendStubs = new ArrayList<>();
@@ -77,7 +77,6 @@ public class SchedulerServiceImpl implements SchedulerService {
             }
           });
         } catch (Exception e) {
-          // TODO handle exception
           logger.error("Failed to schedule jobs", e);
         }
       }
@@ -86,47 +85,50 @@ public class SchedulerServiceImpl implements SchedulerService {
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
   }
 
-  public void send(Job... jobs) {
+  public void allocate(Job... jobs) {
     for (Job job : jobs) {
       jobBackendService.insert(job.getId(), job.getRootId(), null);
     }
   }
 
   private void schedule() {
-    if (backendStubs.isEmpty()) {
-      return;
-    }
+    try {
+      dispatcherLock.lock();
+      if (backendStubs.isEmpty()) {
+        return;
+      }
 
-    Set<BackendJob> freeJobs = jobBackendService.getFree();
-    for (BackendJob freeJob : freeJobs) {
-      BackendStub<?, ?, ?> backendStub = nextBackend();
+      Set<BackendJob> freeJobs = jobBackendService.getFree();
+      for (BackendJob freeJob : freeJobs) {
+        BackendStub<?, ?, ?> backendStub = nextBackend();
 
-      jobBackendService.update(freeJob.getJobId(), backendStub.getBackend().getId());
-      backendStub.send(jobService.get(freeJob.getJobId()));
-      logger.info("Job {} sent to {}.", freeJob.getJobId(), backendStub.getBackend().getId());
+        jobBackendService.update(freeJob.getJobId(), backendStub.getBackend().getId());
+        backendStub.send(jobService.get(freeJob.getJobId()));
+        logger.info("Job {} sent to {}.", freeJob.getJobId(), backendStub.getBackend().getId());
+      }
+    } finally {
+      dispatcherLock.unlock();
     }
   }
 
   public boolean stop(Job... jobs) {
-    for (Job job : jobs) {
-      UUID backendId = jobBackendService.getByJobId(job.getId()).getBackendId();
-      if (backendId != null) {
-        BackendStub<?, ?, ?> backendStub = getBackendStub(backendId);
-        if (backendStub != null) {
-          backendStub.send(new EngineControlStopMessage(job.getId(), job.getRootId()));
-        }
-      }
-      Set<BackendJob> backendJobs = jobBackendService.getByRootId(job.getId());
-      for (BackendJob backendJob : backendJobs) {
-        if (backendJob.getBackendId() != null) {
-          BackendStub<?, ?, ?> backendStub = getBackendStub(backendJob.getBackendId());
-          if (backendStub != null) {
-            backendStub.send(new EngineControlStopMessage(job.getId(), job.getRootId()));
+    try {
+      dispatcherLock.lock();
+      for (Job job : jobs) {
+        Set<BackendJob> backendJobs = jobBackendService.getByRootId(job.getId());
+        for (BackendJob backendJob : backendJobs) {
+          if (backendJob.getBackendId() != null) {
+            BackendStub<?, ?, ?> backendStub = getBackendStub(backendJob.getBackendId());
+            if (backendStub != null) {
+              backendStub.send(new EngineControlStopMessage(job.getId(), job.getRootId()));
+            }
           }
         }
       }
+      return true;
+    } finally {
+      dispatcherLock.unlock();
     }
-    return true;
   }
 
   public void addBackendStub(BackendStub<?, ?, ?> backendStub) throws BackendServiceException {
@@ -165,19 +167,24 @@ public class SchedulerServiceImpl implements SchedulerService {
   }
 
   public void freeBackend(Job rootJob) {
-    Set<BackendStub<?, ?, ?>> backendStubs = new HashSet<>();
+    try {
+      dispatcherLock.lock();
+      Set<BackendStub<?, ?, ?>> backendStubs = new HashSet<>();
 
-    Set<BackendJob> backendJobs = jobBackendService.getByRootId(rootJob.getId());
-    for (BackendJob backendJob : backendJobs) {
-      backendStubs.add(getBackendStub(backendJob.getBackendId()));
-    }
+      Set<BackendJob> backendJobs = jobBackendService.getByRootId(rootJob.getId());
+      for (BackendJob backendJob : backendJobs) {
+        backendStubs.add(getBackendStub(backendJob.getBackendId()));
+      }
 
-    for (BackendStub<?, ?, ?> backendStub : backendStubs) {
-      backendStub.send(new EngineControlFreeMessage(rootJob.getConfig(), rootJob.getRootId()));
+      for (BackendStub<?, ?, ?> backendStub : backendStubs) {
+        backendStub.send(new EngineControlFreeMessage(rootJob.getConfig(), rootJob.getRootId()));
+      }
+    } finally {
+      dispatcherLock.unlock();
     }
   }
 
-  public void remove(Job job) {
+  public void deallocate(Job job) {
     jobBackendService.delete(job.getId());
   }
 
@@ -203,38 +210,42 @@ public class SchedulerServiceImpl implements SchedulerService {
         transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
           @Override
           public Void call() throws Exception {
-            logger.info("Checking Backend heartbeats...");
+            try {
+              dispatcherLock.lock();
+              logger.info("Checking Backend heartbeats...");
 
-            long currentTime = System.currentTimeMillis();
-            
-            Iterator<BackendStub<?, ?, ?>> backendIterator = backendStubs.iterator();
-            
-            while(backendIterator.hasNext()) {
-              BackendStub<?, ?, ?> backendStub = backendIterator.next();
-              Backend backend = backendStub.getBackend();
+              long currentTime = System.currentTimeMillis();
 
-              Long heartbeatInfo = backendService.getHeartbeatInfo(backend.getId());
-              
-              if (currentTime - heartbeatInfo > heartbeatPeriod) {
-                backendStub.stop();
-                backendIterator.remove();
-                logger.info("Removing Backend {}", backendStub.getBackend().getId());
+              Iterator<BackendStub<?, ?, ?>> backendIterator = backendStubs.iterator();
 
-                Set<BackendJob> backendJobs = jobBackendService.getByBackendId(backend.getId());
+              while (backendIterator.hasNext()) {
+                BackendStub<?, ?, ?> backendStub = backendIterator.next();
+                Backend backend = backendStub.getBackend();
 
-                for (BackendJob backendJob : backendJobs) {
-                  jobBackendService.update(backendJob.getJobId(), null);
-                  logger.info("Reassign Job {} to free Jobs", backendJob.getJobId());
+                Long heartbeatInfo = backendService.getHeartbeatInfo(backend.getId());
+
+                if (currentTime - heartbeatInfo > heartbeatPeriod) {
+                  backendStub.stop();
+                  backendIterator.remove();
+                  logger.info("Removing Backend {}", backendStub.getBackend().getId());
+
+                  Set<BackendJob> backendJobs = jobBackendService.getByBackendId(backend.getId());
+
+                  for (BackendJob backendJob : backendJobs) {
+                    jobBackendService.update(backendJob.getJobId(), null);
+                    logger.info("Reassign Job {} to free Jobs", backendJob.getJobId());
+                  }
+                  backendService.stopBackend(backend);
                 }
-                backendService.stopBackend(backend);
               }
+              logger.info("Heartbeats checked");
+              return null;
+            } finally {
+              dispatcherLock.unlock();
             }
-            logger.info("Heartbeats checked");
-            return null;
           }
         });
       } catch (Exception e) {
-        // TODO handle exception
         logger.error("Failed to check heartbeats", e);
       }
     }

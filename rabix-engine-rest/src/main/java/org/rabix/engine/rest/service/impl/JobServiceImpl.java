@@ -144,12 +144,13 @@ public class JobServiceImpl implements JobService {
       bindings = BindingsFactory.create(job);
 
       DAGNode node = bindings.translateToDAG(job);
+      dagNodeDB.loadDB(node, rootId);
       
       job = Job.cloneWithStatus(job, JobStatus.RUNNING);
       job = Job.cloneWithConfig(job, config);
       jobDB.add(job);
 
-      InitEvent initEvent = new InitEvent(UUID.randomUUID(), node, job.getConfig(), job.getRootId(), job.getInputs());
+      InitEvent initEvent = new InitEvent(UUID.randomUUID(), job.getInputs(), job.getRootId(), job.getConfig());
       eventProcessor.addToExternalQueue(initEvent, true);
       return job;
     } catch (Exception e) {
@@ -217,7 +218,7 @@ public class JobServiceImpl implements JobService {
         job = Job.cloneWithResources(job, resources);
       }
       jobDB.update(job);
-      scheduler.send(job);
+      scheduler.allocate(job);
     }
     
     @Override
@@ -322,7 +323,7 @@ public class JobServiceImpl implements JobService {
         job = Job.cloneWithStatus(job, JobStatus.FAILED);
         jobDB.update(job);
 
-        scheduler.remove(job);
+        scheduler.deallocate(job);
         stoppingRootIds.remove(job.getId());
       }
     }

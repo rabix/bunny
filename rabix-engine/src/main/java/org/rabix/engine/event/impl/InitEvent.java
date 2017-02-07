@@ -16,8 +16,6 @@ public class InitEvent implements Event {
 
   @JsonProperty("eventGroupId")
   private final UUID eventGroupId;
-  @JsonProperty("node")
-  private final DAGNode node;
   @JsonProperty("value")
   private final Map<String, Object> value;
 
@@ -26,21 +24,14 @@ public class InitEvent implements Event {
 
   @JsonProperty("config")
   private final Map<String, Object> config;
-
   @JsonCreator
-  public InitEvent(@JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("node") DAGNode node,
-      @JsonProperty("value") Map<String, Object> value, @JsonProperty("rootId") UUID rootId,
-      @JsonProperty("config") Map<String, Object> config) {
+  public InitEvent(@JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("value") Map<String, Object> value,
+      @JsonProperty("rootId") UUID rootId, @JsonProperty("config") Map<String, Object> config) {
     super();
     this.eventGroupId = eventGroupId;
-    this.node = node;
     this.value = value;
     this.rootId = rootId;
     this.config = config;
-  }
-
-  public DAGNode getNode() {
-    return node;
   }
 
   public Map<String, Object> getValue() {
@@ -71,7 +62,6 @@ public class InitEvent implements Event {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((config == null) ? 0 : config.hashCode());
-    result = prime * result + ((node == null) ? 0 : node.hashCode());
     result = prime * result + ((rootId == null) ? 0 : rootId.hashCode());
     result = prime * result + ((value == null) ? 0 : value.hashCode());
     return result;
@@ -91,11 +81,6 @@ public class InitEvent implements Event {
         return false;
     } else if (!config.equals(other.config))
       return false;
-    if (node == null) {
-      if (other.node != null)
-        return false;
-    } else if (!node.equals(other.node))
-      return false;
     if (rootId == null) {
       if (other.rootId != null)
         return false;
@@ -111,7 +96,7 @@ public class InitEvent implements Event {
 
   @Override
   public String toString() {
-    return "InitEvent [node=" + node + ", value=" + value + ", rootId=" + rootId + ", config=" + config + "]";
+    return "InitEvent [value=" + value + ", rootId=" + rootId + ", config=" + config + "]";
   }
 
   @Override

@@ -10,7 +10,7 @@
 	</appender>
 
 	<logger name="org.eclipse.jetty" level="WARN" />
-	<logger name="org.skife.jdbi.v2" level="TRACE" />
+	<logger name="org.skife.jdbi.v2" level="WARN" />
 
 	<root level="TRACE" additivity="false">
 		<appender-ref ref="STDOUT" />

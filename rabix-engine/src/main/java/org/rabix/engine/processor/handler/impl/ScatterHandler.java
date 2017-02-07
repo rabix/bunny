@@ -56,7 +56,7 @@ public class ScatterHandler {
    */
   @SuppressWarnings("unchecked")
   public void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), job.getRootId());
+    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), job.getRootId(), job);
 
     if (job.getScatterStrategy() == null) {
       try {
@@ -100,7 +100,7 @@ public class ScatterHandler {
     }
   }
   
-  public JobRecord createJobRecord(String name, UUID parentId, DAGNode node, boolean isScattered, UUID rootId) {
+  public JobRecord createJobRecord(String name, UUID parentId, DAGNode node, boolean isScattered, UUID rootId, String dagCache) {
     boolean isBlocking = false;
     for (LinkMerge linkMerge : node.getLinkMergeSet(LinkPortType.INPUT)) {
       if (LinkMerge.isBlocking(linkMerge)) {
@@ -111,7 +111,9 @@ public class ScatterHandler {
     if (ScatterMethod.isBlocking(node.getScatterMethod())) {
       isBlocking = true;
     }
-    return new JobRecord(rootId, name, JobRecordService.generateUniqueId(), parentId, JobRecord.JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking);
+
+    return new JobRecord(rootId, name, JobRecordService.generateUniqueId(), parentId, JobRecord.JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking, dagCache);
+
   }
   
   private void createScatteredJobs(JobRecord job, Event event, String port, Object value, DAGNode node, Integer numberOfScattered, Integer position) throws EventHandlerException {
@@ -136,8 +138,8 @@ public class ScatterHandler {
       List<Event> events = new ArrayList<>();
 
       String jobNId = InternalSchemaHelper.scatterId(job.getName(), mapping.getIndex());
-      JobRecord jobN = createJobRecord(jobNId, job.getId(), node, true, job.getRootId());
-       
+      JobRecord jobN = createJobRecord(jobNId, job.getParentId(), node, true, job.getRootId(), job.getDagCache());
+
       for (DAGLinkPort inputPort : node.getInputPorts()) {
         Object defaultValue = node.getDefaults().get(inputPort.getId());
         VariableRecord variableN = new VariableRecord(job.getRootId(), jobNId, inputPort.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(inputPort.getId(), inputPort.getType()));

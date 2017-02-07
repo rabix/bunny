@@ -37,12 +37,14 @@ public class JobRecord implements Cachable {
   private int numberOfGlobalInputs = 0;
   private int numberOfGlobalOutputs = 0;
   
+  private String dagCache;
+  
   private ScatterStrategy scatterStrategy;
   
   public JobRecord() {
   }
-  
-  public JobRecord(UUID rootId, String name, UUID id, UUID parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking) {
+
+  public JobRecord(UUID rootId, String name, UUID id, UUID parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking, String dagCache) {
     this.name = name;
     this.id = id;
     this.rootId = rootId;
@@ -52,6 +54,7 @@ public class JobRecord implements Cachable {
     this.blocking = blocking;
     this.isContainer = isContainer;
     this.isScattered = isScattered;
+    this.dagCache = dagCache;
     this.inputCounters = new ArrayList<>();
     this.outputCounters = new ArrayList<>();
   }
@@ -160,6 +163,14 @@ public class JobRecord implements Cachable {
     return master;
   }
 
+  public String getDagCache() {
+    return dagCache;
+  }
+
+  public void setDagCache(String dagCache) {
+    this.dagCache = dagCache;
+  }
+
   public Boolean isInputPortReady(String port) {
     for (PortCounter pc : inputCounters) {
       if (pc.port.equals(port)) {
@@ -235,6 +246,8 @@ public class JobRecord implements Cachable {
     }
     return true;
   }
+  
+  
 
   public Boolean isScatterPort(String port) {
     for (PortCounter portCounter : inputCounters) {
@@ -408,9 +421,10 @@ public class JobRecord implements Cachable {
 
   }
 
+  
   @Override
   public String toString() {
-    return "JobRecord [name=" + name + ", id=" + id + ", rootId=" + rootId + ", master=" + master + ", state=" + state + ", inputCounters=" + inputCounters + ", outputCounters=" + outputCounters + ", isScattered=" + isScattered + ", isContainer=" + isContainer + ", isScatterWrapper=" + isScatterWrapper + ", numberOfGlobalInputs=" + numberOfGlobalInputs + ", numberOfGlobalOutputs=" + numberOfGlobalOutputs + ", scatterStrategy=" + scatterStrategy + "]";
+    return "JobRecord [name=" + name + ", id=" + id + ", rootId=" + rootId + ", master=" + master + ", state=" + state + ", inputCounters=" + inputCounters + ", outputCounters=" + outputCounters + ", isScattered=" + isScattered + ", isContainer=" + isContainer + ", isScatterWrapper=" + isScatterWrapper + ", numberOfGlobalInputs=" + numberOfGlobalInputs + ", numberOfGlobalOutputs=" + numberOfGlobalOutputs + ", scatterStrategy=" + scatterStrategy + ", dagCache=" + dagCache + "]";
   }
 
 }
