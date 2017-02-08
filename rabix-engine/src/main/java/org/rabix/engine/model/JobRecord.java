@@ -2,6 +2,7 @@ package org.rabix.engine.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
@@ -9,7 +10,6 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CacheKey;
 import org.rabix.engine.model.scatter.ScatterStrategy;
-import org.rabix.engine.service.JobRecordService.JobState;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,10 +18,10 @@ public class JobRecord implements Cachable {
 
   public final static String CACHE_NAME = "JOB_RECORD";
   
-  private String id;
-  private String externalId;
-  private String rootId;
-  private String parentId;
+  private String name;
+  private UUID id;
+  private UUID rootId;
+  private UUID parentId;
   private Boolean master;
   private Boolean blocking;
   
@@ -43,10 +43,10 @@ public class JobRecord implements Cachable {
   
   public JobRecord() {
   }
-  
-  public JobRecord(String rootId, String id, String uniqueId, String parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking, String dagCache) {
+
+  public JobRecord(UUID rootId, String name, UUID id, UUID parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking, String dagCache) {
+    this.name = name;
     this.id = id;
-    this.externalId = uniqueId;
     this.rootId = rootId;
     this.parentId = parentId;
     this.state = state;
@@ -60,7 +60,7 @@ public class JobRecord implements Cachable {
   }
   
   public Boolean isRoot() {
-    return externalId.equals(rootId);
+    return id.equals(rootId);
   }
   
   public Boolean isBlocking() {
@@ -143,19 +143,19 @@ public class JobRecord implements Cachable {
     this.scatterStrategy = scatterStrategy;
   }
 
-  public String getId() {
+  public String getName() {
+    return name;
+  }
+
+  public UUID getId() {
     return id;
   }
 
-  public String getExternalId() {
-    return externalId;
-  }
-
-  public String getRootId() {
+  public UUID getRootId() {
     return rootId;
   }
 
-  public String getParentId() {
+  public UUID getParentId() {
     return parentId;
   }
 
@@ -283,6 +283,14 @@ public class JobRecord implements Cachable {
     return new JobCacheKey(this);
   }
 
+  public static enum JobState {
+    PENDING,
+    READY,
+    RUNNING,
+    COMPLETED,
+    FAILED
+  }
+
   public static class PortCounter {
     @JsonProperty("port")
     public String port;
@@ -359,23 +367,23 @@ public class JobRecord implements Cachable {
   }
   
   public static class JobCacheKey implements CacheKey {
-    String id;
-    String root;
+    String name;
+    UUID root;
     
     public JobCacheKey(JobRecord record) {
-      this.id = record.id;
+      this.name = record.name;
       this.root = record.rootId;
     }
     
-    public JobCacheKey(String id, String rootId) {
-      this.id = id;
+    public JobCacheKey(String name, UUID rootId) {
+      this.name = name;
       this.root = rootId;
     }
     
     @Override
     public boolean satisfies(CacheKey key) {
       if (key instanceof JobCacheKey) {
-        return id.equals(((JobCacheKey) key).id) && root.equals(((JobCacheKey) key).root);
+        return name.equals(((JobCacheKey) key).name) && root.equals(((JobCacheKey) key).root);
       }
       return false;
     }
@@ -384,7 +392,7 @@ public class JobRecord implements Cachable {
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ((id == null) ? 0 : id.hashCode());
+      result = prime * result + ((name == null) ? 0 : name.hashCode());
       result = prime * result + ((root == null) ? 0 : root.hashCode());
       return result;
     }
@@ -398,10 +406,10 @@ public class JobRecord implements Cachable {
       if (getClass() != obj.getClass())
         return false;
       JobCacheKey other = (JobCacheKey) obj;
-      if (id == null) {
-        if (other.id != null)
+      if (name == null) {
+        if (other.name != null)
           return false;
-      } else if (!id.equals(other.id))
+      } else if (!name.equals(other.name))
         return false;
       if (root == null) {
         if (other.root != null)
@@ -416,7 +424,7 @@ public class JobRecord implements Cachable {
   
   @Override
   public String toString() {
-    return "JobRecord [id=" + id + ", externalId=" + externalId + ", rootId=" + rootId + ", master=" + master + ", state=" + state + ", inputCounters=" + inputCounters + ", outputCounters=" + outputCounters + ", isScattered=" + isScattered + ", isContainer=" + isContainer + ", isScatterWrapper=" + isScatterWrapper + ", numberOfGlobalInputs=" + numberOfGlobalInputs + ", numberOfGlobalOutputs=" + numberOfGlobalOutputs + ", scatterStrategy=" + scatterStrategy + ", dagCache=" + dagHash + "]";
+    return "JobRecord [name=" + name + ", id=" + id + ", rootId=" + rootId + ", master=" + master + ", state=" + state + ", inputCounters=" + inputCounters + ", outputCounters=" + outputCounters + ", isScattered=" + isScattered + ", isContainer=" + isContainer + ", isScatterWrapper=" + isScatterWrapper + ", numberOfGlobalInputs=" + numberOfGlobalInputs + ", numberOfGlobalOutputs=" + numberOfGlobalOutputs + ", scatterStrategy=" + scatterStrategy + ", dagCache=" + dagHash + "]";
   }
 
 }

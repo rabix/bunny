@@ -1,6 +1,7 @@
 package org.rabix.engine.rest.api.impl;
 
 import java.util.Collections;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -32,7 +33,7 @@ public class JobHTTPServiceImpl implements JobHTTPService {
       }
       return ok(jobService.start(job, null));
     } catch (Exception e) {
-      return error();
+      return internalError("Error while creating a job.");
     }
   }
   
@@ -43,7 +44,13 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   
   @Override
   public Response get(String id) {
-    Job job = jobService.get(id);
+    UUID uuid;
+    try {
+      uuid = UUID.fromString(id);
+    } catch (IllegalArgumentException e) {
+      return badRequest("Invalid job id. IDs must be UUID");
+    }
+    Job job = jobService.get(uuid);
     if (job == null) {
       return entityNotFound();
     }
@@ -55,7 +62,7 @@ public class JobHTTPServiceImpl implements JobHTTPService {
     try {
       jobService.update(job);
     } catch (JobServiceException e) {
-      return error();
+      return internalError("Error while updating a job.");
     }
     return ok();
   }
@@ -64,8 +71,12 @@ public class JobHTTPServiceImpl implements JobHTTPService {
     return Response.status(Status.NOT_FOUND).build();
   }
   
-  private Response error() {
-    return Response.status(Status.BAD_REQUEST).build();
+  private Response badRequest(String message) {
+    return Response.status(Status.BAD_REQUEST).entity(message).build();
+  }
+
+  private Response internalError(String message) {
+    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(message).build();
   }
   
   private Response ok() {

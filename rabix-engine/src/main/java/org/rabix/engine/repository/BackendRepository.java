@@ -5,25 +5,33 @@ import java.util.List;
 
 import org.rabix.transport.backend.Backend;
 
+import java.util.UUID;
+
 public interface BackendRepository {
+
+
+  void insert(Backend backend);
 
   public static enum BackendStatus {
     ACTIVE,
     INACTIVE
   }
   
-  void insert(String id, Backend backend, Timestamp heartbeatInfo, BackendStatus status);
+  void insert(Backend backend, Timestamp heartbeatInfo, BackendStatus status);
   
-  void update(String id, Backend configuration);
-  
-  Backend get(String id);
+
+  void update(Backend configuration);
+
+  Backend get(UUID id);
+
+  Backend getByName(String name);
   
   List<Backend> getByStatus(BackendStatus status);
   
-  void updateHeartbeatInfo(String id, Timestamp heartbeatInfo);
+  void updateHeartbeatInfo(UUID id, Timestamp heartbeatInfo);
   
-  void updateStatus(String id, BackendStatus status);
+  void updateStatus(UUID id, BackendStatus status);
   
-  Timestamp getHeartbeatInfo(String id);
+  Timestamp getHeartbeatInfo(UUID id);
 
 }

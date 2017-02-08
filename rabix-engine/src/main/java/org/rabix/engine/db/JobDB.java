@@ -1,11 +1,13 @@
 package org.rabix.engine.db;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
+import org.rabix.transport.backend.Backend;
 
 public class JobDB {
 
@@ -17,18 +19,27 @@ public class JobDB {
   }
   
   public void add(Job job) {
-    jobRepository.insert(job.getId(), job.getRootId(), job, null);
+    jobRepository.insert(job);
   }
   
-  public void add(Job job, String groupId) {
-    jobRepository.insert(job.getId(), job.getRootId(), job, groupId);
+  public void add(Job job, UUID groupId) {
+    jobRepository.insertToGroup(job, groupId);
   }
   
   public void update(Job job) {
-    jobRepository.update(job.getId(), job);
+    jobRepository.update(job);
   }
-  
-  public Job get(String id) {
+
+
+//  public void scheduleToBackend(Job job, Backend backend) {
+//    jobRepository.scheduleToBackend(job.getId(), backend.getId());
+//  }
+
+//  public void unschedule(Job job) {
+//    jobRepository.unschedule(job.getId());
+//  }
+
+  public Job get(UUID id) {
     return jobRepository.get(id);
   }
   
@@ -36,11 +47,20 @@ public class JobDB {
     return jobRepository.get();
   }
   
-  public Set<Job> getJobs(String rootId) {
+  public Set<Job> getJobs(UUID rootId) {
     return jobRepository.getByRootId(rootId);
   }
   
-  public Set<Job> getJobsByGroupId(String groupId) {
-    return jobRepository.getJobsByGroupId(groupId);
+  public Set<Job> getJobsByGroupId(UUID groupId) {
+    return jobRepository.getByGroupId(groupId);
   }
+
+//  public Set<Job> getByBackendId(UUID backendId) {
+//    return jobRepository.getByBackendId(backendId);
+//  }
+//
+//  public Set<Job> getUnscheduled() {
+//    return jobRepository.getUnscheduled();
+//  }
+
 }

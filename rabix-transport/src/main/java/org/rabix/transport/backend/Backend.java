@@ -1,5 +1,6 @@
 package org.rabix.transport.backend;
 
+import org.apache.commons.lang.StringUtils;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
@@ -11,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.UUID;
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ 
     @Type(value = BackendActiveMQ.class, name = "ACTIVE_MQ"),
@@ -20,20 +23,62 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public abstract class Backend {
 
   @JsonProperty("id")
-  protected String id;
-  
+  protected UUID id;
+
+  @JsonProperty("name")
+  protected String name;
+
+
+  public Backend() {
+    this(UUID.randomUUID());
+  }
+
+  public Backend(UUID id) {
+    this(id, id.toString());
+  }
+
+  public Backend(String name) {
+    UUID id;
+    try {
+      id = UUID.fromString(name);
+    } catch (Exception e) {
+      id = UUID.randomUUID();
+    }
+    init(id, name);
+  }
+
+  public Backend(UUID id, String name) {
+    init(id, name);
+  }
+
+  private void init(UUID id, String name) {
+    this.id = id;
+    if (StringUtils.isEmpty(name)) {
+      name = id.toString();
+    }
+    this.name = name;
+  }
+
   public static enum BackendType {
     LOCAL,
     ACTIVE_MQ,
     RABBIT_MQ
   }
 
-  public String getId() {
+  public UUID getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(UUID id) {
     this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public abstract BackendType getType();

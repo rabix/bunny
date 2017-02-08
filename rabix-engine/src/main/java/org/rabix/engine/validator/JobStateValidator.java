@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.model.JobRecord.JobState;
 
 public class JobStateValidator {
   
@@ -15,22 +15,22 @@ public class JobStateValidator {
 
   static {
     List<JobState> transitionFromPending = new ArrayList<JobState>();
-    transitionFromPending.add(JobState.READY);
-    transitions.put(JobState.PENDING, transitionFromPending);
+    transitionFromPending.add(JobRecord.JobState.READY);
+    transitions.put(JobRecord.JobState.PENDING, transitionFromPending);
     List<JobState> transitionFromReady = new ArrayList<JobState>();
-    transitionFromReady.add(JobState.RUNNING);
-    transitionFromReady.add(JobState.FAILED);
-    transitionFromReady.add(JobState.COMPLETED);
-    transitions.put(JobState.READY, transitionFromReady);
+    transitionFromReady.add(JobRecord.JobState.RUNNING);
+    transitionFromReady.add(JobRecord.JobState.FAILED);
+    transitionFromReady.add(JobRecord.JobState.COMPLETED);
+    transitions.put(JobRecord.JobState.READY, transitionFromReady);
     List<JobState> transitionFromRunning = new ArrayList<JobState>();
-    transitionFromRunning.add(JobState.COMPLETED);
-    transitionFromRunning.add(JobState.FAILED);
-    transitions.put(JobState.RUNNING, transitionFromRunning);
+    transitionFromRunning.add(JobRecord.JobState.COMPLETED);
+    transitionFromRunning.add(JobRecord.JobState.FAILED);
+    transitions.put(JobRecord.JobState.RUNNING, transitionFromRunning);
     List<JobState> transitionFromCompleted = new ArrayList<JobState>();
-    transitionFromCompleted.add(JobState.READY);
-    transitions.put(JobState.COMPLETED, transitionFromCompleted);
+    transitionFromCompleted.add(JobRecord.JobState.READY);
+    transitions.put(JobRecord.JobState.COMPLETED, transitionFromCompleted);
     List<JobState> transitionFromFailed = new ArrayList<JobState>();
-    transitions.put(JobState.FAILED, transitionFromFailed);
+    transitions.put(JobRecord.JobState.FAILED, transitionFromFailed);
     
     transitions = Collections.unmodifiableMap(transitions);
   }

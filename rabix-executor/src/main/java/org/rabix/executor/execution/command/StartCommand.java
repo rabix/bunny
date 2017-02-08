@@ -11,6 +11,8 @@ import org.rabix.executor.model.JobData.JobDataStatus;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.status.ExecutorStatusCallback;
 
+import java.util.UUID;
+
 /**
  * Command that starts {@link JobHandler}
  */
@@ -22,7 +24,7 @@ public class StartCommand extends JobHandlerCommand {
   }
 
   @Override
-  public Result run(JobData data, JobHandler handler, String contextId) {
+  public Result run(JobData data, JobHandler handler, UUID rootId) {
     Job job = data.getJob();
     try {
       handler.start();

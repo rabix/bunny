@@ -1,30 +1,31 @@
 package org.rabix.engine.model;
 
 import java.util.Map;
+import java.util.UUID;
 
-public class ContextRecord {
+public class RootJob {
 
-  public static enum ContextStatus {
+  public static enum RootJobStatus {
     RUNNING,
     COMPLETED,
     FAILED
   }
   
-  private String id;
+  private UUID id;
   private Map<String, Object> config;
-  private ContextStatus status;
+  private RootJobStatus status;
   
-  public ContextRecord(final String id, Map<String, Object> config, ContextStatus status) {
+  public RootJob(UUID id, Map<String, Object> config, RootJobStatus status) {
     this.id = id;
     this.config = config;
     this.status = status;
   }
   
-  public String getId() {
+  public UUID getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(UUID id) {
     this.id = id;
   }
 
@@ -36,17 +37,17 @@ public class ContextRecord {
     this.config = config;
   }
 
-  public ContextStatus getStatus() {
+  public RootJobStatus getStatus() {
     return status;
   }
 
-  public void setStatus(ContextStatus status) {
+  public void setStatus(RootJobStatus status) {
     this.status = status;
   }
 
   @Override
   public String toString() {
-    return "ContextRecord [id=" + id + ", config=" + config + ", status=" + status + "]";
+    return "RootJob [id=" + id + ", config=" + config + ", status=" + status + "]";
   }
 
 }

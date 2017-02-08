@@ -7,6 +7,8 @@ import org.rabix.engine.repository.DAGRepository;
 
 import com.google.inject.Inject;
 
+import java.util.UUID;
+
 /**
  * In-memory {@link DAGNode} repository
  */
@@ -24,12 +26,12 @@ public class DAGNodeDB {
   /**
    * Gets node from the repository 
    */
-  
-  public DAGNode get(String id, String contextId, String dagHash) {
-    DAGNode res = dagCache.get(id, contextId, dagHash);
+
+  public DAGNode get(String name, UUID rootId, String dagHash) {
+    DAGNode res = dagCache.get(name, rootId, dagHash);
     if(res == null) {
-      res = dagRepository.get(id, contextId);
-      dagCache.put(dagRepository.get(InternalSchemaHelper.ROOT_NAME, contextId), contextId);
+      res = dagRepository.get(name, rootId);
+      dagCache.put(dagRepository.get(InternalSchemaHelper.ROOT_NAME, rootId), rootId);
     }
     return res;
   }
@@ -37,9 +39,9 @@ public class DAGNodeDB {
   /**
    * Loads node into the repository recursively
    */
-  public String loadDB(DAGNode node, String contextId) {
-    String dagHash = dagCache.put(node, contextId);
-    dagRepository.insert(contextId, node);
+  public String loadDB(DAGNode node, UUID rootId) {
+    String dagHash = dagCache.put(node, rootId);
+    dagRepository.insert(rootId, node);
     return dagHash;
   }
   

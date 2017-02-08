@@ -1,10 +1,6 @@
 package org.rabix.engine.rest.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -198,7 +194,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     return backendStub;
   }
 
-  private BackendStub<?, ?, ?> getBackendStub(String id) {
+  private BackendStub<?, ?, ?> getBackendStub(UUID id) {
     for (BackendStub<?, ?, ?> backendStub : backendStubs) {
       if (backendStub.getBackend().getId().equals(id)) {
         return backendStub;

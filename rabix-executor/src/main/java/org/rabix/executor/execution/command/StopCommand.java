@@ -12,6 +12,8 @@ import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
 import org.rabix.executor.status.ExecutorStatusCallback;
 
+import java.util.UUID;
+
 /**
  * Command that stops {@link JobHandler} 
  */
@@ -26,8 +28,8 @@ public class StopCommand extends JobHandlerCommand {
   }
 
   @Override
-  public Result run(JobData jobData, JobHandler handler, String contextId) {
-    String jobId = jobData.getJob().getId();
+  public Result run(JobData jobData, JobHandler handler, UUID rootId) {
+    UUID jobId = jobData.getJob().getId();
     try {
       handler.stop();
       String message = String.format("Job %s aborted successfully.", jobId);

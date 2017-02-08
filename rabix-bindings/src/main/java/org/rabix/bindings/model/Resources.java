@@ -45,6 +45,10 @@ public class Resources implements Serializable {
     this.tmpDirSize = tmpDirSize;
   }
 
+  public static Resources empty() {
+    return new Resources(0L, 0L, 0L, false, "", "", 0L, 0L);
+  }
+
   public Long getCpu() {
     return cpu;
   }

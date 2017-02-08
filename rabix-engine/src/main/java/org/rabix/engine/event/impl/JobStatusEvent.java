@@ -1,49 +1,44 @@
 package org.rabix.engine.event.impl;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.engine.event.Event;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.model.JobRecord.JobState;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class JobStatusEvent implements Event {
 
-  @JsonProperty("jobId")
-  private final String jobId;
+  @JsonProperty("jobName")
+  private final String jobName;
+
   @JsonProperty("state")
   private final JobState state;
-  @JsonProperty("contextId")
-  private final String contextId;
-  
+
+  @JsonProperty("rootId")
+  private final UUID rootId;
+
   @JsonProperty("result")
   private final Map<String, Object> result;
-  
+
   @JsonProperty("eventGroupId")
-  private final String eventGroupId;
-  
-  public JobStatusEvent(String jobId, String contextId, JobState state, Map<String, Object> result, String eventGroupId) {
-    this.jobId = jobId;
-    this.contextId = contextId;
-    this.state = state;
-    this.result = result;
-    this.eventGroupId = eventGroupId;
-  }
-  
+  private final UUID eventGroupId;
+
   @JsonCreator
-  public JobStatusEvent(@JsonProperty("jobId") String jobId, @JsonProperty("state") JobState state,
-      @JsonProperty("contextId") String contextId, @JsonProperty("result") Map<String, Object> result,
-      @JsonProperty("eventGroupId") String eventGroupId) {
-    this.jobId = jobId;
+  public JobStatusEvent(@JsonProperty("jobName") String jobName, @JsonProperty("state") JobState state,
+      @JsonProperty("rootId") UUID rootId, @JsonProperty("result") Map<String, Object> result,
+      @JsonProperty("eventGroupId") UUID eventGroupId) {
+    this.jobName = jobName;
     this.state = state;
-    this.contextId = contextId;
+    this.rootId = rootId;
     this.result = result;
     this.eventGroupId = eventGroupId;
   }
 
-  public String getJobId() {
-    return jobId;
+  public String getJobName() {
+    return jobName;
   }
   
   public JobState getState() {
@@ -51,8 +46,8 @@ public class JobStatusEvent implements Event {
   }
 
   @Override
-  public String getContextId() {
-    return contextId;
+  public UUID getRootId() {
+    return rootId;
   }
   
   public Map<String, Object> getResult() {
@@ -60,7 +55,7 @@ public class JobStatusEvent implements Event {
   }
   
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
   }
   
@@ -73,8 +68,8 @@ public class JobStatusEvent implements Event {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((contextId == null) ? 0 : contextId.hashCode());
-    result = prime * result + ((jobId == null) ? 0 : jobId.hashCode());
+    result = prime * result + ((rootId == null) ? 0 : rootId.hashCode());
+    result = prime * result + ((jobName == null) ? 0 : jobName.hashCode());
     result = prime * result + ((this.result == null) ? 0 : this.result.hashCode());
     result = prime * result + ((state == null) ? 0 : state.hashCode());
     return result;
@@ -89,15 +84,15 @@ public class JobStatusEvent implements Event {
     if (getClass() != obj.getClass())
       return false;
     JobStatusEvent other = (JobStatusEvent) obj;
-    if (contextId == null) {
-      if (other.contextId != null)
+    if (rootId == null) {
+      if (other.rootId != null)
         return false;
-    } else if (!contextId.equals(other.contextId))
+    } else if (!rootId.equals(other.rootId))
       return false;
-    if (jobId == null) {
-      if (other.jobId != null)
+    if (jobName == null) {
+      if (other.jobName != null)
         return false;
-    } else if (!jobId.equals(other.jobId))
+    } else if (!jobName.equals(other.jobName))
       return false;
     if (result == null) {
       if (other.result != null)
@@ -111,7 +106,7 @@ public class JobStatusEvent implements Event {
 
   @Override
   public String toString() {
-    return "JobStatusEvent [jobId=" + jobId + ", state=" + state + ", contextId=" + contextId + ", result=" + result + "]";
+    return "JobStatusEvent [jobName=" + jobName + ", state=" + state + ", contextId=" + rootId + ", result=" + result + "]";
   }
 
   @Override

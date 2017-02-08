@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.UUID;
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ 
     @Type(value = EngineControlStopMessage.class, name = "STOP"),
@@ -22,14 +24,14 @@ public abstract class EngineControlMessage {
   }
   
   @JsonProperty("rootId")
-  protected String rootId;
+  protected UUID rootId;
 
   @JsonCreator
-  public EngineControlMessage(@JsonProperty("rootId") String rootId) {
+  public EngineControlMessage(@JsonProperty("rootId") UUID rootId) {
     this.rootId = rootId;
   }
   
-  public String getRootId() {
+  public UUID getRootId() {
     return rootId;
   }
   

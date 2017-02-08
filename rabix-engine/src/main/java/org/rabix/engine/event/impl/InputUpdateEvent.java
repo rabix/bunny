@@ -2,6 +2,7 @@ package org.rabix.engine.event.impl;
 
 import org.rabix.engine.event.Event;
 
+import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -10,10 +11,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class InputUpdateEvent implements Event {
 
-  @JsonProperty("jobId")
-  private final String jobId;
-  @JsonProperty("contextId")
-  private final String contextId;
+  @JsonProperty("jobName")
+  private final String jobName;
+
+  @JsonProperty("rootId")
+  private final UUID rootId;
+  
   @JsonProperty("portId")
   private final String portId;
   @JsonProperty("value")
@@ -24,31 +27,21 @@ public class InputUpdateEvent implements Event {
   private final Integer numberOfScattered;      // number of scattered nodes
   @JsonProperty("isLookAhead")
   private final boolean isLookAhead;            // it's a look ahead event
-  @JsonProperty("eventGroupId")
-  private final String eventGroupId;
-  
-  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position, String eventGroupId) {
-    this(contextId, jobId, portId, value, false, null, position, eventGroupId);
-  }
 
-  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, String eventGroupId) {
-    this.jobId = jobId;
-    this.portId = portId;
-    this.value = value;
-    this.contextId = contextId;
-    this.isLookAhead = isLookAhead;
-    this.numberOfScattered = scatteredNodes;
-    this.position = position;
-    this.eventGroupId = eventGroupId;
+  @JsonProperty("eventGroupId")
+  private final UUID eventGroupId;
+
+  public InputUpdateEvent(UUID rootId, String jobName, String portId, Object value, Integer position, UUID eventGroupId) {
+    this(jobName, rootId, portId, value, position, null, false, eventGroupId);
   }
 
   @JsonCreator
-  public InputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") String contextId,
+  public InputUpdateEvent(@JsonProperty("jobName") String jobName, @JsonProperty("rootId") UUID rootId,
       @JsonProperty("portId") String portId, @JsonProperty("value") Object value,
       @JsonProperty("position") Integer position, @JsonProperty("numberOfScattered") Integer numberOfScattered,
-      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") String eventGroupId) {
-    this.jobId = jobId;
-    this.contextId = contextId;
+      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") UUID eventGroupId) {
+    this.jobName = jobName;
+    this.rootId = rootId;
     this.portId = portId;
     this.value = value;
     this.position = position;
@@ -58,7 +51,7 @@ public class InputUpdateEvent implements Event {
   }
 
   public String getJobId() {
-    return jobId;
+    return jobName;
   }
 
   public String getPortId() {
@@ -78,13 +71,13 @@ public class InputUpdateEvent implements Event {
   }
 
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
   }
   
   @Override
-  public String getContextId() {
-    return contextId;
+  public UUID getRootId() {
+    return rootId;
   }
   
   public Integer getPosition() {
@@ -100,9 +93,9 @@ public class InputUpdateEvent implements Event {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((contextId == null) ? 0 : contextId.hashCode());
+    result = prime * result + ((rootId == null) ? 0 : rootId.hashCode());
     result = prime * result + (isLookAhead ? 1231 : 1237);
-    result = prime * result + ((jobId == null) ? 0 : jobId.hashCode());
+    result = prime * result + ((jobName == null) ? 0 : jobName.hashCode());
     result = prime * result + ((portId == null) ? 0 : portId.hashCode());
     result = prime * result + ((numberOfScattered == null) ? 0 : numberOfScattered.hashCode());
     result = prime * result + ((value == null) ? 0 : value.hashCode());
@@ -118,17 +111,17 @@ public class InputUpdateEvent implements Event {
     if (getClass() != obj.getClass())
       return false;
     InputUpdateEvent other = (InputUpdateEvent) obj;
-    if (contextId == null) {
-      if (other.contextId != null)
+    if (rootId == null) {
+      if (other.rootId != null)
         return false;
-    } else if (!contextId.equals(other.contextId))
+    } else if (!rootId.equals(other.rootId))
       return false;
     if (isLookAhead != other.isLookAhead)
       return false;
-    if (jobId == null) {
-      if (other.jobId != null)
+    if (jobName == null) {
+      if (other.jobName != null)
         return false;
-    } else if (!jobId.equals(other.jobId))
+    } else if (!jobName.equals(other.jobName))
       return false;
     if (portId == null) {
       if (other.portId != null)
@@ -150,7 +143,7 @@ public class InputUpdateEvent implements Event {
 
   @Override
   public String toString() {
-    return "InputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", portId=" + portId + ", value=" + value + ", numberOfScattered=" + numberOfScattered + ", isLookAhead=" + isLookAhead + "]";
+    return "InputUpdateEvent [jobName=" + jobName + ", contextId=" + rootId + ", portId=" + portId + ", value=" + value + ", numberOfScattered=" + numberOfScattered + ", isLookAhead=" + isLookAhead + "]";
   }
 
   @Override

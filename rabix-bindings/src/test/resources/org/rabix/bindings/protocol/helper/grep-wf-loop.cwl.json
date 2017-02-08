@@ -1,5 +1,5 @@
 {
-	"id": "root",
+	"name": "root",
 	"inputPorts": 
 	[
 		{
@@ -238,7 +238,7 @@
 	[
 		{
 			"type": "EXECUTABLE",
-			"id": "root.grep",
+			"name": "root.grep",
 			"inputPorts": 
 			[
 				{
@@ -277,7 +277,7 @@
 		},
 
 		{
-			"id": "root.grep_1",
+			"name": "root.grep_1",
 			"inputPorts": 
 			[
 				{
@@ -318,7 +318,7 @@
 		},
 
 		{
-			"id": "root.grep_2",
+			"name": "root.grep_2",
 			"inputPorts": 
 			[
 				{
