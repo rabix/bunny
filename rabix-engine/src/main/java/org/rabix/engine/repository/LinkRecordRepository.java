@@ -1,5 +1,7 @@
 package org.rabix.engine.repository;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,14 +13,36 @@ import org.rabix.engine.model.LinkRecord;
 public abstract class LinkRecordRepository implements CachableRepository {
 
   @Override
-  public int insert(Cachable record) {
+  public int insertCachable(Cachable record) {
     return insert((LinkRecord) record);
   }
   
   @Override
-  public int update(Cachable record) {
+  public int updateCachable(Cachable record) {
     return update((LinkRecord) record);
   }
+  
+  @Override
+  public void insertCachables(List<Cachable> cachables) {
+    List<LinkRecord> records = new ArrayList<>();
+    for (Cachable cachable : cachables) {
+      records.add((LinkRecord) cachable);
+    }
+    insertBatch(records.iterator());
+  }
+  
+  @Override
+  public void updateCachables(List<Cachable> cachables) {
+    List<LinkRecord> records = new ArrayList<>();
+    for (Cachable cachable : cachables) {
+      records.add((LinkRecord) cachable);
+    }
+    updateBatch(records.iterator());
+  }
+
+  public abstract void insertBatch(Iterator<LinkRecord> records);
+  
+  public abstract void updateBatch(Iterator<LinkRecord> records);
   
   public abstract int insert(LinkRecord linkRecord);
   

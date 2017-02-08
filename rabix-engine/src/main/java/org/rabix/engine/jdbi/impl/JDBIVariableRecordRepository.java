@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +26,7 @@ import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.Binder;
 import org.skife.jdbi.v2.sqlobject.BinderFactory;
 import org.skife.jdbi.v2.sqlobject.BindingAnnotation;
+import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
@@ -34,7 +36,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 public abstract class JDBIVariableRecordRepository extends VariableRecordRepository {
 
   @Override
-  public int insert(Cachable record) {
+  public int insertCachable(Cachable record) {
     return insert((VariableRecord) record);
   }
   
@@ -43,10 +45,17 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   
   @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and root_id=:root_id and job_name=:job_name and type=:typeport_type")
   public abstract int update(@BindVariableRecord VariableRecord jobRecord);
-  
+
+
+  @SqlBatch("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type,:link_merge,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
+  public abstract void insertBatch(@BindVariableRecord Iterator<VariableRecord> records);
+
+  @SqlBatch("update variable_record set value=:value,link_merge=:link_merge,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type")
+  public abstract void updateBatch(@BindVariableRecord Iterator<VariableRecord> records);
+
   @SqlQuery("select * from variable_record where job_name=:job_name and port_id=:port_id and type=:type and root_id=:root_id")
   public abstract VariableRecord get(@Bind("job_name") String jobName, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("root_id") UUID rootId);
- 
+
   @SqlQuery("select * from variable_record where job_name=:job_name and type=:type and root_id=:root_id")
   public abstract List<VariableRecord> getByType(@Bind("job_name") String jobName, @Bind("type") LinkPortType type, @Bind("root_id") UUID rootId);
   

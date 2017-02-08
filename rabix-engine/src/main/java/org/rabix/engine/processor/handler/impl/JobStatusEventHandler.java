@@ -178,9 +178,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
    */
   public void ready(JobRecord job, Event event) throws EventHandlerException {
     job.setState(JobRecord.JobState.READY);
-    
+
     UUID rootId = event.getRootId();
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), rootId, job);
+    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), rootId, job.getDagHash());
 
     StringBuilder readyJobLogging = new StringBuilder(" --- JobRecord ").append(job.getName()).append(" is ready.").append(" Job isBlocking=").append(job.isBlocking()).append("\n");
     for (PortCounter portCounter : job.getInputCounters()) {
@@ -256,8 +256,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private void rollOutContainer(JobRecord job, DAGContainer containerNode, UUID rootId) {
     for (DAGNode node : containerNode.getChildren()) {
       String newJobId = InternalSchemaHelper.concatenateIds(job.getName(), InternalSchemaHelper.getLastPart(node.getName()));
-
-      JobRecord childJob = scatterHelper.createJobRecord(newJobId, job.getId(), node, false, rootId, job.getDagCache());
+      
+      JobRecord childJob = scatterHelper.createJobRecord(newJobId, job.getId(), node, false, rootId, job.getDagHash());
       jobRecordService.create(childJob);
 
       StringBuilder childJobLogBuilder = new StringBuilder("\n -- JobRecord ").append(newJobId).append(", isBlocking ").append(childJob.isBlocking()).append("\n");

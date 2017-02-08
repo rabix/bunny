@@ -37,7 +37,7 @@ public class JobRecord implements Cachable {
   private int numberOfGlobalInputs = 0;
   private int numberOfGlobalOutputs = 0;
   
-  private String dagCache;
+  private String dagHash;
   
   private ScatterStrategy scatterStrategy;
   
@@ -54,7 +54,7 @@ public class JobRecord implements Cachable {
     this.blocking = blocking;
     this.isContainer = isContainer;
     this.isScattered = isScattered;
-    this.dagCache = dagCache;
+    this.dagHash = dagCache;
     this.inputCounters = new ArrayList<>();
     this.outputCounters = new ArrayList<>();
   }
@@ -163,12 +163,12 @@ public class JobRecord implements Cachable {
     return master;
   }
 
-  public String getDagCache() {
-    return dagCache;
+  public String getDagHash() {
+    return dagHash;
   }
 
-  public void setDagCache(String dagCache) {
-    this.dagCache = dagCache;
+  public void setDagHash(String dagHash) {
+    this.dagHash = dagHash;
   }
 
   public Boolean isInputPortReady(String port) {
@@ -424,7 +424,7 @@ public class JobRecord implements Cachable {
   
   @Override
   public String toString() {
-    return "JobRecord [name=" + name + ", id=" + id + ", rootId=" + rootId + ", master=" + master + ", state=" + state + ", inputCounters=" + inputCounters + ", outputCounters=" + outputCounters + ", isScattered=" + isScattered + ", isContainer=" + isContainer + ", isScatterWrapper=" + isScatterWrapper + ", numberOfGlobalInputs=" + numberOfGlobalInputs + ", numberOfGlobalOutputs=" + numberOfGlobalOutputs + ", scatterStrategy=" + scatterStrategy + ", dagCache=" + dagCache + "]";
+    return "JobRecord [name=" + name + ", id=" + id + ", rootId=" + rootId + ", master=" + master + ", state=" + state + ", inputCounters=" + inputCounters + ", outputCounters=" + outputCounters + ", isScattered=" + isScattered + ", isContainer=" + isContainer + ", isScatterWrapper=" + isScatterWrapper + ", numberOfGlobalInputs=" + numberOfGlobalInputs + ", numberOfGlobalOutputs=" + numberOfGlobalOutputs + ", scatterStrategy=" + scatterStrategy + ", dagCache=" + dagHash + "]";
   }
 
 }

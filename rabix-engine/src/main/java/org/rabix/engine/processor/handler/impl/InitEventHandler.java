@@ -15,7 +15,6 @@ import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.RootJob;
 import org.rabix.engine.model.RootJob.RootJobStatus;
-import org.rabix.engine.lru.dag.DAGCache;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
@@ -50,10 +49,8 @@ public class InitEventHandler implements EventHandler<InitEvent> {
   public void handle(final InitEvent event) throws EventHandlerException {
     RootJob context = new RootJob(event.getRootId(), event.getConfig(), RootJobStatus.RUNNING);
     
-    rootJobService.create(context);
-    
-    DAGNode node = nodeDB.get(InternalSchemaHelper.ROOT_NAME, event.getRootId());
-    JobRecord job = new JobRecord(event.getRootId(), node.getName(), event.getRootId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false, DAGCache.cacheDagNode(node));
+    DAGNode node = nodeDB.get(InternalSchemaHelper.ROOT_NAME, event.getRootId(), event.getDagHash());
+    JobRecord job = new JobRecord(event.getRootId(), node.getName(), event.getRootId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
 
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       if (job.getState().equals(JobRecord.JobState.PENDING)) {

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.dag.DAGContainer;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.ChecksumHelper;
@@ -11,7 +12,6 @@ import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.lru.LRUCache;
-import org.rabix.engine.model.JobRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,51 +19,34 @@ import com.google.inject.Inject;
 
 public class DAGCache extends LRUCache<String, DAGNode> {
   
-  Map<UUID, String> rootIdDag;
   private final Logger logger = LoggerFactory.getLogger(DAGCache.class);
-  
+  private final static String CACHE_NAME = "DAGCache";
+  private static int DEFAULT_CACHE_SIZE = 16;
   
   @Inject
-  public DAGCache() {
-    super("DAGCache");
-    rootIdDag = new HashMap<UUID, String>();
+  public DAGCache(Configuration configuration) {
+    super(CACHE_NAME, configuration.getInteger("dagcache.size", DEFAULT_CACHE_SIZE));
+    logger.debug(String.format("%s initialized with size=%d", CACHE_NAME, getCacheSize()));
   }
   
   public DAGCache(int cacheSize) {
-    super("DAGCache", cacheSize);
-    rootIdDag = new HashMap<UUID, String>();
+    super(CACHE_NAME, cacheSize);
   }
   
-  public DAGNode get(String id, UUID rootId) {
+  public DAGNode get(String id, UUID rootId, String dagHash) {
     DAGNode res = null;
-    if(rootIdDag.containsKey(rootId)) {
-      res = get(rootIdDag.get(rootId));
-      logger.debug(String.format("DAGNode rootId=%s, id=%s found in cache", rootId, id));
-      logger.debug(String.format("Cache size=%d", size()));
-    }
-    return res != null ? getIdFromDAG(id, res) : null;
-  }
-  
-  public DAGNode get(String id, UUID rootId, JobRecord job) {
-    DAGNode res = null;
-    if(job.getDagCache() != null) {
-      res = get(job.getDagCache());
-      logger.debug(String.format("DAGNode rootId=%s, id=%s found in cache", rootId, id));
-      logger.debug(String.format("Cache size=%d", size()));
-    }
-    else if(rootIdDag.containsKey(rootId) && res == null) {
-      job.setDagCache(rootIdDag.get(rootId));
-      res = get(rootIdDag.get(rootId));
+    res = get(dagHash);
+    if(res != null) {
       logger.debug(String.format("DAGNode rootId=%s, id=%s found in cache", rootId, id));
       logger.debug(String.format("Cache size=%d", size()));
     }
     return res != null ? getIdFromDAG(id, res) : null;    
   }
   
-  public void put(DAGNode dagNode, UUID rootId) {
-    String cacheKey = cacheDagNode(dagNode);
-    rootIdDag.put(rootId, cacheKey);
-    put(cacheKey, dagNode);
+  public String put(DAGNode dagNode, UUID rootId) {
+    String dagHash = hashDagNode(dagNode);
+    put(dagHash, dagNode);
+    return dagHash;
   }
   
   public DAGNode getIdFromDAG(String id, DAGNode node) {
@@ -81,7 +64,7 @@ public class DAGCache extends LRUCache<String, DAGNode> {
     }
   }
   
-  public static String cacheDagNode(DAGNode dagNode) {
+  public static String hashDagNode(DAGNode dagNode) {
     String dagText = BeanSerializer.serializeFull(dagNode);
     String cachedSortedDAGText = JSONHelper.writeSortedWithoutIdentation(JSONHelper.readJsonNode(dagText));
     String cachedDAGHash = ChecksumHelper.checksum(cachedSortedDAGText, HashAlgorithm.SHA1);

@@ -208,10 +208,10 @@ public class DockerContainerHandler implements ContainerHandler {
       }
 
       if (commandLine.startsWith("/bin/bash -c")) {
-        commandLine = commandLine.replace("/bin/bash -c", "");
+        commandLine = normalizeCommandLine(commandLine.replace("/bin/bash -c", ""));
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/bash", "-c", commandLine);
       } else if (commandLine.startsWith("/bin/sh -c")) {
-        commandLine = commandLine.replace("/bin/sh -c", "");
+        commandLine = normalizeCommandLine(commandLine.replace("/bin/sh -c", ""));
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
       } else {
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
@@ -254,6 +254,17 @@ public class DockerContainerHandler implements ContainerHandler {
       logger.error("Failed to start container.", e);
       throw new ContainerException("Failed to start container.", e);
     }
+  }
+  
+  private String normalizeCommandLine(String commandLine) {
+    commandLine = commandLine.trim();
+    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
+      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    }
+    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
+      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    }
+    return commandLine;
   }
   
   private Set<String> normalizeVolumes(Job job, Set<String> volumes) throws BindingException {

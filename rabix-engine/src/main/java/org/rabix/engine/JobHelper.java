@@ -99,7 +99,7 @@ public class JobHelper {
   }
 
   public static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, RootJobService rootJobService, DAGNodeDB dagNodeDB, boolean processVariables) throws BindingException {
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), job.getRootId(), job);
+    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), job.getRootId(), job.getDagHash());
 
     boolean autoBoxingEnabled = false;   // get from configuration
     
@@ -161,9 +161,9 @@ public class JobHelper {
     logger.debug(inputsLogBuilder.toString());
     return new Job(job.getId(), job.getParentId(), job.getRootId(), job.getName(), encodedApp, status, null, inputs, null, rootJob.getConfig(), null, visiblePorts);
   }
-  
+
   public static Job createRootJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, RootJobService rootJobService, DAGNodeDB dagNodeDB, Map<String, Object> outputs) {
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), job.getRootId(), job);
+    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), job.getRootId(), job.getDagHash());
 
     Map<String, Object> inputs = new HashMap<>();
     List<VariableRecord> inputVariables = variableRecordService.find(job.getName(), LinkPortType.INPUT, job.getRootId());

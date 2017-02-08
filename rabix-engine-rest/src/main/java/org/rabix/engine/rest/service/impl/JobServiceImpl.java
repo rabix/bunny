@@ -144,13 +144,14 @@ public class JobServiceImpl implements JobService {
       bindings = BindingsFactory.create(job);
 
       DAGNode node = bindings.translateToDAG(job);
-      dagNodeDB.loadDB(node, rootId);
+      String dagHash = dagNodeDB.loadDB(node, rootId);
       
       job = Job.cloneWithStatus(job, JobStatus.RUNNING);
       job = Job.cloneWithConfig(job, config);
       jobDB.add(job);
 
-      InitEvent initEvent = new InitEvent(UUID.randomUUID(), job.getInputs(), job.getRootId(), job.getConfig());
+      InitEvent initEvent = new InitEvent(UUID.randomUUID(), job.getInputs(), job.getRootId(), job.getConfig(), dagHash);
+
       eventProcessor.addToExternalQueue(initEvent, true);
       return job;
     } catch (Exception e) {

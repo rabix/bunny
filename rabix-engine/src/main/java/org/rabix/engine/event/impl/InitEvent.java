@@ -24,14 +24,19 @@ public class InitEvent implements Event {
 
   @JsonProperty("config")
   private final Map<String, Object> config;
+
+  @JsonProperty("dagHash")
+  private final String dagHash;
+
   @JsonCreator
   public InitEvent(@JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("value") Map<String, Object> value,
-      @JsonProperty("rootId") UUID rootId, @JsonProperty("config") Map<String, Object> config) {
+      @JsonProperty("rootId") UUID rootId, @JsonProperty("config") Map<String, Object> config, @JsonProperty("dagHash") String dagHash) {
     super();
     this.eventGroupId = eventGroupId;
     this.value = value;
     this.rootId = rootId;
     this.config = config;
+    this.dagHash = dagHash;
   }
 
   public Map<String, Object> getValue() {
@@ -52,6 +57,10 @@ public class InitEvent implements Event {
     return config;
   }
   
+  public String getDagHash() {
+    return dagHash;
+  }
+
   @Override
   public EventType getType() {
     return EventType.INIT;

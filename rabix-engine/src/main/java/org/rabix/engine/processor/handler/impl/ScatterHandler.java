@@ -56,7 +56,8 @@ public class ScatterHandler {
    */
   @SuppressWarnings("unchecked")
   public void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), job.getRootId(), job);
+
+    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), job.getRootId(), job.getDagHash());
 
     if (job.getScatterStrategy() == null) {
       try {
@@ -138,7 +139,7 @@ public class ScatterHandler {
       List<Event> events = new ArrayList<>();
 
       String jobNId = InternalSchemaHelper.scatterId(job.getName(), mapping.getIndex());
-      JobRecord jobN = createJobRecord(jobNId, job.getParentId(), node, true, job.getRootId(), job.getDagCache());
+      JobRecord jobN = createJobRecord(jobNId, job.getParentId(), node, true, job.getRootId(), job.getDagHash());
 
       for (DAGLinkPort inputPort : node.getInputPorts()) {
         Object defaultValue = node.getDefaults().get(inputPort.getId());
