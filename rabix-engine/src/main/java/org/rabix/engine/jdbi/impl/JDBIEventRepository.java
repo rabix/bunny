@@ -22,12 +22,13 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(value = EventMapper.class)
 public interface JDBIEventRepository extends EventRepository {
 
+  // TODO: upsert
   @Override
-  @SqlUpdate("insert into event (id,event,type,status) select :id,:event::jsonb,:type,:status where not exists (select id from event where id=:id and type=:type)")
+  @SqlUpdate("insert into event (id,event,type,status) select :id,:event::jsonb,:type::persistent_event_type,:status::event_status where not exists (select id from event where id=:id and type=:type::persistent_event_type)")
   void insert(@Bind("id") UUID id, @Bind("type") PersistentEventType type, @BindJson("event") Event event, @Bind("status") EventStatus status);
   
   @Override
-  @SqlUpdate("update event set status=:status where id=:id and type=:type")
+  @SqlUpdate("update event set status=:status::event_status where id=:id and type=:type::persistent_event_type")
   void update(@Bind("id") UUID id, @Bind("type") PersistentEventType type, @Bind("status") EventStatus status);
   
   @Override
@@ -35,7 +36,7 @@ public interface JDBIEventRepository extends EventRepository {
   void delete(@Bind("id") UUID id);
   
   @Override
-  @SqlQuery("select * from event where status='UNPROCESSED'")
+  @SqlQuery("select * from event where status='UNPROCESSED'::event_status")
   List<Event> findUnprocessed();
   
   public static class EventMapper implements ResultSetMapper<Event> {

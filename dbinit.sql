@@ -11,15 +11,36 @@ CREATE INDEX application_id_index ON application (id);
 -- Backend
 
 CREATE TYPE backend_type as enum ('LOCAL', 'ACTIVE_MQ', 'RABBIT_MQ');
+CREATE TYPE backend_status as enum ('ACTIVE', 'INACTIVE');
 
 CREATE TABLE backend (
 	id				uuid primary key,
+	name            text not null,
 	type            backend_type not null,
+	heartbeat_info  timestamp not null,
+	status          backend_status not null,
     configuration 	jsonb
 );
 
 CREATE INDEX backend_id_index ON backend (id);
+CREATE UNIQUE INDEX backend_name_index ON backend (name);
+CREATE UNIQUE INDEX backend_status_index ON backend (status);
 
+
+-- Event
+
+CREATE TYPE event_status as enum ('PROCESSED', 'UNPROCESSED');
+CREATE TYPE persistent_event_type as enum ('INIT', 'JOB_STATUS_UPDATE_RUNNING', 'JOB_STATUS_UPDATE_COMPLETED');
+
+CREATE TABLE event (
+    id              uuid not null,
+    type            persistent_event_type not null,
+    status          event_status not null,
+    event           jsonb
+);
+
+CREATE UNIQUE INDEX event_id_type_index on event(id, type);
+CREATE INDEX event_status_index on event(status);
 
 -- Root Job
 

@@ -20,10 +20,10 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendMapper.class)
 public interface JDBIBackendRepository extends BackendRepository {
 
-  @SqlUpdate("insert into backend (id,type,configuration,heartbeat_info,status) values (:id,:type,:configuration,:heartbeat_info,:status)")
+  @SqlUpdate("insert into backend (id,type,configuration,heartbeat_info,status) values (:id,:type::backend_type,:configuration::jsonb,:heartbeat_info,:status::backend_status)")
   void insert(@BindBackend Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo, @Bind("status") BackendStatus status);
   
-  @SqlUpdate("update backend set configuration=:configuration where id=:id")
+  @SqlUpdate("update backend set configuration=:configuration::jsonb where id=:id")
   void update(@BindBackend Backend backend);
 
   @SqlQuery("select * from backend where id=:id")
@@ -32,17 +32,17 @@ public interface JDBIBackendRepository extends BackendRepository {
   @SqlQuery("select * from backend where name=:name")
   Backend getByName(@Bind("name") String name);
   
-  @SqlQuery("select * from backend where status=:status")
+  @SqlQuery("select * from backend where status=:status::backend_status")
   List<Backend> getByStatus(@Bind("status") BackendStatus status);
   
-  @SqlUpdate("update backend set status=:status where id=:id")
-  void updateStatus(@Bind("id") String id, @Bind("status") BackendStatus status);
+  @SqlUpdate("update backend set status=:status::backend_status where id=:id")
+  void updateStatus(@Bind("id") UUID id, @Bind("status") BackendStatus status);
   
   @SqlUpdate("update backend set heartbeat_info=:heartbeat_info where id=:id")
-  void updateHeartbeatInfo(@Bind("id") String id, @Bind("heartbeat_info") Timestamp heartbeatInfo);
+  void updateHeartbeatInfo(@Bind("id") UUID id, @Bind("heartbeat_info") Timestamp heartbeatInfo);
   
   @SqlQuery("select heartbeat_info from backend where id=:id")
-  Timestamp getHeartbeatInfo(@Bind("id") String id);
+  Timestamp getHeartbeatInfo(@Bind("id") UUID id);
   
   public static class BackendMapper implements ResultSetMapper<Backend> {
     public Backend map(int index, ResultSet r, StatementContext ctx) throws SQLException {
@@ -60,6 +60,7 @@ public interface JDBIBackendRepository extends BackendRepository {
           public void bind(SQLStatement<?> q, JDBIBackendRepository.BindBackend bind, Backend backend) {
             q.bind("id", backend.getId());
             q.bind("type", backend.getType());
+            q.bind("name", backend.getName());
             q.bind("configuration", BeanSerializer.serializeFull(backend));
           }
         };
