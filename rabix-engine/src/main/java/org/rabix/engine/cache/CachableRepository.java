@@ -1,9 +1,15 @@
 package org.rabix.engine.cache;
 
+import java.util.List;
+
 public interface CachableRepository {
 
-  int insert(Cachable record);
+  int insertCachable(Cachable record);
   
-  int update(Cachable record);
+  void insertCachables(List<Cachable> records);
+  
+  int updateCachable(Cachable record);
+  
+  void updateCachables(List<Cachable> records);
   
 }

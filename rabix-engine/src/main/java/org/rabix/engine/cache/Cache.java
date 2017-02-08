@@ -34,18 +34,18 @@ public class Cache {
     }
     Collection<CacheItem> items = cache.values();
 
-    List<CacheItem> inserts = new ArrayList<>();
-    List<CacheItem> updates = new ArrayList<>();
+    List<Cachable> inserts = new ArrayList<>();
+    List<Cachable> updates = new ArrayList<>();
 
     int size = 0;
     for (CacheItem item : items) {
       switch (item.action) {
       case INSERT:
-        inserts.add(item);
+        inserts.add(item.cachable);
         size++;
         break;
       case UPDATE:
-        updates.add(item);
+        updates.add(item.cachable);
         size++;
         break;
       default:
@@ -53,13 +53,9 @@ public class Cache {
       }
     }
 
-    for (CacheItem item : inserts) {
-      repository.insert(item.cachable);
-    }
-
-    for (CacheItem item : updates) {
-      repository.update(item.cachable);
-    }
+    repository.insertCachables(inserts);
+    repository.updateCachables(updates);
+    
     cache.clear();
     logger.debug("{} flushed {} item(s).", repository, size);
   }

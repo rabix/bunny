@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 
 import org.postgresql.util.PGobject;
@@ -23,6 +24,7 @@ import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.Binder;
 import org.skife.jdbi.v2.sqlobject.BinderFactory;
 import org.skife.jdbi.v2.sqlobject.BindingAnnotation;
+import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
@@ -38,6 +40,12 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   
   @SqlUpdate("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
   public abstract int update(@BindJobRecord JobRecord jobRecord);
+  
+  @SqlBatch("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash)")
+  public abstract void insertBatch(@BindJobRecord Iterator<JobRecord> records);
+  
+  @SqlBatch("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
+  public abstract void updateBatch(@BindJobRecord Iterator<JobRecord> records);
   
   @SqlQuery("select * from job_record where root_id=:root_id")
   public abstract List<JobRecord> get(@Bind("root_id") String rootId);
