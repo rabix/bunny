@@ -2,10 +2,10 @@ package org.rabix.engine.cache;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.rabix.engine.cache.CacheItem.Action;
@@ -18,7 +18,7 @@ public class Cache {
 
   private CachableRepository repository;
 
-  private Map<CacheKey, CacheItem> cache = new HashMap<>();
+  private ConcurrentMap<CacheKey, CacheItem> cache = new ConcurrentHashMap<>();
 
   public Cache(CachableRepository repository) {
     this.repository = repository;
