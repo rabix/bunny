@@ -32,7 +32,7 @@ public class OutputUpdateEvent implements Event {
   private final UUID eventGroupId;
 
   public OutputUpdateEvent(UUID rootId, String jobName, String portId, Object value, Integer position, UUID eventGroupId) {
-    this(jobName, rootId, value, portId, null, false, position, eventGroupId);
+    this(jobName, rootId, value, portId, position, false, null, eventGroupId);
   }
 
   
