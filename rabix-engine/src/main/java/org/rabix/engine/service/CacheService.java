@@ -32,7 +32,7 @@ public class CacheService {
     this.variableRecordRepository = variableRecordRepository;
   }
   
-  public Cache getCache(String rootId, String entity) {
+  public synchronized Cache getCache(String rootId, String entity) {
     String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
     
     Map<String, Cache> singleCache = caches.get(index);
@@ -43,7 +43,7 @@ public class CacheService {
     return singleCache.get(entity);
   }
   
-  public void flush(String rootId) {
+  public synchronized void flush(String rootId) {
     if (rootId == null) {
       return;
     }

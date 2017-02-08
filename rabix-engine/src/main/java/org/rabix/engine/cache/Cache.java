@@ -24,11 +24,11 @@ public class Cache {
     this.repository = repository;
   }
 
-  public void clear() {
+  public synchronized void clear() {
     cache.clear();
   }
 
-  public void flush() {
+  public synchronized void flush() {
     if (cache.isEmpty()) {
       return;
     }
@@ -60,7 +60,7 @@ public class Cache {
     logger.debug("{} flushed {} item(s).", repository, size);
   }
 
-  public void put(Cachable cachable, Action action) {
+  public synchronized void put(Cachable cachable, Action action) {
     CacheKey key = cachable.getCacheKey();
     if (cache.containsKey(key)) {
       CacheItem item = cache.get(key);
@@ -70,7 +70,7 @@ public class Cache {
     }
   }
 
-  public <T extends Cachable> List<T> merge(List<T> cachables, Class<T> clazz) {
+  public synchronized <T extends Cachable> List<T> merge(List<T> cachables, Class<T> clazz) {
     if (cachables == null) {
       return null;
     }
@@ -87,7 +87,7 @@ public class Cache {
     return merged;
   }
   
-  public List<Cachable> get(CacheKey search) {
+  public synchronized List<Cachable> get(CacheKey search) {
     List<Cachable> result = new ArrayList<>();
     for (Entry<CacheKey, CacheItem> entry : cache.entrySet()) {
       if (entry.getKey().satisfies(search)) {
@@ -97,7 +97,7 @@ public class Cache {
     return result;
   }
 
-  public boolean isEmpty() {
+  public synchronized boolean isEmpty() {
     return cache.isEmpty();
   }
 
