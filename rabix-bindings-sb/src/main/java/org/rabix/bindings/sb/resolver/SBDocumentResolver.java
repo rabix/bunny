@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.BindingWrongVersionException;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
@@ -81,6 +82,13 @@ public class SBDocumentResolver {
       root = fragmentsCachePerUrl.get(fragment);
     }
     
+    if(!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion))) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      clearFragmentCache(appUrl);
+      throw new BindingWrongVersionException("Document version is not sbg:draft-2");
+    }
+    
     traverse(appUrl, root, file, null, root);
 
     for (SBDocumentResolverReplacement replacement : getReplacements(appUrl)) {
@@ -89,13 +97,6 @@ public class SBDocumentResolver {
       } else if (replacement.getParentNode().isObject()) {
         replaceObjectItem(appUrl, root, replacement);
       }
-    }
-    
-    if(!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion))) {
-      clearReplacements(appUrl);
-      clearReferenceCache(appUrl);
-      clearFragmentCache(appUrl);
-      throw new BindingException("Document version is not sbg:draft-2");
     }
     cache.put(appUrl, JSONHelper.writeObject(root));
     

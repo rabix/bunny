@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.BindingWrongVersionException;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.helper.URIHelper;
@@ -138,7 +139,14 @@ public class CWLDocumentResolver {
       populateNamespaces(root);
       ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
-
+    
+    String cwlVersion = root.get(CWL_VERSION_KEY).asText();
+    if (!(cwlVersion.equals(ProtocolType.CWL.appVersion))) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      throw new BindingWrongVersionException("Document version is not v1.0");
+    }
+    
     traverse(appUrl, root, file, null, root);
 
     for (CWLDocumentResolverReplacement replacement : getReplacements(appUrl)) {
@@ -151,13 +159,6 @@ public class CWLDocumentResolver {
 
     if (graphResolve) {
       String fragment = URIHelper.extractFragment(appUrl).substring(1);
-
-      String cwlVersion = root.get(CWL_VERSION_KEY).asText();
-      if (!(cwlVersion.equals(ProtocolType.CWL.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not v1.0");
-      }
 
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);

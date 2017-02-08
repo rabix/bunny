@@ -59,7 +59,8 @@ public class BindingsFactory {
         }
       } catch (NotImplementedException e) {
         throw e; // fail if we do not support this kind of deserialization (Schema salad)
-      } catch (Exception ignore) {
+      } catch (BindingWrongVersionException ignore) {
+       
       }
     }
     throw new BindingException("Cannot find binding for the payload.");

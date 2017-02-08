@@ -20,15 +20,16 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.BindingWrongVersionException;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.Preconditions;
 
 public class Draft3DocumentResolver {
@@ -112,6 +113,13 @@ public static Set<String> types = new HashSet<String>();
       ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
     
+    String cwlVersion = root.get(CWL_VERSION_KEY).asText();
+    if (!(cwlVersion.equals(ProtocolType.DRAFT3.appVersion))) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      throw new BindingWrongVersionException("Document version is not cwl:draft-3");
+    }
+    
     traverse(appUrl, root, file, null, root);
 
     for (Draft3DocumentResolverReplacement replacement : getReplacements(appUrl)) {
@@ -124,13 +132,6 @@ public static Set<String> types = new HashSet<String>();
     
     if(graphResolve) {
       String fragment = URIHelper.extractFragment(appUrl).substring(1);
-      
-      String cwlVersion = root.get(CWL_VERSION_KEY).asText();
-      if (!(cwlVersion.equals(ProtocolType.DRAFT3.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not cwl:draft-3");
-      }
       
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);

@@ -283,7 +283,7 @@ public class BackendCommandLine {
         logger.error("Not implemented feature");
         System.exit(33);
       } catch (BindingException e) {
-        logger.error("Error: " + appUrl + " is not a valid app!");
+        logger.error("Error: " + appUrl + " is not a valid app! {}", e.getMessage());
         System.exit(10);
       }
       if (application == null) {
