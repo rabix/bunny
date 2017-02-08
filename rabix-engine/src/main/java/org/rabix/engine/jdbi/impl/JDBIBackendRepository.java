@@ -20,7 +20,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendMapper.class)
 public interface JDBIBackendRepository extends BackendRepository {
 
-  @SqlUpdate("insert into backend (id,type,configuration,heartbeat_info,status) values (:id,:type::backend_type,:configuration::jsonb,:heartbeat_info,:status::backend_status)")
+  @SqlUpdate("insert into backend (id,type,name,configuration,heartbeat_info,status) values (:id,:type::backend_type,:name,:configuration::jsonb,:heartbeat_info,:status::backend_status)")
   void insert(@BindBackend Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo, @Bind("status") BackendStatus status);
   
   @SqlUpdate("update backend set configuration=:configuration::jsonb where id=:id")
