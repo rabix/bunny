@@ -113,8 +113,8 @@ public static Set<String> types = new HashSet<String>();
       ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
     
-    String cwlVersion = root.get(CWL_VERSION_KEY).asText();
-    if (!(cwlVersion.equals(ProtocolType.DRAFT3.appVersion))) {
+    JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
+    if (cwlVersion==null || (cwlVersion!=null && !(cwlVersion.asText().equals(ProtocolType.DRAFT3.appVersion)))) {
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       throw new BindingWrongVersionException("Document version is not cwl:draft-3");
@@ -149,7 +149,7 @@ public static Set<String> types = new HashSet<String>();
       for(final JsonNode elem: root.get(GRAPH_KEY)) {
         if(elem.get("id").asText().equals(fragment)) {
           Map<String, Object> result = JSONHelper.readMap(elem);
-          result.put(CWL_VERSION_KEY, cwlVersion);
+          result.put(CWL_VERSION_KEY, cwlVersion.asText());
           cache.put(appUrl, JSONHelper.writeObject(result));
           break;
         }
@@ -157,11 +157,6 @@ public static Set<String> types = new HashSet<String>();
       graphResolve = false;
     }
     else {
-      if (!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.DRAFT3.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not cwl:draft-3");
-      }
       cache.put(appUrl, JSONHelper.writeObject(root));
     }
 

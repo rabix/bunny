@@ -72,6 +72,14 @@ public class SBDocumentResolver {
     } catch (Exception e) {
       throw new BindingException(e);
     }
+
+    JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
+    if (cwlVersion==null || (cwlVersion!=null && !(cwlVersion.asText().equals(ProtocolType.SB.appVersion)))){
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      clearFragmentCache(appUrl);
+      throw new BindingWrongVersionException("Document version is not sbg:draft-2");
+    }
     
     if (root.isArray()) {
       Map<String, JsonNode> fragmentsCachePerUrl = getFragmentsCache(appUrl);
@@ -80,13 +88,6 @@ public class SBDocumentResolver {
       }
       String fragment = URIHelper.extractFragment(appUrl);
       root = fragmentsCachePerUrl.get(fragment);
-    }
-    
-    if(!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion))) {
-      clearReplacements(appUrl);
-      clearReferenceCache(appUrl);
-      clearFragmentCache(appUrl);
-      throw new BindingWrongVersionException("Document version is not sbg:draft-2");
     }
     
     traverse(appUrl, root, file, null, root);

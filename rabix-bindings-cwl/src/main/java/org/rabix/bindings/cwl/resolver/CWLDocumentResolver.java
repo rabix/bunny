@@ -140,8 +140,9 @@ public class CWLDocumentResolver {
       ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
     
-    String cwlVersion = root.get(CWL_VERSION_KEY).asText();
-    if (!(cwlVersion.equals(ProtocolType.CWL.appVersion))) {
+
+    JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
+    if (cwlVersion==null || (cwlVersion!=null && !(cwlVersion.asText().equals(ProtocolType.CWL.appVersion)))) {
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       throw new BindingWrongVersionException("Document version is not v1.0");
@@ -176,7 +177,7 @@ public class CWLDocumentResolver {
       for (final JsonNode elem : root.get(GRAPH_KEY)) {
         if (elem.get("id").asText().equals(fragment)) {
           Map<String, Object> result = JSONHelper.readMap(elem);
-          result.put(CWL_VERSION_KEY, cwlVersion);
+          result.put(CWL_VERSION_KEY,  root.get(CWL_VERSION_KEY).asText());
           root = JSONHelper.convertToJsonNode(result);
           cache.put(appUrl, JSONHelper.writeObject(root));
           break;
@@ -184,11 +185,6 @@ public class CWLDocumentResolver {
       }
       graphResolve = false;
     } else {
-      if (!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.CWL.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not v1.0");
-      }
       cache.put(appUrl, JSONHelper.writeObject(root));
     }
     clearReplacements(appUrl);
