@@ -34,7 +34,7 @@ CREATE TYPE persistent_event_type as enum ('INIT', 'JOB_STATUS_UPDATE_RUNNING', 
 
 CREATE TABLE event (
     id              uuid not null,
-    type            persistent_event_type not null,
+    type            persistent_event_type,
     status          event_status not null,
     event           jsonb
 );
@@ -60,30 +60,18 @@ create index root_job_status_index on root_job(status);
 
 CREATE TYPE job_status as enum ('PENDING', 'READY', 'STARTED', 'ABORTED', 'FAILED', 'COMPLETED', 'RUNNING');
 
-CREATE TYPE resources as (
-    cpu             bigint,
-    mem_mb          bigint,
-    disk_space_mb   bigint,
-    network_access  boolean,
-    working_dir     text,
-    tmp_dir         text,
-    out_dir_size    bigint,
-    tmp_dir_size    bigint
-);
-
 CREATE TABLE job (
     id			    uuid primary key,
-    root_id 	    uuid references root_job,
+    root_id 	    uuid, -- references root_job,
     name            text not null,
     parent_id       uuid,
     status          job_status not null,
     message         text,
     inputs          jsonb,
     outputs         jsonb,
-    resources       resources,
+    resources       jsonb,
     group_id	    uuid,
     backend_id      uuid references backend on delete SET NULL,
-    visible_ports   text[],
     app             text
 );
 
@@ -116,7 +104,8 @@ CREATE TABLE job_record (
     is_scatter_wrapper		boolean not null,
     global_inputs_count		integer not null,
     global_outputs_count	integer not null,
-    scatter_strategy		jsonb
+    scatter_strategy		jsonb,
+    dag_hash                text
 );
 
 CREATE UNIQUE INDEX job_record_name_index on job_record (root_id, name);
@@ -128,7 +117,7 @@ CREATE INDEX job_record_state_index on job_record (root_id, job_state);
 -- DagNode
 
 CREATE TABLE dag_node (
-	root_id		uuid references root_job,
+	root_id		uuid, -- references root_job,
     dag 	    jsonb
 );
 

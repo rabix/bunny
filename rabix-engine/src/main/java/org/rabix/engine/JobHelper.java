@@ -117,6 +117,8 @@ public class JobHelper {
     
     RootJob rootJob = rootJobService.find(job.getRootId());
     String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
+
+    System.out.println(rootJob);
     
     Set<String> visiblePorts = findVisiblePorts(job, jobRecordService, linkRecordService, variableRecordService);
     Job newJob = new Job(job.getId(), job.getParentId(), job.getRootId(), job.getName(), encodedApp, status, null, preprocesedInputs, null, rootJob.getConfig(), null, visiblePorts);

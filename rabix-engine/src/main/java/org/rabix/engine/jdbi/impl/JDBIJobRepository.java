@@ -27,13 +27,13 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterColumnMapper(JDBIJobRepository.ResourcesMapper.class)
 public interface JDBIJobRepository extends JobRepository {
 
-  @SqlUpdate("insert into job (id,root_id,name, parent_id, status, message, inputs, outputs, resources,visible_ports,app) values (:id,:root_id,:name,:parent_id,:status::job_status,:message,:inputs::jsonb,:outputs::jsonb,(:cpu,:mem_mb,:disk_space_mb,:network_access,:working_dir,:tmp_dir,:out_dir_size,:tmp_dir_size)::resources,:visible_ports,:app)")
+  @SqlUpdate("insert into job (id,root_id,name, parent_id, status, message, inputs, outputs, resources,app) values (:id,:root_id,:name,:parent_id,:status::job_status,:message,:inputs::jsonb,:outputs::jsonb,:resources::jsonb,:app)")
   void insert(@BindJob Job job);
 
-  @SqlUpdate("insert into job (id,root_id,name, parent_id, status, message, inputs, outputs, resources,visible_ports, group_id,app) values (:id,:root_id,:name,:parent_id,:status::job_status,:message,:inputs::jsonb,:outputs::jsonb,(:cpu,:mem_mb,:disk_space_mb,:network_access,:working_dir,:tmp_dir,:out_dir_size,:tmp_dir_size)::resources,:visible_ports,:group_id,:app)")
+  @SqlUpdate("insert into job (id,root_id,name, parent_id, status, message, inputs, outputs, resources, group_id,app) values (:id,:root_id,:name,:parent_id,:status::job_status,:message,:inputs::jsonb,:outputs::jsonb,:resources::jsonb,:group_id,:app)")
   void insertToGroup(@BindJob Job job, @Bind("group_id") UUID groupId);
 
-  @SqlUpdate("update job set job=:job where id=:id")
+  @SqlUpdate("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app where id=:id")
   void update(@BindJob Job job);
 
   @SqlQuery("select * from job where id=:id")
@@ -68,23 +68,21 @@ public interface JDBIJobRepository extends JobRepository {
   public static class JobMapper implements ResultSetMapper<Job> {
     public Job map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       UUID id = r.getObject("id", UUID.class);
-      UUID root_id = r.getObject("id", UUID.class);
-      UUID parent_id = r.getObject("id", UUID.class);
-      String name = r.getString("");
+      UUID root_id = r.getObject("root_id", UUID.class);
+      UUID parent_id = r.getObject("parent_id", UUID.class);
+      String name = r.getString("name");
       String app = r.getString("app");
       Job.JobStatus status = Job.JobStatus.valueOf(r.getString("status"));
       String message = r.getString("message");
       String inputsJson = r.getString("inputs");
       String outputsJson = r.getString("outputs");
-      Resources resources = r.getObject("resources", Resources.class);
-      Array visiblePorts = r.getArray("visible_ports");
-
-      System.out.println(visiblePorts.getArray());
+      String resourcesStr = r.getString("resources");
+      Resources res = JSONHelper.readObject(resourcesStr, Resources.class);
 
       Map<String, Object> inputs = JSONHelper.readMap(inputsJson);
       Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
 
-      return new Job(id, parent_id, root_id, name, app, status, message, inputs, outputs, Collections.emptyMap(), resources, Collections.emptySet());
+      return new Job(id, parent_id, root_id, name, app, status, message, inputs, outputs, Collections.emptyMap(), res, Collections.emptySet());
     }
   }
 
@@ -105,22 +103,7 @@ public interface JDBIJobRepository extends JobRepository {
             q.bind("inputs", JSONHelper.writeObject(job.getInputs()));
             q.bind("outputs", JSONHelper.writeObject(job.getOutputs()));
             q.bind("app", job.getApp());
-            q.bind("visible_ports", job.getVisiblePorts());
-
-            Resources res = job.getResources();
-
-            if (res == null) {
-              res = Resources.empty();
-            }
-
-            q.bind("cpu", res.getCpu());
-            q.bind("mem_mb", res.getMemMB());
-            q.bind("disk_space_mb", res.getDiskSpaceMB());
-            q.bind("network_access", res.getNetworkAccess());
-            q.bind("working_dir", res.getWorkingDir());
-            q.bind("tmp_dir", res.getTmpDir());
-            q.bind("out_dir_size", res.getOutDirSize());
-            q.bind("tmp_dir_size", res.getTmpDirSize());
+            q.bind("resources", JSONHelper.writeObject(job.getResources()));
           }
         };
       }

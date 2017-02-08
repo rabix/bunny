@@ -30,13 +30,13 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(ContextRecordMapper.class)
 public interface JDBIRootJobRepository extends RootJobRepository {
 
-  @SqlUpdate("insert into context_record (id,external_id, status,config) values (:id,:external_id,:status::root_job_status,:config)")
+  @SqlUpdate("insert into root_job (id,status,config) values (:id,:status::root_job_status,:config)")
   int insert(@BindContextRecord RootJob rootJob);
   
-  @SqlUpdate("update context_record set status=:status,config=:config where id=:id")
+  @SqlUpdate("update root_job set status=:status::root_job_status,config=:config where id=:id")
   int update(@BindContextRecord RootJob rootJob);
   
-  @SqlQuery("select * from context_record where id=:id")
+  @SqlQuery("select * from root_job where id=:id")
   RootJob get(@Bind("id") UUID id);
 
   @BindingAnnotation(BindContextRecord.ContextBinderFactory.class)
@@ -48,7 +48,6 @@ public interface JDBIRootJobRepository extends RootJobRepository {
         return new Binder<BindContextRecord, RootJob>() {
           public void bind(SQLStatement<?> q, BindContextRecord bind, RootJob rootJob) {
             q.bind("id", rootJob.getId());
-            q.bind("external_id", rootJob.getId());
             q.bind("status", rootJob.getStatus());
             try {
               PGobject data = new PGobject();
@@ -67,7 +66,6 @@ public interface JDBIRootJobRepository extends RootJobRepository {
   public static class ContextRecordMapper implements ResultSetMapper<RootJob> {
     public RootJob map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
       UUID id = resultSet.getObject("ID", UUID.class);
-      String externalId = resultSet.getString("EXTERNAL_ID");
       String config = resultSet.getString("CONFIG");
       String status = resultSet.getString("STATUS");
 

@@ -48,6 +48,8 @@ public class InitEventHandler implements EventHandler<InitEvent> {
 
   public void handle(final InitEvent event) throws EventHandlerException {
     RootJob context = new RootJob(event.getRootId(), event.getConfig(), RootJobStatus.RUNNING);
+
+    rootJobService.create(context);
     
     DAGNode node = nodeDB.get(InternalSchemaHelper.ROOT_NAME, event.getRootId(), event.getDagHash());
     JobRecord job = new JobRecord(event.getRootId(), node.getName(), event.getRootId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
