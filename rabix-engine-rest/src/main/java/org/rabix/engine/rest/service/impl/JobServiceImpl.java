@@ -18,6 +18,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.SystemEnvironmentHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
+import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.db.JobDB;
 import org.rabix.engine.event.impl.InitEvent;
@@ -54,6 +55,7 @@ public class JobServiceImpl implements JobService {
   
   private final JobDB jobDB;
   private final DAGNodeDB dagNodeDB;
+  private final AppDB appDB;
   
   private final EventProcessor eventProcessor;
   private final SchedulerService scheduler;
@@ -67,9 +69,10 @@ public class JobServiceImpl implements JobService {
   private boolean keepInputFiles;
   
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB) {
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB, AppDB appDB) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
+    this.appDB = appDB;
     this.eventProcessor = eventProcessor;
     
     this.jobRecordService = jobRecordService;
@@ -143,6 +146,7 @@ public class JobServiceImpl implements JobService {
       bindings = BindingsFactory.create(job);
 
       DAGNode node = bindings.translateToDAG(job);
+      appDB.loadDB(node);
       String dagHash = dagNodeDB.loadDB(node, rootId);
       
       job = Job.cloneWithStatus(job, JobStatus.RUNNING);
@@ -173,7 +177,7 @@ public class JobServiceImpl implements JobService {
   
   @Override
   public Set<Job> getReady(EventProcessor eventProcessor, String contextId) throws JobServiceException {
-    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, contextId);
+    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, contextId);
   }
   
   @Override

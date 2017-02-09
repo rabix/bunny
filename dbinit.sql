@@ -1,11 +1,11 @@
 -- Application
 
 CREATE TABLE APPLICATION (
-	id	    uuid primary key,
+	hash	text primary key,
     app     bytea
 );
 
-CREATE INDEX application_id_index ON application (id);
+CREATE INDEX application_id_index ON application (hash);
 
 
 -- Backend

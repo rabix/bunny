@@ -20,6 +20,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
+import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.JobRecord;
@@ -60,14 +61,14 @@ public class JobHelper {
     return null;
   }
   
-  public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, String contextId) {
+  public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, String contextId) {
     Set<Job> jobs = new HashSet<>();
     List<JobRecord> jobRecords = jobRecordService.findReady(contextId);
 
     if (!jobRecords.isEmpty()) {
       for (JobRecord job : jobRecords) {
         try {
-          jobs.add(createReadyJob(job, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB));
+          jobs.add(createReadyJob(job, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB));
         } catch (BindingException e) {
           logger.debug("Failed to create job", e);
         }
@@ -77,17 +78,17 @@ public class JobHelper {
     return jobs;
   }
   
-  public static Job createReadyJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) throws BindingException {
-    return createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, true);
+  public static Job createReadyJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB) throws BindingException {
+    return createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, true);
   }
   
-  public static Job createCompletedJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) throws BindingException {
+  public static Job createCompletedJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB) throws BindingException {
     Job completedJob;
     if(job.isContainer() || job.isScatterWrapper()) {
-      completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
+      completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, false);
     }
     else {
-      completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, true);
+      completedJob = createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, true);
     }
     List<VariableRecord> outputVariables = variableRecordService.find(job.getId(), LinkPortType.OUTPUT, job.getRootId());
     
@@ -98,7 +99,7 @@ public class JobHelper {
     return Job.cloneWithOutputs(completedJob, outputs);
   }
   
-  public static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, boolean processVariables) throws BindingException {
+  public static Job createJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, boolean processVariables) throws BindingException {
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId(), job.getDagHash());
 
     boolean autoBoxingEnabled = false;   // get from configuration
@@ -116,7 +117,7 @@ public class JobHelper {
     }
     
     ContextRecord contextRecord = contextRecordService.find(job.getRootId());
-    String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
+    String encodedApp = URIHelper.createDataURI(appDB.get(node.getAppHash()).serialize());
     
     Set<String> visiblePorts = findVisiblePorts(job, jobRecordService, linkRecordService, variableRecordService);
     Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, preprocesedInputs, null, contextRecord.getConfig(), null, visiblePorts);
@@ -126,7 +127,7 @@ public class JobHelper {
         
         for (VariableRecord inputVariable : inputVariables) {
           Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
-          ApplicationPort port = node.getApp().getInput(inputVariable.getPortId());
+          ApplicationPort port = appDB.get(node.getAppHash()).getInput(inputVariable.getPortId());
           if (port == null) {
             continue;
           }
@@ -162,7 +163,7 @@ public class JobHelper {
     return new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, inputs, null, contextRecord.getConfig(), null, visiblePorts);
   }
   
-  public static Job createRootJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, Map<String, Object> outputs) {
+  public static Job createRootJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, Map<String, Object> outputs) {
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId(), job.getDagHash());
 
     Map<String, Object> inputs = new HashMap<>();
@@ -173,7 +174,7 @@ public class JobHelper {
     }
     
     ContextRecord contextRecord = contextRecordService.find(job.getRootId());
-    String encodedApp = URIHelper.createDataURI(node.getApp().serialize());
+    String encodedApp = URIHelper.createDataURI(appDB.get(node.getAppHash()).serialize());
     return new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, inputs, outputs, contextRecord.getConfig(), null, null);
   }
   
