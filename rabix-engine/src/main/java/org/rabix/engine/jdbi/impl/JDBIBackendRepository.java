@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.jdbi.bindings.BindJson;
@@ -20,26 +21,33 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendMapper.class)
 public interface JDBIBackendRepository extends BackendRepository {
 
-  @SqlUpdate("insert into backend (id,configuration,heartbeat_info,status) values (:id,:configuration,:heartbeat_info,:status)")
-  void insert(@Bind("id") String id, @BindJson("configuration") Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo, @Bind("status") BackendStatus status);
+  @Override
+  @SqlUpdate("insert into backend (id,configuration,heartbeat_info,status) values (:id,:configuration,:heartbeat_info,:status::backend_status)")
+  void insert(@Bind("id") UUID id, @BindJson("configuration") Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo, @Bind("status") BackendStatus status);
   
+  @Override
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
-  void update(@Bind("id") String id, @BindJson("configuration") Backend configuration);
+  void update(@Bind("id") UUID id, @BindJson("configuration") Backend configuration);
   
+  @Override
   @SqlQuery("select * from backend where id=:id")
-  Backend get(@Bind("id") String id);
+  Backend get(@Bind("id") UUID id);
   
-  @SqlQuery("select * from backend where status=:status")
+  @Override
+  @SqlQuery("select * from backend where status=:status::backend_status")
   List<Backend> getByStatus(@Bind("status") BackendStatus status);
   
-  @SqlUpdate("update backend set status=:status where id=:id")
-  void updateStatus(@Bind("id") String id, @Bind("status") BackendStatus status);
+  @Override
+  @SqlUpdate("update backend set status=:status::backend_status where id=:id")
+  void updateStatus(@Bind("id") UUID id, @Bind("status") BackendStatus status);
   
+  @Override
   @SqlUpdate("update backend set heartbeat_info=:heartbeat_info where id=:id")
-  void updateHeartbeatInfo(@Bind("id") String id, @Bind("heartbeat_info") Timestamp heartbeatInfo);
+  void updateHeartbeatInfo(@Bind("id") UUID id, @Bind("heartbeat_info") Timestamp heartbeatInfo);
   
+  @Override
   @SqlQuery("select heartbeat_info from backend where id=:id")
-  Timestamp getHeartbeatInfo(@Bind("id") String id);
+  Timestamp getHeartbeatInfo(@Bind("id") UUID id);
   
   public static class BackendMapper implements ResultSetMapper<Backend> {
     public Backend map(int index, ResultSet r, StatementContext ctx) throws SQLException {

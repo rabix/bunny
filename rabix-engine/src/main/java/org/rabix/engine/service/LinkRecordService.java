@@ -3,6 +3,7 @@ package org.rabix.engine.service;
 import java.util.List;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.Cache;
 import org.rabix.engine.cache.CacheItem.Action;
@@ -44,7 +45,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceJobId(jobId, contextId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourceJobId(jobId, SchemaHelper.toUUID(contextId));
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }
@@ -62,7 +63,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, varType, contextId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, varType, SchemaHelper.toUUID(contextId));
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }
@@ -80,7 +81,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, portId, contextId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, portId, SchemaHelper.toUUID(contextId));
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }
@@ -98,7 +99,7 @@ public class LinkRecordService {
         }
       });
     }
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndDestinationType(jobId, portId, varType, contextId);
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndDestinationType(jobId, portId, varType, SchemaHelper.toUUID(contextId));
     for (LinkRecord linkRecord : fromDB) {
       cache.put(linkRecord, Action.UPDATE);
     }

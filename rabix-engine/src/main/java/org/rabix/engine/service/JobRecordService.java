@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.InternalSchemaHelper;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.Cache;
 import org.rabix.engine.cache.CacheItem.Action;
@@ -69,7 +70,7 @@ public class JobRecordService {
   }
 
   public List<JobRecord> findByParent(String parentId, String contextId) {
-    List<JobRecord> recordsByParent = jobRecordRepository.getByParent(parentId, contextId);
+    List<JobRecord> recordsByParent = jobRecordRepository.getByParent(SchemaHelper.toUUID(parentId), SchemaHelper.toUUID(contextId));
 
     if (recordsByParent != null) {
       Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
@@ -84,7 +85,7 @@ public class JobRecordService {
     if (!records.isEmpty()) {
       return (JobRecord) records.get(0);
     }
-    JobRecord record = jobRecordRepository.get(id, contextId);
+    JobRecord record = jobRecordRepository.get(id, SchemaHelper.toUUID(contextId));
     cache.put(record, Action.UPDATE);
     return record;
   }
@@ -95,7 +96,7 @@ public class JobRecordService {
     if (!records.isEmpty()) {
       return (JobRecord) records.get(0);
     }
-    JobRecord record = jobRecordRepository.getRoot(contextId);
+    JobRecord record = jobRecordRepository.getRoot(SchemaHelper.toUUID(contextId));
     cache.put(record, Action.UPDATE);
     return record;
   }

@@ -26,7 +26,7 @@ public class AppDB {
   public Application get(String id) {
     Application app = appCache.get(id);
     if(app == null) {
-      app = appRepository.get(id);
+      app = BeanSerializer.deserialize(appRepository.get(id), Application.class);;
       appCache.put(id, app);
     }
     return app;
@@ -38,7 +38,7 @@ public class AppDB {
   
   public void loadApp(DAGNode node) {
     String id = hashDagNode(node.getApp());
-    appRepository.insert(id, node.getApp());
+    appRepository.insert(id, BeanSerializer.serializeFull(node.getApp()));
     node.setAppHash(id);
     node.setApp(null);
     if(node instanceof DAGContainer) {

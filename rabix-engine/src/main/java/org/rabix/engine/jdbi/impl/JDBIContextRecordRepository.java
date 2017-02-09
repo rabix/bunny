@@ -8,9 +8,11 @@ import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.jdbi.impl.JDBIContextRecordRepository.ContextRecordMapper;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
@@ -29,14 +31,17 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(ContextRecordMapper.class)
 public interface JDBIContextRecordRepository extends ContextRecordRepository {
 
-  @SqlUpdate("insert into context_record (id,status,config) values (:id,:status,:config)")
+  @Override
+  @SqlUpdate("insert into context_record (id,status,config) values (:id,:status::context_record_status,:config)")
   int insert(@BindContextRecord ContextRecord contextRecord);
   
-  @SqlUpdate("update context_record set status=:status,config=:config where id=:id")
+  @Override
+  @SqlUpdate("update context_record set status=:status::context_record_status,config=:config where id=:id")
   int update(@BindContextRecord ContextRecord contextRecord);
   
+  @Override
   @SqlQuery("select * from context_record where id=:id")
-  ContextRecord get(@Bind("id") String id);
+  ContextRecord get(@Bind("id") UUID id);
   
   @BindingAnnotation(BindContextRecord.ContextBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
@@ -46,7 +51,7 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
       public Binder<BindContextRecord, ContextRecord> build(Annotation annotation) {
         return new Binder<BindContextRecord, ContextRecord>() {
           public void bind(SQLStatement<?> q, BindContextRecord bind, ContextRecord contextRecord) {
-            q.bind("id", contextRecord.getId());
+            q.bind("id", SchemaHelper.toUUID(contextRecord.getId()));
             q.bind("status", contextRecord.getStatus());
             try {
               PGobject data = new PGobject();

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.Cache;
 import org.rabix.engine.cache.CacheItem.Action;
@@ -51,7 +52,7 @@ public class VariableRecordService {
         }
       });
     }
-    List<VariableRecord> fromDB = variableRecordRepository.getByType(jobId, type, contextId);
+    List<VariableRecord> fromDB = variableRecordRepository.getByType(jobId, type, SchemaHelper.toUUID(contextId));
     for (VariableRecord variableRecord : fromDB) {
       cache.put(variableRecord, Action.UPDATE);
     }
@@ -69,7 +70,7 @@ public class VariableRecordService {
         }
       });
     }
-    List<VariableRecord> fromDB = variableRecordRepository.getByPort(jobId, portId, contextId);
+    List<VariableRecord> fromDB = variableRecordRepository.getByPort(jobId, portId, SchemaHelper.toUUID(contextId));
     for (VariableRecord variableRecord : fromDB) {
       cache.put(variableRecord, Action.UPDATE);
     }
@@ -82,7 +83,7 @@ public class VariableRecordService {
     if (!records.isEmpty()) {
       return (VariableRecord) records.get(0);
     }
-    VariableRecord record = variableRecordRepository.get(jobId, portId, type, contextId);
+    VariableRecord record = variableRecordRepository.get(jobId, portId, type, SchemaHelper.toUUID(contextId));
     if (record != null) { // TODO why?
       cache.put(record, Action.UPDATE);
     }

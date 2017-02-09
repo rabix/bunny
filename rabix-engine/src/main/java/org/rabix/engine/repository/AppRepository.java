@@ -1,11 +1,9 @@
 package org.rabix.engine.repository;
 
-import org.rabix.bindings.model.Application;
-
 public interface AppRepository {
 
-  void insert(String id, Application app);
+  void insert(String hash, String app);
   
-  Application get(String id);
+  String get(String hash);
   
 }

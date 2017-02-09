@@ -171,7 +171,7 @@ public class ScatterHandler {
         variableRecordService.create(variableN);
         jobRecordService.incrementPortCounter(jobN, outputPort, LinkPortType.OUTPUT);
 
-        LinkRecord link = new LinkRecord(job.getRootId(), jobNId, outputPort.getId(), LinkPortType.OUTPUT, job.getId(), outputPort.getId(), LinkPortType.OUTPUT, null);
+        LinkRecord link = new LinkRecord(job.getRootId(), jobNId, outputPort.getId(), LinkPortType.OUTPUT, job.getId(), outputPort.getId(), LinkPortType.OUTPUT, mapping.getIndex());
         linkRecordService.create(link);
       }
 
