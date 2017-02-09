@@ -6,13 +6,16 @@ import java.sql.SQLException;
 import org.rabix.bindings.model.Application;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.jdbi.bindings.BindJson;
+import org.rabix.engine.jdbi.impl.JDBIAppRepository.ApplicationMapper;
 import org.rabix.engine.repository.AppRepository;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
+@RegisterMapper(ApplicationMapper.class)
 public interface JDBIAppRepository extends AppRepository {
 
   @SqlUpdate("INSERT INTO APPLICATION (ID,APP) SELECT :id,:app WHERE NOT EXISTS (SELECT ID FROM APPLICATION WHERE ID=:id)")
@@ -20,7 +23,6 @@ public interface JDBIAppRepository extends AppRepository {
   
   @SqlQuery("SELECT APP FROM APPLICATION WHERE ID=:id;")
   Application get(@Bind("id") String id);
-  
   public static class ApplicationMapper implements ResultSetMapper<Application> {
     public Application map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       return BeanSerializer.deserialize(r.getString("app"), Application.class);
