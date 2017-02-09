@@ -9,12 +9,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
 import org.rabix.engine.model.VariableRecord;
@@ -39,26 +41,33 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
     return insert((VariableRecord) record);
   }
   
-  @SqlUpdate("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type,:link_merge,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
+  @Override
+  @SqlUpdate("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type::port_type,:link_merge::link_merge_type,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
   public abstract int insert(@BindVariableRecord VariableRecord jobRecord);
   
-  @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type")
+  @Override
+  @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type::port_type")
   public abstract int update(@BindVariableRecord VariableRecord jobRecord);
   
-  @SqlBatch("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type,:link_merge,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
+  @Override
+  @SqlBatch("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type::port_type,:link_merge::link_merge_type,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
   public abstract void insertBatch(@BindVariableRecord Iterator<VariableRecord> records);
   
-  @SqlBatch("update variable_record set value=:value,link_merge=:link_merge,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type")
+  @Override
+  @SqlBatch("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type::port_type")
   public abstract void updateBatch(@BindVariableRecord Iterator<VariableRecord> records);
   
-  @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and type=:type and context_id=:context_id")
-  public abstract VariableRecord get(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("context_id") String rootId);
+  @Override
+  @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and type=:type::port_type and context_id=:context_id")
+  public abstract VariableRecord get(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("context_id") UUID rootId);
  
-  @SqlQuery("select * from variable_record where job_id=:job_id and type=:type and context_id=:context_id")
-  public abstract List<VariableRecord> getByType(@Bind("job_id") String jobId, @Bind("type") LinkPortType type, @Bind("context_id") String rootId);
+  @Override
+  @SqlQuery("select * from variable_record where job_id=:job_id and type=:type::port_type and context_id=:context_id")
+  public abstract List<VariableRecord> getByType(@Bind("job_id") String jobId, @Bind("type") LinkPortType type, @Bind("context_id") UUID rootId);
   
+  @Override
   @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and context_id=:context_id")
-  public abstract List<VariableRecord> getByPort(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("context_id") String rootId);
+  public abstract List<VariableRecord> getByPort(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("context_id") UUID rootId);
  
   @BindingAnnotation(BindVariableRecord.VariableBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
@@ -94,7 +103,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
             q.bind("is_wrapped", variableRecord.isWrapped());
             q.bind("globals_count", variableRecord.getNumberOfGlobals());
             q.bind("times_updated_count", variableRecord.getNumberOfTimesUpdated());
-            q.bind("context_id", variableRecord.getRootId());
+            q.bind("context_id", SchemaHelper.toUUID(variableRecord.getRootId()));
             q.bind("is_default", variableRecord.isDefault());
           }
         };
@@ -113,14 +122,14 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
       Boolean isWrapped = resultSet.getBoolean("is_wrapped");
       Integer globalsCount = resultSet.getInt("globals_count");
       Integer timesUpdatedCount = resultSet.getInt("times_updated_count");
-      String rootId = resultSet.getString("context_id");
+      UUID rootId = resultSet.getObject("context_id", UUID.class);
       Boolean isDefault = resultSet.getBoolean("is_default");
 
       Object valueObject = FileValue.deserialize(JSONHelper.transform(JSONHelper.readJsonNode(value)));
       
       Object transformObject = JSONHelper.transform(JSONHelper.readJsonNode(transform));
       
-      VariableRecord variableRecord = new VariableRecord(rootId, jobId, portId, LinkPortType.valueOf(type), valueObject, LinkMerge.valueOf(linkMerge));
+      VariableRecord variableRecord = new VariableRecord(SchemaHelper.fromUUID(rootId), jobId, portId, LinkPortType.valueOf(type), valueObject, LinkMerge.valueOf(linkMerge));
       variableRecord.setWrapped(isWrapped);
       variableRecord.setNumberGlobals(globalsCount);
       variableRecord.setNumberOfTimesUpdated(timesUpdatedCount);

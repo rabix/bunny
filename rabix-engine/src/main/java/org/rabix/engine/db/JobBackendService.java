@@ -2,6 +2,7 @@ package org.rabix.engine.db;
 
 import java.util.Set;
 
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.repository.JobBackendRepository;
 
 import com.google.inject.Inject;
@@ -16,27 +17,27 @@ public class JobBackendService {
   }
   
   public void insert(String jobId, String rootId, String backendId) {
-    this.jobBackendRepository.insert(jobId, rootId, backendId);
+    this.jobBackendRepository.insert(SchemaHelper.toUUID(jobId), SchemaHelper.toUUID(rootId), SchemaHelper.toUUID(backendId));
   }
   
   public void delete(String jobId) {
-    this.jobBackendRepository.delete(jobId);
+    this.jobBackendRepository.delete(SchemaHelper.toUUID(jobId));
   }
   
   public void update(String jobId, String backendId) {
-    this.jobBackendRepository.update(jobId, backendId);
+    this.jobBackendRepository.update(SchemaHelper.toUUID(jobId), SchemaHelper.toUUID(backendId));
   }
   
   public BackendJob getByJobId(String jobId) {
-    return jobBackendRepository.getByJobId(jobId);
+    return jobBackendRepository.getByJobId(SchemaHelper.toUUID(jobId));
   }
   
   public Set<BackendJob> getByRootId(String rootId) {
-    return jobBackendRepository.getByRootId(rootId);
+    return jobBackendRepository.getByRootId(SchemaHelper.toUUID(rootId));
   }
   
   public Set<BackendJob> getByBackendId(String backendId) {
-    return jobBackendRepository.getByBackendId(backendId);
+    return jobBackendRepository.getByBackendId(SchemaHelper.toUUID(backendId));
   }
   
   public Set<BackendJob> getFree() {
@@ -44,7 +45,7 @@ public class JobBackendService {
   }
   
   public Set<BackendJob> getFree(String rootId) {
-    return jobBackendRepository.getFreeJobs(rootId);
+    return jobBackendRepository.getFreeJobs(SchemaHelper.toUUID(rootId));
   }
   
   public static class BackendJob {

@@ -2,6 +2,7 @@ package org.rabix.engine.jdbi.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.rabix.bindings.model.Application;
 import org.rabix.common.json.BeanSerializer;
@@ -15,11 +16,13 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 public interface JDBIAppRepository extends AppRepository {
 
+  @Override
   @SqlUpdate("INSERT INTO APPLICATION (ID,APP) SELECT :id,:app WHERE NOT EXISTS (SELECT ID FROM APPLICATION WHERE ID=:id)")
-  void insert(@Bind("id") String id, @BindJson("app") Application app);
+  void insert(@Bind("id") UUID id, @BindJson("app") Application app);
   
+  @Override
   @SqlQuery("SELECT APP FROM APPLICATION WHERE ID=:id;")
-  Application get(@Bind("id") String id);
+  Application get(@Bind("id") UUID id);
   
   public static class ApplicationMapper implements ResultSetMapper<Application> {
     public Application map(int index, ResultSet r, StatementContext ctx) throws SQLException {

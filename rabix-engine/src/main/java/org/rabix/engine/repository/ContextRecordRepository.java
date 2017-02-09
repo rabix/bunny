@@ -1,5 +1,7 @@
 package org.rabix.engine.repository;
 
+import java.util.UUID;
+
 import org.rabix.engine.model.ContextRecord;
 
 public interface ContextRecordRepository {
@@ -8,6 +10,6 @@ public interface ContextRecordRepository {
   
   int update(ContextRecord contextRecord);
   
-  ContextRecord get(String id);
+  ContextRecord get(UUID id);
   
 }

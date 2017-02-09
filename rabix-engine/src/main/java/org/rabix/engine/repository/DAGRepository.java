@@ -1,10 +1,12 @@
 package org.rabix.engine.repository;
 
+import java.util.UUID;
+
 import org.rabix.bindings.model.dag.DAGNode;
 
 public interface DAGRepository {
 
-  void insert(String id, DAGNode dag);
+  void insert(UUID rootId, DAGNode dag);
   
-  DAGNode get(String id, String rootId);
+  DAGNode get(String id, UUID rootId);
 }

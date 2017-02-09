@@ -156,6 +156,10 @@ public class Job implements Serializable {
     return id;
   }
   
+  public String getMessage() {
+    return message;
+  }
+  
   public String getParentId() {
     return parentId;
   }

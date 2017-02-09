@@ -1,5 +1,6 @@
 package org.rabix.engine.service;
 
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.repository.ContextRecordRepository;
 
@@ -23,7 +24,7 @@ public class ContextRecordService {
   }
   
   public synchronized ContextRecord find(String id) {
-    return contextRecordRepository.get(id);
+    return contextRecordRepository.get(SchemaHelper.toUUID(id));
   }
   
 }

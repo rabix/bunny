@@ -2,6 +2,7 @@ package org.rabix.engine.repository;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.transport.backend.Backend;
 
@@ -12,18 +13,18 @@ public interface BackendRepository {
     INACTIVE
   }
   
-  void insert(String id, Backend backend, Timestamp heartbeatInfo, BackendStatus status);
+  void insert(UUID id, Backend backend, Timestamp heartbeatInfo, BackendStatus status);
   
-  void update(String id, Backend configuration);
+  void update(UUID id, Backend configuration);
   
-  Backend get(String id);
+  Backend get(UUID id);
   
   List<Backend> getByStatus(BackendStatus status);
   
-  void updateHeartbeatInfo(String id, Timestamp heartbeatInfo);
+  void updateHeartbeatInfo(UUID id, Timestamp heartbeatInfo);
   
-  void updateStatus(String id, BackendStatus status);
+  void updateStatus(UUID id, BackendStatus status);
   
-  Timestamp getHeartbeatInfo(String id);
+  Timestamp getHeartbeatInfo(UUID id);
 
 }

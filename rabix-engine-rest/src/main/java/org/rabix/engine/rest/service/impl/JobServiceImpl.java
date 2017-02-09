@@ -16,6 +16,7 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.SystemEnvironmentHelper;
+import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.db.JobDB;
@@ -135,6 +136,7 @@ public class JobServiceImpl implements JobService {
     
     String rootId = UUID.randomUUID().toString();
     job = Job.cloneWithIds(job, rootId, rootId);
+    job = Job.cloneWithName(job, InternalSchemaHelper.ROOT_NAME);
     
     Bindings bindings = null;
     try {

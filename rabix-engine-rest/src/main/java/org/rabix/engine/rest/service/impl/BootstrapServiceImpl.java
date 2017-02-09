@@ -3,6 +3,7 @@ package org.rabix.engine.rest.service.impl;
 import java.sql.Timestamp;
 import java.util.List;
 
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.BackendRepository;
@@ -43,7 +44,7 @@ public class BootstrapServiceImpl implements BootstrapService {
           List<Backend> activeBackends = backendRepository.getByStatus(BackendStatus.ACTIVE);
           
           for (Backend backend : activeBackends) {
-            backendRepository.updateHeartbeatInfo(backend.getId(), new Timestamp(System.currentTimeMillis()));
+            backendRepository.updateHeartbeatInfo(SchemaHelper.toUUID(backend.getId()), new Timestamp(System.currentTimeMillis()));
             backendService.startBackend(backend);
           }
           

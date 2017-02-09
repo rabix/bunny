@@ -2,6 +2,7 @@ package org.rabix.engine.db;
 
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.lru.dag.DAGCache;
 import org.rabix.engine.repository.DAGRepository;
 
@@ -28,8 +29,8 @@ public class DAGNodeDB {
   public DAGNode get(String id, String contextId, String dagHash) {
     DAGNode res = dagCache.get(id, contextId, dagHash);
     if(res == null) {
-      res = dagRepository.get(id, contextId);
-      dagCache.put(dagRepository.get(InternalSchemaHelper.ROOT_NAME, contextId), contextId);
+      res = dagRepository.get(id, SchemaHelper.toUUID(contextId));
+      dagCache.put(dagRepository.get(InternalSchemaHelper.ROOT_NAME, SchemaHelper.toUUID(contextId)), contextId);
     }
     return res;
   }
@@ -39,7 +40,7 @@ public class DAGNodeDB {
    */
   public String loadDB(DAGNode node, String contextId) {
     String dagHash = dagCache.put(node, contextId);
-    dagRepository.insert(contextId, node);
+    dagRepository.insert(SchemaHelper.toUUID(contextId), node);
     return dagHash;
   }
   

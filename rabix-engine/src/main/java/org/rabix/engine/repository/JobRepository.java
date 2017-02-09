@@ -1,21 +1,22 @@
 package org.rabix.engine.repository;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 
 public interface JobRepository {
 
-  void insert(String id, String rootId, Job job, String groupId);
+  void insert(Job job, UUID groupId);
   
-  void update(String id, Job job);
+  void update(Job job);
   
-  Job get(String id);
+  Job get(UUID id);
   
   Set<Job> get();
   
-  Set<Job> getByRootId(String rootId);
+  Set<Job> getByRootId(UUID rootId);
   
-  Set<Job> getJobsByGroupId(String group_id);
+  Set<Job> getJobsByGroupId(UUID groupId);
   
 }
