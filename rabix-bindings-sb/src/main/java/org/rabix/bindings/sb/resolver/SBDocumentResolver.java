@@ -74,7 +74,7 @@ public class SBDocumentResolver {
     }
 
     JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
-    if (cwlVersion==null || (cwlVersion!=null && !(cwlVersion.asText().equals(ProtocolType.SB.appVersion)))){
+    if (cwlVersion == null || !(cwlVersion.asText().equals(ProtocolType.SB.appVersion))){
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       clearFragmentCache(appUrl);

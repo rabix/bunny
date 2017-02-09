@@ -114,7 +114,7 @@ public static Set<String> types = new HashSet<String>();
     }
     
     JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
-    if (cwlVersion==null || (cwlVersion!=null && !(cwlVersion.asText().equals(ProtocolType.DRAFT3.appVersion)))) {
+    if (cwlVersion == null || !(cwlVersion.asText().equals(ProtocolType.DRAFT3.appVersion))) {
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       throw new BindingWrongVersionException("Document version is not cwl:draft-3");
