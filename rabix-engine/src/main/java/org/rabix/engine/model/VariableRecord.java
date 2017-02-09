@@ -5,15 +5,13 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CacheKey;
 
-import java.util.UUID;
-
 public class VariableRecord implements Cachable {
 
   public final static String CACHE_NAME = "VARIABLE_RECORD";
   
-  private UUID rootId;
+  private String rootId;
 
-  private String jobName;
+  private String jobId;
   private String portId;
   private LinkPortType type;
   private Object value;
@@ -27,8 +25,8 @@ public class VariableRecord implements Cachable {
   private boolean isDefault = true;
   private Object transform;
 
-  public VariableRecord(UUID rootId, String jobName, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
-    this.jobName = jobName;
+  public VariableRecord(String rootId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
+    this.jobId = jobId;
     this.portId = portId;
     this.type = type;
     this.value = value;
@@ -36,7 +34,7 @@ public class VariableRecord implements Cachable {
     this.linkMerge = linkMerge;
   }
 
-  public UUID getRootId() {
+  public String getRootId() {
     return rootId;
   }
   
@@ -48,16 +46,16 @@ public class VariableRecord implements Cachable {
     this.transform = transform;
   }
   
-  public String getJobName() {
-    return jobName;
+  public String getJobId() {
+    return jobId;
   }
 
   public int getNumberOfTimesUpdated() {
     return numberOfTimesUpdated;
   }
 
-  public void setJobName(String jobName) {
-    this.jobName = jobName;
+  public void setJobId(String jobId) {
+    this.jobId = jobId;
   }
 
   public String getPortId() {
@@ -116,7 +114,7 @@ public class VariableRecord implements Cachable {
     return value;
   }
 
-  public void setRootId(UUID rootId) {
+  public void setRootId(String rootId) {
     this.rootId = rootId;
   }
 
@@ -130,7 +128,7 @@ public class VariableRecord implements Cachable {
 
   @Override
   public String toString() {
-    return "VariableRecord [rootId=" + rootId + ", jobName=" + jobName + ", portId=" + portId + ", type=" + type
+    return "VariableRecord [rootId=" + rootId + ", jobId=" + jobId + ", portId=" + portId + ", type=" + type
         + ", value=" + value + ", isWrapped=" + isWrapped + ", numberOfGlobals=" + numberOfGlobals + ", linkMerge=" + linkMerge + "]";
   }
 
@@ -147,17 +145,17 @@ public class VariableRecord implements Cachable {
   public static class VariableRecordCacheKey implements CacheKey {
     private String jobId;
     private String portId;
-    private UUID rootId;
+    private String rootId;
     private LinkPortType type;
     
     public VariableRecordCacheKey(VariableRecord variableRecord) {
-      this.jobId = variableRecord.getJobName();
+      this.jobId = variableRecord.getJobId();
       this.portId = variableRecord.getPortId();
       this.rootId = variableRecord.getRootId();
       this.type = variableRecord.getType();
     }
     
-    public VariableRecordCacheKey(String jobId, String portId, UUID rootId, LinkPortType type) {
+    public VariableRecordCacheKey(String jobId, String portId, String rootId, LinkPortType type) {
       this.jobId = jobId;
       this.portId = portId;
       this.rootId = rootId;
@@ -193,7 +191,7 @@ public class VariableRecord implements Cachable {
       return portId;
     }
 
-    public UUID getRootId() {
+    public String getRootId() {
       return rootId;
     }
 
@@ -243,7 +241,7 @@ public class VariableRecord implements Cachable {
 
     @Override
     public String toString() {
-      return "VariableRecordCacheKey [jobName=" + jobId + ", portId=" + portId + ", rootId=" + rootId + ", type=" + type + "]";
+      return "VariableRecordCacheKey [jobId=" + jobId + ", portId=" + portId + ", rootId=" + rootId + ", type=" + type + "]";
     }
 
   }

@@ -2,7 +2,6 @@ package org.rabix.executor.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -12,20 +11,20 @@ public interface ExecutorService {
 
   void initialize(Backend backend);
   
-  void start(final Job job, UUID rootId);
+  void start(final Job job, String contextId);
 
-  void stop(List<UUID> ids, UUID rootId);
+  void stop(List<String> ids, String contextId);
 
-  void free(UUID rootId, Map<String, Object> config);
+  void free(String rootId, Map<String, Object> config);
   
   void shutdown(Boolean stopEverything);
 
-  boolean isRunning(UUID id, UUID rootId);
+  boolean isRunning(String id, String contextId);
   
-  Map<String, Object> getResult(UUID id, UUID rootId);
+  Map<String, Object> getResult(String id, String contextId);
   
   boolean isStopped();
 
-  JobStatus findStatus(UUID id, UUID rootId);
+  JobStatus findStatus(String id, String contextId);
 
 }

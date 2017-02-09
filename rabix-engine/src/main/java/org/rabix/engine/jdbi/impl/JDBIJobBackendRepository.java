@@ -3,7 +3,6 @@ package org.rabix.engine.jdbi.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
-import java.util.UUID;
 
 import org.rabix.engine.db.JobBackendService.BackendJob;
 import org.rabix.engine.jdbi.impl.JDBIJobBackendRepository.BackendJobMapper;
@@ -18,35 +17,35 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 @RegisterMapper(BackendJobMapper.class)
 public interface JDBIJobBackendRepository extends JobBackendRepository {
 
-  @SqlUpdate("update job set backend_id=:backend_id where id=:id")
-  int insert(@Bind("id") UUID jobId, UUID rootId, @Bind("backend_id") UUID backendId);
+  @SqlUpdate("insert into job_backend (job_id,root_id,backend_id) values (:job_id,:root_id,:backend_id)")
+  int insert(@Bind("job_id") String jobId, @Bind("root_id") String rootId, @Bind("backend_id") String backendId);
   
-  @SqlUpdate("update job set backend_id=:backend_id where id=:id")
-  int update(@Bind("id") UUID jobId, @Bind("backend_id") UUID backendId);
+  @SqlUpdate("update job_backend set backend_id=:backend_id where job_id=:job_id")
+  int update(@Bind("job_id") String jobId, @Bind("backend_id") String backendId);
   
-  @SqlUpdate("update job set backend_id=NULL where id=:id")
-  int delete(@Bind("id") UUID jobId);
+  @SqlUpdate("delete from job_backend where job_id=:job_id")
+  int delete(@Bind("job_id") String jobId);
   
-  @SqlQuery("select id job_id, backend_id, root_id from job where id=:id")
-  BackendJob getByJobId(@Bind("id") UUID jobId);
+  @SqlQuery("select * from job_backend where job_id=:job_id")
+  BackendJob getByJobId(@Bind("job_id") String jobId);
   
-  @SqlQuery("select id job_id, backend_id, root_id from job where root_id=:root_id")
-  Set<BackendJob> getByRootId(@Bind("root_id") UUID rootId);
+  @SqlQuery("select * from job_backend where root_id=:root_id")
+  Set<BackendJob> getByRootId(@Bind("root_id") String rootId);
   
-  @SqlQuery("select id job_id, backend_id, root_id from job where backend_id=:backend_id")
-  Set<BackendJob> getByBackendId(@Bind("backend_id") UUID backendId);
+  @SqlQuery("select * from job_backend where backend_id=:backend_id")
+  Set<BackendJob> getByBackendId(@Bind("backend_id") String backendId);
   
-  @SqlQuery("select id job_id, backend_id, root_id from job where backend_id is null and status='READY'")
+  @SqlQuery("select * from job_backend where backend_id is null")
   Set<BackendJob> getFreeJobs();
   
-  @SqlQuery("select id job_id, backend_id, root_id from job where root_id=:root_id and backend_id is null and status='READY'")
-  Set<BackendJob> getFreeJobs(@Bind("root_id") UUID rootId);
+  @SqlQuery("select * from job_backend where root_id=:root_id and backend_id is null")
+  Set<BackendJob> getFreeJobs(@Bind("root_id") String rootId);
   
   public static class BackendJobMapper implements ResultSetMapper<BackendJob> {
     public BackendJob map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
-      UUID jobId = resultSet.getObject("job_id", UUID.class);
-      UUID backendId = resultSet.getObject("backend_id", UUID.class);
-      UUID rootId = resultSet.getObject("root_id", UUID.class);
+      String jobId = resultSet.getString("job_id");
+      String backendId = resultSet.getString("backend_id");
+      String rootId = resultSet.getString("root_id");
       return new BackendJob(jobId, rootId, backendId);
     }
   }

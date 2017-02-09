@@ -1,6 +1,5 @@
 package org.rabix.executor.execution;
 
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -20,16 +19,16 @@ public class JobHandlerRunnable implements Runnable {
 
   private final static long DEFAULT_SLEEP_TIME = TimeUnit.SECONDS.toMillis(1);
 
-  private final UUID jobId;
-  private final UUID rootId;
+  private final String jobId;
+  private final String contextId;
   private final JobHandler jobHandler;
   private final BlockingQueue<JobHandlerCommand> commands;
 
   private final AtomicBoolean stop = new AtomicBoolean(false);
 
-  public JobHandlerRunnable(UUID jobId, UUID rootId, JobHandler jobHandler) {
+  public JobHandlerRunnable(String jobId, String contextId, JobHandler jobHandler) {
     this.jobId = jobId;
-    this.rootId = rootId;
+    this.contextId = contextId;
     this.jobHandler = jobHandler;
     this.commands = new LinkedBlockingQueue<>();
   }
@@ -57,7 +56,7 @@ public class JobHandlerRunnable implements Runnable {
           addCommand(command);
         }
 
-        JobHandlerCommand.Result result = command.run(jobId, rootId, jobHandler);
+        JobHandlerCommand.Result result = command.run(jobId, contextId, jobHandler);
         if (result.isLastCommand) {
           logger.debug("Command {} is last command. Stop thread.", command);
           stop();

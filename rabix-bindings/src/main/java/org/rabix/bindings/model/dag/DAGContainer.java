@@ -18,8 +18,8 @@ public class DAGContainer extends DAGNode {
   private List<DAGNode> children = new ArrayList<>();
 
   @JsonCreator
-  public DAGContainer(@JsonProperty("name") String name, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts, @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("app") Application app, @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("links") List<DAGLink> links, @JsonProperty("children") List<DAGNode> children, @JsonProperty("defaults") Map<String, Object> defaults) {
-    super(name, inputPorts, outputPorts, scatterMethod, app, defaults);
+  public DAGContainer(@JsonProperty("id") String id, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts, @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("app") Application app, @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("links") List<DAGLink> links, @JsonProperty("children") List<DAGNode> children, @JsonProperty("defaults") Map<String, Object> defaults) {
+    super(id, inputPorts, outputPorts, scatterMethod, app, defaults);
     this.links = links;
     this.children = children;
   }
@@ -55,7 +55,7 @@ public class DAGContainer extends DAGNode {
 
   @Override
   public String toString() {
-    return "DAGContainer [links=" + links + ", children=" + children + ", name=" + name + ", scatterMethod=" + scatterMethod + ", inputPorts=" + inputPorts + ", outputPorts=" + outputPorts + "]";
+    return "DAGContainer [links=" + links + ", children=" + children + ", id=" + id + ", scatterMethod=" + scatterMethod + ", inputPorts=" + inputPorts + ", outputPorts=" + outputPorts + "]";
   }
 
 }

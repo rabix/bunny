@@ -37,8 +37,8 @@ public class DAGNode {
     CONTAINER
   }
   
-  @JsonProperty("name")
-  protected String name;
+  @JsonProperty("id")
+  protected String id;
   @JsonDeserialize(using = ApplicationDeserializer.class)
   @JsonSerialize(using = ApplicationSerializer.class)
   @JsonProperty("app")
@@ -54,8 +54,8 @@ public class DAGNode {
   protected Map<String, Object> defaults;
   
   @JsonCreator
-  public DAGNode(@JsonProperty("name") String name, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts, @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("app") Application app, @JsonProperty("defaults") Map<String, Object> defaults) {
-    this.name = name;
+  public DAGNode(@JsonProperty("id") String id, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts, @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("app") Application app, @JsonProperty("defaults") Map<String, Object> defaults) {
+    this.id = id;
     this.app = app;
     this.inputPorts = inputPorts;
     this.outputPorts = outputPorts;
@@ -63,8 +63,8 @@ public class DAGNode {
     this.defaults = defaults;
   }
 
-  public String getName() {
-    return name;
+  public String getId() {
+    return id;
   }
 
   public Application getApp() {
@@ -138,7 +138,7 @@ public class DAGNode {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((app == null) ? 0 : app.hashCode());
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
     result = prime * result + ((inputPorts == null) ? 0 : inputPorts.hashCode());
     result = prime * result + ((outputPorts == null) ? 0 : outputPorts.hashCode());
     return result;
@@ -158,10 +158,10 @@ public class DAGNode {
         return false;
     } else if (!app.equals(other.app))
       return false;
-    if (name == null) {
-      if (other.name != null)
+    if (id == null) {
+      if (other.id != null)
         return false;
-    } else if (!name.equals(other.name))
+    } else if (!id.equals(other.id))
       return false;
     if (inputPorts == null) {
       if (other.inputPorts != null)
@@ -178,7 +178,7 @@ public class DAGNode {
 
   @Override
   public String toString() {
-    return "DAGNode [name=" + name + ", scatterMethod=" + scatterMethod + ", inputPorts=" + inputPorts + ", outputPorts=" + outputPorts + "]";
+    return "DAGNode [id=" + id + ", scatterMethod=" + scatterMethod + ", inputPorts=" + inputPorts + ", outputPorts=" + outputPorts + "]";
   }
 
 }

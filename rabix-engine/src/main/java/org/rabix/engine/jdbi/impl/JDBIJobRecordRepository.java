@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
@@ -18,6 +17,7 @@ import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.PortCounter;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.repository.JobRecordRepository;
+import org.rabix.engine.service.JobRecordService.JobState;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -35,32 +35,32 @@ import com.fasterxml.jackson.core.type.TypeReference;
 @RegisterMapper(JobRecordMapper.class)
 public abstract class JDBIJobRecordRepository extends JobRecordRepository {
 
-  @SqlUpdate("insert into job_record (name,id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash) values (:name,:id,:root_id,:parent_id,:blocking,:job_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash)")
+  @SqlUpdate("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash)")
   public abstract int insert(@BindJobRecord JobRecord jobRecord);
   
-  @SqlUpdate("update job_record set name=:name,id=:id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
+  @SqlUpdate("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
   public abstract int update(@BindJobRecord JobRecord jobRecord);
   
-  @SqlBatch("insert into job_record (name,id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash) values (:name,:id,:root_id,:parent_id,:blocking,:job_state::job_record_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash)")
+  @SqlBatch("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash)")
   public abstract void insertBatch(@BindJobRecord Iterator<JobRecord> records);
   
-  @SqlBatch("update job_record set name=:name,id=:id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state::job_record_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
+  @SqlBatch("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
   public abstract void updateBatch(@BindJobRecord Iterator<JobRecord> records);
   
   @SqlQuery("select * from job_record where root_id=:root_id")
-  public abstract List<JobRecord> get(@Bind("root_id") UUID rootId);
+  public abstract List<JobRecord> get(@Bind("root_id") String rootId);
   
-  @SqlQuery("select * from job_record where name='root' and root_id=:root_id")
-  public abstract JobRecord getRoot(@Bind("root_id") UUID rootId);
+  @SqlQuery("select * from job_record where id='root' and root_id=:root_id")
+  public abstract JobRecord getRoot(@Bind("root_id") String rootId);
   
-  @SqlQuery("select * from job_record where name=:name and root_id=:root_id")
-  public abstract JobRecord get(@Bind("name") String name, @Bind("root_id") UUID rootId);
+  @SqlQuery("select * from job_record where id=:id and root_id=:root_id")
+  public abstract JobRecord get(@Bind("id") String id, @Bind("root_id") String rootId);
   
   @SqlQuery("select * from job_record where parent_id=:parent_id and root_id=:root_id")
-  public abstract List<JobRecord> getByParent(@Bind("parent_id") UUID parentId, @Bind("root_id") UUID rootId);
+  public abstract List<JobRecord> getByParent(@Bind("parent_id") String parentId, @Bind("root_id") String rootId);
   
-  @SqlQuery("select * from job_record where job_state='READY'::job_record_state and root_id=?")
-  public abstract List<JobRecord> getReady(@Bind("root_id") UUID rootId);
+  @SqlQuery("select * from job_record where job_state='ready' and root_id=?")
+  public abstract List<JobRecord> getReady(@Bind("root_id") String rootId);
   
   @BindingAnnotation(BindJobRecord.JobBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
@@ -70,8 +70,8 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
       public Binder<BindJobRecord, JobRecord> build(Annotation annotation) {
         return new Binder<BindJobRecord, JobRecord>() {
           public void bind(SQLStatement<?> q, BindJobRecord bind, JobRecord jobRecord) {
-            q.bind("name", jobRecord.getName());
             q.bind("id", jobRecord.getId());
+            q.bind("external_id", jobRecord.getExternalId());
             q.bind("root_id", jobRecord.getRootId());
             q.bind("parent_id", jobRecord.getParentId());
             q.bind("blocking", jobRecord.isBlocking());
@@ -119,10 +119,10 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   
   public static class JobRecordMapper implements ResultSetMapper<JobRecord> {
     public JobRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
-      String name = resultSet.getString("name");
-      UUID id = resultSet.getObject("id", UUID.class);
-      UUID rootId = resultSet.getObject("root_id", UUID.class);
-      UUID parentId = resultSet.getObject("parent_id", UUID.class);
+      String id = resultSet.getString("id");
+      String externalId = resultSet.getString("external_id");
+      String rootId = resultSet.getString("root_id");
+      String parentId = resultSet.getString("parent_id");
       Boolean isBlocking = resultSet.getBoolean("blocking");
       String jobState = resultSet.getString("job_state");
       String inputCounters = resultSet.getString("input_counters");
@@ -135,7 +135,7 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
       String scatterStrategy = resultSet.getString("scatter_strategy");
       String dagHash = resultSet.getString("dag_hash");
 
-      JobRecord jobRecord = new JobRecord(rootId, name, id, parentId, JobRecord.JobState.valueOf(jobState), isContainer, isScattered, id.equals(rootId), isBlocking, dagHash);
+      JobRecord jobRecord = new JobRecord(rootId, id, externalId, parentId, JobState.valueOf(jobState), isContainer, isScattered, externalId.equals(rootId), isBlocking, dagHash);
       jobRecord.setScatterWrapper(isScatterWrapper);
       jobRecord.setNumberOfGlobalInputs(globalInputsCount);
       jobRecord.setNumberOfGlobalOutputs(globalOutputsCount);

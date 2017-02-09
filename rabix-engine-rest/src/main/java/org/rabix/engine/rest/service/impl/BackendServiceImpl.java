@@ -32,7 +32,7 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
   
-  private final static UUID DEV_BACKEND_ID = UUID.randomUUID();
+  private final static String DEV_BACKEND_ID = "backend_id";
   
   private final JobService jobService;
   private final SchedulerService scheduler;
@@ -63,7 +63,7 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            backendRepository.insert(backend, new Timestamp(System.currentTimeMillis()), BackendStatus.ACTIVE);
+            backendRepository.insert(backend.getId(), backend, new Timestamp(System.currentTimeMillis()), BackendStatus.ACTIVE);
             startBackend(populated);
             logger.info("Backend {} registered.", populated.getId());
             return backend;
@@ -88,10 +88,13 @@ public class BackendServiceImpl implements BackendService {
   }
   
   private <T extends Backend> T populate(T backend) throws BackendServiceException {
-    UUID id = backend.getId();
+    String id = backend.getId();
     
-    Backend backendFromDB = backendRepository.get(id);
-
+    if (!StringUtils.isEmpty(id)) {
+      Backend backendFromDB = backendRepository.get(id);
+      // TODO implement rest
+    }
+    
     if (backend.getId() == null) {
       backend.setId(generateUniqueBackendId());
     }
@@ -123,9 +126,9 @@ public class BackendServiceImpl implements BackendService {
     return (T) BeanSerializer.deserialize(payload, Backend.class);
   }
   
-  private UUID generateUniqueBackendId() {
+  private String generateUniqueBackendId() {
     boolean isDev = configuration.getBoolean("backend.dev", false);
-    return isDev? DEV_BACKEND_ID : UUID.randomUUID();
+    return isDev? DEV_BACKEND_ID : UUID.randomUUID().toString();
   }
 
   @Override
@@ -134,7 +137,7 @@ public class BackendServiceImpl implements BackendService {
   }
 
   @Override
-  public Long getHeartbeatInfo(UUID id) {
+  public Long getHeartbeatInfo(String id) {
     Timestamp timestamp = backendRepository.getHeartbeatInfo(id);
     return timestamp != null ? timestamp.getTime() : null;
   }

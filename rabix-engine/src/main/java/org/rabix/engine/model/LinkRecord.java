@@ -4,49 +4,47 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CacheKey;
 
-import java.util.UUID;
-
 public class LinkRecord implements Cachable {
 
   public final static String CACHE_NAME = "LINK_RECORD";
   
-  private UUID rootId;
+  private String contextId;
   
-  private String sourceJobName;
+  private String sourceJobId;
   private String sourceJobPort;
   private LinkPortType sourceVarType;
   
-  private String destinationJobName;
+  private String destinationJobId;
   private String destinationJobPort;
   private LinkPortType destinationVarType;
 
   private Integer position;
   
-  public LinkRecord(UUID rootId, String sourceJobName, String sourceJobPort, LinkPortType sourceVarType, String destinationJobName, String destinationJobPort, LinkPortType destinationVarType, Integer position) {
+  public LinkRecord(String contextId, String sourceJobId, String sourceJobPort, LinkPortType sourceVarType, String destinationJobId, String destinationJobPort, LinkPortType destinationVarType, Integer position) {
     this.position = position;
-    this.rootId = rootId;
-    this.sourceJobName = sourceJobName;
+    this.contextId = contextId;
+    this.sourceJobId = sourceJobId;
     this.sourceJobPort = sourceJobPort;
     this.sourceVarType = sourceVarType;
-    this.destinationJobName = destinationJobName;
+    this.destinationJobId = destinationJobId;
     this.destinationJobPort = destinationJobPort;
     this.destinationVarType = destinationVarType;
   }
 
-  public UUID getRootId() {
-    return rootId;
+  public String getContextId() {
+    return contextId;
   }
   
   public Integer getPosition() {
     return position;
   }
   
-  public String getSourceJobName() {
-    return sourceJobName;
+  public String getSourceJobId() {
+    return sourceJobId;
   }
 
-  public void setSourceJobName(String sourceJobName) {
-    this.sourceJobName = sourceJobName;
+  public void setSourceJobId(String sourceJobId) {
+    this.sourceJobId = sourceJobId;
   }
 
   public String getSourceJobPort() {
@@ -65,12 +63,12 @@ public class LinkRecord implements Cachable {
     this.sourceVarType = sourceVarType;
   }
 
-  public String getDestinationJobName() {
-    return destinationJobName;
+  public String getDestinationJobId() {
+    return destinationJobId;
   }
 
-  public void setDestinationJobName(String destinationJobName) {
-    this.destinationJobName = destinationJobName;
+  public void setDestinationJobId(String destinationJobId) {
+    this.destinationJobId = destinationJobId;
   }
 
   public String getDestinationJobPort() {
@@ -91,7 +89,7 @@ public class LinkRecord implements Cachable {
 
   @Override
   public String toString() {
-    return "LinkRecord [rootId=" + rootId + ", sourceJobName=" + sourceJobName + ", sourceJobPort=" + sourceJobPort + ", sourceVarType=" + sourceVarType + ", destinationJobName=" + destinationJobName + ", destinationJobPort=" + destinationJobPort + ", destinationVarType=" + destinationVarType + ", position=" + position + "]";
+    return "LinkRecord [contextId=" + contextId + ", sourceJobId=" + sourceJobId + ", sourceJobPort=" + sourceJobPort + ", sourceVarType=" + sourceVarType + ", destinationJobId=" + destinationJobId + ", destinationJobPort=" + destinationJobPort + ", destinationVarType=" + destinationVarType + ", position=" + position + "]";
   }
 
   @Override
@@ -106,7 +104,7 @@ public class LinkRecord implements Cachable {
   
   public static class LinkRecordCacheKey implements CacheKey {
 
-    public final UUID rootId;
+    public final String contextId;
     
     public final String sourceJobId;
     public final String sourceJobPort;
@@ -116,8 +114,8 @@ public class LinkRecord implements Cachable {
     public final String destinationJobPort;
     public final LinkPortType destinationVarType;
     
-    public LinkRecordCacheKey(UUID rootId, String sourceJobId, String sourceJobPort, LinkPortType sourceVarType, String destinationJobId, String destinationJobPort, LinkPortType destinationVarType) {
-      this.rootId = rootId;
+    public LinkRecordCacheKey(String contextId, String sourceJobId, String sourceJobPort, LinkPortType sourceVarType, String destinationJobId, String destinationJobPort, LinkPortType destinationVarType) {
+      this.contextId = contextId;
       this.sourceJobId = sourceJobId;
       this.sourceJobPort = sourceJobPort;
       this.sourceVarType = sourceVarType;
@@ -127,11 +125,11 @@ public class LinkRecord implements Cachable {
     }
 
     public LinkRecordCacheKey(LinkRecord linkRecord) {
-      this.rootId = linkRecord.rootId;
-      this.sourceJobId = linkRecord.sourceJobName;
+      this.contextId = linkRecord.contextId;
+      this.sourceJobId = linkRecord.sourceJobId;
       this.sourceJobPort = linkRecord.sourceJobPort;
       this.sourceVarType = linkRecord.sourceVarType;
-      this.destinationJobId = linkRecord.destinationJobName;
+      this.destinationJobId = linkRecord.destinationJobId;
       this.destinationJobPort = linkRecord.destinationJobPort;
       this.destinationVarType = linkRecord.destinationVarType;
     }
@@ -140,7 +138,7 @@ public class LinkRecord implements Cachable {
     public boolean satisfies(CacheKey key) {
       if (key instanceof LinkRecordCacheKey) {
         LinkRecordCacheKey key2 = (LinkRecordCacheKey) key;
-        if (!rootId.equals(key2.rootId) && key2.rootId != null) {
+        if (!contextId.equals(key2.contextId) && key2.contextId != null) {
           return false;
         }
         if (!sourceJobId.equals(key2.sourceJobId) && key2.sourceJobId != null) {

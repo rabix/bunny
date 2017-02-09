@@ -18,6 +18,7 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 
@@ -49,10 +50,10 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
   
   @Override
   public void handle(InputUpdateEvent event) throws EventHandlerException {
-    JobRecord job = jobService.find(event.getJobId(), event.getRootId());
-    VariableRecord variable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getRootId());
+    JobRecord job = jobService.find(event.getJobId(), event.getContextId());
+    VariableRecord variable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
 
-    DAGNode node = nodeDB.get(InternalSchemaHelper.normalizeId(job.getName()), event.getRootId(), job.getDagHash());
+    DAGNode node = nodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), event.getContextId(), job.getDagHash());
 
     if (event.isLookAhead()) {
       if (job.isBlocking() || (job.getInputPortIncoming(event.getPortId()) > 1)) {
@@ -92,7 +93,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
     update(job, variable);
     if (job.isReady()) {
-      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getName(), JobRecord.JobState.READY, event.getRootId(), null, event.getEventGroupId());
+      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId());
       eventProcessor.send(jobStatusEvent);
     }
   }
@@ -106,13 +107,13 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
    * Send events from scatter wrapper to scattered jobs
    */
   private void sendValuesToScatteredJobs(JobRecord job, VariableRecord variable, InputUpdateEvent event) throws EventHandlerException {
-    List<LinkRecord> links = linkService.findBySourceAndDestinationType(job.getName(), event.getPortId(), LinkPortType.INPUT, event.getRootId());
+    List<LinkRecord> links = linkService.findBySourceAndDestinationType(job.getId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
 
     List<Event> events = new ArrayList<>();
     for (LinkRecord link : links) {
-      VariableRecord destinationVariable = variableService.find(link.getDestinationJobName(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getRootId());
+      VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
 
-      Event updateInputEvent = new InputUpdateEvent(event.getRootId(), destinationVariable.getJobName(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId());
+      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {

@@ -20,6 +20,9 @@ public class BackendPopulator {
   }
 
   public <T extends Backend> T populate(T backend) {
+    if (backend.getId() == null) {
+      backend.setId(generateUniqueBackendId());
+    }
     switch (backend.getType()) {
     case RABBIT_MQ:
       if (((BackendRabbitMQ) backend).getBackendConfiguration() == null) {

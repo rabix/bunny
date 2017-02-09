@@ -3,20 +3,18 @@ package org.rabix.common.engine.control;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.UUID;
-
 public class EngineControlStopMessage extends EngineControlMessage {
   
   @JsonProperty("id")
-  private UUID id;
+  private String id;
 
   @JsonCreator
-  public EngineControlStopMessage(@JsonProperty("id") UUID id, @JsonProperty("rootId") UUID rootId) {
+  public EngineControlStopMessage(@JsonProperty("id") String id, @JsonProperty("rootId") String rootId) {
     super(rootId);
     this.id = id;
   }
 
-  public UUID getId() {
+  public String getId() {
     return id;
   }
 

@@ -36,11 +36,11 @@ public class Job implements Serializable {
   }
 
   @JsonProperty("id")
-  private final UUID id;
+  private final String id;
   @JsonProperty("parentId")
-  private final UUID parentId;
+  private final String parentId;
   @JsonProperty("rootId")
-  private final UUID rootId;
+  private final String rootId;
   @JsonProperty("name")
   private final String name;
   @JsonProperty("app")
@@ -61,18 +61,18 @@ public class Job implements Serializable {
   private final Resources resources;
   
   @JsonProperty("visiblePorts")
-  private Set<String> visiblePorts;  // root outputs?
+  private Set<String> visiblePorts;
   
   public Job(String app, Map<String, Object> inputs) {
     this(null, null, generateId(), null, app, JobStatus.PENDING, null, inputs, null, null, null, null);
   }
   
   @JsonCreator
-  public Job(@JsonProperty("id") UUID id,
-      @JsonProperty("parentId") UUID parentId,
-      @JsonProperty("rootId") UUID rootId,
+  public Job(@JsonProperty("id") String id,
+      @JsonProperty("parentId") String parentId,
+      @JsonProperty("rootId") String rootId,
       @JsonProperty("name") String name,
-      @JsonProperty("app") String app,
+      @JsonProperty("app") String app, 
       @JsonProperty("status") JobStatus status,
       @JsonProperty("message") String message,
       @JsonProperty("inputs") Map<String, Object> inputs, 
@@ -94,11 +94,11 @@ public class Job implements Serializable {
     this.visiblePorts = visiblePorts;
   }
   
-  public static UUID generateId() {
-    return UUID.randomUUID();
+  public static String generateId() {
+    return UUID.randomUUID().toString();
   }
   
-  public static Job cloneWithId(Job job, UUID id) {
+  public static Job cloneWithId(Job job, String id) {
     return new Job(id, job.parentId, job.rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
   
@@ -106,11 +106,11 @@ public class Job implements Serializable {
     return new Job(job.id, job.parentId, job.rootId, name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
 
-  public static Job cloneWithIds(Job job, UUID id, UUID rootId) {
+  public static Job cloneWithIds(Job job, String id, String rootId) {
     return new Job(id, job.parentId, rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
   
-  public static Job cloneWithRootId(Job job, UUID rootId) {
+  public static Job cloneWithRootId(Job job, String rootId) {
     return new Job(job.getId(), job.parentId, rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
   
@@ -152,15 +152,15 @@ public class Job implements Serializable {
     return id.equals(rootId);
   }
   
-  public UUID getId() {
+  public String getId() {
     return id;
   }
   
-  public UUID getParentId() {
+  public String getParentId() {
     return parentId;
   }
   
-  public UUID getRootId() {
+  public String getRootId() {
     return rootId;
   }
   
@@ -179,11 +179,7 @@ public class Job implements Serializable {
   public Set<String> getVisiblePorts() {
     return visiblePorts;
   }
-
-  public String getMessage() {
-    return message;
-  }
-
+  
   @SuppressWarnings("unchecked")
   public Map<String, Object> getInputs() {
     try {

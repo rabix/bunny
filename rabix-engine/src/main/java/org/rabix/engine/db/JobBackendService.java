@@ -1,7 +1,6 @@
 package org.rabix.engine.db;
 
 import java.util.Set;
-import java.util.UUID;
 
 import org.rabix.engine.repository.JobBackendRepository;
 
@@ -16,27 +15,27 @@ public class JobBackendService {
     this.jobBackendRepository = jobBackendRepository;
   }
   
-  public void insert(UUID jobId, UUID rootId, UUID backendId) {
+  public void insert(String jobId, String rootId, String backendId) {
     this.jobBackendRepository.insert(jobId, rootId, backendId);
   }
   
-  public void delete(UUID jobId) {
+  public void delete(String jobId) {
     this.jobBackendRepository.delete(jobId);
   }
   
-  public void update(UUID jobId, UUID backendId) {
+  public void update(String jobId, String backendId) {
     this.jobBackendRepository.update(jobId, backendId);
   }
   
-  public BackendJob getByJobId(UUID jobId) {
+  public BackendJob getByJobId(String jobId) {
     return jobBackendRepository.getByJobId(jobId);
   }
   
-  public Set<BackendJob> getByRootId(UUID rootId) {
+  public Set<BackendJob> getByRootId(String rootId) {
     return jobBackendRepository.getByRootId(rootId);
   }
   
-  public Set<BackendJob> getByBackendId(UUID backendId) {
+  public Set<BackendJob> getByBackendId(String backendId) {
     return jobBackendRepository.getByBackendId(backendId);
   }
   
@@ -44,43 +43,43 @@ public class JobBackendService {
     return jobBackendRepository.getFreeJobs();
   }
   
-  public Set<BackendJob> getFree(UUID rootId) {
+  public Set<BackendJob> getFree(String rootId) {
     return jobBackendRepository.getFreeJobs(rootId);
   }
   
   public static class BackendJob {
-    private UUID jobId;
-    private UUID rootId;
-    private UUID backendId;
+    private String jobId;
+    private String rootId;
+    private String backendId;
     
-    public BackendJob(UUID jobId, UUID rootId, UUID backendId) {
+    public BackendJob(String jobId, String rootId, String backendId) {
       super();
       this.jobId = jobId;
       this.rootId = rootId;
       this.backendId = backendId;
     }
 
-    public UUID getJobId() {
+    public String getJobId() {
       return jobId;
     }
 
-    public void setJobId(UUID jobId) {
+    public void setJobId(String jobId) {
       this.jobId = jobId;
     }
 
-    public UUID getRootId() {
+    public String getRootId() {
       return rootId;
     }
 
-    public void setRootId(UUID rootId) {
+    public void setRootId(String rootId) {
       this.rootId = rootId;
     }
 
-    public UUID getBackendId() {
+    public String getBackendId() {
       return backendId;
     }
 
-    public void setBackendId(UUID backendId) {
+    public void setBackendId(String backendId) {
       this.backendId = backendId;
     }
 

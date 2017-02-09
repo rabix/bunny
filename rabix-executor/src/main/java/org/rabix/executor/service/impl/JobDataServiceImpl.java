@@ -1,6 +1,10 @@
 package org.rabix.executor.service.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,7 +31,7 @@ public class JobDataServiceImpl implements JobDataService {
 
   private final static Logger logger = LoggerFactory.getLogger(JobDataServiceImpl.class);
 
-  private final Map<UUID, Map<UUID, JobData>> jobDataMap = new HashMap<>();
+  private final Map<String, Map<String, JobData>> jobDataMap = new HashMap<>();
 
   private Provider<StopCommand> stopCommandProvider;
   private Provider<StartCommand> startCommandProvider;
@@ -59,10 +63,10 @@ public class JobDataServiceImpl implements JobDataService {
   }
   
   @Override
-  public JobData find(UUID id, UUID rootId) {
+  public JobData find(String id, String contextId) {
     Preconditions.checkNotNull(id);
     synchronized (jobDataMap) {
-      return getJobDataMap(rootId).get(id);
+      return getJobDataMap(contextId).get(id);
     }
   }
 
@@ -73,7 +77,7 @@ public class JobDataServiceImpl implements JobDataService {
     synchronized (jobDataMap) {
       List<JobDataStatus> statusList = Arrays.asList(statuses);
       List<JobData> jobDataByStatus = new ArrayList<>();
-      for (Entry<UUID, Map<UUID, JobData>> entry : jobDataMap.entrySet()) {
+      for (Entry<String, Map<String, JobData>> entry : jobDataMap.entrySet()) {
         for (JobData jobData : entry.getValue().values()) {
           if (statusList.contains(jobData.getStatus())) {
             jobDataByStatus.add(jobData);
@@ -102,12 +106,12 @@ public class JobDataServiceImpl implements JobDataService {
     }
   }
   
-  private Map<UUID, JobData> getJobDataMap(UUID rootId) {
+  private Map<String, JobData> getJobDataMap(String contextId) {
     synchronized (jobDataMap) {
-      Map<UUID, JobData> jobList = jobDataMap.get(rootId);
+      Map<String, JobData> jobList = jobDataMap.get(contextId);
       if (jobList == null) {
         jobList = new HashMap<>();
-        jobDataMap.put(rootId, jobList);
+        jobDataMap.put(contextId, jobList);
       }
       return jobList;
     }

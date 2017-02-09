@@ -1,7 +1,6 @@
 package org.rabix.executor.service;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.rabix.executor.engine.EngineStub;
 import org.rabix.executor.model.JobData;
@@ -15,7 +14,7 @@ public interface JobDataService {
 
   JobData save(JobData jobData, String message, JobDataStatus status);
   
-  public JobData find(UUID id, UUID rootId);
+  public JobData find(String id, String contextId);
 
   public List<JobData> find(JobDataStatus... statuses);
 

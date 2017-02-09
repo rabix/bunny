@@ -2,7 +2,6 @@ package org.rabix.engine.lru.dag;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.dag.DAGContainer;
@@ -33,7 +32,7 @@ public class DAGCache extends LRUCache<String, DAGNode> {
     super(CACHE_NAME, cacheSize);
   }
   
-  public DAGNode get(String id, UUID rootId, String dagHash) {
+  public DAGNode get(String id, String rootId, String dagHash) {
     DAGNode res = null;
     res = get(dagHash);
     if(res != null) {
@@ -43,7 +42,7 @@ public class DAGCache extends LRUCache<String, DAGNode> {
     return res != null ? getIdFromDAG(id, res) : null;    
   }
   
-  public String put(DAGNode dagNode, UUID rootId) {
+  public String put(DAGNode dagNode, String rootId) {
     String dagHash = hashDagNode(dagNode);
     put(dagHash, dagNode);
     return dagHash;
@@ -56,7 +55,7 @@ public class DAGCache extends LRUCache<String, DAGNode> {
   }
   
   private void populateNodes(DAGNode node, Map<String, DAGNode> allNodes) {
-    allNodes.put(node.getName(), node);
+    allNodes.put(node.getId(), node);
     if (node instanceof DAGContainer) {
       for (DAGNode child : ((DAGContainer) node).getChildren()) {
         populateNodes(child, allNodes);

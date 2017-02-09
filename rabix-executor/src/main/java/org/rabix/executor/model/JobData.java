@@ -1,7 +1,6 @@
 package org.rabix.executor.model;
 
 import java.util.Map;
-import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -109,7 +108,7 @@ public class JobData {
     return new JobData(jobData.job, status, message, jobData.important, jobData.terminal);
   }
 
-  public UUID getId() {
+  public String getId() {
     return job.getId();
   }
   

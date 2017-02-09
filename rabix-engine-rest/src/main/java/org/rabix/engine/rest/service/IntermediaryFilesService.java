@@ -1,8 +1,13 @@
 package org.rabix.engine.rest.service;
 
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.rabix.bindings.model.FileValue;
@@ -15,9 +20,9 @@ public abstract class IntermediaryFilesService {
 
   private final static Logger logger = LoggerFactory.getLogger(IntermediaryFilesService.class);
   
-  private Map<UUID, Map<String, Integer>> files = new ConcurrentHashMap<UUID, Map<String, Integer>>();
+  private Map<String, Map<String, Integer>> files = new ConcurrentHashMap<String, Map<String, Integer>>();
   
-  public void addOrIncrement(UUID rootId, FileValue file, Integer usage) {
+  public void addOrIncrement(String rootId, FileValue file, Integer usage) {
     Set<String> paths = new HashSet<String>();
     IntermediaryFilesHelper.extractPathsFromFileValue(paths, file);
     Map<String, Integer> filesForRootId = files.get(rootId) != null ? files.get(rootId): new HashMap<String, Integer>();
@@ -34,7 +39,7 @@ public abstract class IntermediaryFilesService {
     files.put(rootId, filesForRootId);
   }
   
-  protected Set<String> getUnusedFiles(UUID rootId) {
+  protected Set<String> getUnusedFiles(String rootId) {
     Map<String, Integer> filesForRootId = files.get(rootId) != null ? files.get(rootId): Collections.<String, Integer>emptyMap();
     Set<String> unusedFiles = new HashSet<String>();
     for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
@@ -48,7 +53,7 @@ public abstract class IntermediaryFilesService {
   }
 
   
-  public void decrementFiles(UUID rootId, Set<String> checkFiles) {
+  public void decrementFiles(String rootId, Set<String> checkFiles) {
     Map<String, Integer> filesForRootId = files.get(rootId);
     for(String path: checkFiles) {
       logger.debug("Decrementing file with path={}", path);
@@ -56,7 +61,7 @@ public abstract class IntermediaryFilesService {
     }
   }
   
-  public void jobFailed(UUID rootId, Set<String> rootInputs) {
+  public void jobFailed(String rootId, Set<String> rootInputs) {
     Map<String, Integer> filesForRootId = files.get(rootId);
     for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
       Entry<String, Integer> fileEntry = it.next();
@@ -67,12 +72,12 @@ public abstract class IntermediaryFilesService {
     }
   }
   
-  public abstract void handleUnusedFiles(UUID rootId);
+  public abstract void handleUnusedFiles(String rootId);
   
   public void dumpFiles() {
     VerboseLogger.log("Intermediary files table");
-    for(Iterator<Map.Entry<UUID, Map<String, Integer>>> it = files.entrySet().iterator(); it.hasNext();) {
-      Entry<UUID, Map<String, Integer>> tableEntry = it.next();
+    for(Iterator<Map.Entry<String, Map<String, Integer>>> it = files.entrySet().iterator(); it.hasNext();) {
+      Entry<String, Map<String, Integer>> tableEntry = it.next();
       VerboseLogger.log("RootId: " + tableEntry.getKey());
       for(Iterator<Map.Entry<String, Integer>> itt = tableEntry.getValue().entrySet().iterator(); itt.hasNext();) {
         Entry<String, Integer> fileEntry = itt.next();

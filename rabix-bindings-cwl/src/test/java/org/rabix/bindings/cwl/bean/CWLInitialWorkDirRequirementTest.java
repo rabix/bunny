@@ -3,7 +3,6 @@ package org.rabix.bindings.cwl.bean;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
@@ -34,8 +33,7 @@ public class CWLInitialWorkDirRequirementTest {
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(cwlJob.getApp()));
       Map<String, Object> inputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(cwlJob.getInputs());
-      UUID id = UUID.randomUUID();
-      Job job = new Job(id, id, id, "id", encodedApp, null, null, inputs, null, null, null, null);
+      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, inputs, null, null, null, null);
       job = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       Bindings bindings = new CWLBindings();
       

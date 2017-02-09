@@ -1,26 +1,22 @@
 package org.rabix.engine.event.impl;
 
 import org.rabix.engine.event.Event;
-import org.rabix.engine.model.RootJob.RootJobStatus;
-
-import java.util.UUID;
+import org.rabix.engine.model.ContextRecord.ContextStatus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+public class ContextStatusEvent implements Event {
 
-public class RootJobStatusEvent implements Event {
-
-  @JsonProperty("rootId")
-  private final UUID rootId;
-
+  @JsonProperty("contextId")
+  private final String contextId;
   @JsonProperty("status")
-  private final RootJobStatus status;
+  private final ContextStatus status;
   
   @JsonCreator
-  public RootJobStatusEvent(@JsonProperty("rootId") UUID rootId, @JsonProperty("status") RootJobStatus status) {
+  public ContextStatusEvent(@JsonProperty("contextId") String contextId, @JsonProperty("status") ContextStatus status) {
     this.status = status;
-    this.rootId = rootId;
+    this.contextId = contextId;
   }
   
   @Override
@@ -28,17 +24,17 @@ public class RootJobStatusEvent implements Event {
     return EventType.CONTEXT_STATUS_UPDATE;
   }
 
-  public RootJobStatus getStatus() {
+  public ContextStatus getStatus() {
     return status;
   }
   
   @Override
-  public UUID getRootId() {
-    return rootId;
+  public String getContextId() {
+    return contextId;
   }
   
   @Override
-  public UUID getEventGroupId() {
+  public String getEventGroupId() {
     return null;
   }
 
@@ -46,7 +42,7 @@ public class RootJobStatusEvent implements Event {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((rootId == null) ? 0 : rootId.hashCode());
+    result = prime * result + ((contextId == null) ? 0 : contextId.hashCode());
     result = prime * result + ((status == null) ? 0 : status.hashCode());
     return result;
   }
@@ -59,11 +55,11 @@ public class RootJobStatusEvent implements Event {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    RootJobStatusEvent other = (RootJobStatusEvent) obj;
-    if (rootId == null) {
-      if (other.rootId != null)
+    ContextStatusEvent other = (ContextStatusEvent) obj;
+    if (contextId == null) {
+      if (other.contextId != null)
         return false;
-    } else if (!rootId.equals(other.rootId))
+    } else if (!contextId.equals(other.contextId))
       return false;
     if (status != other.status)
       return false;
@@ -72,7 +68,7 @@ public class RootJobStatusEvent implements Event {
 
   @Override
   public String toString() {
-    return "RootJobStatusEvent [contextId=" + rootId + ", status=" + status + "]";
+    return "ContextStatusEvent [contextId=" + contextId + ", status=" + status + "]";
   }
 
   @Override

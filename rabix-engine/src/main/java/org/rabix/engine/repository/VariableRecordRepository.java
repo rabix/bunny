@@ -3,7 +3,6 @@ package org.rabix.engine.repository;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.cache.Cachable;
@@ -48,10 +47,10 @@ public abstract class VariableRecordRepository implements CachableRepository  {
   
   public abstract int update(VariableRecord jobRecord);
   
-  public abstract VariableRecord get(String jobName, String portId, LinkPortType type, UUID rootId);
+  public abstract VariableRecord get(String jobId, String portId, LinkPortType type, String rootId);
  
-  public abstract List<VariableRecord> getByType(String jobName, LinkPortType type, UUID rootId);
+  public abstract List<VariableRecord> getByType(String jobId, LinkPortType type, String rootId);
   
-  public abstract List<VariableRecord> getByPort(String jobName, String portId, UUID rootId);
+  public abstract List<VariableRecord> getByPort(String jobId, String portId, String rootId);
  
 }

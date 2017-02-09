@@ -1,9 +1,7 @@
 package org.rabix.engine.event.impl;
 
 import java.util.Map;
-import java.util.UUID;
 
-import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -15,22 +13,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class InitEvent implements Event {
 
   @JsonProperty("eventGroupId")
-  private final UUID eventGroupId;
+  private final String eventGroupId;
   @JsonProperty("value")
   private final Map<String, Object> value;
-
   @JsonProperty("rootId")
-  private final UUID rootId;
-
+  private final String rootId;
   @JsonProperty("config")
   private final Map<String, Object> config;
-
   @JsonProperty("dagHash")
   private final String dagHash;
-
+  
   @JsonCreator
-  public InitEvent(@JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("value") Map<String, Object> value,
-      @JsonProperty("rootId") UUID rootId, @JsonProperty("config") Map<String, Object> config, @JsonProperty("dagHash") String dagHash) {
+  public InitEvent(@JsonProperty("eventGroupId") String eventGroupId, @JsonProperty("value") Map<String, Object> value,
+      @JsonProperty("rootId") String rootId, @JsonProperty("config") Map<String, Object> config, @JsonProperty("dagHash") String dagHash) {
     super();
     this.eventGroupId = eventGroupId;
     this.value = value;
@@ -42,14 +37,18 @@ public class InitEvent implements Event {
   public Map<String, Object> getValue() {
     return value;
   }
-
-  @Override
-  public UUID getRootId() {
+  
+  public String getRootId() {
     return rootId;
   }
   
   @Override
-  public UUID getEventGroupId() {
+  public String getContextId() {
+    return rootId;
+  }
+  
+  @Override
+  public String getEventGroupId() {
     return eventGroupId;
   }
   
