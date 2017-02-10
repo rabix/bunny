@@ -11,12 +11,23 @@ public interface JobRepository {
   
   void update(Job job);
   
+  void updateBackendId(UUID jobId, UUID backendId);
+  
+  void dealocateJobs(UUID backendId);
+  
   Job get(UUID id);
   
   Set<Job> get();
   
   Set<Job> getByRootId(UUID rootId);
   
+  Set<UUID> getBackendsByRootId(UUID rootId);
+  
+  Set<UUID> getJobsByBackendId(UUID backendId);
+  
   Set<Job> getJobsByGroupId(UUID groupId);
+
+  Set<Job> getReadyFree();
+
   
 }

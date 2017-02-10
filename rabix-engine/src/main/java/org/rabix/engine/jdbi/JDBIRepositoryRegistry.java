@@ -5,7 +5,6 @@ import org.rabix.engine.jdbi.impl.JDBIBackendRepository;
 import org.rabix.engine.jdbi.impl.JDBIContextRecordRepository;
 import org.rabix.engine.jdbi.impl.JDBIDAGRepository;
 import org.rabix.engine.jdbi.impl.JDBIEventRepository;
-import org.rabix.engine.jdbi.impl.JDBIJobBackendRepository;
 import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository;
 import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository;
@@ -28,9 +27,6 @@ public abstract class JDBIRepositoryRegistry extends TransactionHelper {
   
   @CreateSqlObject
   public abstract JDBIJobRepository jobRepository();
-  
-  @CreateSqlObject
-  public abstract JDBIJobBackendRepository jobBackendRepository();
   
   @CreateSqlObject
   public abstract JDBIJobRecordRepository jobRecordRepository();

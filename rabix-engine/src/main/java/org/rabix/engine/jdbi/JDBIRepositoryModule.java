@@ -7,7 +7,6 @@ import org.rabix.engine.repository.BackendRepository;
 import org.rabix.engine.repository.ContextRecordRepository;
 import org.rabix.engine.repository.DAGRepository;
 import org.rabix.engine.repository.EventRepository;
-import org.rabix.engine.repository.JobBackendRepository;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.LinkRecordRepository;
@@ -70,11 +69,6 @@ public class JDBIRepositoryModule extends AbstractModule {
   @Provides
   public JobRepository provideJobRepository(JDBIRepositoryRegistry repositoryRegistry) {
     return repositoryRegistry.jobRepository();
-  }
-  
-  @Provides
-  public JobBackendRepository provideJobBackendRepository(JDBIRepositoryRegistry repositoryRegistry) {
-    return repositoryRegistry.jobBackendRepository();
   }
   
   @Provides

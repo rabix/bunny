@@ -41,12 +41,28 @@ public interface JDBIJobRepository extends JobRepository {
   void update(@BindJob Job job);
 
   @Override
+  @SqlUpdate("update job set backend_id=:backend_id where id=:id")
+  void updateBackendId(@Bind("id") UUID jobId, @Bind("backend_id") UUID backendId);
+  
+  @Override
+  @SqlUpdate("update job set backend_id=null where backend_id=:backend_id")
+  void dealocateJobs(@Bind("backend_id") UUID backendId);
+  
+  @Override
   @SqlQuery("select * from job where id=:id")
   Job get(@Bind("id") UUID id);
   
   @Override
   @SqlQuery("select * from job")
   Set<Job> get();
+  
+  @Override
+  @SqlQuery("select backend_id from job where root_id=:root_id")
+  Set<UUID> getBackendsByRootId(@Bind("root_id") UUID rootId);
+  
+  @Override
+  @SqlQuery("select id from job where backend_id=:backend_id")
+  Set<UUID> getJobsByBackendId(@Bind("backend_id") UUID backendId);
   
   @Override
   @SqlQuery("select * from job where root_id=:root_id")
@@ -56,6 +72,10 @@ public interface JDBIJobRepository extends JobRepository {
   @SqlQuery("select * from job where group_id=:group_id")
   Set<Job> getJobsByGroupId(@Bind("group_id") UUID group_id);
 
+  @Override
+  @SqlQuery("select * from job where backend_id is null and status='READY'::job_status")
+  Set<Job> getReadyFree();
+  
   public static class JobMapper implements ResultSetMapper<Job> {
     public Job map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       UUID id = r.getObject("id", UUID.class);

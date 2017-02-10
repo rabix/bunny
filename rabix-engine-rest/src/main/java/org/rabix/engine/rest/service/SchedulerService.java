@@ -7,8 +7,6 @@ public interface SchedulerService {
 
   void start();
   
-  void allocate(Job... jobs);
-
   boolean stop(Job... jobs);
 
   void addBackendStub(BackendStub<?, ?, ?> backendStub) throws BackendServiceException;
