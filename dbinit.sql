@@ -61,7 +61,7 @@ CREATE TYPE job_status as enum ('PENDING', 'READY', 'STARTED', 'ABORTED', 'FAILE
 
 CREATE TABLE job (
     id			    uuid primary key,
-    root_id 	    uuid, -- references context_record,
+    root_id 	    uuid,
     name            text not null,
     parent_id       uuid,
     status          job_status not null,
@@ -92,7 +92,7 @@ CREATE TYPE job_record_state as ENUM ('PENDING', 'READY', 'RUNNING', 'COMPLETED'
 CREATE TABLE job_record (
     external_id		        uuid primary key,
     id  					text not null,
-    root_id					uuid references context_record,
+    root_id					uuid references context_record on delete cascade,
     parent_id				uuid,
     blocking    			boolean not null,
     job_state				job_record_state not null,
@@ -126,7 +126,7 @@ CREATE TABLE dag_node (
 CREATE TYPE port_type as ENUM ('INPUT', 'OUTPUT');
 
 CREATE TABLE link_record (
-    context_id			    uuid references context_record,
+    context_id			    uuid references context_record on delete cascade,
     source_job_id			text not null,
     source_job_port_id		text not null,
     source_type				port_type not null,
@@ -157,7 +157,7 @@ CREATE TABLE variable_record (
     is_wrapped			boolean not null,
     globals_count		integer not null,
     times_updated_count	integer not null,
-    context_id 			uuid references context_record,
+    context_id 			uuid references context_record on delete cascade,
     is_default			boolean not null,
     transform			jsonb
 );
