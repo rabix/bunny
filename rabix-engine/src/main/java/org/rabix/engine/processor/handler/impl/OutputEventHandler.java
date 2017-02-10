@@ -11,6 +11,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
+import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
@@ -50,12 +51,13 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   private final EventProcessor eventProcessor;
   
   private DAGNodeDB dagNodeDB;
+  private AppDB appDB;
   private EngineStatusCallback engineStatusCallback;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB) {
+  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, AppDB appDB) {
     this.dagNodeDB = dagNodeDB;
-    
+    this.appDB = appDB;
     this.jobService = jobService;
     this.linkService = linkService;
     this.contextService = contextService;
@@ -83,7 +85,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       jobService.update(sourceJob);
       
       try {
-        Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobService, variableService, linkService, contextService, dagNodeDB);
+        Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobService, variableService, linkService, contextService, dagNodeDB, appDB);
         engineStatusCallback.onJobCompleted(completedJob);
       } catch (BindingException e) {
         logger.error("Failed to create Job " + sourceJob.getId(), e);
@@ -219,7 +221,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
       outputs.put(outputVariable.getPortId(), value);
     }
-    return JobHelper.createRootJob(jobRecord, status, jobService, variableService, linkService, contextService, dagNodeDB, outputs);
+    return JobHelper.createRootJob(jobRecord, status, jobService, variableService, linkService, contextService, dagNodeDB, appDB, outputs);
   }
   
 }

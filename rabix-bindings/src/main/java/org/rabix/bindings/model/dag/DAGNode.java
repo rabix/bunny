@@ -43,6 +43,8 @@ public class DAGNode {
   @JsonSerialize(using = ApplicationSerializer.class)
   @JsonProperty("app")
   protected Application app;
+  @JsonProperty("appHash")
+  protected String appHash;
   @JsonProperty("scatterMethod")
   protected ScatterMethod scatterMethod;
   @JsonProperty("inputPorts")
@@ -61,14 +63,27 @@ public class DAGNode {
     this.outputPorts = outputPorts;
     this.scatterMethod = scatterMethod;
     this.defaults = defaults;
+    this.appHash = null;
   }
 
   public String getId() {
     return id;
   }
-
+  
   public Application getApp() {
     return app;
+  }
+  
+  public void setApp(Application app) {
+    this.app = app;
+  }
+  
+  public String getAppHash() {
+    return appHash;
+  }
+  
+  public void setAppHash(String appHash) {
+    this.appHash = appHash;
   }
 
   public List<DAGLinkPort> getInputPorts() {

@@ -17,6 +17,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
+import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.db.JobDB;
 import org.rabix.engine.event.Event;
@@ -49,6 +50,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   
   private final JobDB jobDB;
   private final DAGNodeDB dagNodeDB;
+  private final AppDB appDB;
   private final ScatterHandler scatterHelper;
   private final EventProcessor eventProcessor;
   
@@ -60,7 +62,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private EngineStatusCallback engineStatusCallback;
 
   @Inject
-  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final JobDB jobDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final ContextRecordService contextRecordService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper) {
+  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobDB jobDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final ContextRecordService contextRecordService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper) {
     this.jobDB = jobDB;
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
@@ -69,6 +71,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.linkRecordService = linkRecordService;
     this.contextRecordService = contextRecordService;
     this.variableRecordService = variableRecordService;
+    this.appDB = appDB;
   }
 
   public void initialize(EngineStatusCallback engineStatusCallback) {
@@ -89,7 +92,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
         Job job = null;
         try {
-          job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
+          job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
           if (!StringUtils.isEmpty(event.getEventGroupId())) {
             jobDB.add(job, event.getEventGroupId());
           }
@@ -100,7 +103,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       else {
         Job containerJob = null;
         try {
-          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, false);
+          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, false);
         } catch (BindingException e) {
           logger.error("Failed to create containerJob " + containerJob, e);
           throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
@@ -128,7 +131,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             }
           }
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
-          Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, event.getResult());
+          Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, event.getResult());
           engineStatusCallback.onJobRootCompleted(rootJob);
           deleteRecords(rootJob.getId());
         } catch (Exception e) {
@@ -145,7 +148,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     case FAILED:
       if (jobRecord.isRoot()) {
         try {
-          Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, null);
+          Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, null);
           engineStatusCallback.onJobRootFailed(rootJob);
           
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
@@ -156,7 +159,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       } else {
         try {
-          Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB);
+          Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
           engineStatusCallback.onJobFailed(failedJob);
           
           eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobState.FAILED, null, event.getEventGroupId())); // TODO remove hardcoded 'root' value
