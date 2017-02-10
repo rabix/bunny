@@ -2,6 +2,7 @@ package org.rabix.engine.model.scatter;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.engine.service.VariableRecordService;
@@ -26,6 +27,6 @@ public interface ScatterStrategy {
   
   List<RowMapping> enabled() throws BindingException;
   
-  LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, String contextId);
+  LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId);
   
 }

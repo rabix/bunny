@@ -1,5 +1,7 @@
 package org.rabix.transport.backend.impl;
 
+import java.util.UUID;
+
 import org.rabix.transport.backend.Backend;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -16,7 +18,7 @@ public class BackendRabbitMQ extends Backend {
   private BackendConfiguration backendConfiguration;
   
   @JsonCreator
-  public BackendRabbitMQ(@JsonProperty("id") String id, @JsonProperty("host") String host, @JsonProperty("engine_configuration") EngineConfiguration engineConfiguration, @JsonProperty("backend_configuration") BackendConfiguration backendConfiguration) {
+  public BackendRabbitMQ(@JsonProperty("id") UUID id, @JsonProperty("host") String host, @JsonProperty("engine_configuration") EngineConfiguration engineConfiguration, @JsonProperty("backend_configuration") BackendConfiguration backendConfiguration) {
     this.id = id;
     this.host = host;
     this.engineConfiguration = engineConfiguration;

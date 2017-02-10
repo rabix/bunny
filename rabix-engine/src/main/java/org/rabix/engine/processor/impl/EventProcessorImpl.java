@@ -98,7 +98,7 @@ public class EventProcessorImpl implements EventProcessor {
                   logger.error("Failed to call onJobsReady() callback", e);
                   // TODO handle exception
                 }
-                eventRepository.delete(UUID.fromString(finalEvent.getEventGroupId()));
+                eventRepository.delete(finalEvent.getEventGroupId());
                 return null;
               }
             });
@@ -135,7 +135,7 @@ public class EventProcessorImpl implements EventProcessor {
   /**
    * Invalidates context 
    */
-  private void invalidateContext(String contextId) throws EventHandlerException {
+  private void invalidateContext(UUID contextId) throws EventHandlerException {
     handlerFactory.get(Event.EventType.CONTEXT_STATUS_UPDATE).handle(new ContextStatusEvent(contextId, ContextStatus.FAILED));
   }
   
@@ -172,7 +172,7 @@ public class EventProcessorImpl implements EventProcessor {
       return;
     }
     if (persist) {
-      eventRepository.insert(UUID.fromString(event.getEventGroupId()), event.getPersistentType(), event, EventStatus.UNPROCESSED);
+      eventRepository.insert(event.getEventGroupId(), event.getPersistentType(), event, EventStatus.UNPROCESSED);
     }
     this.externalEvents.add(event);
   }

@@ -16,7 +16,6 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
 import org.rabix.engine.model.VariableRecord;
@@ -103,7 +102,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
             q.bind("is_wrapped", variableRecord.isWrapped());
             q.bind("globals_count", variableRecord.getNumberOfGlobals());
             q.bind("times_updated_count", variableRecord.getNumberOfTimesUpdated());
-            q.bind("context_id", SchemaHelper.toUUID(variableRecord.getRootId()));
+            q.bind("context_id", variableRecord.getRootId());
             q.bind("is_default", variableRecord.isDefault());
           }
         };
@@ -129,7 +128,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
       
       Object transformObject = JSONHelper.transform(JSONHelper.readJsonNode(transform));
       
-      VariableRecord variableRecord = new VariableRecord(SchemaHelper.fromUUID(rootId), jobId, portId, LinkPortType.valueOf(type), valueObject, LinkMerge.valueOf(linkMerge));
+      VariableRecord variableRecord = new VariableRecord(rootId, jobId, portId, LinkPortType.valueOf(type), valueObject, LinkMerge.valueOf(linkMerge));
       variableRecord.setWrapped(isWrapped);
       variableRecord.setNumberGlobals(globalsCount);
       variableRecord.setNumberOfTimesUpdated(timesUpdatedCount);

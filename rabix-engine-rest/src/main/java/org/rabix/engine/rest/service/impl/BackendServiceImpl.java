@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.repository.BackendRepository;
 import org.rabix.engine.repository.BackendRepository.BackendStatus;
 import org.rabix.engine.repository.TransactionHelper;
@@ -32,7 +31,7 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
   
-  private final static String DEV_BACKEND_ID = UUID.randomUUID().toString();
+  private final static UUID DEV_BACKEND_ID = UUID.randomUUID();
   
   private final JobService jobService;
   private final SchedulerService scheduler;
@@ -63,7 +62,7 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            backendRepository.insert(SchemaHelper.toUUID(backend.getId()), backend, new Timestamp(System.currentTimeMillis()), BackendStatus.ACTIVE);
+            backendRepository.insert(backend.getId(), backend, new Timestamp(System.currentTimeMillis()), BackendStatus.ACTIVE);
             startBackend(populated);
             logger.info("Backend {} registered.", populated.getId());
             return backend;
@@ -119,19 +118,19 @@ public class BackendServiceImpl implements BackendService {
     return (T) BeanSerializer.deserialize(payload, Backend.class);
   }
   
-  private String generateUniqueBackendId() {
+  private UUID generateUniqueBackendId() {
     boolean isDev = configuration.getBoolean("backend.dev", false);
-    return isDev? DEV_BACKEND_ID : UUID.randomUUID().toString();
+    return isDev? DEV_BACKEND_ID : UUID.randomUUID();
   }
 
   @Override
   public void updateHeartbeatInfo(HeartbeatInfo info) throws BackendServiceException {
-    backendRepository.updateHeartbeatInfo(SchemaHelper.toUUID(info.getId()), new Timestamp(info.getTimestamp()));
+    backendRepository.updateHeartbeatInfo(info.getId(), new Timestamp(info.getTimestamp()));
   }
 
   @Override
-  public Long getHeartbeatInfo(String id) {
-    Timestamp timestamp = backendRepository.getHeartbeatInfo(SchemaHelper.toUUID(id));
+  public Long getHeartbeatInfo(UUID id) {
+    Timestamp timestamp = backendRepository.getHeartbeatInfo(id);
     return timestamp != null ? timestamp.getTime() : null;
   }
   
@@ -142,7 +141,7 @@ public class BackendServiceImpl implements BackendService {
 
   @Override
   public void stopBackend(Backend backend) throws BackendServiceException {
-    backendRepository.updateStatus(SchemaHelper.toUUID(backend.getId()), BackendStatus.INACTIVE);
+    backendRepository.updateStatus(backend.getId(), BackendStatus.INACTIVE);
   }
   
 }

@@ -1,5 +1,7 @@
 package org.rabix.engine.event.impl;
 
+import java.util.UUID;
+
 import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -13,7 +15,7 @@ public class OutputUpdateEvent implements Event {
   @JsonProperty("jobId")
   private final String jobId;
   @JsonProperty("contextId")
-  private final String contextId;
+  private final UUID contextId;
   @JsonProperty("value")
   private final Object value;
   @JsonProperty("portId")
@@ -25,13 +27,13 @@ public class OutputUpdateEvent implements Event {
   @JsonProperty("numberOfScattered")
   private final Integer numberOfScattered;      // number of scattered nodes
   @JsonProperty("eventGroupId")
-  private final String eventGroupId;
+  private final UUID eventGroupId;
 
-  public OutputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position, String eventGroupId) {
+  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object value, Integer position, UUID eventGroupId) {
     this(contextId, jobId, portId, value, false, null, position, eventGroupId);
   }
   
-  public OutputUpdateEvent(String contextId, String jobId, String portId, Object outputValue, boolean fromScatter, Integer numberOfScattered, Integer position, String eventGroupId) {
+  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object outputValue, boolean fromScatter, Integer numberOfScattered, Integer position, UUID eventGroupId) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.portId = portId;
@@ -43,10 +45,10 @@ public class OutputUpdateEvent implements Event {
   }
   
   @JsonCreator
-  public OutputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") String contextId,
+  public OutputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") UUID contextId,
       @JsonProperty("value") Object value, @JsonProperty("portId") String portId,
       @JsonProperty("position") Integer position, @JsonProperty("fromScatter") boolean fromScatter,
-      @JsonProperty("numberOfScattered") Integer numberOfScattered, @JsonProperty("eventGroupId") String eventGroupId) {
+      @JsonProperty("numberOfScattered") Integer numberOfScattered, @JsonProperty("eventGroupId") UUID eventGroupId) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.value = value;
@@ -82,12 +84,12 @@ public class OutputUpdateEvent implements Event {
   }
   
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
   }
   
   @Override
-  public String getContextId() {
+  public UUID getContextId() {
     return contextId;
   }
   

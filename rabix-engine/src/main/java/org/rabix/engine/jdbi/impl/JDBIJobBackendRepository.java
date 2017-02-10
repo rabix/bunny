@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.Set;
 import java.util.UUID;
 
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.db.JobBackendService.BackendJob;
 import org.rabix.engine.jdbi.impl.JDBIJobBackendRepository.BackendJobMapper;
 import org.rabix.engine.repository.JobBackendRepository;
@@ -56,7 +55,7 @@ public interface JDBIJobBackendRepository extends JobBackendRepository {
       UUID jobId = resultSet.getObject("job_id", UUID.class);
       UUID backendId = resultSet.getObject("backend_id", UUID.class);
       UUID rootId = resultSet.getObject("root_id", UUID.class);
-      return new BackendJob(SchemaHelper.fromUUID(jobId), SchemaHelper.fromUUID(rootId), SchemaHelper.fromUUID(backendId));
+      return new BackendJob(jobId, rootId, backendId);
     }
   }
 

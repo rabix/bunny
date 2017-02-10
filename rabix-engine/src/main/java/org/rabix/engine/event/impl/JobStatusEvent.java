@@ -1,6 +1,7 @@
 package org.rabix.engine.event.impl;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.engine.event.Event;
 import org.rabix.engine.service.JobRecordService.JobState;
@@ -15,15 +16,15 @@ public class JobStatusEvent implements Event {
   @JsonProperty("state")
   private final JobState state;
   @JsonProperty("contextId")
-  private final String contextId;
+  private final UUID contextId;
   
   @JsonProperty("result")
   private final Map<String, Object> result;
   
   @JsonProperty("eventGroupId")
-  private final String eventGroupId;
+  private final UUID eventGroupId;
   
-  public JobStatusEvent(String jobId, String contextId, JobState state, Map<String, Object> result, String eventGroupId) {
+  public JobStatusEvent(String jobId, UUID contextId, JobState state, Map<String, Object> result, UUID eventGroupId) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.state = state;
@@ -33,8 +34,8 @@ public class JobStatusEvent implements Event {
   
   @JsonCreator
   public JobStatusEvent(@JsonProperty("jobId") String jobId, @JsonProperty("state") JobState state,
-      @JsonProperty("contextId") String contextId, @JsonProperty("result") Map<String, Object> result,
-      @JsonProperty("eventGroupId") String eventGroupId) {
+      @JsonProperty("contextId") UUID contextId, @JsonProperty("result") Map<String, Object> result,
+      @JsonProperty("eventGroupId") UUID eventGroupId) {
     this.jobId = jobId;
     this.state = state;
     this.contextId = contextId;
@@ -51,7 +52,7 @@ public class JobStatusEvent implements Event {
   }
 
   @Override
-  public String getContextId() {
+  public UUID getContextId() {
     return contextId;
   }
   
@@ -60,7 +61,7 @@ public class JobStatusEvent implements Event {
   }
   
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
   }
   

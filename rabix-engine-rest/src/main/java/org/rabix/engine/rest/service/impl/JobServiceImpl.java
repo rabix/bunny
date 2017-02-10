@@ -137,7 +137,7 @@ public class JobServiceImpl implements JobService {
   public Job start(Job job, Map<String, Object> config) throws JobServiceException {
     logger.debug("Start Job {}", job);
     
-    String rootId = UUID.randomUUID().toString();
+    UUID rootId = UUID.randomUUID();
     job = Job.cloneWithIds(job, rootId, rootId);
     job = Job.cloneWithName(job, InternalSchemaHelper.ROOT_NAME);
     
@@ -153,7 +153,7 @@ public class JobServiceImpl implements JobService {
       job = Job.cloneWithConfig(job, config);
       jobDB.add(job);
 
-      InitEvent initEvent = new InitEvent(UUID.randomUUID().toString(), job.getInputs(), job.getRootId(), job.getConfig(), dagHash);
+      InitEvent initEvent = new InitEvent(UUID.randomUUID(), job.getInputs(), job.getRootId(), job.getConfig(), dagHash);
       eventProcessor.addToExternalQueue(initEvent, true);
       return job;
     } catch (Exception e) {
@@ -163,7 +163,7 @@ public class JobServiceImpl implements JobService {
   }
   
   @Override
-  public void stop(String id) throws JobServiceException {
+  public void stop(UUID id) throws JobServiceException {
     logger.debug("Stop Job {}", id);
     
     Job job = jobDB.get(id);
@@ -176,8 +176,8 @@ public class JobServiceImpl implements JobService {
   }
   
   @Override
-  public Set<Job> getReady(EventProcessor eventProcessor, String contextId) throws JobServiceException {
-    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, contextId);
+  public Set<Job> getReady(EventProcessor eventProcessor, UUID rootId) throws JobServiceException {
+    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, rootId);
   }
   
   @Override
@@ -186,7 +186,7 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public Job get(String id) {
+  public Job get(UUID id) {
     return jobDB.get(id);
   }
 
@@ -197,7 +197,7 @@ public class JobServiceImpl implements JobService {
     
     private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
     
-    private Set<String> stoppingRootIds = new HashSet<>();
+    private Set<UUID> stoppingRootIds = new HashSet<>();
     
     public EngineStatusCallbackImpl(boolean setResources, boolean stopOnFail) {
       this.stopOnFail = stopOnFail;

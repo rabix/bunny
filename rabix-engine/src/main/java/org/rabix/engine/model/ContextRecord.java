@@ -1,6 +1,7 @@
 package org.rabix.engine.model;
 
 import java.util.Map;
+import java.util.UUID;
 
 public class ContextRecord {
 
@@ -10,21 +11,21 @@ public class ContextRecord {
     FAILED
   }
   
-  private String id;
+  private UUID id;
   private Map<String, Object> config;
   private ContextStatus status;
   
-  public ContextRecord(final String id, Map<String, Object> config, ContextStatus status) {
+  public ContextRecord(final UUID id, Map<String, Object> config, ContextStatus status) {
     this.id = id;
     this.config = config;
     this.status = status;
   }
   
-  public String getId() {
+  public UUID getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(UUID id) {
     this.id = id;
   }
 

@@ -3,6 +3,7 @@ package org.rabix.bindings.draft2;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.draft2.bean.Draft2Job;
@@ -49,7 +50,7 @@ public class Draft2ResultCollectionServiceTest {
 
     Draft2Job draft2Job = BeanSerializer.deserialize(inputJson, Draft2Job.class);
     String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-    Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+    Job job = new Job(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
     
     Bindings bindings = new Draft2Bindings();
     job = bindings.postprocess(job, workingDir, null, null);
@@ -66,7 +67,7 @@ public class Draft2ResultCollectionServiceTest {
 
     Draft2Job draft2Job = BeanSerializer.deserialize(inputJson, Draft2Job.class);
     String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
-    Job job = new Job("id", "id", "id", "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
+    Job job = new Job(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);
     
     Bindings bindings = new Draft2Bindings();
     job = bindings.postprocess(job, workingDir, null, null);

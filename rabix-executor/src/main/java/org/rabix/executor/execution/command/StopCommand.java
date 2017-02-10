@@ -1,5 +1,7 @@
 package org.rabix.executor.execution.command;
 
+import java.util.UUID;
+
 import javax.inject.Inject;
 
 import org.rabix.bindings.BindingException;
@@ -26,8 +28,8 @@ public class StopCommand extends JobHandlerCommand {
   }
 
   @Override
-  public Result run(JobData jobData, JobHandler handler, String contextId) {
-    String jobId = jobData.getJob().getId();
+  public Result run(JobData jobData, JobHandler handler, UUID rootId) {
+    UUID jobId = jobData.getJob().getId();
     try {
       handler.stop();
       String message = String.format("Job %s aborted successfully.", jobId);

@@ -1,14 +1,15 @@
 package org.rabix.engine.rest.api.impl;
 
 import java.util.Collections;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.engine.rest.api.JobHTTPService;
-import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.rest.service.JobService;
+import org.rabix.engine.rest.service.JobServiceException;
 
 import com.google.inject.Inject;
 
@@ -42,7 +43,7 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response get(String id) {
+  public Response get(UUID id) {
     Job job = jobService.get(id);
     if (job == null) {
       return entityNotFound();
@@ -51,7 +52,7 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response save(String id, Job job) {
+  public Response save(UUID id, Job job) {
     try {
       jobService.update(job);
     } catch (JobServiceException e) {

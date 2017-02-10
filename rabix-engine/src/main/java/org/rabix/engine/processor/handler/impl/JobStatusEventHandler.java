@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
@@ -93,7 +94,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         Job job = null;
         try {
           job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
-          if (!StringUtils.isEmpty(event.getEventGroupId())) {
+          if (event.getEventGroupId() != null) {
             jobDB.add(job, event.getEventGroupId());
           }
         } catch (BindingException e1) {
@@ -174,7 +175,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
   }
   
-  private void deleteRecords(String rootId) {
+  private void deleteRecords(UUID rootId) {
     jobRecordService.delete(rootId);
     variableRecordService.delete(rootId);
     linkRecordService.delete(rootId);
@@ -186,8 +187,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   public void ready(JobRecord job, Event event) throws EventHandlerException {
     job.setState(JobState.READY);
     
-    String contextId = event.getContextId();
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), contextId, job.getDagHash());
+    UUID rootId = event.getContextId();
+    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), rootId, job.getDagHash());
 
     StringBuilder readyJobLogging = new StringBuilder(" --- JobRecord ").append(job.getId()).append(" is ready.").append(" Job isBlocking=").append(job.isBlocking()).append("\n");
     for (PortCounter portCounter : job.getInputCounters()) {
@@ -205,30 +206,30 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       } else {
         containerNode = (DAGContainer) node;
       }
-      rollOutContainer(job, containerNode, contextId);
+      rollOutContainer(job, containerNode, rootId);
 
-      List<LinkRecord> containerLinks = linkRecordService.findBySourceAndSourceType(job.getId(), LinkPortType.INPUT, contextId);
+      List<LinkRecord> containerLinks = linkRecordService.findBySourceAndSourceType(job.getId(), LinkPortType.INPUT, rootId);
       if (containerLinks.isEmpty()) {
         Set<String> immediateReadyNodeIds = findImmediateReadyNodes(containerNode);
         for (String readyNodeId : immediateReadyNodeIds) {
-          JobRecord childJobRecord = jobRecordService.find(readyNodeId, contextId);
+          JobRecord childJobRecord = jobRecordService.find(readyNodeId, rootId);
           if(childJobRecord.isContainer() || childJobRecord.isScatterWrapper()) {
         	ready(childJobRecord, event);  
           }
           else {
-            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), contextId, JobState.READY, null, event.getEventGroupId());
+            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), rootId, JobState.READY, null, event.getEventGroupId());
             eventProcessor.send(jobStatusEvent);
           }
         }
       } else {
         for (LinkRecord link : containerLinks) {
-          VariableRecord sourceVariable = variableRecordService.find(link.getSourceJobId(), link.getSourceJobPort(), LinkPortType.INPUT, contextId);
-          VariableRecord destinationVariable = variableRecordService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, contextId);
+          VariableRecord sourceVariable = variableRecordService.find(link.getSourceJobId(), link.getSourceJobPort(), LinkPortType.INPUT, rootId);
+          VariableRecord destinationVariable = variableRecordService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, rootId);
           if(destinationVariable == null) {
-            VariableRecord stepVariable = new VariableRecord(contextId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), null);
+            VariableRecord stepVariable = new VariableRecord(rootId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), null);
             variableRecordService.create(stepVariable);
           }
-          Event updateEvent = new InputUpdateEvent(contextId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId());
+          Event updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId());
           eventProcessor.send(updateEvent);
         }
       }
@@ -236,7 +237,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       job.setState(JobState.RUNNING);
       
       for (String port : job.getScatterPorts()) {
-        VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, contextId);
+        VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, rootId);
         scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
       }
     }
@@ -260,7 +261,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   /**
    * Unwraps {@link DAGContainer}
    */
-  private void rollOutContainer(JobRecord job, DAGContainer containerNode, String contextId) {
+  private void rollOutContainer(JobRecord job, DAGContainer containerNode, UUID contextId) {
     for (DAGNode node : containerNode.getChildren()) {
       String newJobId = InternalSchemaHelper.concatenateIds(job.getId(), InternalSchemaHelper.getLastPart(node.getId()));
       
