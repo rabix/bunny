@@ -221,7 +221,6 @@ public class JobServiceImpl implements JobService {
         job = Job.cloneWithResources(job, resources);
       }
       jobDB.update(job);
-      scheduler.allocate(job);
     }
     
     @Override

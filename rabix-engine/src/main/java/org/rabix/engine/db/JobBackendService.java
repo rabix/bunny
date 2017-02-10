@@ -1,51 +1,42 @@
 package org.rabix.engine.db;
 
 import java.util.Set;
+import java.util.UUID;
 
+import org.rabix.bindings.model.Job;
 import org.rabix.engine.SchemaHelper;
-import org.rabix.engine.repository.JobBackendRepository;
+import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
 
 public class JobBackendService {
 
-  private JobBackendRepository jobBackendRepository;
+  private JobRepository jobRepository;
   
   @Inject
-  public JobBackendService(JobBackendRepository jobBackendRepository) {
-    this.jobBackendRepository = jobBackendRepository;
-  }
-  
-  public void insert(String jobId, String rootId, String backendId) {
-    this.jobBackendRepository.insert(SchemaHelper.toUUID(jobId), SchemaHelper.toUUID(rootId), SchemaHelper.toUUID(backendId));
+  public JobBackendService(JobRepository jobRepository) {
+    this.jobRepository = jobRepository;
   }
   
   public void delete(String jobId) {
-    this.jobBackendRepository.delete(SchemaHelper.toUUID(jobId));
+//    this.jobBackendRepository.delete(SchemaHelper.toUUID(jobId));
+//    TODO think about it
   }
   
   public void update(String jobId, String backendId) {
-    this.jobBackendRepository.update(SchemaHelper.toUUID(jobId), SchemaHelper.toUUID(backendId));
+    this.jobRepository.updateBackendId(SchemaHelper.toUUID(jobId), SchemaHelper.toUUID(backendId));
   }
   
-  public BackendJob getByJobId(String jobId) {
-    return jobBackendRepository.getByJobId(SchemaHelper.toUUID(jobId));
+  public Set<UUID> getBackendsByRootId(String rootId) {
+    return jobRepository.getBackendsByRootId(SchemaHelper.toUUID(rootId));
   }
   
-  public Set<BackendJob> getByRootId(String rootId) {
-    return jobBackendRepository.getByRootId(SchemaHelper.toUUID(rootId));
+  public void dealocateJobs(String backendId) {
+    jobRepository.dealocateJobs(SchemaHelper.toUUID(backendId));
   }
   
-  public Set<BackendJob> getByBackendId(String backendId) {
-    return jobBackendRepository.getByBackendId(SchemaHelper.toUUID(backendId));
-  }
-  
-  public Set<BackendJob> getFree() {
-    return jobBackendRepository.getFreeJobs();
-  }
-  
-  public Set<BackendJob> getFree(String rootId) {
-    return jobBackendRepository.getFreeJobs(SchemaHelper.toUUID(rootId));
+  public Set<Job> getReadyFree() {
+    return jobRepository.getReadyFree();
   }
   
   public static class BackendJob {
