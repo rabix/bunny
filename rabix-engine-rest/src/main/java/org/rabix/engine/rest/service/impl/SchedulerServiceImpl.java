@@ -67,22 +67,25 @@ public class SchedulerServiceImpl implements SchedulerService {
 
   @Override
   public void start() {
-    executorService.scheduleAtFixedRate(new Runnable() {
+    executorService.execute(new Runnable() {
       @Override
       public void run() {
         try {
-          transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
-            @Override
-            public Void call() throws Exception {
-              schedule();
-              return null;
-            }
-          });
+          while (true) {
+            transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
+              @Override
+              public Void call() throws Exception {
+                schedule();
+                return null;
+              }
+            });
+            Thread.sleep(SCHEDULE_PERIOD);
+          }
         } catch (Exception e) {
           logger.error("Failed to schedule jobs", e);
         }
       }
-    }, 0, SCHEDULE_PERIOD, TimeUnit.MILLISECONDS);
+    });
 
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
   }
