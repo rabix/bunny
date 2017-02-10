@@ -25,7 +25,7 @@ public interface JobRepository {
   
   Set<UUID> getJobsByBackendId(UUID backendId);
   
-  Set<Job> getJobsByGroupId(UUID groupId);
+  Set<Job> getReadyJobsByGroupId(UUID groupId);
 
   Set<Job> getReadyFree();
 

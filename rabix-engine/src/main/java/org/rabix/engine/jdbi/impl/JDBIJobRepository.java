@@ -69,8 +69,8 @@ public interface JDBIJobRepository extends JobRepository {
   Set<Job> getByRootId(@Bind("root_id") UUID rootId);
   
   @Override
-  @SqlQuery("select * from job where group_id=:group_id")
-  Set<Job> getJobsByGroupId(@Bind("group_id") UUID group_id);
+  @SqlQuery("select * from job where group_id=:group_id and status='READY'::job_status")
+  Set<Job> getReadyJobsByGroupId(@Bind("group_id") UUID group_id);
 
   @Override
   @SqlQuery("select * from job where backend_id is null and status='READY'::job_status")

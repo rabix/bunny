@@ -94,7 +94,7 @@ public class EventProcessorImpl implements EventProcessor {
                 handle(finalEvent);
                 cacheService.flush(finalEvent.getContextId());
                 
-                Set<Job> readyJobs = jobRepository.getJobsByGroupId(SchemaHelper.toUUID(finalEvent.getEventGroupId()));
+                Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(SchemaHelper.toUUID(finalEvent.getEventGroupId()));
                 try {
                   engineStatusCallback.onJobsReady(readyJobs);
                 } catch (EngineStatusCallbackException e) {

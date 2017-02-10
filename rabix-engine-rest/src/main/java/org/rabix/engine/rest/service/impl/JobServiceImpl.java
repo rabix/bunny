@@ -241,8 +241,8 @@ public class JobServiceImpl implements JobService {
         }
         Resources resources = new Resources(numberOfCores, memory, null, true, null, null, null, null);
         job = Job.cloneWithResources(job, resources);
+        jobRepository.update(job);
       }
-      jobRepository.update(job);
     }
     
     @Override
