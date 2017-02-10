@@ -2,7 +2,7 @@
 
 CREATE TABLE APPLICATION (
 	hash	text primary key,
-    app     bytea
+    app     text
 );
 
 CREATE INDEX application_id_index ON application (hash);
