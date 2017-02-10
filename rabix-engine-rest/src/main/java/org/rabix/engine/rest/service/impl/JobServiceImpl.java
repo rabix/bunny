@@ -18,13 +18,14 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.SystemEnvironmentHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.db.JobDB;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
+import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.rest.helpers.IntermediaryFilesHelper;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
@@ -53,7 +54,7 @@ public class JobServiceImpl implements JobService {
   private final VariableRecordService variableRecordService;
   private final ContextRecordService contextRecordService;
   
-  private final JobDB jobDB;
+  private final JobRepository jobRepository;
   private final DAGNodeDB dagNodeDB;
   private final AppDB appDB;
   
@@ -69,11 +70,11 @@ public class JobServiceImpl implements JobService {
   private boolean keepInputFiles;
   
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, JobDB jobDB, AppDB appDB) {
-    this.jobDB = jobDB;
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, AppDB appDB, JobRepository jobRepository) {
     this.dagNodeDB = dagNodeDB;
     this.appDB = appDB;
     this.eventProcessor = eventProcessor;
+    this.jobRepository = jobRepository;
     
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
@@ -125,7 +126,7 @@ public class JobServiceImpl implements JobService {
       default:
         break;
       }
-      jobDB.update(job);
+      jobRepository.update(job);
       eventProcessor.addToExternalQueue(statusEvent, true);
     } catch (JobStateValidationException e) {
       // TODO handle exception
@@ -151,7 +152,7 @@ public class JobServiceImpl implements JobService {
       
       job = Job.cloneWithStatus(job, JobStatus.RUNNING);
       job = Job.cloneWithConfig(job, config);
-      jobDB.add(job);
+      jobRepository.insert(job, null);
 
       InitEvent initEvent = new InitEvent(UUID.randomUUID().toString(), job.getInputs(), job.getRootId(), job.getConfig(), dagHash);
       eventProcessor.addToExternalQueue(initEvent, true);
@@ -166,9 +167,9 @@ public class JobServiceImpl implements JobService {
   public void stop(String id) throws JobServiceException {
     logger.debug("Stop Job {}", id);
     
-    Job job = jobDB.get(id);
+    Job job = jobRepository.get(SchemaHelper.toUUID(id));
     if (job.isRoot()) {
-      Set<Job> jobs = jobDB.getJobs(id);
+      Set<Job> jobs = jobRepository.getByRootId(SchemaHelper.toUUID(job.getRootId()));
       scheduler.stop(jobs.toArray(new Job[jobs.size()]));
     } else {
       scheduler.stop(job);
@@ -182,12 +183,33 @@ public class JobServiceImpl implements JobService {
   
   @Override
   public Set<Job> get() {
-    return jobDB.getJobs();
+    return jobRepository.get();
   }
 
   @Override
   public Job get(String id) {
-    return jobDB.get(id);
+    return jobRepository.get(SchemaHelper.toUUID(id));
+  }
+  
+  public void delete(String jobId) {
+//  this.jobBackendRepository.delete(SchemaHelper.toUUID(jobId));
+//  TODO think about it
+}
+
+  public void updateBackend(String jobId, String backendId) {
+    this.jobRepository.updateBackendId(SchemaHelper.toUUID(jobId), SchemaHelper.toUUID(backendId));
+  }
+
+  public Set<UUID> getBackendsByRootId(String rootId) {
+    return jobRepository.getBackendsByRootId(SchemaHelper.toUUID(rootId));
+  }
+
+  public void dealocateJobs(String backendId) {
+    jobRepository.dealocateJobs(SchemaHelper.toUUID(backendId));
+  }
+
+  public Set<Job> getReadyFree() {
+    return jobRepository.getReadyFree();
   }
 
   private class EngineStatusCallbackImpl implements EngineStatusCallback {
@@ -219,8 +241,8 @@ public class JobServiceImpl implements JobService {
         }
         Resources resources = new Resources(numberOfCores, memory, null, true, null, null, null, null);
         job = Job.cloneWithResources(job, resources);
+        jobRepository.update(job);
       }
-      jobDB.update(job);
     }
     
     @Override
@@ -250,7 +272,7 @@ public class JobServiceImpl implements JobService {
               while (true) {
                 try {
                   boolean exit = true;
-                  for (Job job : jobDB.getJobs(failedJob.getRootId())) {
+                  for (Job job : jobRepository.getByRootId(SchemaHelper.toUUID(failedJob.getRootId()))) {
                     if (!job.isRoot() && !isFinished(job.getStatus())) {
                       exit = false;
                       break;
@@ -271,7 +293,7 @@ public class JobServiceImpl implements JobService {
         }
       }
       if(deleteIntermediaryFiles) {
-        IntermediaryFilesHelper.handleJobFailed(failedJob, jobDB.get(failedJob.getRootId()), intermediaryFilesService, keepInputFiles);
+        IntermediaryFilesHelper.handleJobFailed(failedJob, jobRepository.get(SchemaHelper.toUUID(failedJob.getRootId())), intermediaryFilesService, keepInputFiles);
       }
     }
     
@@ -306,7 +328,7 @@ public class JobServiceImpl implements JobService {
       
       job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
       job = JobHelper.fillOutputs(job, jobRecordService, variableRecordService);
-      jobDB.update(job);
+      jobRepository.update(job);
     }
 
     @Override
@@ -323,7 +345,7 @@ public class JobServiceImpl implements JobService {
         }
         
         job = Job.cloneWithStatus(job, JobStatus.FAILED);
-        jobDB.update(job);
+        jobRepository.update(job);
 
         scheduler.deallocate(job);
         stoppingRootIds.remove(job.getId());
