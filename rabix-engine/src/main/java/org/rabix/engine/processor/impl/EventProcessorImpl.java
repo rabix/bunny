@@ -9,7 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.engine.db.JobDB;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.Event.EventStatus;
 import org.rabix.engine.event.Event.EventType;
@@ -20,6 +20,7 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.repository.EventRepository;
+import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.service.CacheService;
@@ -55,17 +56,19 @@ public class EventProcessorImpl implements EventProcessor {
   private final TransactionHelper transactionHelper;
   private final CacheService cacheService;
   
-  private final JobDB jobDB;
+  private final JobRepository jobRepository;
   private final EventRepository eventRepository;
   
   @Inject
-  public EventProcessorImpl(HandlerFactory handlerFactory, ContextRecordService contextRecordService, TransactionHelper transactionHelper, CacheService cacheService, EventRepository eventRepository, JobDB jobDB) {
-    this.jobDB = jobDB;
+  public EventProcessorImpl(HandlerFactory handlerFactory, ContextRecordService contextRecordService,
+      TransactionHelper transactionHelper, CacheService cacheService, EventRepository eventRepository,
+      JobRepository jobRepository) {
     this.handlerFactory = handlerFactory;
     this.contextRecordService = contextRecordService;
     this.transactionHelper = transactionHelper;
     this.cacheService = cacheService;
     this.eventRepository = eventRepository;
+    this.jobRepository = jobRepository;
   }
 
   public void start(EngineStatusCallback engineStatusCallback) {
@@ -91,7 +94,7 @@ public class EventProcessorImpl implements EventProcessor {
                 handle(finalEvent);
                 cacheService.flush(finalEvent.getContextId());
                 
-                Set<Job> readyJobs = jobDB.getJobsByGroupId(finalEvent.getEventGroupId());
+                Set<Job> readyJobs = jobRepository.getJobsByGroupId(SchemaHelper.toUUID(finalEvent.getEventGroupId()));
                 try {
                   engineStatusCallback.onJobsReady(readyJobs);
                 } catch (EngineStatusCallbackException e) {

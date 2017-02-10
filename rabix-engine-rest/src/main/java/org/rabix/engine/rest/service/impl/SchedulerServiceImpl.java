@@ -17,7 +17,6 @@ import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
 import org.rabix.engine.SchemaHelper;
-import org.rabix.engine.db.JobBackendService;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStub.HeartbeatCallback;
@@ -55,15 +54,13 @@ public class SchedulerServiceImpl implements SchedulerService {
 
   private final JobService jobService;
   private final BackendService backendService;
-  private final JobBackendService jobBackendService;
 
   private final TransactionHelper transactionHelper;
 
   @Inject
-  public SchedulerServiceImpl(Configuration configuration, JobBackendService jobBackendService, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory) {
+  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory) {
     this.jobService = jobService;
     this.backendService = backendService;
-    this.jobBackendService = jobBackendService;
     this.transactionHelper = repositoriesFactory;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
   }
@@ -97,11 +94,11 @@ public class SchedulerServiceImpl implements SchedulerService {
         return;
       }
 
-      Set<Job> freeJobs = jobBackendService.getReadyFree();
+      Set<Job> freeJobs = jobService.getReadyFree();
       for (Job freeJob : freeJobs) {
         BackendStub<?, ?, ?> backendStub = nextBackend();
 
-        jobBackendService.update(freeJob.getId(), backendStub.getBackend().getId());
+        jobService.updateBackend(freeJob.getId(), backendStub.getBackend().getId());
         backendStub.send(freeJob);
         logger.info("Job {} sent to {}.", freeJob.getId(), backendStub.getBackend().getId());
       }
@@ -114,7 +111,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     try {
       dispatcherLock.lock();
       for (Job job : jobs) {
-        Set<UUID> backendIds = jobBackendService.getBackendsByRootId(job.getId());
+        Set<UUID> backendIds = jobService.getBackendsByRootId(job.getId());
         for (UUID backendId : backendIds) {
           if (backendId != null) {
             BackendStub<?, ?, ?> backendStub = getBackendStub(SchemaHelper.fromUUID(backendId));
@@ -170,7 +167,7 @@ public class SchedulerServiceImpl implements SchedulerService {
       dispatcherLock.lock();
       Set<BackendStub<?, ?, ?>> backendStubs = new HashSet<>();
 
-      Set<UUID> backendIds = jobBackendService.getBackendsByRootId(rootJob.getId());
+      Set<UUID> backendIds = jobService.getBackendsByRootId(rootJob.getId());
       for (UUID backendId : backendIds) {
         backendStubs.add(getBackendStub(SchemaHelper.fromUUID(backendId)));
       }
@@ -184,7 +181,7 @@ public class SchedulerServiceImpl implements SchedulerService {
   }
 
   public void deallocate(Job job) {
-    jobBackendService.delete(job.getId());
+    jobService.delete(job.getId());
   }
 
   private BackendStub<?, ?, ?> nextBackend() {
@@ -228,7 +225,7 @@ public class SchedulerServiceImpl implements SchedulerService {
                   backendIterator.remove();
                   logger.info("Removing Backend {}", backendStub.getBackend().getId());
 
-                  jobBackendService.dealocateJobs(backend.getId());
+                  jobService.dealocateJobs(backend.getId());
                   backendService.stopBackend(backend);
                 }
               }
