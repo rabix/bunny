@@ -175,9 +175,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   }
   
   private void deleteRecords(String rootId) {
-    jobRecordService.delete(rootId);
-    variableRecordService.delete(rootId);
-    linkRecordService.delete(rootId);
+    contextRecordService.delete(rootId);
   }
   
   /**

@@ -11,5 +11,7 @@ public interface ContextRecordRepository {
   int update(ContextRecord contextRecord);
   
   ContextRecord get(UUID id);
+
+  int delete(UUID id);
   
 }

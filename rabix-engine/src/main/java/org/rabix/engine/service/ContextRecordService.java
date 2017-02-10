@@ -26,5 +26,9 @@ public class ContextRecordService {
   public synchronized ContextRecord find(String id) {
     return contextRecordRepository.get(SchemaHelper.toUUID(id));
   }
+
+  public synchronized void delete(String id) {
+    contextRecordRepository.delete(SchemaHelper.toUUID(id));
+  }
   
 }
