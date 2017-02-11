@@ -42,7 +42,11 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
   @Override
   @SqlQuery("select * from context_record where id=:id")
   ContextRecord get(@Bind("id") UUID id);
-  
+
+  @Override
+  @SqlUpdate("delete from context_record where id=:id")
+  int delete(@Bind("id") UUID id);
+
   @BindingAnnotation(BindContextRecord.ContextBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })
