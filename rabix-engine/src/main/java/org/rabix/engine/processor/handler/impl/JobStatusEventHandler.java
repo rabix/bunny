@@ -158,7 +158,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           engineStatusCallback.onJobRootFailed(rootJob);
           
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
-          deleteRecords(rootJob.getId());
         } catch (Exception e) {
           logger.error("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
