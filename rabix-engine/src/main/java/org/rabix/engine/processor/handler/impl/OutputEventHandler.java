@@ -76,7 +76,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     }
     VariableRecord sourceVariable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.OUTPUT, event.getContextId());
     jobService.decrementPortCounter(sourceJob, event.getPortId(), LinkPortType.OUTPUT);
-    variableService.addValue(sourceVariable, event.getValue(), event.getPosition(), sourceJob.isScatterWrapper());
+    variableService.addValue(sourceVariable, event.getValue(), event.getPosition(), sourceJob.isScatterWrapper() || event.isFromScatter());
     variableService.update(sourceVariable); // TODO wha?
     jobService.update(sourceJob);
     
