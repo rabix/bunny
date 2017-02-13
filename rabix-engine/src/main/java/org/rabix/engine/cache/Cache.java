@@ -2,6 +2,7 @@ package org.rabix.engine.cache;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,11 +26,7 @@ public class Cache {
     this.repository = repository;
   }
 
-  public synchronized void clear() {
-    cache.clear();
-  }
-
-  public synchronized void flush() {
+  public synchronized void flush(boolean clear) {
     if (cache.isEmpty()) {
       return;
     }
@@ -56,21 +53,31 @@ public class Cache {
 
     repository.insertCachables(inserts);
     repository.updateCachables(updates);
-
     logger.debug("{} flushed {} item(s). Cache hits {}.", repository, size, hits);
-    reset();
+    
+    hits = 0;
+    if (clear) {
+      cache.clear();
+    } else {
+      Iterator<Entry<CacheKey, CacheItem>> iterator = cache.entrySet().iterator();
+      while (iterator.hasNext()) {
+        Entry<CacheKey, CacheItem> entry = iterator.next();
+        if (!entry.getValue().isHit) {
+          iterator.remove();
+        } else {
+          entry.getValue().isHit = false;
+          entry.getValue().action = Action.NOOP;
+        }
+      }
+    }
   }
   
-  private void reset() {
-    hits = 0;
-    cache.clear();
-  }
-
   public synchronized void put(Cachable cachable, Action action) {
     CacheKey key = cachable.getCacheKey();
     if (cache.containsKey(key)) {
       CacheItem item = cache.get(key);
       item.cachable = cachable;
+      item.hit();
     } else {
       cache.put(key, new CacheItem(action, cachable));
     }
@@ -93,19 +100,28 @@ public class Cache {
     return merged;
   }
   
+//  public synchronized <T extends Cachable> void putIfAbsent(List<T> cachables) {
+//    if (cachables == null) {
+//      return;
+//    }
+//    for (T cachable : cachables) {
+//      List<Cachable> fromDB = get(cachable.getCacheKey());
+//      if (fromDB.isEmpty()) {
+//        put(cachable, Action.UPDATE);
+//      }
+//    }
+//  }
+  
   public synchronized List<Cachable> get(CacheKey search) {
     List<Cachable> result = new ArrayList<>();
     for (Entry<CacheKey, CacheItem> entry : cache.entrySet()) {
       if (entry.getKey().satisfies(search)) {
         result.add(entry.getValue().cachable);
+        entry.getValue().hit();
         hits++;
       }
     }
     return result;
-  }
-
-  public synchronized boolean isEmpty() {
-    return cache.isEmpty();
   }
 
 }
