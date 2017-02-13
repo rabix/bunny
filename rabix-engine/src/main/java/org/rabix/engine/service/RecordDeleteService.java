@@ -41,8 +41,8 @@ public class RecordDeleteService {
             transactionService.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws Exception {
-//                int deleted = jobRecordRepository.deleteByStatus(JobState.COMPLETED);
-//                logger.debug("Deleted {} completed Jobs", deleted);
+                int deleted = jobRecordRepository.deleteByStatus(JobState.COMPLETED);
+                logger.debug("Deleted {} completed Jobs", deleted);
                 return null;
               }
             });
