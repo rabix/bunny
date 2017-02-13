@@ -139,8 +139,10 @@ CREATE TABLE link_record (
 );
 
 CREATE UNIQUE INDEX link_record_index on link_record (context_id, source_job_id, source_job_port_id, source_type, destination_job_id, destination_job_port_id, destination_type);
+CREATE INDEX link_record_context_index on link_record(context_id);
 CREATE INDEX link_record_source_index on link_record (context_id, source_job_id, source_job_port_id);
 CREATE INDEX link_record_source_job_index on link_record (context_id, source_job_id);
+CREATE INDEX link_record_destination_job_index on link_record (context_id, destination_job_id);
 CREATE INDEX link_record_source_type_index on link_record (context_id, source_job_id, source_type);
 CREATE INDEX link_record_source_port_destination_type_index on link_record (context_id, source_job_id, source_job_port_id, destination_type);
 
@@ -166,5 +168,7 @@ CREATE TABLE variable_record (
 );
 
 CREATE UNIQUE INDEX variable_record_index on variable_record (job_id, port_id, type, context_id);
+CREATE INDEX variable_record_context_index on variable_record (context_id);
+CREATE INDEX variable_record_job_index on variable_record (job_id, context_id);
 CREATE INDEX variable_record_type_index on variable_record (job_id, type, context_id);
 CREATE INDEX variable_record_port_index on variable_record (job_id, port_id, context_id);
