@@ -32,8 +32,6 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
   
-  private final static String DEV_BACKEND_ID = UUID.randomUUID().toString();
-  
   private final JobService jobService;
   private final SchedulerService scheduler;
   private final BackendStubFactory backendStubFactory;
@@ -120,8 +118,7 @@ public class BackendServiceImpl implements BackendService {
   }
   
   private String generateUniqueBackendId() {
-    boolean isDev = configuration.getBoolean("backend.dev", false);
-    return isDev? DEV_BACKEND_ID : UUID.randomUUID().toString();
+    return UUID.randomUUID().toString();
   }
 
   @Override

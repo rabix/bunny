@@ -39,7 +39,7 @@ public class SchedulerServiceImpl implements SchedulerService {
   private final static Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
   private final static long SCHEDULE_PERIOD = TimeUnit.SECONDS.toMillis(1);
-  private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.MINUTES.toMillis(5);
+  private final static long DEFAULT_HEARTBEAT_PERIOD = TimeUnit.SECONDS.toMillis(5);
 
   private final List<BackendStub<?, ?, ?>> backendStubs = new ArrayList<>();
 
@@ -211,7 +211,7 @@ public class SchedulerServiceImpl implements SchedulerService {
           public Void call() throws Exception {
             try {
               dispatcherLock.lock();
-              logger.info("Checking Backend heartbeats...");
+              logger.trace("Checking Backend heartbeats...");
 
               long currentTime = System.currentTimeMillis();
 
@@ -232,7 +232,7 @@ public class SchedulerServiceImpl implements SchedulerService {
                   backendService.stopBackend(backend);
                 }
               }
-              logger.info("Heartbeats checked");
+              logger.trace("Heartbeats checked");
               return null;
             } finally {
               dispatcherLock.unlock();

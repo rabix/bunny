@@ -12,7 +12,7 @@
 	<logger name="org.eclipse.jetty" level="WARN" />
 	<logger name="org.skife.jdbi.v2" level="WARN" />
 
-	<root level="TRACE" additivity="false">
+	<root level="DEBUG" additivity="false">
 		<appender-ref ref="STDOUT" />
 	</root>
 
