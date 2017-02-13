@@ -9,11 +9,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.SchemaHelper;
+import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.BindJobIdRootId;
 import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository.LinkRecordMapper;
+import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.repository.LinkRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
@@ -46,6 +49,10 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   @Override
   @SqlBatch("update link_record set context_id=:context_id,source_job_id=:source_job_id,source_job_port_id=:source_job_port_id,source_type=:source_type::port_type,destination_job_id=:destination_job_id,destination_job_port_id=:destination_job_port_id,destination_type=:destination_type::port_type,position=:position where context_id=:context_id and source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and source_type=:source_type::port_type and destination_job_id=:destination_job_id and destination_job_port_id=:destination_job_port_id and destination_type=:destination_type::port_type")
   public abstract void updateBatch(@BindLinkRecord Iterator<LinkRecord> records);
+  
+  @Override
+  @SqlBatch("delete from link_record where source_job_id=:id and context_id=:root_id")
+  public abstract void delete(@BindJobIdRootId Set<JobIdRootIdPair> pairs);
   
   @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and context_id=:context_id")

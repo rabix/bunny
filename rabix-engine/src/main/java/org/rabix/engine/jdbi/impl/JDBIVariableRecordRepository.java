@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.postgresql.util.PGobject;
@@ -18,7 +19,9 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.cache.Cachable;
+import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.BindJobIdRootId;
 import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
+import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.repository.VariableRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
@@ -56,6 +59,10 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   @Override
   @SqlBatch("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type::port_type")
   public abstract void updateBatch(@BindVariableRecord Iterator<VariableRecord> records);
+  
+  @Override
+  @SqlBatch("delete from variable_record where job_id=:id and context_id=:root_id")
+  public abstract void delete(@BindJobIdRootId Set<JobIdRootIdPair> externalIDs);
   
   @Override
   @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and type=:type::port_type and context_id=:context_id")

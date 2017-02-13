@@ -19,7 +19,7 @@ import org.rabix.common.helper.JSONHelper;
 public class ManualTest {
 
   public static void main(String[] args) throws IOException {
-    runTask(1);
+    runTask(50);
   }
   
   private static void runTask(int times) throws IOException {

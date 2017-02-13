@@ -3,11 +3,13 @@ package org.rabix.engine.repository;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CachableRepository;
+import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.model.LinkRecord;
 
 public abstract class LinkRecordRepository implements CachableRepository {
@@ -43,6 +45,8 @@ public abstract class LinkRecordRepository implements CachableRepository {
   public abstract void insertBatch(Iterator<LinkRecord> records);
   
   public abstract void updateBatch(Iterator<LinkRecord> records);
+  
+  public abstract void delete(Set<JobIdRootIdPair> pairs);
   
   public abstract int insert(LinkRecord linkRecord);
   

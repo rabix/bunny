@@ -2,6 +2,7 @@ package org.rabix.engine.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
@@ -16,6 +17,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class JobRecord implements Cachable {
 
+  public static class JobIdRootIdPair {
+    final public String id;
+    final public UUID rootId;
+    
+    public JobIdRootIdPair(String id, UUID rootId) {
+      this.id = id;
+      this.rootId = rootId;
+    }
+  }
+  
   public final static String CACHE_NAME = "JOB_RECORD";
   
   private String id;

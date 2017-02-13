@@ -3,11 +3,13 @@ package org.rabix.engine.repository;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CachableRepository;
 import org.rabix.engine.model.JobRecord;
+import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 
 public abstract class JobRecordRepository implements CachableRepository {
 
@@ -46,6 +48,8 @@ public abstract class JobRecordRepository implements CachableRepository {
   public abstract void insertBatch(Iterator<JobRecord> records);
   
   public abstract void updateBatch(Iterator<JobRecord> records);
+  
+  public abstract void delete(Set<JobIdRootIdPair> externalIDs);
   
   public abstract List<JobRecord> get(UUID rootId);
   
