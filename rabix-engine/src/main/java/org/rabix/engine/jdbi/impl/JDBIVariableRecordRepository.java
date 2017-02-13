@@ -62,7 +62,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   
   @Override
   @SqlBatch("delete from variable_record where job_id=:id and context_id=:root_id")
-  public abstract void delete(@BindJobIdRootId Set<JobIdRootIdPair> externalIDs);
+  public abstract void delete(@BindJobIdRootId Set<JobIdRootIdPair> pairs);
   
   @Override
   @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and type=:type::port_type and context_id=:context_id")
