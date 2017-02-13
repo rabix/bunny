@@ -1,46 +1,34 @@
 package org.rabix.engine.service;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
+import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.TransactionHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.rabix.engine.service.JobRecordService.JobState;
 
 import com.google.inject.Inject;
 
 public class RecordDeleteService {
 
-  private final Logger logger = LoggerFactory.getLogger(RecordDeleteService.class);
-  
-  private final static int DEFAULT_BATCH_SIZE = 100;
   private final static long DEFAULT_SLEEP = TimeUnit.SECONDS.toMillis(4);
 
-  private final JobRecordRepository jobRecordRepository;
-  
+  private final long sleepPeriod;
   private final TransactionHelper transactionService;
-
-  private final BlockingQueue<JobIdRootIdPair> jobIDs = new LinkedBlockingQueue<>();
+  private final JobRecordRepository jobRecordRepository;
 
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @Inject
-  public RecordDeleteService(JobRecordRepository jobRecordRepository, TransactionHelper transactionService) {
+  public RecordDeleteService(JobRecordRepository jobRecordRepository, TransactionHelper transactionService, Configuration configuration) {
+    this.sleepPeriod = configuration.getLong("db.delete_period", DEFAULT_SLEEP);
     this.jobRecordRepository = jobRecordRepository;
     this.transactionService = transactionService;
-    start();
   }
 
-  private void start() {
-    final Set<JobIdRootIdPair> idsToRemove = new HashSet<>();
+  public void start() {
     executorService.execute(new Runnable() {
       @Override
       public void run() {
@@ -49,12 +37,7 @@ public class RecordDeleteService {
             transactionService.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws Exception {
-                jobIDs.drainTo(idsToRemove, DEFAULT_BATCH_SIZE);
-                if (idsToRemove.size() > 0) {
-                  jobRecordRepository.delete(idsToRemove);
-                  logger.debug("Removed {} Job ID - Root ID pairs.", idsToRemove.size());
-                  idsToRemove.clear();
-                }
+                jobRecordRepository.deleteByStatus(JobState.COMPLETED);
                 return null;
               }
             });
@@ -62,17 +45,13 @@ public class RecordDeleteService {
             // TODO handle exception
           }
           try {
-            Thread.sleep(DEFAULT_SLEEP);
+            Thread.sleep(sleepPeriod);
           } catch (InterruptedException e) {
             // TODO handle restart
           }
         }
       }
     });
-  }
-  
-  public void addJobId(String jobId, UUID rootId) {
-    this.jobIDs.add(new JobIdRootIdPair(jobId, rootId));
   }
   
 }

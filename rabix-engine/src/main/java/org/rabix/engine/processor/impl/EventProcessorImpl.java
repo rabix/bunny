@@ -13,9 +13,7 @@ import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.Event.EventStatus;
 import org.rabix.engine.event.Event.EventType;
-import org.rabix.engine.event.Event.PersistentEventType;
 import org.rabix.engine.event.impl.ContextStatusEvent;
-import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 import org.rabix.engine.processor.EventProcessor;
@@ -27,7 +25,6 @@ import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.RecordDeleteService;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.slf4j.Logger;
@@ -57,7 +54,6 @@ public class EventProcessorImpl implements EventProcessor {
   private final ContextRecordService contextRecordService;
   
   private final TransactionHelper transactionHelper;
-  private final RecordDeleteService recordDeleteService;
   private final CacheService cacheService;
   
   private final JobRepository jobRepository;
@@ -66,14 +62,13 @@ public class EventProcessorImpl implements EventProcessor {
   @Inject
   public EventProcessorImpl(HandlerFactory handlerFactory, ContextRecordService contextRecordService,
       TransactionHelper transactionHelper, CacheService cacheService, EventRepository eventRepository,
-      JobRepository jobRepository, RecordDeleteService recordDeleteService) {
+      JobRepository jobRepository) {
     this.handlerFactory = handlerFactory;
     this.contextRecordService = contextRecordService;
     this.transactionHelper = transactionHelper;
     this.cacheService = cacheService;
     this.eventRepository = eventRepository;
     this.jobRepository = jobRepository;
-    this.recordDeleteService = recordDeleteService;
   }
 
   public void start(EngineStatusCallback engineStatusCallback) {
@@ -107,10 +102,6 @@ public class EventProcessorImpl implements EventProcessor {
                   // TODO handle exception
                 }
                 eventRepository.delete(UUID.fromString(finalEvent.getEventGroupId()));
-                
-                if (PersistentEventType.JOB_STATUS_UPDATE_COMPLETED.equals(finalEvent.getPersistentType())) {
-                  recordDeleteService.addJobId(((JobStatusEvent) finalEvent).getJobId(), SchemaHelper.toUUID(finalEvent.getContextId()));
-                }
                 return null;
               }
             });

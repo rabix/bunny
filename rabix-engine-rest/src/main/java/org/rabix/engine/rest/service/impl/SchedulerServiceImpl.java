@@ -24,6 +24,7 @@ import org.rabix.engine.rest.service.BackendService;
 import org.rabix.engine.rest.service.BackendServiceException;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.SchedulerService;
+import org.rabix.engine.service.RecordDeleteService;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
@@ -56,12 +57,14 @@ public class SchedulerServiceImpl implements SchedulerService {
   private final BackendService backendService;
 
   private final TransactionHelper transactionHelper;
+  private final RecordDeleteService recordDeleteService;
 
   @Inject
-  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory) {
+  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, RecordDeleteService recordDeleteService) {
     this.jobService = jobService;
     this.backendService = backendService;
     this.transactionHelper = repositoriesFactory;
+    this.recordDeleteService = recordDeleteService;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
   }
 
@@ -88,6 +91,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     });
 
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
+    recordDeleteService.start();
   }
 
   private void schedule() {

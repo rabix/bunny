@@ -10,6 +10,7 @@ import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CachableRepository;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
+import org.rabix.engine.service.JobRecordService.JobState;
 
 public abstract class JobRecordRepository implements CachableRepository {
 
@@ -48,6 +49,8 @@ public abstract class JobRecordRepository implements CachableRepository {
   public abstract void insertBatch(Iterator<JobRecord> records);
   
   public abstract void updateBatch(Iterator<JobRecord> records);
+  
+  public abstract void deleteByStatus(JobState state);
   
   public abstract void delete(Set<JobIdRootIdPair> externalIDs);
   
