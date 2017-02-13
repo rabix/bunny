@@ -18,6 +18,7 @@ public class Cache {
 
   private CachableRepository repository;
 
+  private int hits = 0;
   private ConcurrentMap<CacheKey, CacheItem> cache = new ConcurrentHashMap<>();
 
   public Cache(CachableRepository repository) {
@@ -55,9 +56,14 @@ public class Cache {
 
     repository.insertCachables(inserts);
     repository.updateCachables(updates);
-    
+
+    logger.debug("{} flushed {} item(s). Cache hits {}.", repository, size, hits);
+    reset();
+  }
+  
+  private void reset() {
+    hits = 0;
     cache.clear();
-    logger.debug("{} flushed {} item(s).", repository, size);
   }
 
   public synchronized void put(Cachable cachable, Action action) {
@@ -92,6 +98,7 @@ public class Cache {
     for (Entry<CacheKey, CacheItem> entry : cache.entrySet()) {
       if (entry.getKey().satisfies(search)) {
         result.add(entry.getValue().cachable);
+        hits++;
       }
     }
     return result;

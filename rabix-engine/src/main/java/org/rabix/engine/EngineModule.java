@@ -2,7 +2,6 @@ package org.rabix.engine;
 
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.db.JobDB;
 import org.rabix.engine.jdbi.JDBIRepositoryModule;
 import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.lru.dag.DAGCache;
@@ -23,7 +22,6 @@ import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Scope;
 import com.google.inject.Scopes;
 
 public class EngineModule extends AbstractModule {
@@ -35,7 +33,6 @@ public class EngineModule extends AbstractModule {
     bind(CacheService.class).in(Scopes.SINGLETON);
     
     bind(DAGCache.class).in(Scopes.SINGLETON);
-    bind(JobDB.class).in(Scopes.SINGLETON);
     bind(DAGNodeDB.class).in(Scopes.SINGLETON);
     bind(AppDB.class).in(Scopes.SINGLETON);
     bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);

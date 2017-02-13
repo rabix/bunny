@@ -17,9 +17,9 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
+import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.db.JobDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
@@ -33,6 +33,7 @@ import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
+import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobRecordService.JobState;
@@ -48,7 +49,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
 
   private final Logger logger = LoggerFactory.getLogger(JobStatusEventHandler.class);
   
-  private final JobDB jobDB;
   private final DAGNodeDB dagNodeDB;
   private final AppDB appDB;
   private final ScatterHandler scatterHelper;
@@ -59,11 +59,15 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final VariableRecordService variableRecordService;
   private final ContextRecordService contextRecordService;
   
+  private final JobRepository jobRepository;
+  
   private EngineStatusCallback engineStatusCallback;
 
   @Inject
-  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobDB jobDB, final JobRecordService jobRecordService, final LinkRecordService linkRecordService, final VariableRecordService variableRecordService, final ContextRecordService contextRecordService, final EventProcessor eventProcessor, final ScatterHandler scatterHelper) {
-    this.jobDB = jobDB;
+  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobRecordService jobRecordService,
+      final LinkRecordService linkRecordService, final VariableRecordService variableRecordService,
+      final ContextRecordService contextRecordService, final EventProcessor eventProcessor,
+      final ScatterHandler scatterHelper, final JobRepository jobRepository) {
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
@@ -72,6 +76,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.contextRecordService = contextRecordService;
     this.variableRecordService = variableRecordService;
     this.appDB = appDB;
+
+    this.jobRepository = jobRepository;
   }
 
   public void initialize(EngineStatusCallback engineStatusCallback) {
@@ -94,7 +100,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         try {
           job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
           if (!StringUtils.isEmpty(event.getEventGroupId())) {
-            jobDB.add(job, event.getEventGroupId());
+            jobRepository.insert(job, SchemaHelper.toUUID(event.getEventGroupId()));
           }
         } catch (BindingException e1) {
           logger.info("Failed to create job", e1);
@@ -152,7 +158,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           engineStatusCallback.onJobRootFailed(rootJob);
           
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
-          deleteRecords(rootJob.getId());
         } catch (Exception e) {
           logger.error("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
@@ -175,9 +180,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   }
   
   private void deleteRecords(String rootId) {
-    jobRecordService.delete(rootId);
-    variableRecordService.delete(rootId);
-    linkRecordService.delete(rootId);
+    contextRecordService.delete(rootId);
   }
   
   /**

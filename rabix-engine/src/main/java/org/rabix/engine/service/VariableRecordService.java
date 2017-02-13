@@ -91,7 +91,7 @@ public class VariableRecordService {
   }
 
   @SuppressWarnings("unchecked")
-  public void addValue(VariableRecord variableRecord, Object value, Integer position, boolean isScatterWrapper) {
+  public void addValue(VariableRecord variableRecord, Object value, Integer position, boolean wrap) {
     variableRecord.setNumberOfTimesUpdated(variableRecord.getNumberOfTimesUpdated());
 
     if (variableRecord.isDefault()) {
@@ -100,7 +100,7 @@ public class VariableRecordService {
     }
     if (variableRecord.getValue() == null) {
       if (position == 1) {
-        if (isScatterWrapper) {
+        if (wrap) {
           variableRecord.setWrapped(true);
           variableRecord.setValue(new ArrayList<>());
           ((ArrayList<Object>) variableRecord.getValue()).add(value);
