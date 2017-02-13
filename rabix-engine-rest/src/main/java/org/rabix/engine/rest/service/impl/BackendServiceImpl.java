@@ -134,7 +134,7 @@ public class BackendServiceImpl implements BackendService {
     Timestamp timestamp = backendRepository.getHeartbeatInfo(SchemaHelper.toUUID(id));
     return timestamp != null ? timestamp.getTime() : null;
   }
-  
+
   @Override
   public List<Backend> getActiveBackends() {
     return backendRepository.getByStatus(BackendStatus.ACTIVE);

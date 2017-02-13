@@ -133,7 +133,9 @@ CREATE TABLE link_record (
     destination_job_id	    text not null,
     destination_job_port_id	text not null,
     destination_type		port_type not null,
-    position				integer not null
+    position				integer not null,
+    foreign key (source_job_id, context_id) references job_record(id, root_id) on delete cascade,
+    foreign key (destination_job_id, context_id) references job_record(id, root_id) on delete cascade
 );
 
 CREATE UNIQUE INDEX link_record_index on link_record (context_id, source_job_id, source_job_port_id, source_type, destination_job_id, destination_job_port_id, destination_type);
@@ -159,7 +161,8 @@ CREATE TABLE variable_record (
     times_updated_count	integer not null,
     context_id 			uuid references context_record on delete cascade,
     is_default			boolean not null,
-    transform			jsonb
+    transform			jsonb,
+    foreign key (job_id, context_id) references job_record(id, root_id) on delete cascade
 );
 
 CREATE UNIQUE INDEX variable_record_index on variable_record (job_id, port_id, type, context_id);

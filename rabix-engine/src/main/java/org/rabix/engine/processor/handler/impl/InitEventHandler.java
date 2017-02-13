@@ -54,6 +54,8 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     DAGNode node = nodeDB.get(InternalSchemaHelper.ROOT_NAME, event.getContextId(), event.getDagHash());
     JobRecord job = new JobRecord(event.getContextId(), node.getId(), event.getContextId(), null, JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
 
+    jobRecordService.create(job);
+
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       if (job.getState().equals(JobState.PENDING)) {
         jobRecordService.incrementPortCounter(job, inputPort, LinkPortType.INPUT);
@@ -69,7 +71,6 @@ public class InitEventHandler implements EventHandler<InitEvent> {
       VariableRecord variable = new VariableRecord(event.getContextId(), node.getId(), outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()));
       variableRecordService.create(variable);
     }
-    jobRecordService.create(job);
 
     if (node.getInputPorts().isEmpty()) {
       // the node is ready

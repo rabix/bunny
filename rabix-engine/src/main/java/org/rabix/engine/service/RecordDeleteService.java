@@ -58,8 +58,6 @@ public class RecordDeleteService {
                 jobIDs.drainTo(idsToRemove, DEFAULT_BATCH_SIZE);
                 if (idsToRemove.size() > 0) {
                   jobRecordRepository.delete(idsToRemove);
-                  linkRecordRepository.delete(idsToRemove);
-                  variableRecordRepository.delete(idsToRemove);
                   logger.debug("Removed {} Job ID - Root ID pairs.", idsToRemove.size());
                   idsToRemove.clear();
                 }

@@ -1,12 +1,16 @@
 package org.rabix.engine.service;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.cache.Cache;
+import org.rabix.engine.model.JobRecord;
+import org.rabix.engine.model.LinkRecord;
+import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor.EventProcessorDispatcher;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.LinkRecordRepository;
@@ -58,10 +62,10 @@ public class CacheService {
   }
   
   private Map<String, Cache> generateCache() {
-    Map<String, Cache> generated = new HashMap<>();
-    generated.put("JOB_RECORD", new Cache(jobRecordRepository));
-    generated.put("LINK_RECORD", new Cache(linkRecordRepository));
-    generated.put("VARIABLE_RECORD", new Cache(variableRecordRepository));
+    Map<String, Cache> generated = new LinkedHashMap<>();
+    generated.put(JobRecord.CACHE_NAME, new Cache(jobRecordRepository));
+    generated.put(VariableRecord.CACHE_NAME, new Cache(variableRecordRepository));
+    generated.put(LinkRecord.CACHE_NAME, new Cache(linkRecordRepository));
     return generated;
   }
   

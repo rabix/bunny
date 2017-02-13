@@ -137,6 +137,8 @@ public class ScatterHandler {
 
       String jobNId = InternalSchemaHelper.scatterId(job.getId(), mapping.getIndex());
       JobRecord jobN = createJobRecord(jobNId, job.getExternalId(), node, true, job.getRootId(), job.getDagHash());
+
+      jobRecordService.create(jobN);
        
       for (DAGLinkPort inputPort : node.getInputPorts()) {
         Object defaultValue = node.getDefaults().get(inputPort.getId());
@@ -184,7 +186,7 @@ public class ScatterHandler {
       jobRecordService.update(job);
       
       jobN.setNumberOfGlobalOutputs(newScatteredNumber);
-      jobRecordService.create(jobN);
+      jobRecordService.update(jobN);
 
       for (Event subevent : events) {
         eventProcessor.send(subevent);
