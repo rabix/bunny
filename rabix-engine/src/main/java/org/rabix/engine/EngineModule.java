@@ -19,6 +19,7 @@ import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.RecordDeleteService;
 import org.rabix.engine.service.VariableRecordService;
 
 import com.google.inject.AbstractModule;
@@ -41,6 +42,7 @@ public class EngineModule extends AbstractModule {
     bind(VariableRecordService.class).in(Scopes.SINGLETON);
     bind(LinkRecordService.class).in(Scopes.SINGLETON);
     bind(ContextRecordService.class).in(Scopes.SINGLETON);
+    bind(RecordDeleteService.class).in(Scopes.SINGLETON);
 
     bind(ScatterHandler.class).in(Scopes.SINGLETON);
     bind(InitEventHandler.class).in(Scopes.SINGLETON);

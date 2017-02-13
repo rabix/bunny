@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.postgresql.util.PGobject;
@@ -16,6 +17,7 @@ import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.JobRecordMapper;
 import org.rabix.engine.model.JobRecord;
+import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.model.JobRecord.PortCounter;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.repository.JobRecordRepository;
@@ -52,6 +54,10 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   @Override
   @SqlBatch("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state::job_record_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
   public abstract void updateBatch(@BindJobRecord Iterator<JobRecord> records);
+
+  @Override
+  @SqlBatch("delete from job_record where id=:id and root_id=:root_id")
+  public abstract void delete(@BindJobIdRootId Set<JobIdRootIdPair> pairs);
   
   @Override
   @SqlQuery("select * from job_record where root_id=:root_id")
@@ -122,6 +128,22 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
             }
             
             q.bind("dag_hash", jobRecord.getDagHash());
+          }
+        };
+      }
+    }
+  }
+  
+  @BindingAnnotation(BindJobIdRootId.JobBinderFactory.class)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ ElementType.PARAMETER })
+  public static @interface BindJobIdRootId {
+    public static class JobBinderFactory implements BinderFactory<Annotation> {
+      public Binder<BindJobIdRootId, JobIdRootIdPair> build(Annotation annotation) {
+        return new Binder<BindJobIdRootId, JobIdRootIdPair>() {
+          public void bind(SQLStatement<?> q, BindJobIdRootId bind, JobIdRootIdPair pair) {
+            q.bind("id", pair.id);
+            q.bind("root_id", pair.rootId);
           }
         };
       }
