@@ -139,7 +139,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, event.getResult());
           engineStatusCallback.onJobRootCompleted(rootJob);
-          deleteRecords(rootJob.getId());
+//          deleteRecords(rootJob.getId());
         } catch (Exception e) {
           logger.error("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);

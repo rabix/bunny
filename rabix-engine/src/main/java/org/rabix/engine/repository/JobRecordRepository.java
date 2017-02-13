@@ -50,7 +50,7 @@ public abstract class JobRecordRepository implements CachableRepository {
   
   public abstract void updateBatch(Iterator<JobRecord> records);
   
-  public abstract void deleteByStatus(JobState state);
+  public abstract int deleteByStatus(JobState state);
   
   public abstract void delete(Set<JobIdRootIdPair> externalIDs);
   
