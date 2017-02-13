@@ -2,6 +2,7 @@ package org.rabix.executor.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -61,7 +62,7 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
       public void handleReceive(EngineControlMessage controlMessage) throws TransportPluginException {
         switch (controlMessage.getType()) {
         case STOP:
-          List<String> ids = new ArrayList<>();
+          List<UUID> ids = new ArrayList<>();
           ids.add(((EngineControlStopMessage)controlMessage).getId());
           executorService.stop(ids, controlMessage.getRootId());
           break;

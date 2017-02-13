@@ -55,8 +55,8 @@ public class BackendPopulator {
     return (T) BeanSerializer.deserialize(payload, Backend.class);
   }
   
-  private String generateUniqueBackendId() {
-    return UUID.randomUUID().toString();
+  private UUID generateUniqueBackendId() {
+    return UUID.randomUUID();
   }
 
 }

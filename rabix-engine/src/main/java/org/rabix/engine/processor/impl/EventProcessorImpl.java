@@ -9,7 +9,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.Event.EventStatus;
 import org.rabix.engine.event.Event.EventType;
@@ -94,14 +93,14 @@ public class EventProcessorImpl implements EventProcessor {
                 handle(finalEvent);
                 cacheService.flush(finalEvent.getContextId());
                 
-                Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(SchemaHelper.toUUID(finalEvent.getEventGroupId()));
+                Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(finalEvent.getEventGroupId());
                 try {
                   engineStatusCallback.onJobsReady(readyJobs);
                 } catch (EngineStatusCallbackException e) {
                   logger.error("Failed to call onJobsReady() callback", e);
                   // TODO handle exception
                 }
-                eventRepository.delete(UUID.fromString(finalEvent.getEventGroupId()));
+                eventRepository.delete(finalEvent.getEventGroupId());
                 return null;
               }
             });
@@ -138,7 +137,7 @@ public class EventProcessorImpl implements EventProcessor {
   /**
    * Invalidates context 
    */
-  private void invalidateContext(String contextId) throws EventHandlerException {
+  private void invalidateContext(UUID contextId) throws EventHandlerException {
     handlerFactory.get(Event.EventType.CONTEXT_STATUS_UPDATE).handle(new ContextStatusEvent(contextId, ContextStatus.FAILED));
   }
   
@@ -175,7 +174,7 @@ public class EventProcessorImpl implements EventProcessor {
       return;
     }
     if (persist) {
-      eventRepository.insert(UUID.fromString(event.getEventGroupId()), event.getPersistentType(), event, EventStatus.UNPROCESSED);
+      eventRepository.insert(event.getEventGroupId(), event.getPersistentType(), event, EventStatus.UNPROCESSED);
     }
     this.externalEvents.add(event);
   }

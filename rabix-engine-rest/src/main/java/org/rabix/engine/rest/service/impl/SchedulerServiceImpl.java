@@ -16,7 +16,6 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStub.HeartbeatCallback;
@@ -121,7 +120,7 @@ public class SchedulerServiceImpl implements SchedulerService {
         Set<UUID> backendIds = jobService.getBackendsByRootId(job.getId());
         for (UUID backendId : backendIds) {
           if (backendId != null) {
-            BackendStub<?, ?, ?> backendStub = getBackendStub(SchemaHelper.fromUUID(backendId));
+            BackendStub<?, ?, ?> backendStub = getBackendStub(backendId);
             if (backendStub != null) {
               backendStub.send(new EngineControlStopMessage(job.getId(), job.getRootId()));
             }
@@ -176,7 +175,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 
       Set<UUID> backendIds = jobService.getBackendsByRootId(rootJob.getId());
       for (UUID backendId : backendIds) {
-        backendStubs.add(getBackendStub(SchemaHelper.fromUUID(backendId)));
+        backendStubs.add(getBackendStub(backendId));
       }
 
       for (BackendStub<?, ?, ?> backendStub : backendStubs) {
@@ -197,7 +196,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     return backendStub;
   }
 
-  private BackendStub<?, ?, ?> getBackendStub(String id) {
+  private BackendStub<?, ?, ?> getBackendStub(UUID id) {
     for (BackendStub<?, ?, ?> backendStub : backendStubs) {
       if (backendStub.getBackend().getId().equals(id)) {
         return backendStub;

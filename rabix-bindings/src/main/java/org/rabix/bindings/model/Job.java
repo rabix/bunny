@@ -36,11 +36,11 @@ public class Job implements Serializable {
   }
 
   @JsonProperty("id")
-  private final String id;
+  private final UUID id;
   @JsonProperty("parentId")
-  private final String parentId;
+  private final UUID parentId;
   @JsonProperty("rootId")
-  private final String rootId;
+  private final UUID rootId;
   @JsonProperty("name")
   private final String name;
   @JsonProperty("app")
@@ -68,9 +68,9 @@ public class Job implements Serializable {
   }
   
   @JsonCreator
-  public Job(@JsonProperty("id") String id,
-      @JsonProperty("parentId") String parentId,
-      @JsonProperty("rootId") String rootId,
+  public Job(@JsonProperty("id") UUID id,
+      @JsonProperty("parentId") UUID parentId,
+      @JsonProperty("rootId") UUID rootId,
       @JsonProperty("name") String name,
       @JsonProperty("app") String app, 
       @JsonProperty("status") JobStatus status,
@@ -94,11 +94,11 @@ public class Job implements Serializable {
     this.visiblePorts = visiblePorts;
   }
   
-  public static String generateId() {
-    return UUID.randomUUID().toString();
+  public static UUID generateId() {
+    return UUID.randomUUID();
   }
   
-  public static Job cloneWithId(Job job, String id) {
+  public static Job cloneWithId(Job job, UUID id) {
     return new Job(id, job.parentId, job.rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
   
@@ -106,11 +106,11 @@ public class Job implements Serializable {
     return new Job(job.id, job.parentId, job.rootId, name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
 
-  public static Job cloneWithIds(Job job, String id, String rootId) {
+  public static Job cloneWithIds(Job job, UUID id, UUID rootId) {
     return new Job(id, job.parentId, rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
   
-  public static Job cloneWithRootId(Job job, String rootId) {
+  public static Job cloneWithRootId(Job job, UUID rootId) {
     return new Job(job.getId(), job.parentId, rootId, job.name, job.app, job.status, job.message, job.inputs, job.outputs, job.config, job.resources, job.visiblePorts);
   }
   
@@ -152,7 +152,7 @@ public class Job implements Serializable {
     return id.equals(rootId);
   }
   
-  public String getId() {
+  public UUID getId() {
     return id;
   }
   
@@ -160,11 +160,11 @@ public class Job implements Serializable {
     return message;
   }
   
-  public String getParentId() {
+  public UUID getParentId() {
     return parentId;
   }
   
-  public String getRootId() {
+  public UUID getRootId() {
     return rootId;
   }
   

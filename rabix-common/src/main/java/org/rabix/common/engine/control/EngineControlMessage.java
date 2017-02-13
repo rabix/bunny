@@ -1,5 +1,7 @@
 package org.rabix.common.engine.control;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -22,14 +24,14 @@ public abstract class EngineControlMessage {
   }
   
   @JsonProperty("rootId")
-  protected String rootId;
+  protected UUID rootId;
 
   @JsonCreator
-  public EngineControlMessage(@JsonProperty("rootId") String rootId) {
+  public EngineControlMessage(@JsonProperty("rootId") UUID rootId) {
     this.rootId = rootId;
   }
   
-  public String getRootId() {
+  public UUID getRootId() {
     return rootId;
   }
   

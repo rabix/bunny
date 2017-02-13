@@ -1,5 +1,6 @@
 package org.rabix.engine.processor.impl;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -76,7 +77,7 @@ public class MultiEventProcessorImpl implements EventProcessor {
    * @param rootId  Root ID
    * @return        EventProcessor instance
    */
-  private EventProcessor getEventProcessor(String rootId) {
+  private EventProcessor getEventProcessor(UUID rootId) {
     int index = EventProcessorDispatcher.dispatch(rootId, eventProcessorCount);
     logger.debug("Root Job {} goes to EventProcessor {}", rootId, index);
     return eventProcessors.get(index);

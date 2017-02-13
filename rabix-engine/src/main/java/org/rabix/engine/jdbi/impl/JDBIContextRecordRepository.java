@@ -12,7 +12,6 @@ import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.jdbi.impl.JDBIContextRecordRepository.ContextRecordMapper;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
@@ -55,7 +54,7 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
       public Binder<BindContextRecord, ContextRecord> build(Annotation annotation) {
         return new Binder<BindContextRecord, ContextRecord>() {
           public void bind(SQLStatement<?> q, BindContextRecord bind, ContextRecord contextRecord) {
-            q.bind("id", SchemaHelper.toUUID(contextRecord.getId()));
+            q.bind("id", contextRecord.getId());
             q.bind("status", contextRecord.getStatus());
             try {
               PGobject data = new PGobject();
@@ -73,7 +72,7 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
   
   public static class ContextRecordMapper implements ResultSetMapper<ContextRecord> {
     public ContextRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
-      String id = resultSet.getString("ID");
+      UUID id = resultSet.getObject("ID", UUID.class);
       String config = resultSet.getString("CONFIG");
       String status = resultSet.getString("STATUS");
 

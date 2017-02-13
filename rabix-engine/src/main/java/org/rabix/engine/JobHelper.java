@@ -61,9 +61,9 @@ public class JobHelper {
     return null;
   }
   
-  public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, String contextId) {
+  public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, UUID rootId) {
     Set<Job> jobs = new HashSet<>();
-    List<JobRecord> jobRecords = jobRecordService.findReady(contextId);
+    List<JobRecord> jobRecords = jobRecordService.findReady(rootId);
 
     if (!jobRecords.isEmpty()) {
       for (JobRecord job : jobRecords) {
@@ -189,7 +189,7 @@ public class JobHelper {
     return visiblePorts;
   }
   
-  private static boolean isRoot(String portId, String jobId, String rootId, LinkRecordService linkRecordService) {
+  private static boolean isRoot(String portId, String jobId, UUID rootId, LinkRecordService linkRecordService) {
     List<LinkRecord> links = linkRecordService.findBySourceAndDestinationType(jobId, portId, LinkPortType.OUTPUT, rootId);
 
     for (LinkRecord link : links) {

@@ -1,5 +1,7 @@
 package org.rabix.engine.event;
 
+import java.util.UUID;
+
 import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
@@ -53,8 +55,8 @@ public interface Event {
   
   PersistentEventType getPersistentType();
   
-  String getContextId();
+  UUID getContextId();
   
-  String getEventGroupId();
+  UUID getEventGroupId();
   
 }

@@ -15,7 +15,6 @@ import java.util.UUID;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobMapper;
 import org.rabix.engine.repository.JobRepository;
 import org.skife.jdbi.v2.SQLStatement;
@@ -93,7 +92,7 @@ public interface JDBIJobRepository extends JobRepository {
       Map<String, Object> inputs = JSONHelper.readMap(inputsJson);
       Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
 
-      return new Job(SchemaHelper.fromUUID(id), SchemaHelper.fromUUID(parent_id), SchemaHelper.fromUUID(root_id), name, app, status, message, inputs, outputs, Collections.emptyMap(), res, Collections.emptySet());
+      return new Job(id, parent_id, root_id, name, app, status, message, inputs, outputs, Collections.emptyMap(), res, Collections.emptySet());
     }
   }
 
@@ -105,10 +104,10 @@ public interface JDBIJobRepository extends JobRepository {
       public Binder<JDBIJobRepository.BindJob, Job> build(Annotation annotation) {
         return new Binder<JDBIJobRepository.BindJob, Job>() {
           public void bind(SQLStatement<?> q, JDBIJobRepository.BindJob bind, Job job) {
-            q.bind("id", SchemaHelper.toUUID(job.getId()));
-            q.bind("root_id", SchemaHelper.toUUID(job.getRootId()));
+            q.bind("id", job.getId());
+            q.bind("root_id", job.getRootId());
             q.bind("name", job.getName());
-            q.bind("parent_id", SchemaHelper.toUUID(job.getParentId()));
+            q.bind("parent_id", job.getParentId());
             q.bind("status", job.getStatus().toString());
             q.bind("message", job.getMessage());
             q.bind("inputs", JSONHelper.writeObject(job.getInputs()));

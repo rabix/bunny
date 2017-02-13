@@ -1,6 +1,7 @@
 package org.rabix.engine.service;
 
-import org.rabix.engine.SchemaHelper;
+import java.util.UUID;
+
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.repository.ContextRecordRepository;
 
@@ -23,12 +24,12 @@ public class ContextRecordService {
     contextRecordRepository.update(context);
   }
   
-  public synchronized ContextRecord find(String id) {
-    return contextRecordRepository.get(SchemaHelper.toUUID(id));
+  public synchronized ContextRecord find(UUID id) {
+    return contextRecordRepository.get(id);
   }
 
-  public synchronized void delete(String id) {
-    contextRecordRepository.delete(SchemaHelper.toUUID(id));
+  public synchronized void delete(UUID id) {
+    contextRecordRepository.delete(id);
   }
   
 }

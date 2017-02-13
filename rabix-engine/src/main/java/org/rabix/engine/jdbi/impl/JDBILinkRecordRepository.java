@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.BindJobIdRootId;
 import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository.LinkRecordMapper;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
@@ -78,7 +77,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
       public Binder<BindLinkRecord, LinkRecord> build(Annotation annotation) {
         return new Binder<BindLinkRecord, LinkRecord>() {
           public void bind(SQLStatement<?> q, BindLinkRecord bind, LinkRecord linkRecord) {
-            q.bind("context_id", SchemaHelper.toUUID(linkRecord.getContextId()));
+            q.bind("context_id", linkRecord.getRootId());
             q.bind("source_job_id", linkRecord.getSourceJobId());
             q.bind("source_job_port_id", linkRecord.getSourceJobPort());
             q.bind("source_type", linkRecord.getSourceVarType());
@@ -102,7 +101,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
       String destinationJobPortId = resultSet.getString("destination_job_port_id");
       String destinationType = resultSet.getString("destination_type");
       Integer position = resultSet.getInt("position");
-      return new LinkRecord(SchemaHelper.fromUUID(contextId), sourceJobId, sourceJobPortId, LinkPortType.valueOf(sourceType), destinationJobId, destinationJobPortId, LinkPortType.valueOf(destinationType), position);
+      return new LinkRecord(contextId, sourceJobId, sourceJobPortId, LinkPortType.valueOf(sourceType), destinationJobId, destinationJobPortId, LinkPortType.valueOf(destinationType), position);
     }
   }
   
