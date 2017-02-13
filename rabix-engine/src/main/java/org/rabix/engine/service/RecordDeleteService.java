@@ -11,9 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.repository.JobRecordRepository;
-import org.rabix.engine.repository.LinkRecordRepository;
 import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.VariableRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +25,6 @@ public class RecordDeleteService {
   private final static long DEFAULT_SLEEP = TimeUnit.SECONDS.toMillis(4);
 
   private final JobRecordRepository jobRecordRepository;
-  private final LinkRecordRepository linkRecordRepository;
-  private final VariableRecordRepository variableRecordRepository;
   
   private final TransactionHelper transactionService;
 
@@ -37,10 +33,8 @@ public class RecordDeleteService {
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @Inject
-  public RecordDeleteService(JobRecordRepository jobRecordRepository, LinkRecordRepository linkRecordRepository, VariableRecordRepository variableRecordRepository, TransactionHelper transactionService) {
+  public RecordDeleteService(JobRecordRepository jobRecordRepository, TransactionHelper transactionService) {
     this.jobRecordRepository = jobRecordRepository;
-    this.linkRecordRepository = linkRecordRepository;
-    this.variableRecordRepository = variableRecordRepository;
     this.transactionService = transactionService;
     start();
   }
