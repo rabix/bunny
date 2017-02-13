@@ -8,11 +8,15 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.JobRecordService.JobState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
 public class RecordDeleteService {
 
+  private final static Logger logger = LoggerFactory.getLogger(RecordDeleteService.class);
+  
   private final static long DEFAULT_SLEEP = TimeUnit.SECONDS.toMillis(4);
 
   private final long sleepPeriod;
@@ -37,7 +41,8 @@ public class RecordDeleteService {
             transactionService.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws Exception {
-                jobRecordRepository.deleteByStatus(JobState.COMPLETED);
+                int deleted = jobRecordRepository.deleteByStatus(JobState.COMPLETED);
+                logger.debug("Deleted {} completed Jobs", deleted);
                 return null;
               }
             });
