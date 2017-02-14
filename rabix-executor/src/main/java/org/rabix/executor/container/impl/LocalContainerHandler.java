@@ -189,4 +189,8 @@ public class LocalContainerHandler implements ContainerHandler {
       throw new ContainerException(e);
     }
   }
+
+  @Override
+  public void removeContainer() {
+  }
 }
