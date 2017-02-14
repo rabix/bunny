@@ -93,17 +93,18 @@ public class FileValueHelper {
 
     //ARRAY
     if (value instanceof List) {
+      Set<DataType> arrayTypes = new HashSet<>();
       DataType arrayType = null;
       for (Object element: (List<?>)value) {
-        DataType dt = getDataTypeFromValue(element);
-        if (arrayType != null && !arrayType.equals(dt)) {
-          arrayType = new DataType(DataType.Type.ANY);
-          break;
-        } else
-          arrayType = dt;
+        arrayTypes.add(getDataTypeFromValue(element));
       }
-      if (arrayType == null)
+
+      if (arrayTypes.isEmpty())
         arrayType = new DataType(DataType.Type.ANY);
+      else if (arrayTypes.size() == 1)
+        arrayType = arrayTypes.iterator().next();
+      else
+        arrayType = new DataType(DataType.Type.UNION, arrayTypes);
 
       return new DataType(DataType.Type.ARRAY, arrayType);
     }

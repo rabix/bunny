@@ -5,9 +5,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.configuration.Configuration;
-import org.rabix.bindings.BindingException;
-import org.rabix.bindings.Bindings;
-import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.executor.engine.EngineStub;
@@ -19,7 +16,6 @@ import org.rabix.executor.model.JobData.JobDataStatus;
 import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
-import org.rabix.executor.service.ResultCacheService;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
@@ -42,16 +38,11 @@ public class ExecutorServiceImpl implements ExecutorService {
   private Configuration configuration;
   private EngineStub<?,?,?> engineStub;
   
-  private boolean cachingEnabled;
-  private ResultCacheService resultCacheService;
-
   @Inject
-  public ExecutorServiceImpl(JobDataService jobDataService, FileService fileService, ResultCacheService resultCacheService, Configuration configuration) {
+  public ExecutorServiceImpl(JobDataService jobDataService, FileService fileService, Configuration configuration) {
     this.fileService = fileService;
     this.configuration = configuration;
     this.jobDataService = jobDataService;
-    this.resultCacheService = resultCacheService;
-    this.cachingEnabled = configuration.getBoolean("cache.is_enabled", true);
   }
 
   @Override
@@ -78,25 +69,7 @@ public class ExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public void start(final Job job, String rootId) {
-    if (cachingEnabled) {
-      Map<String, Object> result = resultCacheService.findResultsFromCache(job);
-      if (result != null) {
-        logger.info("Found cache hit for Job {}", job.getName());
-        Job updatedJob = Job.cloneWithStatus(job, JobStatus.COMPLETED);
-        
-        try {
-          Bindings bindings = BindingsFactory.create(job);
-          updatedJob = Job.cloneWithOutputs(updatedJob, (Map<String, Object>) bindings.translateToCommon(result));
-          engineStub.send(updatedJob);
-        } catch (BindingException e) {
-          logger.error("Failed to find bindings for Job " + job.getId());
-        }
-        return;
-      }
-    }
-    
     logger.debug("start(id={}, important={}, uploadOutputs={})", job.getId());
 
     final JobData jobData = new JobData(job, JobDataStatus.PENDING, "Job is queued to start.", false, false);

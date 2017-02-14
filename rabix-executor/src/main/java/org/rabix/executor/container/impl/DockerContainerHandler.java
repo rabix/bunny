@@ -22,10 +22,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
+import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
@@ -44,7 +47,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -62,6 +67,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerState;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
 
 /**
  * Docker based implementation of {@link ContainerHandler}
@@ -89,6 +95,7 @@ public class DockerContainerHandler implements ContainerHandler {
   private final File workingDir;
 
   private boolean isConfigAuthEnabled;
+  private boolean removeContainers;
 
   private Integer overrideResultStatus = null;
 
@@ -105,6 +112,7 @@ public class DockerContainerHandler implements ContainerHandler {
     this.storageConfig = storageConfig;
     this.workingDir = storageConfig.getWorkingDir(job);
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
+    this.removeContainers = dockerConfig.removeContainers();
   }
 
   private void pull(String image) throws ContainerException {
@@ -166,11 +174,26 @@ public class DockerContainerHandler implements ContainerHandler {
       builder.image(dockerPull);
 
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
-      hostConfigBuilder.binds(physicalPath + ":" + physicalPath + ":" + DIRECTORY_MAP_MODE);
+      volumes = normalizeVolumes(job, volumes);
+      
+      Set<String> toBindSet = new HashSet<>();
+      toBindSet.addAll(volumes);
       if(dockerResource.getDockerOutputDirectory() != null) {
         volumes.add(dockerResource.getDockerOutputDirectory());
         hostConfigBuilder.binds(workingDir + ":" + dockerResource.getDockerOutputDirectory() + ":" + DIRECTORY_MAP_MODE);
+        toBindSet.remove(workingDir);
+        toBindSet.remove(dockerResource.getDockerOutputDirectory());
+        toBindSet.remove(physicalPath);
       }
+      
+      toBindSet = FluentIterable.from(toBindSet).transform(new Function<String, String>() {
+        @Override
+        public String apply(String input) {
+          return input + ":" + input + ":" + DIRECTORY_MAP_MODE;
+        }
+      }).toSet();
+      hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
+      
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
 
@@ -235,7 +258,44 @@ public class DockerContainerHandler implements ContainerHandler {
       throw new ContainerException("Failed to start container.", e);
     }
   }
-
+  
+  private Set<String> normalizeVolumes(Job job, Set<String> volumes) throws BindingException {
+    Set<String> paths = new HashSet<>();
+    Set<FileValue> files = flattenFiles(FileValueHelper.getInputFiles(job));
+    
+    for (FileValue fileValue : files) {
+      paths.add(Paths.get(fileValue.getPath()).getParent().toAbsolutePath().toString());
+    }
+    paths.addAll(volumes);
+    
+    List<String> toRemove = new ArrayList<>();
+    for (String pathA : paths) {
+      for (String pathB : paths) {
+        if (pathA.equals(pathB)) {
+          continue;
+        }
+        if (pathB.startsWith(pathA)) {
+          toRemove.add(pathB);
+        }
+      }
+    }
+    for (String path : toRemove) {
+      paths.remove(path);
+    }
+    return paths;
+  }
+  
+  private Set<FileValue> flattenFiles(Set<FileValue> fileValues) {
+    Set<FileValue> flattenedFileValues = new HashSet<>();
+    for (FileValue fileValue : fileValues) {
+      flattenedFileValues.add(fileValue);
+      if (fileValue.getSecondaryFiles() != null) {
+        flattenedFileValues.addAll(fileValue.getSecondaryFiles());
+      }
+    }
+    return flattenedFileValues;
+  }
+  
   private List<String> transformEnvironmentVariables(Map<String, String> variables) {
     List<String> transformed = new ArrayList<>();
     for (Entry<String, String> variableEntry : variables.entrySet()) {
@@ -337,6 +397,18 @@ public class DockerContainerHandler implements ContainerHandler {
       }
     }
   }
+  
+  @Override
+  public void removeContainer() {
+    try {
+      if(removeContainers) {
+        logger.debug("Removing container with id " + containerId);
+        dockerClient.removeContainer(containerId);
+      }
+    } catch (Exception e) {
+      logger.error("Failed to remove container with id " + containerId, e);
+    }
+  }
 
   /**
    * Helper method for dumping error logs from Docker to file
@@ -409,22 +481,29 @@ public class DockerContainerHandler implements ContainerHandler {
     public DockerClientLockDecorator(Configuration configuration) throws ContainerException {
       this.dockerClient = createDockerClient(configuration);
     }
+    
+    public synchronized void removeContainer(String containerId) throws DockerException, InterruptedException {
+      dockerClient.removeContainer(containerId);
+    }
 
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = false, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image) throws DockerException, InterruptedException {
       try {
-        dockerClient.pull(image);
+        if(!imageExists(image)) {
+          dockerClient.pull(image);
+        }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
         throw e;
       }
-        
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = false, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException {
       try {
-        dockerClient.pull(image, authConfig);
+        if(!imageExists(image)) {
+          dockerClient.pull(image, authConfig);
+        }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
         throw e;
@@ -459,6 +538,27 @@ public class DockerContainerHandler implements ContainerHandler {
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
     public synchronized ContainerExit waitContainer(String containerId) throws DockerException, InterruptedException {
       return dockerClient.waitContainer(containerId);
+    }
+    
+    private boolean imageExists(String dockerPull) {
+      List<String> images = null;
+      try {
+        images = listImages();
+      } catch (DockerException | InterruptedException e) {
+        return false;
+      }
+      return images != null ? images.contains(dockerPull) : false;
+    }
+    
+    public synchronized List<String> listImages() throws DockerException, InterruptedException {
+      List<Image> images = dockerClient.listImages();
+      List<String> result = new ArrayList<String>();
+      for(Image image: images) {
+        if(image.repoTags() != null) {
+          result.addAll(image.repoTags());
+        }
+      }
+      return result;
     }
     
     public static DockerClient createDockerClient(Configuration configuration) throws ContainerException {
@@ -534,9 +634,7 @@ public class DockerContainerHandler implements ContainerHandler {
     private static String defaultCertPath() {
       return Paths.get(getProperty("user.home"), ".docker").toString();
     }
-
   }
-  
 
   @Override
   public void dumpCommandLine() throws ContainerException {
@@ -548,5 +646,5 @@ public class DockerContainerHandler implements ContainerHandler {
       throw new ContainerException(e);
     }
   }
-
+  
 }

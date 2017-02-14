@@ -40,6 +40,7 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.common.json.BeanSerializer;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.common.service.download.DownloadService;
@@ -54,12 +55,15 @@ import org.rabix.engine.rest.backend.BackendDispatcher;
 import org.rabix.engine.rest.db.BackendDB;
 import org.rabix.engine.rest.db.JobDB;
 import org.rabix.engine.rest.service.BackendService;
+import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
+import org.rabix.engine.rest.service.impl.IntermediaryFilesServiceLocalImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
+import org.rabix.executor.config.impl.LocalStorageConfiguration;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.execution.JobHandlerCommandDispatcher;
 import org.rabix.executor.handler.JobHandler;
@@ -73,13 +77,13 @@ import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
-import org.rabix.executor.service.ResultCacheService;
+import org.rabix.executor.service.CacheService;
 import org.rabix.executor.service.impl.ExecutorServiceImpl;
 import org.rabix.executor.service.impl.FilePermissionServiceImpl;
 import org.rabix.executor.service.impl.FileServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
-import org.rabix.executor.service.impl.ResultCacheServiceImpl;
+import org.rabix.executor.service.impl.CacheServiceImpl;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
@@ -112,6 +116,7 @@ public class BackendCommandLine {
     CommandLine commandLine;
     List<String> commandLineArray = Arrays.asList(commandLineArguments);
     String[] inputArguments = null;
+    
     if (commandLineArray.contains("--")) {
       commandLineArguments = commandLineArray.subList(0, commandLineArray.indexOf("--")).toArray(new String[0]);
       inputArguments = commandLineArray.subList(commandLineArray.indexOf("--") + 1, commandLineArray.size()).toArray(new String[0]);
@@ -128,12 +133,17 @@ public class BackendCommandLine {
       if (!checkCommandLine(commandLine)) {
         printUsageAndExit(posixOptions);
       }
-
-      String appPath = commandLine.getArgList().get(0);
+      
+      final String appPath = commandLine.getArgList().get(0);
       File appFile = new File(URIHelper.extractBase(appPath));
       if (!appFile.exists()) {
         VerboseLogger.log(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));
         printUsageAndExit(posixOptions);
+      }
+      
+      String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
+      if (commandLine.hasOption("resolve-app")) {
+        printResolvedAppAndExit(appUrl);
       }
 
       File inputsFile = null;
@@ -175,6 +185,16 @@ public class BackendCommandLine {
       if (commandLine.hasOption("no-container")) {
         configOverrides.put("backend.docker.enabled", false);
       }
+      if (commandLine.hasOption("cache-dir")) {
+        String cacheDir = commandLine.getOptionValue("cache-dir");
+        File cacheDirFile = new File(cacheDir);
+        if (!cacheDirFile.exists()) {
+          VerboseLogger.log(String.format("Cache directory %s does not exist.", cacheDirFile.getCanonicalPath()));
+          printUsageAndExit(posixOptions);
+        }
+        configOverrides.put("cache.is_enabled", true);
+        configOverrides.put("cache.directory", cacheDirFile.getCanonicalPath());
+      }
 
       String tesURL = commandLine.getOptionValue("tes-url");
       if (tesURL != null) {
@@ -215,8 +235,9 @@ public class BackendCommandLine {
               install(configModule);
               
               bind(JobDB.class).in(Scopes.SINGLETON);
-              bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
+              bind(StorageConfiguration.class).toInstance(new LocalStorageConfiguration(appPath,configModule.provideConfig()));
               bind(BackendDB.class).in(Scopes.SINGLETON);
+              bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceLocalImpl.class).in(Scopes.SINGLETON);
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendPopulator.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
@@ -246,12 +267,10 @@ public class BackendCommandLine {
                 bind(FileService.class).to(FileServiceImpl.class).in(Scopes.SINGLETON);
                 bind(ExecutorService.class).to(ExecutorServiceImpl.class).in(Scopes.SINGLETON);
                 bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ResultCacheService.class).to(ResultCacheServiceImpl.class).in(Scopes.SINGLETON);
+                bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
               }
             }
           });
-
-      String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
 
       // Load app from JSON
       Bindings bindings = null;
@@ -271,7 +290,7 @@ public class BackendCommandLine {
         VerboseLogger.log("Error reading the app file");
         System.exit(10);
       }
-
+      
       Options appInputOptions = new Options();
 
       // Create appInputOptions for parser
@@ -446,6 +465,27 @@ public class BackendCommandLine {
   }
 
   /**
+   * Prints resolved application on standard out 
+   */
+  private static void printResolvedAppAndExit(String appUrl) {
+    Bindings bindings = null;
+    Application application = null;
+    try {
+      bindings = BindingsFactory.create(appUrl);
+      application = bindings.loadAppObject(appUrl);
+      
+      System.out.println(BeanSerializer.serializePartial(application));
+      System.exit(0);
+    } catch (NotImplementedException e) {
+      logger.error("Not implemented feature");
+      System.exit(33);
+    } catch (BindingException e) {
+      logger.error("Error: " + appUrl + " is not a valid app!");
+      System.exit(10);
+    }
+  }
+  
+  /**
    * Reads content from a file
    */
   static String readFile(String path, Charset encoding) throws IOException {
@@ -458,17 +498,19 @@ public class BackendCommandLine {
    */
   private static Options createOptions() {
     Options options = new Options();
-    options.addOption("v", "verbose", false, "verbose");
+    options.addOption("v", "verbose", false, "print more information on the standard output");
     options.addOption("b", "basedir", true, "execution directory");
     options.addOption("c", "configuration-dir", true, "configuration directory");
+    options.addOption("r", "resolve-app", false, "resolve all referenced fragments and print application as a single JSON document");
+    options.addOption(null, "cache-dir", true, "basic tool result caching (experimental)");
     options.addOption(null, "no-container", false, "don't use containers");
     options.addOption(null, "tmp-outdir-prefix", true, "doesn't do anything");
     options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");
     options.addOption(null, "outdir", true, "doesn't do anything");
-    options.addOption(null, "quiet", false, "quiet");
-    options.addOption(null, "tes-url", true, "TES URL (experimental)");
-    options.addOption(null, "version", false, "Rabix version");
-    options.addOption("h", "help", false, "help");
+    options.addOption(null, "quiet", false, "don't print anything except final result on standard output");
+    options.addOption(null, "tes-url", true, "url of the ga4gh task execution server instance (experimental)");
+    options.addOption(null, "version", false, "print program version and exit");
+    options.addOption("h", "help", false, "print this help message and exit");
     return options;
   }
 
@@ -479,7 +521,7 @@ public class BackendCommandLine {
     if (commandLine.getArgList().size() == 1 || commandLine.getArgList().size() == 2) {
       return true;
     }
-    VerboseLogger.log("Invalid number of arguments\n");
+    logger.info("Invalid number of arguments\n");
     return false;
   }
 
@@ -487,7 +529,15 @@ public class BackendCommandLine {
    * Prints command line usage
    */
   private static void printUsageAndExit(Options options) {
-    new HelpFormatter().printHelp("rabix <tool> <job> [OPTION] [-- {inputs}...]", options);
+    HelpFormatter hf =new HelpFormatter();
+    hf.setWidth(80);
+    hf.setSyntaxPrefix("Usage: ");
+    final String usage = "rabix [OPTION]... <tool> <job> [-- {inputs}...]";
+    final String header = "Executes CWL application with provided inputs.\n\n";
+    final String footer = "\nYou can add/override additional input parameters after -- parameter.\n\n" +
+            "Rabix suite homepage: https://rabix.org\n" +
+            "Source and issue tracker: https://github.com/rabix/bunny.";
+    hf.printHelp(usage, header, options, footer);
     System.exit(10);
   }
 

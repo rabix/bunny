@@ -128,11 +128,6 @@ public class SBJobProcessor implements BeanProcessor<SBJob> {
     for (ApplicationPort port : ports) {
       String prefix = job.getId().substring(job.getId().lastIndexOf(SBSchemaHelper.PORT_ID_SEPARATOR) + 1) + SBSchemaHelper.PORT_ID_SEPARATOR;
       setScatter(job, prefix, port);  // if it's a container
-      if (parentJob != null) {
-        // it it's an embedded container
-        setScatter(parentJob, prefix, port);
-      }
-      
       if (parentJob != null && parentJob.getApp().isWorkflow()) {
         // if it's a container
         SBWorkflow workflowApp = (SBWorkflow) parentJob.getApp();

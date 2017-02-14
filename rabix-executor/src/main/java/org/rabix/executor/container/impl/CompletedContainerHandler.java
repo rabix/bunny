@@ -47,4 +47,8 @@ public class CompletedContainerHandler implements ContainerHandler {
   public void dumpCommandLine() throws ContainerException {
   }
 
+  @Override
+  public void removeContainer() {
+  }
+
 }

@@ -3,6 +3,7 @@ package org.rabix.bindings.sb;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -255,8 +256,9 @@ public class SBProcessor implements ProtocolProcessor {
     }
     Object outputEval = SBBindingHelper.getOutputEval(binding);
     if (outputEval != null) {
-      logger.debug("Evaluating OutputEval for type {} and result {}", schema, result);
-      result = SBBindingHelper.evaluateOutputEval(job, result, binding);
+      Object self = result != null ? result : Collections.emptyList();
+      logger.debug("Evaluating OutputEval for type {} and result {}", schema, self);
+      result = SBBindingHelper.evaluateOutputEval(job, self, binding);
       logger.info("OutputEval transformed result into {}.", result);
     }
     if (result instanceof List<?>) {

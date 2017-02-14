@@ -7,13 +7,13 @@ import org.rabix.executor.execution.JobHandlerCommandDispatcher;
 import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.handler.JobHandlerFactory;
 import org.rabix.executor.handler.impl.JobHandlerImpl;
-import org.rabix.executor.service.ResultCacheService;
+import org.rabix.executor.service.CacheService;
 import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
-import org.rabix.executor.service.impl.ResultCacheServiceImpl;
+import org.rabix.executor.service.impl.CacheServiceImpl;
 import org.rabix.executor.service.impl.ExecutorServiceImpl;
 import org.rabix.executor.service.impl.FilePermissionServiceImpl;
 import org.rabix.executor.service.impl.FileServiceImpl;
@@ -47,7 +47,7 @@ public class ExecutorModule extends AbstractModule {
     bind(FileService.class).to(FileServiceImpl.class).in(Scopes.SINGLETON);
     bind(ExecutorService.class).to(ExecutorServiceImpl.class).in(Scopes.SINGLETON);
     bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
-    bind(ResultCacheService.class).to(ResultCacheServiceImpl.class).in(Scopes.SINGLETON);
+    bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
   }
 
 }

@@ -183,7 +183,7 @@ public class DataType {
 
   public boolean isCompatible(DataType value, boolean allowAny) {
     if (value == null)
-      return false;
+      return nullable != null && nullable;
 
     if (value.getType() == Type.ANY && !allowAny)
       return false;
@@ -216,8 +216,21 @@ public class DataType {
       return false;
     }
 
-    if (isArray())
-      return value.isArray() && subtype.isCompatible(value.getSubtype(), allowAny);
+    if (isArray()) {
+      if (!value.isArray())
+        return false;
+
+      if (value.getSubtype().isUnion()) {
+        for (DataType dt : value.getSubtype().getTypes()) {
+          if (!subtype.isCompatible(dt, allowAny))
+            return false;
+        }
+        return true;
+      }
+
+      return subtype.isCompatible(value.getSubtype(), allowAny);
+    }
+
 
     if (isRecord()) {
       if (!value.isRecord())
@@ -228,7 +241,8 @@ public class DataType {
       }
       return true;
     }
-    return type == value.getType();
+    return type == value.getType() ||
+        (type == Type.FLOAT && value.getType() == Type.INT);
   }
 
   public Object toAvro() {

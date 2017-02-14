@@ -189,11 +189,6 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
     for (ApplicationPort port : ports) {
       String prefix = job.getId().substring(job.getId().lastIndexOf(DOT_SEPARATOR) + 1) + SLASH_SEPARATOR;
       setScatter(job, prefix, port);  // if it's a container
-      if (parentJob != null) {
-        // it it's an embedded container
-        setScatter(parentJob, prefix, port);
-      }
-      
       if (parentJob != null && parentJob.getApp().isWorkflow()) {
         // if it's a container
         Draft3Workflow workflowApp = (Draft3Workflow) parentJob.getApp();
