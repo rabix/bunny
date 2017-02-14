@@ -1,9 +1,7 @@
 package org.rabix.engine.service;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,7 +19,7 @@ import com.google.inject.Inject;
 
 public class CacheService {
 
-  private ConcurrentMap<String, Map<String, Map<String, Cache>>> caches = new ConcurrentHashMap<String, Map<String, Map<String, Cache>>>();
+  private ConcurrentMap<String, Map<String, Cache>> caches = new ConcurrentHashMap<String, Map<String, Cache>>();
   
   private JobRecordRepository jobRecordRepository;
   private LinkRecordRepository linkRecordRepository;
@@ -40,12 +38,12 @@ public class CacheService {
   public synchronized Cache getCache(String rootId, String entity) {
     String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
     
-    Map<String, Map<String, Cache>> singleCache = caches.get(index);
+    Map<String, Cache> singleCache = caches.get(index);
     if (singleCache == null) {
-      singleCache = generateCache(rootId);
+      singleCache = generateCache();
       caches.put(index, singleCache);
     }
-    return singleCache.get(rootId).get(entity);
+    return singleCache.get(entity);
   }
   
   public synchronized void flush(String rootId) {
@@ -53,24 +51,20 @@ public class CacheService {
       return;
     }
     String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
-    Map<String, Cache> singleCache = caches.get(index).get(rootId);
+    Map<String, Cache> singleCache = caches.get(index);
     if (singleCache == null) {
       return;
     }
-    for (Entry<String, Cache> entryCache : singleCache.entrySet()) {
-      String key = entryCache.getKey();
-      Cache cache = entryCache.getValue();
-      cache.flush(key.equals(LinkRecord.CACHE_NAME));
+    for (Cache cache : singleCache.values()) {
+      cache.flush();
     }
   }
   
-  private Map<String, Map<String, Cache>> generateCache(String rootId) {
-    Map<String, Map<String, Cache>> generated = new LinkedHashMap<>();
-    HashMap<String, Cache> cachesPerRootId = new HashMap<>();
-    cachesPerRootId.put(JobRecord.CACHE_NAME, new Cache(jobRecordRepository));
-    cachesPerRootId.put(VariableRecord.CACHE_NAME, new Cache(variableRecordRepository));
-    cachesPerRootId.put(LinkRecord.CACHE_NAME, new Cache(linkRecordRepository));
-    generated.put(rootId, cachesPerRootId);
+  private Map<String, Cache> generateCache() {
+    Map<String, Cache> generated = new LinkedHashMap<>();
+    generated.put(JobRecord.CACHE_NAME, new Cache(jobRecordRepository));
+    generated.put(VariableRecord.CACHE_NAME, new Cache(variableRecordRepository));
+    generated.put(LinkRecord.CACHE_NAME, new Cache(linkRecordRepository));
     return generated;
   }
   
