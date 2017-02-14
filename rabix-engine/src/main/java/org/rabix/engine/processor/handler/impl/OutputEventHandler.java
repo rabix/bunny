@@ -81,9 +81,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     jobService.update(sourceJob);
     
     if (sourceJob.isCompleted()) {
-      sourceJob.setState(JobState.COMPLETED);
-      jobService.update(sourceJob);
-      
       try {
         Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobService, variableService, linkService, contextService, dagNodeDB, appDB);
         engineStatusCallback.onJobCompleted(completedJob);
