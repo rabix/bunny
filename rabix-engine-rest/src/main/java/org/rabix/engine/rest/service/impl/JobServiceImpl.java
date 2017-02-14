@@ -98,6 +98,10 @@ public class JobServiceImpl implements JobService {
     logger.debug("Update Job {}", job.getId());
 
     JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
+    if (jobRecord == null) {
+      logger.info("Possible stale message. Job {} for root {} doesn't exist.", job.getName(), job.getRootId());
+      return;
+    }
     try {
       JobStatusEvent statusEvent = null;
       JobStatus status = job.getStatus();
