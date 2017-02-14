@@ -34,6 +34,7 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.repository.JobRepository;
+import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobRecordService.JobState;
@@ -62,12 +63,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final JobRepository jobRepository;
   
   private EngineStatusCallback engineStatusCallback;
+  
+  private final CacheService cacheService;
 
   @Inject
   public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobRecordService jobRecordService,
       final LinkRecordService linkRecordService, final VariableRecordService variableRecordService,
       final ContextRecordService contextRecordService, final EventProcessor eventProcessor,
-      final ScatterHandler scatterHelper, final JobRepository jobRepository) {
+      final ScatterHandler scatterHelper, final JobRepository jobRepository, final CacheService cacheService) {
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
@@ -76,7 +79,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.contextRecordService = contextRecordService;
     this.variableRecordService = variableRecordService;
     this.appDB = appDB;
-
+    
+    this.cacheService = cacheService;
     this.jobRepository = jobRepository;
   }
 
@@ -140,6 +144,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, event.getResult());
           engineStatusCallback.onJobRootCompleted(rootJob);
           deleteRecords(rootJob.getId());
+          cacheService.remove(jobRecord.getRootId());
         } catch (Exception e) {
           logger.error("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
@@ -158,6 +163,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           engineStatusCallback.onJobRootFailed(rootJob);
           
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
+          cacheService.remove(jobRecord.getRootId());
         } catch (Exception e) {
           logger.error("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);

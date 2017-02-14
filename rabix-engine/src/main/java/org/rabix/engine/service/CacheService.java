@@ -1,8 +1,10 @@
 package org.rabix.engine.service;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -20,7 +22,7 @@ import com.google.inject.Inject;
 
 public class CacheService {
 
-  private ConcurrentMap<String, Map<String, Cache>> caches = new ConcurrentHashMap<String, Map<String, Cache>>();
+  private ConcurrentMap<String, Map<UUID, Map<String, Cache>>> caches = new ConcurrentHashMap<String, Map<UUID, Map<String, Cache>>>();
   
   private JobRecordRepository jobRecordRepository;
   private LinkRecordRepository linkRecordRepository;
@@ -39,12 +41,29 @@ public class CacheService {
   public synchronized Cache getCache(UUID rootId, String entity) {
     String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
     
-    Map<String, Cache> singleCache = caches.get(index);
-    if (singleCache == null) {
-      singleCache = generateCache();
-      caches.put(index, singleCache);
+    Map<UUID, Map<String, Cache>> cachesByRoot = caches.get(index);
+    if (cachesByRoot == null) {
+      cachesByRoot = new HashMap<>();
+      caches.put(index, cachesByRoot);
     }
-    return singleCache.get(entity);
+    Map<String, Cache> cachesForRoot = cachesByRoot.get(rootId);
+    if (cachesForRoot == null) {
+      cachesForRoot = generateCache();
+      cachesByRoot.put(rootId, cachesForRoot);
+    }
+    return cachesForRoot.get(entity);
+  }
+  
+  public synchronized void remove(UUID rootId) {
+    if (rootId == null) {
+      return;
+    }
+    String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
+    Map<UUID, Map<String, Cache>> cachesByRoot = caches.get(index);
+    if (cachesByRoot == null) {
+      return;
+    }
+    cachesByRoot.remove(rootId);
   }
   
   public synchronized void flush(UUID rootId) {
@@ -52,12 +71,24 @@ public class CacheService {
       return;
     }
     String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
-    Map<String, Cache> singleCache = caches.get(index);
-    if (singleCache == null) {
+    Map<UUID, Map<String, Cache>> cachesByRoot = caches.get(index);
+    if (cachesByRoot == null) {
       return;
     }
-    for (Cache cache : singleCache.values()) {
-      cache.flush();
+    Map<String, Cache> cachesForRoot = cachesByRoot.get(rootId);
+    if (cachesForRoot == null) {
+      return;
+    }
+    for(Entry<String, Cache> cacheEntry : cachesForRoot.entrySet()) {
+      Cache cache = cacheEntry.getValue();
+      String cacheName = cacheEntry.getKey();
+      switch (cacheName) {
+      case LinkRecord.CACHE_NAME:
+        cache.flush(true);
+        break;
+      default:
+        cache.flush(false);
+      }
     }
   }
   
