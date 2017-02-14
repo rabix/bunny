@@ -32,6 +32,7 @@ public class Draft3Translator implements ProtocolTranslator {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     DAGNode dagNode = processBatchInfo(draft3Job, transformToGeneric(draft3Job.getId(), draft3Job));
     DAGValidationHelper.detectLoop(dagNode);
+    DAGValidationHelper.detectUnconnectedOutputs(dagNode);
     processPorts(dagNode);
     return dagNode;
   }
