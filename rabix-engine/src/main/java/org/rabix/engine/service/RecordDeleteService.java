@@ -37,18 +37,18 @@ public class RecordDeleteService {
       @Override
       public void run() {
         while (true) {
-          try {
-            transactionService.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
-              @Override
-              public Void call() throws Exception {
-                int deleted = jobRecordRepository.deleteByStatus(JobState.COMPLETED);
-                logger.debug("Deleted {} completed Jobs", deleted);
-                return null;
-              }
-            });
-          } catch (Exception e) {
-            // TODO handle exception
-          }
+//          try {
+//            transactionService.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
+//              @Override
+//              public Void call() throws Exception {
+//                int deleted = jobRecordRepository.deleteByStatus(JobState.COMPLETED);
+//                logger.debug("Deleted {} completed Jobs", deleted);
+//                return null;
+//              }
+//            });
+//          } catch (Exception e) {
+//            // TODO handle exception
+//          }
           try {
             Thread.sleep(sleepPeriod);
           } catch (InterruptedException e) {

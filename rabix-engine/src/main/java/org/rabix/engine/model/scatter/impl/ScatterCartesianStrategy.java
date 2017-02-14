@@ -39,7 +39,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   
   @JsonCreator
   public ScatterCartesianStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
-      @JsonProperty("combinations") Map<String, LinkedList<Object>> values,
+      @JsonProperty("values") Map<String, LinkedList<Object>> values,
       @JsonProperty("positions") Map<String, LinkedList<Integer>> positions,
       @JsonProperty("scatterMethod") ScatterMethod scatterMethod) {
     super();
@@ -71,7 +71,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public void enable(String port, Object value, Integer position) {
+  public synchronized void enable(String port, Object value, Integer position) {
     LinkedList<Integer> positionList = positions.get(port);
     positionList = expand(positionList, position);
     positionList.set(position - 1, position);
@@ -84,7 +84,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID contextId) {
+  public synchronized LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID contextId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
@@ -159,7 +159,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public void commit(List<RowMapping> mappings) {
+  public synchronized void commit(List<RowMapping> mappings) {
     for (RowMapping mapping : mappings) {
       for (Combination combination : combinations) {
         if (combination.position == mapping.getIndex()) {
@@ -170,12 +170,12 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public int enabledCount() {
+  public synchronized int enabledCount() {
     return combinations.size();
   }
 
   @Override
-  public List<RowMapping> enabled() throws BindingException {
+  public synchronized List<RowMapping> enabled() throws BindingException {
     List<RowMapping> result = new LinkedList<>();
     LinkedList<LinkedList<Integer>> mapping = new LinkedList<>();
     for (Entry<String, LinkedList<Integer>> positionEntry : positions.entrySet()) {

@@ -188,7 +188,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
   }
   
-
   private void deleteRecords(UUID rootId) {
     contextRecordService.delete(rootId);
   }
@@ -209,7 +208,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     readyJobLogging.append(" --- All scatter ports ").append(job.getScatterPorts()).append("\n");
     logger.debug(readyJobLogging.toString());
     
-    if (job.isContainer()) {
+    if (!job.isScattered() && job.getScatterPorts().size() > 0) {
+      job.setState(JobState.RUNNING);
+      
+      for (String port : job.getScatterPorts()) {
+        VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, rootId);
+        scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
+      }
+    } else if (job.isContainer()) {
       job.setState(JobState.RUNNING);
 
       DAGContainer containerNode;
@@ -226,7 +232,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         for (String readyNodeId : immediateReadyNodeIds) {
           JobRecord childJobRecord = jobRecordService.find(readyNodeId, rootId);
           if(childJobRecord.isContainer() || childJobRecord.isScatterWrapper()) {
-        	ready(childJobRecord, event);  
+            ready(childJobRecord, event);  
           }
           else {
             JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), rootId, JobState.READY, null, event.getEventGroupId());
@@ -244,13 +250,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           Event updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId());
           eventProcessor.send(updateEvent);
         }
-      }
-    } else if (!job.isScattered() && job.getScatterPorts().size() > 0) {
-      job.setState(JobState.RUNNING);
-      
-      for (String port : job.getScatterPorts()) {
-        VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, rootId);
-        scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
       }
     }
   }
