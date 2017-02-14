@@ -91,7 +91,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   @Override
   public void handle(JobStatusEvent event) throws EventHandlerException {
     JobRecord jobRecord = jobRecordService.find(event.getJobId(), event.getContextId());
-
+    if (jobRecord == null) {
+      logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
+      return;
+    }
     switch (event.getState()) {
     case READY:
       jobRecord.setState(JobState.READY);

@@ -28,6 +28,7 @@ public class CacheService {
   private VariableRecordRepository variableRecordRepository;
 
   private Configuration configuration;
+  private boolean clearCache;
   
   @Inject
   public CacheService(JobRecordRepository jobRecordRepository, LinkRecordRepository linkRecordRepository, VariableRecordRepository variableRecordRepository, Configuration configuration) {
@@ -35,6 +36,7 @@ public class CacheService {
     this.jobRecordRepository = jobRecordRepository;
     this.linkRecordRepository = linkRecordRepository;
     this.variableRecordRepository = variableRecordRepository;
+    this.clearCache = configuration.getBoolean("cache.clear", true);
   }
   
   public synchronized Cache getCache(String rootId, String entity) {
@@ -81,6 +83,11 @@ public class CacheService {
     for(Entry<String, Cache> cacheEntry : cachesForRoot.entrySet()) {
       Cache cache = cacheEntry.getValue();
       String cacheName = cacheEntry.getKey();
+      if (clearCache) {
+        cache.flush(true);
+        continue;
+      }
+      
       switch (cacheName) {
       case LinkRecord.CACHE_NAME:
         cache.flush(true);
