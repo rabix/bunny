@@ -18,7 +18,6 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.SystemEnvironmentHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.impl.InitEvent;
@@ -142,7 +141,7 @@ public class JobServiceImpl implements JobService {
   public Job start(Job job, Map<String, Object> config) throws JobServiceException {
     logger.debug("Start Job {}", job);
     
-    String rootId = UUID.randomUUID().toString();
+    UUID rootId = UUID.randomUUID();
     job = Job.cloneWithIds(job, rootId, rootId);
     job = Job.cloneWithName(job, InternalSchemaHelper.ROOT_NAME);
     
@@ -158,7 +157,7 @@ public class JobServiceImpl implements JobService {
       job = Job.cloneWithConfig(job, config);
       jobRepository.insert(job, null);
 
-      InitEvent initEvent = new InitEvent(UUID.randomUUID().toString(), job.getInputs(), job.getRootId(), job.getConfig(), dagHash);
+      InitEvent initEvent = new InitEvent(UUID.randomUUID(), job.getInputs(), job.getRootId(), job.getConfig(), dagHash);
       eventProcessor.addToExternalQueue(initEvent, true);
       return job;
     } catch (Exception e) {
@@ -168,12 +167,12 @@ public class JobServiceImpl implements JobService {
   }
   
   @Override
-  public void stop(String id) throws JobServiceException {
+  public void stop(UUID id) throws JobServiceException {
     logger.debug("Stop Job {}", id);
     
-    Job job = jobRepository.get(SchemaHelper.toUUID(id));
+    Job job = jobRepository.get(id);
     if (job.isRoot()) {
-      Set<Job> jobs = jobRepository.getByRootId(SchemaHelper.toUUID(job.getRootId()));
+      Set<Job> jobs = jobRepository.getByRootId(job.getRootId());
       scheduler.stop(jobs.toArray(new Job[jobs.size()]));
     } else {
       scheduler.stop(job);
@@ -181,40 +180,41 @@ public class JobServiceImpl implements JobService {
   }
   
   @Override
-  public Set<Job> getReady(EventProcessor eventProcessor, String contextId) throws JobServiceException {
-    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, contextId);
+  public Set<Job> getReady(EventProcessor eventProcessor, UUID rootId) throws JobServiceException {
+    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, rootId);
   }
   
   @Override
   public Set<Job> get() {
     return jobRepository.get();
   }
-
+  
   @Override
-  public Job get(String id) {
-    return jobRepository.get(SchemaHelper.toUUID(id));
+  public Job get(UUID id) {
+    return jobRepository.get(id);
   }
   
-  public void delete(String jobId) {
+  public void delete(UUID jobId) {
 //  this.jobBackendRepository.delete(SchemaHelper.toUUID(jobId));
 //  TODO think about it
 }
 
-  public void updateBackend(String jobId, String backendId) {
-    this.jobRepository.updateBackendId(SchemaHelper.toUUID(jobId), SchemaHelper.toUUID(backendId));
+  public void updateBackend(UUID jobId, UUID backendId) {
+    this.jobRepository.updateBackendId(jobId, backendId);
   }
 
-  public Set<UUID> getBackendsByRootId(String rootId) {
-    return jobRepository.getBackendsByRootId(SchemaHelper.toUUID(rootId));
+  public Set<UUID> getBackendsByRootId(UUID rootId) {
+    return jobRepository.getBackendsByRootId(rootId);
   }
 
-  public void dealocateJobs(String backendId) {
-    jobRepository.dealocateJobs(SchemaHelper.toUUID(backendId));
+  public void dealocateJobs(UUID backendId) {
+    jobRepository.dealocateJobs(backendId);
   }
 
   public Set<Job> getReadyFree() {
     return jobRepository.getReadyFree();
   }
+
 
   private class EngineStatusCallbackImpl implements EngineStatusCallback {
 
@@ -223,7 +223,7 @@ public class JobServiceImpl implements JobService {
     
     private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
     
-    private Set<String> stoppingRootIds = new HashSet<>();
+    private Set<UUID> stoppingRootIds = new HashSet<>();
     
     public EngineStatusCallbackImpl(boolean setResources, boolean stopOnFail) {
       this.stopOnFail = stopOnFail;
@@ -276,7 +276,7 @@ public class JobServiceImpl implements JobService {
               while (true) {
                 try {
                   boolean exit = true;
-                  for (Job job : jobRepository.getByRootId(SchemaHelper.toUUID(failedJob.getRootId()))) {
+                  for (Job job : jobRepository.getByRootId(failedJob.getRootId())) {
                     if (!job.isRoot() && !isFinished(job.getStatus())) {
                       exit = false;
                       break;
@@ -297,7 +297,7 @@ public class JobServiceImpl implements JobService {
         }
       }
       if(deleteIntermediaryFiles) {
-        IntermediaryFilesHelper.handleJobFailed(failedJob, jobRepository.get(SchemaHelper.toUUID(failedJob.getRootId())), intermediaryFilesService, keepInputFiles);
+        IntermediaryFilesHelper.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()), intermediaryFilesService, keepInputFiles);
       }
     }
     

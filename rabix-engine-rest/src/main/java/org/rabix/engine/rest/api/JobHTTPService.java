@@ -1,5 +1,7 @@
 package org.rabix.engine.rest.api;
 
+import java.util.UUID;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -21,13 +23,13 @@ public interface JobHTTPService {
   
   @PUT
   @Path("/{id}")
-  Response save(@PathParam("id") String id, Job job);
+  Response save(@PathParam("id") UUID id, Job job);
   
   @GET
   Response get();
   
   @GET
   @Path("/{id}")
-  public Response get(@PathParam("id")  String id);
+  public Response get(@PathParam("id")  UUID id);
   
 }

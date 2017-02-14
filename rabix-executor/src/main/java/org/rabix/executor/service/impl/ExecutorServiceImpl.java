@@ -2,6 +2,7 @@ package org.rabix.executor.service.impl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.configuration.Configuration;
@@ -69,7 +70,7 @@ public class ExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public void start(final Job job, String rootId) {
+  public void start(final Job job, UUID rootId) {
     logger.debug("start(id={}, important={}, uploadOutputs={})", job.getId());
 
     final JobData jobData = new JobData(job, JobDataStatus.PENDING, "Job is queued to start.", false, false);
@@ -77,11 +78,11 @@ public class ExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public void stop(List<String> ids, String contextId) {
+  public void stop(List<UUID> ids, UUID rootId) {
     logger.debug("stop(ids={})", ids);
 
-    for (String id : ids) {
-      final JobData jobData = jobDataService.find(id, contextId);
+    for (UUID id : ids) {
+      final JobData jobData = jobDataService.find(id, rootId);
       if (!isFinished(jobData.getStatus())) {
         jobDataService.save(jobData, "Stopping job", JobDataStatus.ABORTING);
       }
@@ -89,15 +90,15 @@ public class ExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public void free(String rootId, Map<String, Object> config) {
+  public void free(UUID rootId, Map<String, Object> config) {
     fileService.delete(rootId, config);
   }
   
   @Override
-  public JobStatus findStatus(String jobId, String contextId) {
+  public JobStatus findStatus(UUID jobId, UUID rootId) {
     logger.debug("findStatus(id={})", jobId);
 
-    JobData jobData = jobDataService.find(jobId, contextId);
+    JobData jobData = jobDataService.find(jobId, rootId);
     if (jobData != null) {
       return JobDataStatus.convertToJobStatus(jobData.getStatus());
     }
@@ -126,16 +127,16 @@ public class ExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public Map<String, Object> getResult(String id, String contextId) {
-    JobData jobData = jobDataService.find(id, contextId);
+  public Map<String, Object> getResult(UUID id, UUID rootId) {
+    JobData jobData = jobDataService.find(id, rootId);
     return jobData.getResult();
   }
 
   @Override
-  public boolean isRunning(String id, String contextId) {
+  public boolean isRunning(UUID id, UUID rootId) {
     logger.debug("isRunning(id={})", id);
 
-    JobData jobData = jobDataService.find(id, contextId);
+    JobData jobData = jobDataService.find(id, rootId);
     if (jobData != null && !isFinished(jobData.getStatus())) {
       logger.info("Command line tool {} is running. The status is {}", id, jobData.getStatus());
       return true;

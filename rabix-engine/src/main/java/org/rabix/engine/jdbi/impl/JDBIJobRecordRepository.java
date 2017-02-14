@@ -14,7 +14,6 @@ import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.JobRecordMapper;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
@@ -92,9 +91,9 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
         return new Binder<BindJobRecord, JobRecord>() {
           public void bind(SQLStatement<?> q, BindJobRecord bind, JobRecord jobRecord) {
             q.bind("id", jobRecord.getId());
-            q.bind("external_id", SchemaHelper.toUUID(jobRecord.getExternalId()));
-            q.bind("root_id", SchemaHelper.toUUID(jobRecord.getRootId()));
-            q.bind("parent_id", SchemaHelper.toUUID(jobRecord.getParentId()));
+            q.bind("external_id", jobRecord.getExternalId());
+            q.bind("root_id", jobRecord.getRootId());
+            q.bind("parent_id", jobRecord.getParentId());
             q.bind("blocking", jobRecord.isBlocking());
             q.bind("job_state", jobRecord.getState());
             
@@ -172,7 +171,7 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
       String scatterStrategy = resultSet.getString("scatter_strategy");
       String dagHash = resultSet.getString("dag_hash");
 
-      JobRecord jobRecord = new JobRecord(SchemaHelper.fromUUID(rootId), id, SchemaHelper.fromUUID(externalId), SchemaHelper.fromUUID(parentId), JobState.valueOf(jobState), isContainer, isScattered, externalId.equals(rootId), isBlocking, dagHash);
+      JobRecord jobRecord = new JobRecord(rootId, id, externalId, parentId, JobState.valueOf(jobState), isContainer, isScattered, externalId.equals(rootId), isBlocking, dagHash);
       jobRecord.setScatterWrapper(isScatterWrapper);
       jobRecord.setNumberOfGlobalInputs(globalInputsCount);
       jobRecord.setNumberOfGlobalOutputs(globalOutputsCount);

@@ -1,5 +1,7 @@
 package org.rabix.executor.execution.command;
 
+import java.util.UUID;
+
 import javax.inject.Inject;
 
 import org.rabix.bindings.model.Job;
@@ -22,7 +24,7 @@ public class StartCommand extends JobHandlerCommand {
   }
 
   @Override
-  public Result run(JobData data, JobHandler handler, String contextId) {
+  public Result run(JobData data, JobHandler handler, UUID rootId) {
     Job job = data.getJob();
     try {
       handler.start();

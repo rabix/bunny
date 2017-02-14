@@ -7,7 +7,6 @@ import java.util.UUID;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.engine.SchemaHelper;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.Cache;
 import org.rabix.engine.cache.CacheItem.Action;
@@ -40,8 +39,8 @@ public class JobRecordService {
     this.jobRecordRepository = jobRecordRepository;
   }
   
-  public static String generateUniqueId() {
-    return UUID.randomUUID().toString();
+  public static UUID generateUniqueId() {
+    return UUID.randomUUID();
   }
   
   public void create(JobRecord jobRecord) {
@@ -49,7 +48,7 @@ public class JobRecordService {
     cache.put(jobRecord, Action.INSERT);
   }
 
-  public void delete(String rootId) {
+  public void delete(UUID rootId) {
   }
   
   public void update(JobRecord jobRecord) {
@@ -57,9 +56,9 @@ public class JobRecordService {
     cache.put(jobRecord, Action.UPDATE);
   }
   
-  public List<JobRecord> findReady(String contextId) {
-    Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
-    List<Cachable> jobRecords = cache.get(new JobRecord.JobCacheKey(null, contextId));
+  public List<JobRecord> findReady(UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
+    List<Cachable> jobRecords = cache.get(new JobRecord.JobCacheKey(null, rootId));
     List<JobRecord> readyJobRecords = new ArrayList<>();
     for (Cachable jobRecord : jobRecords) {
       if (((JobRecord) jobRecord).isReady()) {
@@ -69,34 +68,34 @@ public class JobRecordService {
     return readyJobRecords;
   }
 
-  public List<JobRecord> findByParent(String parentId, String contextId) {
-    List<JobRecord> recordsByParent = jobRecordRepository.getByParent(SchemaHelper.toUUID(parentId), SchemaHelper.toUUID(contextId));
+  public List<JobRecord> findByParent(UUID parentId, UUID rootId) {
+    List<JobRecord> recordsByParent = jobRecordRepository.getByParent(parentId, rootId);
 
     if (recordsByParent != null) {
-      Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
+      Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
       return cache.<JobRecord> merge(recordsByParent, JobRecord.class);
     }
     return recordsByParent;
   }
   
-  public JobRecord find(String id, String contextId) {
-    Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(id, contextId));
+  public JobRecord find(String id, UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(id, rootId));
     if (!records.isEmpty()) {
       return (JobRecord) records.get(0);
     }
-    JobRecord record = jobRecordRepository.get(id, SchemaHelper.toUUID(contextId));
+    JobRecord record = jobRecordRepository.get(id, rootId);
     cache.put(record, Action.UPDATE);
     return record;
   }
   
-  public JobRecord findRoot(String contextId) {
-    Cache cache = cacheService.getCache(contextId, JobRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(InternalSchemaHelper.ROOT_NAME, contextId));
+  public JobRecord findRoot(UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
+    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(InternalSchemaHelper.ROOT_NAME, rootId));
     if (!records.isEmpty()) {
       return (JobRecord) records.get(0);
     }
-    JobRecord record = jobRecordRepository.getRoot(SchemaHelper.toUUID(contextId));
+    JobRecord record = jobRecordRepository.getRoot(rootId);
     cache.put(record, Action.UPDATE);
     return record;
   }

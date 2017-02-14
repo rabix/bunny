@@ -30,9 +30,9 @@ public class JobRecord implements Cachable {
   public final static String CACHE_NAME = "JOB_RECORD";
   
   private String id;
-  private String externalId;
-  private String rootId;
-  private String parentId;
+  private UUID externalId;
+  private UUID rootId;
+  private UUID parentId;
   private Boolean master;
   private Boolean blocking;
   
@@ -55,7 +55,7 @@ public class JobRecord implements Cachable {
   public JobRecord() {
   }
   
-  public JobRecord(String rootId, String id, String uniqueId, String parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking, String dagCache) {
+  public JobRecord(UUID rootId, String id, UUID uniqueId, UUID parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking, String dagCache) {
     this.id = id;
     this.externalId = uniqueId;
     this.rootId = rootId;
@@ -158,15 +158,15 @@ public class JobRecord implements Cachable {
     return id;
   }
 
-  public String getExternalId() {
+  public UUID getExternalId() {
     return externalId;
   }
 
-  public String getRootId() {
+  public UUID getRootId() {
     return rootId;
   }
 
-  public String getParentId() {
+  public UUID getParentId() {
     return parentId;
   }
 
@@ -371,14 +371,14 @@ public class JobRecord implements Cachable {
   
   public static class JobCacheKey implements CacheKey {
     String id;
-    String root;
+    UUID root;
     
     public JobCacheKey(JobRecord record) {
       this.id = record.id;
       this.root = record.rootId;
     }
     
-    public JobCacheKey(String id, String rootId) {
+    public JobCacheKey(String id, UUID rootId) {
       this.id = id;
       this.root = rootId;
     }

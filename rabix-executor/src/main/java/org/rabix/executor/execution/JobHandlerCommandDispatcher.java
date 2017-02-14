@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,7 +31,7 @@ public class JobHandlerCommandDispatcher {
 
   private final JobHandlerFactory jobHandlerFactory;
 
-  private final Map<String, Map<String, JobHandlerRunnable>> jobHandlerRunnables = new HashMap<>();
+  private final Map<UUID, Map<UUID, JobHandlerRunnable>> jobHandlerRunnables = new HashMap<>();
 
   private final ThreadFactory jobHandlerThreadFactory;
   private final ExecutorService jobHandlerThreadExecutor;
@@ -57,13 +58,13 @@ public class JobHandlerCommandDispatcher {
    */
   public void dispatch(JobData jobData, JobHandlerCommand command, EngineStub<?,?,?> engineStub) {
     synchronized (jobHandlerRunnables) {
-      String contextId = jobData.getJob().getRootId();
-      JobHandlerRunnable jobHandlerRunnable = getJobs(contextId).get(jobData.getJob().getId());
+      UUID rootId = jobData.getJob().getRootId();
+      JobHandlerRunnable jobHandlerRunnable = getJobs(rootId).get(jobData.getJob().getId());
 
       if (jobHandlerRunnable == null) {
         Job job = jobData.getJob();
         jobHandlerRunnable = new JobHandlerRunnable(job.getId(), job.getRootId(), jobHandlerFactory.createHandler(job, engineStub));
-        getJobs(contextId).put(job.getId(), jobHandlerRunnable);
+        getJobs(rootId).put(job.getId(), jobHandlerRunnable);
         jobHandlerThreadExecutor.execute(jobHandlerRunnable);
         logger.info("JobHandlerRunnable created for {}.", job.getId());
       }
@@ -71,12 +72,12 @@ public class JobHandlerCommandDispatcher {
     }
   }
 
-  private Map<String, JobHandlerRunnable> getJobs(String contextId) {
+  private Map<UUID, JobHandlerRunnable> getJobs(UUID rootId) {
     synchronized (jobHandlerRunnables) {
-      Map<String, JobHandlerRunnable> jobList = jobHandlerRunnables.get(contextId);
+      Map<UUID, JobHandlerRunnable> jobList = jobHandlerRunnables.get(rootId);
       if (jobList == null) {
         jobList = new HashMap<>();
-        jobHandlerRunnables.put(contextId, jobList);
+        jobHandlerRunnables.put(rootId, jobList);
       }
       return jobList;
     }
@@ -111,10 +112,10 @@ public class JobHandlerCommandDispatcher {
           List<Pair> stoppedIds = new ArrayList<>();
           List<Pair> runningIds = new ArrayList<>();
 
-          for (Entry<String, Map<String, JobHandlerRunnable>> runnableEntry : jobHandlerRunnables.entrySet()) {
-            String contextId = runnableEntry.getKey();
-            for (Entry<String, JobHandlerRunnable> runnable : runnableEntry.getValue().entrySet()) {
-              String id = runnable.getKey();
+          for (Entry<UUID, Map<UUID, JobHandlerRunnable>> runnableEntry : jobHandlerRunnables.entrySet()) {
+            UUID contextId = runnableEntry.getKey();
+            for (Entry<UUID, JobHandlerRunnable> runnable : runnableEntry.getValue().entrySet()) {
+              UUID id = runnable.getKey();
               JobHandlerRunnable thread = runnable.getValue();
 
               if (thread.isStopped()) {
@@ -126,19 +127,19 @@ public class JobHandlerCommandDispatcher {
           }
 
           for (Pair stopped : stoppedIds) {
-            logger.debug("Cleaner thread removes JobHandlerRunnable for context {} and job {}.", stopped.contextId, stopped.jobId);
-            jobHandlerRunnables.get(stopped.contextId).remove(stopped.jobId);
+            logger.debug("Cleaner thread removes JobHandlerRunnable for context {} and job {}.", stopped.rootId, stopped.jobId);
+            jobHandlerRunnables.get(stopped.rootId).remove(stopped.jobId);
           }
         }
       }
       
       class Pair {
-        private String jobId;
-        private String contextId;
+        private UUID jobId;
+        private UUID rootId;
         
-        public Pair(String jobId, String contextId) {
+        public Pair(UUID jobId, UUID rootId) {
           this.jobId = jobId;
-          this.contextId = contextId;
+          this.rootId = rootId;
         }
       }
 

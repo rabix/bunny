@@ -2,6 +2,7 @@ package org.rabix.engine.processor.handler.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.LinkMerge;
@@ -100,7 +101,7 @@ public class ScatterHandler {
     }
   }
   
-  public JobRecord createJobRecord(String id, String parentId, DAGNode node, boolean isScattered, String contextId, String dagCache) {
+  public JobRecord createJobRecord(String id, UUID parentId, DAGNode node, boolean isScattered, UUID contextId, String dagCache) {
     boolean isBlocking = false;
     for (LinkMerge linkMerge : node.getLinkMergeSet(LinkPortType.INPUT)) {
       if (LinkMerge.isBlocking(linkMerge)) {

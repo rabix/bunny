@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.rabix.bindings.model.ScatterMethod;
 import org.rabix.bindings.model.dag.DAGLinkPort;
@@ -184,7 +185,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
   }
 
   @Override
-  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, String contextId) {
+  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
@@ -195,7 +196,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
     LinkedList<Object> result = new LinkedList<>();
     for (Combination combination : combinations) {
       String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-      VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
+      VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, rootId);
       result.addLast(variableRecordService.getValue(variableRecord));
     }
     return result;

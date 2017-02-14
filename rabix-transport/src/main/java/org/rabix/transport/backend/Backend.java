@@ -1,5 +1,7 @@
 package org.rabix.transport.backend;
 
+import java.util.UUID;
+
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
@@ -20,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public abstract class Backend {
 
   @JsonProperty("id")
-  protected String id;
+  protected UUID id;
   
   public static enum BackendType {
     LOCAL,
@@ -28,11 +30,11 @@ public abstract class Backend {
     RABBIT_MQ
   }
 
-  public String getId() {
+  public UUID getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(UUID id) {
     this.id = id;
   }
 

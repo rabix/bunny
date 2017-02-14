@@ -1,5 +1,7 @@
 package org.rabix.engine.event.impl;
 
+import java.util.UUID;
+
 import org.rabix.engine.event.Event;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 
@@ -9,12 +11,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ContextStatusEvent implements Event {
 
   @JsonProperty("contextId")
-  private final String contextId;
+  private final UUID contextId;
   @JsonProperty("status")
   private final ContextStatus status;
   
   @JsonCreator
-  public ContextStatusEvent(@JsonProperty("contextId") String contextId, @JsonProperty("status") ContextStatus status) {
+  public ContextStatusEvent(@JsonProperty("contextId") UUID contextId, @JsonProperty("status") ContextStatus status) {
     this.status = status;
     this.contextId = contextId;
   }
@@ -29,12 +31,12 @@ public class ContextStatusEvent implements Event {
   }
   
   @Override
-  public String getContextId() {
+  public UUID getContextId() {
     return contextId;
   }
   
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return null;
   }
 

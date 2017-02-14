@@ -1,5 +1,7 @@
 package org.rabix.engine.event.impl;
 
+import java.util.UUID;
+
 import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -13,7 +15,7 @@ public class InputUpdateEvent implements Event {
   @JsonProperty("jobId")
   private final String jobId;
   @JsonProperty("contextId")
-  private final String contextId;
+  private final UUID contextId;
   @JsonProperty("portId")
   private final String portId;
   @JsonProperty("value")
@@ -25,13 +27,13 @@ public class InputUpdateEvent implements Event {
   @JsonProperty("isLookAhead")
   private final boolean isLookAhead;            // it's a look ahead event
   @JsonProperty("eventGroupId")
-  private final String eventGroupId;
+  private final UUID eventGroupId;
   
-  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position, String eventGroupId) {
+  public InputUpdateEvent(UUID contextId, String jobId, String portId, Object value, Integer position, UUID eventGroupId) {
     this(contextId, jobId, portId, value, false, null, position, eventGroupId);
   }
 
-  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, String eventGroupId) {
+  public InputUpdateEvent(UUID contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, UUID eventGroupId) {
     this.jobId = jobId;
     this.portId = portId;
     this.value = value;
@@ -43,10 +45,10 @@ public class InputUpdateEvent implements Event {
   }
 
   @JsonCreator
-  public InputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") String contextId,
+  public InputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") UUID contextId,
       @JsonProperty("portId") String portId, @JsonProperty("value") Object value,
       @JsonProperty("position") Integer position, @JsonProperty("numberOfScattered") Integer numberOfScattered,
-      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") String eventGroupId) {
+      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") UUID eventGroupId) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.portId = portId;
@@ -78,12 +80,12 @@ public class InputUpdateEvent implements Event {
   }
 
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
   }
   
   @Override
-  public String getContextId() {
+  public UUID getContextId() {
     return contextId;
   }
   
