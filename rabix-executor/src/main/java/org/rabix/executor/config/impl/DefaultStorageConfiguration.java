@@ -84,11 +84,7 @@ public class DefaultStorageConfiguration implements StorageConfiguration {
    * Normalize application ID
    */
   private static String sanitize(String id) {
-    id = id.replace("@", "_");
-    id = id.replace("/", "_");
-    id = id.replace("^", "_");
-    id = id.replace(":", "_");
-    return id.replaceAll("_+", "_");
+    return id.replaceAll("[^A-Za-z0-9 ]", "_");
   }
 
 }
