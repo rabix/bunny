@@ -46,12 +46,7 @@ public class JSONHelper {
   }
 
   public static String transformToJSON(String data) {
-    try {
       return writeObject(yamlReader.load(data));
-    } catch (Exception e) {
-      // it's not YAML (or it's not valid)
-    }
-    return data;
   }
   
   @SuppressWarnings("unchecked")
