@@ -8,7 +8,9 @@ import java.util.Set;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.dag.DAGContainer;
 import org.rabix.bindings.model.dag.DAGLink;
+import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGNode;
+import org.rabix.bindings.model.dag.DAGNode.DAGNodeType;
 
 public class DAGValidationHelper {
 
@@ -75,5 +77,28 @@ public class DAGValidationHelper {
       }
     }
     throw new BindingException(String.format("Can't find DAGNode with id %s", id));
+  }
+  
+  public static void detectUnconnectedOutputs(DAGNode dagNode) throws BindingException{
+    if (!(dagNode instanceof DAGContainer)) {
+      return;
+    }
+    DAGContainer containerNode = (DAGContainer) dagNode;
+    
+    for(DAGNode child: containerNode.getChildren()){
+      if(child.getType().equals(DAGNodeType.CONTAINER))
+          detectUnconnectedOutputs((DAGContainer) child);
+    }
+
+    List<DAGLink> links = containerNode.getLinks();
+    List<DAGLinkPort> outputs = containerNode.getOutputPorts();
+    for(DAGLink link : links){
+      for(DAGLinkPort output: outputs){
+        if(link.getDestination().equals(output)){
+          return;
+        }
+      }
+    }
+      throw new BindingException("No connection to workflow output");
   }
 }

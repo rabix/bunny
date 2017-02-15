@@ -48,7 +48,7 @@ public class VariableRecord {
   
 
   @SuppressWarnings("unchecked")
-  public void addValue(Object value, Integer position, boolean isScatterWrapper) {
+  public void addValue(Object value, Integer position, boolean wrap) {
     numberOfTimesUpdated++;
     if (isDefault) {
       this.value = null;
@@ -56,7 +56,7 @@ public class VariableRecord {
     }
     if (this.value == null) {
       if (position == 1) {
-        if (isScatterWrapper) {
+        if (wrap) {
           this.value = new ArrayList<>();
           ((ArrayList<Object>) this.value).add(value);
           this.isWrapped = true;

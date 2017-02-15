@@ -67,6 +67,7 @@ import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerState;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
 
 /**
  * Docker based implementation of {@link ContainerHandler}
@@ -94,6 +95,7 @@ public class DockerContainerHandler implements ContainerHandler {
   private final File workingDir;
 
   private boolean isConfigAuthEnabled;
+  private boolean removeContainers;
 
   private Integer overrideResultStatus = null;
 
@@ -110,6 +112,7 @@ public class DockerContainerHandler implements ContainerHandler {
     this.storageConfig = storageConfig;
     this.workingDir = storageConfig.getWorkingDir(job);
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
+    this.removeContainers = dockerConfig.removeContainers();
   }
 
   private void pull(String image) throws ContainerException {
@@ -394,6 +397,18 @@ public class DockerContainerHandler implements ContainerHandler {
       }
     }
   }
+  
+  @Override
+  public void removeContainer() {
+    try {
+      if(removeContainers) {
+        logger.debug("Removing container with id " + containerId);
+        dockerClient.removeContainer(containerId);
+      }
+    } catch (Exception e) {
+      logger.error("Failed to remove container with id " + containerId, e);
+    }
+  }
 
   /**
    * Helper method for dumping error logs from Docker to file
@@ -466,22 +481,29 @@ public class DockerContainerHandler implements ContainerHandler {
     public DockerClientLockDecorator(Configuration configuration) throws ContainerException {
       this.dockerClient = createDockerClient(configuration);
     }
+    
+    public synchronized void removeContainer(String containerId) throws DockerException, InterruptedException {
+      dockerClient.removeContainer(containerId);
+    }
 
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = false, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image) throws DockerException, InterruptedException {
       try {
-        dockerClient.pull(image);
+        if(!imageExists(image)) {
+          dockerClient.pull(image);
+        }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
         throw e;
       }
-        
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = false, sleepTimeMillis = SLEEP_TIME)
     public synchronized void pull(String image, AuthConfig authConfig) throws DockerException, InterruptedException {
       try {
-        dockerClient.pull(image, authConfig);
+        if(!imageExists(image)) {
+          dockerClient.pull(image, authConfig);
+        }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
         throw e;
@@ -516,6 +538,27 @@ public class DockerContainerHandler implements ContainerHandler {
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
     public synchronized ContainerExit waitContainer(String containerId) throws DockerException, InterruptedException {
       return dockerClient.waitContainer(containerId);
+    }
+    
+    private boolean imageExists(String dockerPull) {
+      List<String> images = null;
+      try {
+        images = listImages();
+      } catch (DockerException | InterruptedException e) {
+        return false;
+      }
+      return images != null ? images.contains(dockerPull) : false;
+    }
+    
+    public synchronized List<String> listImages() throws DockerException, InterruptedException {
+      List<Image> images = dockerClient.listImages();
+      List<String> result = new ArrayList<String>();
+      for(Image image: images) {
+        if(image.repoTags() != null) {
+          result.addAll(image.repoTags());
+        }
+      }
+      return result;
     }
     
     public static DockerClient createDockerClient(Configuration configuration) throws ContainerException {

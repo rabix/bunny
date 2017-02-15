@@ -21,4 +21,8 @@ public class DockerConfigation {
     return configuration.getBoolean("backend.docker.enabled", false);
   }
   
+  public boolean removeContainers() {
+    return configuration.getBoolean("backend.docker.remove_containers", false);
+  }
+  
 }
