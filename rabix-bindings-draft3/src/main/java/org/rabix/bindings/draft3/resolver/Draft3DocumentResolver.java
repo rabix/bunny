@@ -94,8 +94,7 @@ public static Set<String> types = new HashSet<String>();
       } else {
         file = new File(".");
       }
-      String input = JSONHelper.transformToJSON(URIHelper.getData(appUrlBase));
-      root = JSONHelper.readJsonNode(input);
+      root = JSONHelper.getTransformed(URIHelper.getData(appUrlBase));
     } catch (IOException e) {
       throw new BindingException(e);
     }
@@ -325,8 +324,12 @@ public static Set<String> types = new HashSet<String>();
       if (parts.length > 2) {
         throw new BindingException("Invalid reference " + reference);
       }
-      String contents = loadContents(file, parts[0]);
-      return JSONHelper.readJsonNode(JSONHelper.transformToJSON(contents));
+      String contents = loadContents(file, parts[0]);      
+      try {
+        return JSONHelper.getTransformed(contents);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
     }
   }
   

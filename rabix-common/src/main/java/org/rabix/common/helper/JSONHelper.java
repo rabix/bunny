@@ -48,7 +48,21 @@ public class JSONHelper {
   public static String transformToJSON(String data) {
       return writeObject(yamlReader.load(data));
   }
-  
+
+  public static JsonNode getTransformed(String input) throws IOException {
+    String jsonMessage;
+    try {
+      return readJsonNode(input);
+    } catch (IllegalStateException e) {
+      jsonMessage = e.getMessage();
+    }
+    try {
+      return readJsonNode(writeObject(yamlReader.load(input)));
+    }catch(Exception e){
+      throw new IOException("\nCan't parse as JSON:\n"+jsonMessage+"\nCan't parse as YAML: "+e.getMessage());
+    }
+  }
+
   @SuppressWarnings("unchecked")
   public static Map<String, Object> readMap(String json) {
     return readObject(json, (Class<Map<String, Object>>) (Class<?>) Map.class);

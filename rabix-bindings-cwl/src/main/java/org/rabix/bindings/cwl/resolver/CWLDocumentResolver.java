@@ -114,12 +114,7 @@ public class CWLDocumentResolver {
         file = new File(".");
       }
       String input = URIHelper.getData(appUrlBase);
-      try {
-        root = JSONHelper.readJsonNode(input);
-      } catch (Exception e) {
-        // try to parse YAML
-        root = JSONHelper.readJsonNode(JSONHelper.transformToJSON(input));
-      }
+      root = JSONHelper.getTransformed(input);
       if (isFile) {
         addAppLocation(root, appUrl, StringUtils.EMPTY);
       }
@@ -437,8 +432,12 @@ public class CWLDocumentResolver {
       if (parts.length > 2) {
         throw new BindingException("Invalid reference " + reference);
       }
-      String contents = loadContents(file, parts[0]);
-      return JSONHelper.readJsonNode(JSONHelper.transformToJSON(contents));
+      String contents = loadContents(file, parts[0]);     
+      try {
+        return JSONHelper.getTransformed(contents);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
     }
   }
 

@@ -67,8 +67,7 @@ public class SBDocumentResolver {
       } else {
         file = new File(".");
       }
-      String input = JSONHelper.transformToJSON(URIHelper.getData(appUrlBase));
-      root = JSONHelper.readJsonNode(input);
+      root = JSONHelper.getTransformed(URIHelper.getData(appUrlBase));
     } catch (Exception e) {
       throw new BindingException(e);
     }
@@ -228,7 +227,11 @@ public class SBDocumentResolver {
         throw new BindingException("Invalid reference " + reference);
       }
       String contents = loadContents(file, parts[0]);
-      return JSONHelper.readJsonNode(JSONHelper.transformToJSON(contents));
+      try {
+        return JSONHelper.getTransformed(contents);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
     }
   }
   
