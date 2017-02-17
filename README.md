@@ -9,7 +9,7 @@ One of its components is the Rabix executor Bunny, which can be used to execute 
 
 # Installing
 
-Before downloading, make sure you have [Docker](https://docs.docker.com/engine/installation/) and [Java Runtime Environment](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (version 7+) installed.
+Before downloading, make sure you have [Docker](https://docs.docker.com/engine/installation/) and [Java Runtime Environment](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (version 8+) installed.
 
 Download the latest release available at [https://github.com/rabix/bunny/releases](https://github.com/rabix/bunny/releases).
 Once the download has been completed, unpack the downloaded archive.
