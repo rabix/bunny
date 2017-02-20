@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.engine.event.Event;
@@ -76,40 +77,39 @@ public class EventProcessorImpl implements EventProcessor {
     executorService.execute(new Runnable() {
       @Override
       public void run() {
-        Event event = null;
+        final AtomicReference<Event> eventReference = new AtomicReference<Event>(null);
         while (!stop.get()) {
           try {
-            event = externalEvents.poll();
-            if (event == null) {
+            eventReference.set(externalEvents.poll());
+            if (eventReference.get() == null) {
               running.set(false);
               Thread.sleep(SLEEP);
               continue;
             }
             running.set(true);
-            final Event finalEvent = event;
             transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws TransactionException {
-                handle(finalEvent);
-                cacheService.flush(finalEvent.getContextId());
+                handle(eventReference.get());
+                cacheService.flush(eventReference.get().getContextId());
                 
-                Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(finalEvent.getEventGroupId());
+                Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(eventReference.get().getEventGroupId());
                 try {
                   engineStatusCallback.onJobsReady(readyJobs);
                 } catch (EngineStatusCallbackException e) {
                   logger.error("Failed to call onJobsReady() callback", e);
                   // TODO handle exception
                 }
-                eventRepository.delete(finalEvent.getEventGroupId());
+                eventRepository.delete(eventReference.get().getEventGroupId());
                 return null;
               }
             });
           } catch (Exception e) {
-            logger.error("EventProcessor failed to process event {}.", event, e);
+            logger.error("EventProcessor failed to process event {}.", eventReference.get(), e);
             try {
-              invalidateContext(event.getContextId());
+              invalidateContext(eventReference.get().getContextId());
             } catch (EventHandlerException ehe) {
-              logger.error("Failed to invalidate Context {}.", event.getContextId(), ehe);
+              logger.error("Failed to invalidate Context {}.", eventReference.get().getContextId(), ehe);
               stop();
             }
           }
