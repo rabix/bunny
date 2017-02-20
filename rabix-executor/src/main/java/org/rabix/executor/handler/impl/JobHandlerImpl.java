@@ -350,6 +350,10 @@ public class JobHandlerImpl implements JobHandler {
       throw new ExecutorException("Could not call executor callback.", e);
     }
   }
+  
+  public void removeContainer() {
+    containerHandler.removeContainer();
+  }
 
   private void uploadOutputFiles(final Job job, final Bindings bindings) throws BindingException, UploadServiceException {
     if (storageConfiguration.getBackendStore().equals(BackendStore.LOCAL)) {
@@ -385,6 +389,7 @@ public class JobHandlerImpl implements JobHandler {
     }
     try {
       containerHandler.stop();
+      containerHandler.removeContainer();
     } catch (ContainerException e) {
       logger.error("Failed to stop execution", e);
       throw new ExecutorException("Failed to stop execution.", e);

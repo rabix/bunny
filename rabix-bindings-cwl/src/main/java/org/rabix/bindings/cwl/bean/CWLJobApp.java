@@ -39,10 +39,6 @@ public abstract class CWLJobApp extends Application {
 
   public static final String CWL_VERSION = "v1.0";
   
-  @JsonProperty("contributor")
-  protected List<String> contributor = new ArrayList<>();
-  @JsonProperty("owner")
-  protected List<String> owner = new ArrayList<>();
   @JsonProperty("cwlVersion")
   protected String cwlVersion;
 
@@ -301,14 +297,6 @@ public abstract class CWLJobApp extends Application {
     return (String) getProperty("label");
   }
 
-  public List<String> getContributor() {
-    return contributor;
-  }
-
-  public List<String> getOwner() {
-    return owner;
-  }
-
   @JsonIgnore
   public boolean isWorkflow() {
     return CWLJobAppType.WORKFLOW.equals(getType());
@@ -381,7 +369,7 @@ public abstract class CWLJobApp extends Application {
 
   @Override
   public String toString() {
-    return "JobApp [id=" + getId() + ", context=" + getContext() + ", description=" + getDescription() + ", label=" + getLabel() + ", contributor=" + contributor + ", owner=" + owner + ", hints=" + hints + ", inputs=" + inputs + ", outputs=" + outputs + ", requirements=" + requirements + "]";
+    return "JobApp [id=" + getId() + ", context=" + getContext() + ", description=" + getDescription() + ", label=" + getLabel() + ", hints=" + hints + ", inputs=" + inputs + ", outputs=" + outputs + ", requirements=" + requirements + "]";
   }
   
 }

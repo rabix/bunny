@@ -59,4 +59,9 @@ public interface JobHandler {
    */
   EngineStub<?,?,?> getEngineStub();
   
+  /**
+   * Remove container
+   */
+  void removeContainer();
+  
 }

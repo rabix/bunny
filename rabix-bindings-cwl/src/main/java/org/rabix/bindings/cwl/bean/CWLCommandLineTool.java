@@ -35,8 +35,6 @@ public class CWLCommandLineTool extends CWLJobApp {
   private Object baseCommand;
   @JsonProperty("arguments")
   private List<Object> arguments;
-  @JsonProperty("runtime")
-  private Object runtime;
 
   public CWLCommandLineTool() {
     super();
@@ -92,23 +90,6 @@ public class CWLCommandLineTool extends CWLJobApp {
   public Object getStderrRaw() {
     return stderr;
   }
-  
-  @SuppressWarnings("unchecked")
-  public CWLRuntime getRuntime() {
-    Long cpu = null;
-    Long mem = null;
-    String outdir = null;
-    String tmpdir = null;
-    Long outdirSize = null;
-    Long tmpdirSize = null;
-    if(runtime instanceof Map) {
-      cpu = (Long) ((Map<String, Object>) runtime).get("cpu");
-      mem = (Long) ((Map<String, Object>) runtime).get("mem");
-      outdir = (String) ((Map<String, Object>) runtime).get("workingDir");
-      tmpdir = (String) ((Map<String, Object>) runtime).get("workingDir");
-    }
-    return new CWLRuntime(cpu, mem, outdir, tmpdir, outdirSize, tmpdirSize);
-  }
 
   @JsonIgnore
   public boolean hasArguments() {
@@ -148,7 +129,7 @@ public class CWLCommandLineTool extends CWLJobApp {
   public String toString() {
     return "CommandLineTool [stdin=" + stdin + ", stdout=" + stdout + ", baseCommands=" + baseCommand + ", arguments="
         + arguments + ", successCodes=" + successCodes + ", id=" + getId() + ", context=" + getContext() + ", description="
-        + getDescription() + ", label=" + getLabel() + ", contributor=" + contributor + ", owner=" + owner + ", inputs=" + getInputs()
+        + getDescription() + ", label=" + getLabel() + ", inputs=" + getInputs()
         + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
   }
 

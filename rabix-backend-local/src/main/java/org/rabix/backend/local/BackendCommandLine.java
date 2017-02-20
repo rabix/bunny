@@ -131,7 +131,7 @@ public class BackendCommandLine {
         printUsageAndExit(posixOptions);
       }
       
-      String appPath = commandLine.getArgList().get(0);
+      final String appPath = commandLine.getArgList().get(0);
       File appFile = new File(URIHelper.extractBase(appPath));
       if (!appFile.exists()) {
         VerboseLogger.log(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));

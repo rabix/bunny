@@ -56,7 +56,12 @@ public class DAGNode {
   protected Map<String, Object> defaults;
   
   @JsonCreator
-  public DAGNode(@JsonProperty("id") String id, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts, @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("app") Application app, @JsonProperty("defaults") Map<String, Object> defaults) {
+  public DAGNode(@JsonProperty("id") String id,
+                 @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts,
+                 @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts,
+                 @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
+                 @JsonProperty("app") Application app,
+                 @JsonProperty("defaults") Map<String, Object> defaults) {
     this.id = id;
     this.app = app;
     this.inputPorts = inputPorts;
