@@ -44,7 +44,7 @@ public interface JDBIJobRepository extends JobRepository {
   void updateBackendId(@Bind("id") UUID jobId, @Bind("backend_id") UUID backendId);
   
   @Override
-  @SqlUpdate("update job set backend_id=null, status='READY' where backend_id=:backend_id")
+  @SqlUpdate("update job set backend_id=null, status='READY'::job_status where backend_id=:backend_id and status in ('READY'::job_status,'RUNNING'::job_status)")
   void dealocateJobs(@Bind("backend_id") UUID backendId);
   
   @Override
