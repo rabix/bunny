@@ -50,7 +50,7 @@ public class BootstrapServiceImpl implements BootstrapService {
           List<Event> events = eventRepository.findUnprocessed();
           
           for(Event event : events) {
-            eventProcessor.addToExternalQueue(event, false);
+            eventProcessor.addToExternalQueue(event);
           }
           return null;
         }

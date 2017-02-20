@@ -145,13 +145,7 @@ public class SchedulerServiceImpl implements SchedulerService {
         @Override
         public void handleReceive(Job job) throws TransportPluginException {
           try {
-            transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
-              @Override
-              public Void call() throws Exception {
-                jobService.update(job);
-                return null;
-              }
-            });
+            jobService.update(job);
           } catch (Exception e) {
             throw new TransportPluginException("Failed to update Job", e);
           }

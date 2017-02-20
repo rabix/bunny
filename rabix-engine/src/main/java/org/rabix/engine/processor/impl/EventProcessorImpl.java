@@ -169,12 +169,17 @@ public class EventProcessorImpl implements EventProcessor {
     this.events.add(event);
   }
   
-  public void addToExternalQueue(Event event, boolean persist) {
+  @Override
+  public void persist(Event event) {
     if (stop.get()) {
       return;
     }
-    if (persist) {
-      eventRepository.insert(event.getEventGroupId(), event.getPersistentType(), event, EventStatus.UNPROCESSED);
+    eventRepository.insert(event.getEventGroupId(), event.getPersistentType(), event, EventStatus.UNPROCESSED);    
+  }
+  
+  public void addToExternalQueue(Event event) {
+    if (stop.get()) {
+      return;
     }
     this.externalEvents.add(event);
   }
