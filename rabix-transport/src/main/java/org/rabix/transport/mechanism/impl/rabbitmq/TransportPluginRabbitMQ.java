@@ -68,7 +68,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
     Channel channel = null;
     try {
       channel = connection.createChannel();
-      channel.exchangeDeclare(exchange, type, true);
+      channel.exchangeDeclare(exchange, type, durable);
     } catch (Exception e) {
       throw new TransportPluginException("Failed to declare RabbitMQ exchange " + exchange + " and type " + type, e);
     } finally {
