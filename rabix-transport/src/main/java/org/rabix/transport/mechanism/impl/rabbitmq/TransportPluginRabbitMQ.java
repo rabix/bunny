@@ -31,6 +31,8 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
   
   private ExecutorService receiverThreadPool = Executors.newCachedThreadPool();
 
+  private boolean durable;
+  
   public TransportPluginRabbitMQ(Configuration configuration) throws TransportPluginException {
     this.configuration = configuration;
     initConnection();
@@ -52,6 +54,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
           factory.useSslProtocol();
         }
       }
+      durable = TransportConfigRabbitMQ.durableQueues(configuration);
       connection = factory.newConnection();
     } catch (Exception e) {
       throw new TransportPluginException("Failed to initialize TransportPluginRabbitMQ", e);
@@ -194,7 +197,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
             if (initChannel) {
               final Channel channel = connection.createChannel();
 
-              channel.queueDeclare(queueName, true, false, false, null);
+              channel.queueDeclare(queueName, durable, false, false, null);
               channel.queueBind(queueName, queue.getExchange(), queue.getRoutingKey());
               consumer = new QueueingConsumer(channel) {
                 @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
