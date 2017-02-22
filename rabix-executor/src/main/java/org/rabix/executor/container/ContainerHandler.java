@@ -42,4 +42,9 @@ public interface ContainerHandler {
    */
   public void dumpContainerLogs(File errorFile) throws ContainerException;
 
+  /**
+   * Remove container
+   */
+  public void removeContainer();
+
 }

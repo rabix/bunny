@@ -68,6 +68,7 @@ public class FilePermissionServiceImpl implements FilePermissionService {
       dockerClient.startContainer(containerId);
       logger.info("Docker container {} has started.", containerId);
       dockerClient.waitContainer(containerId);
+      dockerClient.removeContainer(containerId);
     } catch (Exception e) {
       logger.error("Failed to start container.", e);
       throw new ContainerException("Failed to start container.", e);

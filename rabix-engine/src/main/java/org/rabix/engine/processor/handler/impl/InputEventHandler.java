@@ -38,7 +38,8 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
   private final EventProcessor eventProcessor;
 
   @Inject
-  public InputEventHandler(EventProcessor eventProcessor, ScatterHandler scatterHelper, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, DAGNodeDB nodeDB) {
+  public InputEventHandler(EventProcessor eventProcessor, ScatterHandler scatterHelper, JobRecordService jobService,
+                           VariableRecordService variableService, LinkRecordService linkService, DAGNodeDB nodeDB) {
     this.nodeDB = nodeDB;
     this.jobService = jobService;
     this.linkService = linkService;
@@ -51,7 +52,9 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
   @Override
   public void handle(InputUpdateEvent event) throws EventHandlerException {
     JobRecord job = jobService.find(event.getJobId(), event.getContextId());
-    VariableRecord variable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
+    VariableRecord variable = variableService.find(
+            event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId()
+    );
 
     DAGNode node = nodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), event.getContextId());
 
@@ -61,11 +64,13 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       } else {
         job.resetInputPortCounters(event.getNumberOfScattered());
       }
-    } else if ((job.getInputPortIncoming(event.getPortId()) > 1) && job.isScatterPort(event.getPortId()) && !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
+    } else if ((job.getInputPortIncoming(event.getPortId()) > 1) &&
+            job.isScatterPort(event.getPortId()) &&
+            !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
       job.resetOutputPortCounters(job.getInputPortIncoming(event.getPortId()));
     }
     
-    variable.addValue(event.getValue(), event.getPosition(), job.isScatterWrapper());
+    variable.addValue(event.getValue(), event.getPosition(), false);
     job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
     
     // scatter
@@ -74,7 +79,9 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
         if ((job.isInputPortBlocking(node, event.getPortId()))) {
           // it's blocking
           if (job.isInputPortReady(event.getPortId())) {
-            scatterHelper.scatterPort(job, event, event.getPortId(), variable.getValue(), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), false);
+            scatterHelper.scatterPort(
+                    job, event, event.getPortId(), variable.getValue(), event.getPosition(),
+                    event.getNumberOfScattered(), event.isLookAhead(), false);
             update(job, variable);
             return;
           }
@@ -108,16 +115,16 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
    */
   private void sendValuesToScatteredJobs(JobRecord job, VariableRecord variable, InputUpdateEvent event) throws EventHandlerException {
     List<LinkRecord> links = linkService.findBySourceAndDestinationType(job.getId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
-
+    
     List<Event> events = new ArrayList<>();
     for (LinkRecord link : links) {
       VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
-
       Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variable.getValue(), event.getPosition(), event.getEventGroupId());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {
       eventProcessor.send(subevent);
+      job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
     }
   }
 

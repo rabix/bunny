@@ -1,0 +1,6 @@
+cwlVersion: v1.0
+class: CommandLineTool
+baseCommand: true
+inputs:
+  in: string
+outputs: []

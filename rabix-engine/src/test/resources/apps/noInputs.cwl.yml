@@ -1,0 +1,8 @@
+class: ExpressionTool
+cwlVersion: v1.0
+requirements:
+  InlineJavascriptRequirement: {}
+inputs: []
+outputs:
+  out: string
+expression: "$({out: \"42\"})"

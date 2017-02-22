@@ -202,7 +202,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     readyJobLogging.append(" --- All scatter ports ").append(job.getScatterPorts()).append("\n");
     logger.debug(readyJobLogging.toString());
     
-    if (job.isContainer()) {
+    if (!job.isScattered() && job.getScatterPorts().size() > 0) {
+      job.setState(JobState.RUNNING);
+      
+      for (String port : job.getScatterPorts()) {
+        VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, contextId);
+        scatterHelper.scatterPort(job, event, port, variable.getValue(), 1, null, false, false);
+      }
+    } else if (job.isContainer()) {
       job.setState(JobState.RUNNING);
 
       DAGContainer containerNode;
@@ -237,13 +244,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           Event updateEvent = new InputUpdateEvent(contextId, link.getDestinationJobId(), link.getDestinationJobPort(), sourceVariable.getValue(), link.getPosition(), event.getEventGroupId());
           eventProcessor.send(updateEvent);
         }
-      }
-    } else if (!job.isScattered() && job.getScatterPorts().size() > 0) {
-      job.setState(JobState.RUNNING);
-      
-      for (String port : job.getScatterPorts()) {
-        VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, contextId);
-        scatterHelper.scatterPort(job, event, port, variable.getValue(), 1, null, false, false);
       }
     }
   }
