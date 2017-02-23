@@ -1,9 +1,12 @@
 package org.rabix.engine.rest.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -57,6 +60,8 @@ public class SchedulerServiceImpl implements SchedulerService {
 
   private final TransactionHelper transactionHelper;
   private final RecordDeleteService recordDeleteService;
+  
+  private final Map<Job, BackendStub<?, ?, ?>> scheduledJobs = new HashMap<>();
 
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, RecordDeleteService recordDeleteService) {
@@ -74,13 +79,7 @@ public class SchedulerServiceImpl implements SchedulerService {
       public void run() {
         try {
           while (true) {
-            transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
-              @Override
-              public Void call() throws Exception {
-                schedule();
-                return null;
-              }
-            });
+            schedule();
             Thread.sleep(SCHEDULE_PERIOD);
           }
         } catch (Exception e) {
@@ -96,18 +95,31 @@ public class SchedulerServiceImpl implements SchedulerService {
   private void schedule() {
     try {
       dispatcherLock.lock();
-      if (backendStubs.isEmpty()) {
-        return;
-      }
+      transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
+        @Override
+        public Void call() throws Exception {
+          if (backendStubs.isEmpty()) {
+            return null;
+          }
 
-      Set<Job> freeJobs = jobService.getReadyFree();
-      for (Job freeJob : freeJobs) {
-        BackendStub<?, ?, ?> backendStub = nextBackend();
+          Set<Job> freeJobs = jobService.getReadyFree();
+          for (Job freeJob : freeJobs) {
+            BackendStub<?, ?, ?> backendStub = nextBackend();
 
-        jobService.updateBackend(freeJob.getId(), backendStub.getBackend().getId());
-        backendStub.send(freeJob);
-        logger.info("Job {} sent to {}.", freeJob.getId(), backendStub.getBackend().getId());
+            jobService.updateBackend(freeJob.getId(), backendStub.getBackend().getId());
+            scheduledJobs.put(freeJob, backendStub);
+            logger.info("Job {} sent to {}.", freeJob.getId(), backendStub.getBackend().getId());
+          }
+          return null;
+        }
+      });
+      for (Entry<Job, BackendStub<?, ?, ?>> mapping : scheduledJobs.entrySet()) {
+        mapping.getValue().send(mapping.getKey());
       }
+      scheduledJobs.clear();
+    } catch (Exception e) {
+      logger.error("Failed to schedule Jobs", e);
+      // TODO handle exception
     } finally {
       dispatcherLock.unlock();
     }
