@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.rabix.backend.local.tes.client.TESHttpClient;
 import org.rabix.backend.local.tes.model.TESServiceInfo;
@@ -23,33 +24,16 @@ import com.google.inject.Inject;
 public class LocalTESStorageServiceImpl implements TESStorageService {
 
   private final static Logger logger = LoggerFactory.getLogger(LocalTESStorageServiceImpl.class);
+  private final Configuration configuration;
 
-  private static String LOCAL_DIR_KEY = "Local.AllowedDirs";
-
-  private TESHttpClient tesHttpClient;
-  
   @Inject
-  public LocalTESStorageServiceImpl(TESHttpClient tesHttpClient) {
-    this.tesHttpClient = tesHttpClient;
+  public LocalTESStorageServiceImpl(final Configuration configuration) {
+    this.configuration = configuration;
   }
 
   @Override
-  public SharedFileStorage getStorageInfo() throws TESServiceException {
-    try {
-      TESServiceInfo serviceInfo = tesHttpClient.getServiceInfo();
-      // TODO this can be comma-separated. This service info
-      //      is still in flux and will probably be redesigned
-      //      soon because a simple key-value string map isn't
-      //      enough.
-      String allowedDirs = serviceInfo.getStorageConfig().get(LOCAL_DIR_KEY);
-      if (allowedDirs != null) {
-        return new SharedFileStorage(allowedDirs);
-      }
-      return null;
-    } catch (Exception e) {
-      logger.error("Failed to retrieve storage information.", e);
-      throw new TESServiceException("Failed to retrieve storage information.", e);
-    }
+  public SharedFileStorage getStorageInfo() {
+    return new SharedFileStorage(configuration.getString("rabix.tes.execution.directory"));
   }
   
   @Override
