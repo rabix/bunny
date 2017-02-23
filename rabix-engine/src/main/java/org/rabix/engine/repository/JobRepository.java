@@ -23,7 +23,7 @@ public interface JobRepository {
   
   Set<UUID> getBackendsByRootId(UUID rootId);
   
-  Set<UUID> getJobsByBackendId(UUID backendId);
+  UUID getBackendId(UUID jobId);
   
   Set<Job> getReadyJobsByGroupId(UUID groupId);
 

@@ -220,7 +220,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 
                 Long heartbeatInfo = backendService.getHeartbeatInfo(backend.getId());
 
-                if (currentTime - heartbeatInfo > heartbeatPeriod) {
+                if (heartbeatInfo == null || currentTime - heartbeatInfo > heartbeatPeriod) {
                   backendStub.stop();
                   backendIterator.remove();
                   logger.info("Removing Backend {}", backendStub.getBackend().getId());

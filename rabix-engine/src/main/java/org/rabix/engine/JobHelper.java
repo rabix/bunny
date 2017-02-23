@@ -61,6 +61,24 @@ public class JobHelper {
     return null;
   }
   
+  public static JobState transformStatus(JobStatus status) {
+    switch (status) {
+    case COMPLETED:
+      return JobState.COMPLETED;
+    case FAILED:
+      return JobState.FAILED;
+    case RUNNING:
+      return JobState.RUNNING;
+    case READY:
+      return JobState.READY;
+    case PENDING:
+      return JobState.PENDING;
+    default:
+      break;
+    }
+    return null;
+  }
+  
   public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, UUID rootId) {
     Set<Job> jobs = new HashSet<>();
     List<JobRecord> jobRecords = jobRecordService.findReady(rootId);

@@ -41,6 +41,8 @@ import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.validator.JobStateValidationException;
+import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +97,13 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
       return;
     }
+    try {
+      JobStateValidator.checkState(jobRecord, event.getState());
+    } catch (JobStateValidationException e) {
+      logger.warn("Cannot transition from state " + jobRecord.getState() + " to " + event.getState());
+      return;
+    }
+    
     switch (event.getState()) {
     case READY:
       jobRecord.setState(JobState.READY);
