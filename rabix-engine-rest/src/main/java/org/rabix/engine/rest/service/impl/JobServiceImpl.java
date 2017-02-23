@@ -112,8 +112,8 @@ public class JobServiceImpl implements JobService {
             logger.warn("Tried to update Job " + job.getId() + " without backend assigned.");
             return null;
           }
-          Job jobDB = jobRepository.get(job.getId());
-          JobStateValidator.checkState(JobHelper.transformStatus(jobDB.getStatus()), JobHelper.transformStatus(job.getStatus()));
+          JobStatus dbStatus = jobRepository.getStatus(job.getId());
+          JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
 
           JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
           if (jobRecord == null) {

@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository.BackendIDMapper;
@@ -51,6 +52,10 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlQuery("select * from job where id=:id")
   Job get(@Bind("id") UUID id);
+  
+  @Override
+  @SqlQuery("select status from job where id=:id")
+  JobStatus getStatus(@Bind("id") UUID id);
   
   @Override
   @SqlQuery("select * from job")
