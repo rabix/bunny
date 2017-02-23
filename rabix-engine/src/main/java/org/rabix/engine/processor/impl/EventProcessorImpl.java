@@ -100,8 +100,8 @@ public class EventProcessorImpl implements EventProcessor {
                   logger.error("Failed to call onJobsReady() callback", e);
                   // TODO handle exception
                 }
-                eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.PROCESSED);
-//                eventRepository.delete(eventReference.get().getEventGroupId());
+//                eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.PROCESSED);
+                eventRepository.delete(eventReference.get().getEventGroupId());
                 return null;
               }
             });
