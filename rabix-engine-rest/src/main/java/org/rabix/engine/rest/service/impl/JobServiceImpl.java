@@ -107,6 +107,14 @@ public class JobServiceImpl implements JobService {
       transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
         @Override
         public Void call() throws Exception {
+          UUID backendId = jobRepository.getBackendId(job.getId());
+          if (backendId == null) {
+            logger.warn("Tried to update Job " + job.getId() + " without backend assigned.");
+            return null;
+          }
+          JobStatus dbStatus = jobRepository.getStatus(job.getId());
+          JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
+
           JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
           if (jobRecord == null) {
             logger.info("Possible stale message. Job {} for root {} doesn't exist.", job.getName(), job.getRootId());
@@ -244,11 +252,10 @@ public class JobServiceImpl implements JobService {
   public void dealocateJobs(UUID backendId) {
     jobRepository.dealocateJobs(backendId);
   }
-
+  
   public Set<Job> getReadyFree() {
     return jobRepository.getReadyFree();
   }
-
 
   private class EngineStatusCallbackImpl implements EngineStatusCallback {
 

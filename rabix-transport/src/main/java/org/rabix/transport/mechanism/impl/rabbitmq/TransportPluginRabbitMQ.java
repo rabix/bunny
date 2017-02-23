@@ -100,6 +100,22 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
       }
     }
   }
+  public void deleteQueue(String queue) {
+    Channel channel = null;
+    try {
+      channel = connection.createChannel();
+      channel.queueDelete(queue);
+    } catch (Exception e) {
+      logger.info("Failed to delete RabbitMQ queue " + queue, e);
+    } finally {
+      if (channel != null) {
+        try {
+          channel.close();
+        } catch (Exception ignore) {
+        }
+      }
+    }
+  }
 
   @Override
   public <T> ResultPair<T> send(TransportQueueRabbitMQ queue, T entity) {
@@ -127,7 +143,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
               logger.info("Reconnected to " + queue);
               break;
             } catch (TransportPluginException e1) {
-              logger.info("Reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
+              logger.info("Sender reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
             }
           }
         }
@@ -188,12 +204,11 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
     void start() {
       QueueingConsumer consumer = null;
 
-      String queueName = queue.getExchange() + "_" + queue.getRoutingKey();
+      String queueName = queue.getQueueName();
       boolean initChannel = true;
 
         while (!isStopped) {
           try {
-
             if (initChannel) {
               final Channel channel = connection.createChannel();
 
@@ -220,7 +235,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
             errorCallback.handleError(e);
           } catch (Exception e) {
             logger.error("Failed to receive a message from " + queue, e);
-            while (true) {
+            while (!isStopped) {
               try {
                 Thread.sleep(RETRY_TIMEOUT * 1000);
               } catch (InterruptedException e1) {
@@ -233,7 +248,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
                 initChannel = true;
                 break;
               } catch (TransportPluginException e1) {
-                logger.info("Reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
+                logger.info("Receiver reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
               }
             }
           }

@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Job.JobStatus;
 
 public interface JobRepository {
 
@@ -23,11 +24,13 @@ public interface JobRepository {
   
   Set<UUID> getBackendsByRootId(UUID rootId);
   
-  Set<UUID> getJobsByBackendId(UUID backendId);
+  UUID getBackendId(UUID jobId);
   
   Set<Job> getReadyJobsByGroupId(UUID groupId);
 
   Set<Job> getReadyFree();
+
+  JobStatus getStatus(UUID id);
 
   
 }
