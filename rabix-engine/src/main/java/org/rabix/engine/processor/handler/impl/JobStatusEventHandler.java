@@ -115,8 +115,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         Job job = null;
         try {
           job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
-          if (!StringUtils.isEmpty(event.getEventGroupId().toString())) {
+          if (!job.getName().equals(InternalSchemaHelper.ROOT_NAME)) {
             jobRepository.insert(job, event.getEventGroupId());
+          } else {
+            jobRepository.update(job);
           }
         } catch (BindingException e1) {
           logger.info("Failed to create job", e1);
