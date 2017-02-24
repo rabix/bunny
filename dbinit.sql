@@ -1,4 +1,7 @@
+--liquibase formatted sql
+
 -- Application
+--changeset initial:1 dbms:postgres
 
 CREATE TABLE APPLICATION (
 	hash	text primary key,
@@ -7,9 +10,10 @@ CREATE TABLE APPLICATION (
 
 CREATE INDEX application_id_index ON application (hash);
 
+--rollback DROP TABLE application;
 
 -- Backend
-
+--changeset initial:2 dbms:postgres
 CREATE TYPE backend_type as enum ('LOCAL', 'ACTIVE_MQ', 'RABBIT_MQ');
 CREATE TYPE backend_status as enum ('ACTIVE', 'INACTIVE');
 
@@ -25,9 +29,10 @@ CREATE TABLE backend (
 CREATE INDEX backend_id_index ON backend (id);
 CREATE INDEX backend_status_index ON backend (status);
 
+--rollback DROP TABLE backend; DROP TYPE backend_type; DROP TYPE backend_status;
 
 -- Event
-
+--changeset initial:3 dbms:postgres
 CREATE TYPE event_status as enum ('PROCESSED', 'UNPROCESSED');
 CREATE TYPE persistent_event_type as enum ('INIT', 'JOB_STATUS_UPDATE_RUNNING', 'JOB_STATUS_UPDATE_COMPLETED');
 
@@ -41,8 +46,10 @@ CREATE TABLE event (
 CREATE UNIQUE INDEX event_id_type_index on event(id, type);
 CREATE INDEX event_status_index on event(status);
 
--- Root Job
+--rollback DROP TABLE event; DROP TYPE event_status; DROP TYPE persistent_event_type; 
 
+-- Context
+--changeset initial:4 dbms:postgres
 CREATE TYPE context_record_status AS ENUM('RUNNING', 'COMPLETED', 'FAILED');
 
 CREATE TABLE context_record (
@@ -54,9 +61,10 @@ CREATE TABLE context_record (
 create index context_record_id_index on context_record(id);
 create index context_record_status_index on context_record(status);
 
+--rollback DROP TABLE context_record; DROP TYPE context_record_status;
 
 -- Job
-
+--changeset initial:5 dbms:postgres
 CREATE TYPE job_status as enum ('PENDING', 'READY', 'STARTED', 'ABORTED', 'FAILED', 'COMPLETED', 'RUNNING');
 
 CREATE TABLE job (
@@ -71,7 +79,8 @@ CREATE TABLE job (
     resources       jsonb,
     group_id	    uuid,
     backend_id      uuid references backend on delete SET NULL,
-    app             text
+    app             text,
+    CHECK (backend_id IS NOT NULL OR status <> 'RUNNING'::job_status OR parent_id IS NULL)
 );
 
 create index job_id_index on job(id);
@@ -84,9 +93,10 @@ create index job_backend_index on job(backend_id);
 create index job_backend_status_index on job(backend_id, status);
 create index job_backend_status_root_index on job(backend_id, status, root_id);
 
+--rollback DROP TABLE job; DROP TYPE job_status;
 
 -- JobRecord
-
+--changeset initial:6 dbms:postgres
 CREATE TYPE job_record_state as ENUM ('PENDING', 'READY', 'RUNNING', 'COMPLETED', 'FAILED');
 
 CREATE TABLE job_record (
@@ -112,17 +122,19 @@ CREATE INDEX job_record_root_index on job_record (root_id);
 CREATE INDEX job_record_parent_index on job_record (root_id, parent_id);
 CREATE INDEX job_record_state_index on job_record (root_id, job_state);
 
+--rollback DROP TABLE job_record; DROP TYPE job_record_state;
 
 -- DagNode
-
+--changeset initial:7 dbms:postgres
 CREATE TABLE dag_node (
 	id		    uuid primary key, -- references context_record,
     dag 	    jsonb
 );
 
+--rollback DROP TABLE dag_node;
 
 -- LinkRecords
-
+--changeset initial:8 dbms:postgres
 CREATE TYPE port_type as ENUM ('INPUT', 'OUTPUT');
 
 CREATE TABLE link_record (
@@ -134,8 +146,8 @@ CREATE TABLE link_record (
     destination_job_port_id	text not null,
     destination_type		port_type not null,
     position				integer not null,
-    foreign key (source_job_id, context_id) references job_record(id, root_id) on delete cascade,
-    foreign key (destination_job_id, context_id) references job_record(id, root_id) on delete cascade
+    foreign key (source_job_id, context_id) references job_record(id, root_id) on delete cascade deferrable initially deferred,
+    foreign key (destination_job_id, context_id) references job_record(id, root_id) on delete cascade deferrable initially deferred
 );
 
 CREATE UNIQUE INDEX link_record_index on link_record (context_id, source_job_id, source_job_port_id, source_type, destination_job_id, destination_job_port_id, destination_type);
@@ -146,10 +158,10 @@ CREATE INDEX link_record_destination_job_index on link_record (context_id, desti
 CREATE INDEX link_record_source_type_index on link_record (context_id, source_job_id, source_type);
 CREATE INDEX link_record_source_port_destination_type_index on link_record (context_id, source_job_id, source_job_port_id, destination_type);
 
-
+--rollback DROP TABLE link_record; DROP TYPE port_type;
 
 -- VariableRecord
-
+--changeset initial:9 dbms:postgres
 Create TYPE link_merge_type as ENUM ('merge_nested', 'merge_flattened');
 
 CREATE TABLE variable_record (
@@ -164,7 +176,7 @@ CREATE TABLE variable_record (
     context_id 			uuid references context_record on delete cascade,
     is_default			boolean not null,
     transform			jsonb,
-    foreign key (job_id, context_id) references job_record(id, root_id) on delete cascade
+    foreign key (job_id, context_id) references job_record(id, root_id) on delete cascade deferrable initially deferred
 );
 
 CREATE UNIQUE INDEX variable_record_index on variable_record (job_id, port_id, type, context_id);
@@ -172,3 +184,5 @@ CREATE INDEX variable_record_context_index on variable_record (context_id);
 CREATE INDEX variable_record_job_index on variable_record (job_id, context_id);
 CREATE INDEX variable_record_type_index on variable_record (job_id, type, context_id);
 CREATE INDEX variable_record_port_index on variable_record (job_id, port_id, context_id);
+
+--rollback DROP TABLE variable_record; DROP TYPE link_merge_type;
