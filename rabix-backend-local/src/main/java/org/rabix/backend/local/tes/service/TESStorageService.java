@@ -3,6 +3,10 @@ package org.rabix.backend.local.tes.service;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
 
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.Map;
+
 public interface TESStorageService {
 
   public final static String DOCKER_PATH_PREFIX = "/mnt";
@@ -10,10 +14,12 @@ public interface TESStorageService {
   enum StorageType {
     Local
   }
-  
-  SharedFileStorage getStorageInfo() throws TESServiceException;
-  
-  Job stageInputFiles(Job job, final LocalFileStorage localFileStorage, final SharedFileStorage sharedFileStorage) throws BindingException;
+
+  Job transformInputFiles(Job job) throws BindingException;
+  Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobID) throws BindingException;
+  Path outputPath(String first, String... more);
+  Path stagingPath(String first, String... more);
+  Path containerPath(String first, String... more);
  
   public static class LocalFileStorage {
     private final String baseDir;
@@ -26,18 +32,5 @@ public interface TESStorageService {
       return baseDir;
     }
   }
-  
-  public static class SharedFileStorage {
-    private final String baseDir;
 
-    public SharedFileStorage(String baseDir) {
-      this.baseDir = baseDir;
-    }
-
-    public String getBaseDir() {
-      return baseDir;
-    }
-
-  }
-  
 }
