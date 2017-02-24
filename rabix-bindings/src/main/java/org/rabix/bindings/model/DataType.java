@@ -182,7 +182,7 @@ public class DataType {
   }
 
   public boolean isCompatible(DataType value, boolean allowAny) {
-    if (value == null)
+    if (value == null || value.getType() == Type.NULL)
       return nullable != null && nullable;
 
     if (value.getType() == Type.ANY && !allowAny)
