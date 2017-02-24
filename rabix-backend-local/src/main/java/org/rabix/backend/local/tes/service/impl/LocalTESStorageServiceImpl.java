@@ -40,7 +40,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
   // This also prefixes the file path (path inside the container) with DOCKER_PATH_PREFIX.
   private FileValue stageFile(final FileValue fileValue) throws BindingException {
 
-      String location = fileValue.getPath();
+    String location = fileValue.getPath();
     String path;
     URI uri;
 
@@ -64,7 +64,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
       }
       path = location;
       // TODO should make TES/Funnel URI compliant, then this prefix won't be needed
-      location += "file://";
+      location = "file://" + location;
     }
 
     if (!Paths.get(path).isAbsolute()) {
