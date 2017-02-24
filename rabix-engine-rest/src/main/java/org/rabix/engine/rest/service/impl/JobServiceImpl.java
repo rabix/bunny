@@ -1,6 +1,7 @@
 package org.rabix.engine.rest.service.impl;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
+import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.JobRepository;
@@ -243,6 +245,11 @@ public class JobServiceImpl implements JobService {
 
   public void updateBackend(UUID jobId, UUID backendId) {
     this.jobRepository.updateBackendId(jobId, backendId);
+  }
+  
+  @Override
+  public void updateBackends(List<JobBackendPair> jobBackendPairs) {
+    this.jobRepository.updateBackendIds(jobBackendPairs.iterator());
   }
 
   public Set<UUID> getBackendsByRootId(UUID rootId) {

@@ -1,10 +1,12 @@
 package org.rabix.engine.repository;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
+import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 
 public interface JobRepository {
 
@@ -13,6 +15,8 @@ public interface JobRepository {
   void update(Job job);
   
   void updateBackendId(UUID jobId, UUID backendId);
+  
+  void updateBackendIds(Iterator<JobBackendPair> jobBackendPair);
   
   void dealocateJobs(UUID backendId);
   

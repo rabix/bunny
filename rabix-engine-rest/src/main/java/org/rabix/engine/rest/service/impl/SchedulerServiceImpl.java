@@ -19,6 +19,7 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
+import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStub.HeartbeatCallback;
@@ -62,6 +63,8 @@ public class SchedulerServiceImpl implements SchedulerService {
   private final RecordDeleteService recordDeleteService;
   
   private final Map<Job, BackendStub<?, ?, ?>> scheduledJobs = new HashMap<>();
+  
+  private final List<JobBackendPair> jobBackendPairs = new ArrayList<>();
 
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, RecordDeleteService recordDeleteService) {
@@ -106,16 +109,18 @@ public class SchedulerServiceImpl implements SchedulerService {
           for (Job freeJob : freeJobs) {
             BackendStub<?, ?, ?> backendStub = nextBackend();
 
-            jobService.updateBackend(freeJob.getId(), backendStub.getBackend().getId());
+            jobBackendPairs.add(new JobBackendPair(freeJob.getId(), backendStub.getBackend().getId()));
             scheduledJobs.put(freeJob, backendStub);
             logger.info("Job {} sent to {}.", freeJob.getId(), backendStub.getBackend().getId());
           }
+          jobService.updateBackends(jobBackendPairs);
           return null;
         }
       });
       for (Entry<Job, BackendStub<?, ?, ?>> mapping : scheduledJobs.entrySet()) {
         mapping.getValue().send(mapping.getKey());
       }
+      jobBackendPairs.clear();
       scheduledJobs.clear();
     } catch (Exception e) {
       logger.error("Failed to schedule Jobs", e);

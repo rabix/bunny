@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.Binder;
 import org.skife.jdbi.v2.sqlobject.BinderFactory;
 import org.skife.jdbi.v2.sqlobject.BindingAnnotation;
+import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
@@ -44,6 +46,10 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlUpdate("update job set backend_id=:backend_id where id=:id")
   void updateBackendId(@Bind("id") UUID jobId, @Bind("backend_id") UUID backendId);
+  
+  @Override
+  @SqlBatch("update job set backend_id=:backend_id where id=:id")
+  void updateBackendIds(@BindJobBackendPair Iterator<JobBackendPair> jobBackendPair);
   
   @Override
   @SqlUpdate("update job set backend_id=null, status='READY'::job_status where backend_id=:backend_id and status in ('READY'::job_status,'RUNNING'::job_status)")
@@ -131,6 +137,34 @@ public interface JDBIJobRepository extends JobRepository {
         };
       }
     }
+  }
+  
+  @BindingAnnotation(JDBIJobRepository.BindJobBackendPair.JobBinderFactory.class)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ ElementType.PARAMETER })
+  public static @interface BindJobBackendPair {
+    public static class JobBinderFactory implements BinderFactory<Annotation> {
+      public Binder<JDBIJobRepository.BindJobBackendPair, JobBackendPair> build(Annotation annotation) {
+        return new Binder<JDBIJobRepository.BindJobBackendPair, JobBackendPair>() {
+          public void bind(SQLStatement<?> q, JDBIJobRepository.BindJobBackendPair bind, JobBackendPair job) {
+            q.bind("id", job.jobId);
+            q.bind("backend_id", job.backendId);
+          }
+        };
+      }
+    }
+  }
+  
+  public static class JobBackendPair {
+    private UUID jobId;
+    private UUID backendId;
+    
+    public JobBackendPair(UUID jobId, UUID backendId) {
+      super();
+      this.jobId = jobId;
+      this.backendId = backendId;
+    }
+    
   }
 
 }
