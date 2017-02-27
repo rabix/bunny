@@ -1,0 +1,23 @@
+{
+  "File": {
+      "class": "File",
+      "metadata": {
+        "file_extension": "fext",
+        "file_type/compression": "gzip",
+        "library_id": "mock_test",
+        "platform": "mock Illumina HiSeq",
+        "quality_scale": "sanger",
+        "sample_id": "sample"
+      },
+      "name": "sample.gathered.metrics.txt",
+      "path": "/mnt/workingdir/Projects/f93fa81c-b918-4611-817c-23d5e44ec511/4f3868e4-cb6c-45cb-a862-92966726e8e1/root/Metrics/sample.gathered.metrics.txt",
+      "secondaryFiles": [],
+      "size": 444666
+      },
+  "array": ["mock_blah", "mock_blah2"],
+  "String": "mock_string",
+  "string": "mock_string",
+  "Integer": 777,
+  "integer": 777,
+  "null": null
+}
