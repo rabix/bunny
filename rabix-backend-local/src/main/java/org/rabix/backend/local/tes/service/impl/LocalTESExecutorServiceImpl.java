@@ -1,9 +1,6 @@
 package org.rabix.backend.local.tes.service.impl;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,7 +13,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import jdk.nashorn.internal.scripts.JO;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
@@ -45,7 +41,6 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.executor.engine.EngineStub;
@@ -66,7 +61,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   private final static Logger logger = LoggerFactory.getLogger(LocalTESExecutorServiceImpl.class);
 
   public final static String PYTHON_DEFAULT_DOCKER_IMAGE = "frolvlad/alpine-python2";
-  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v2";
+  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix-tes-cli";
+//  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v2";
   public final static String DEFAULT_PROJECT = "default";
   public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
 
@@ -143,15 +139,19 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     }, 0, 1, TimeUnit.SECONDS);
   }
   
-  @SuppressWarnings("unchecked")
   private void success(Job job, TESJob tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
-    Map<String, Object> result = (Map<String, Object>) FileValue.deserialize(
-      JSONHelper.readMap(
-        tesJob.getLogs().get(tesJob.getLogs().size()-1).getStdout()
-      )
-    );
-    
+    Map<String, Object> result = null;
+    try {
+      result = (Map<String, Object>) FileValue.deserialize(
+        JSONHelper.readMap(
+          tesJob.getLogs().get(tesJob.getLogs().size() - 1).getStdout()
+        )
+      );
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to process output files: {}", e);
+    }
+
     try {
       result = storage.transformOutputFiles(result, job.getId());
     } catch (BindingException e) {
@@ -227,10 +227,10 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         List<TESTaskParameter> inputs = new ArrayList<>();
         List<TESTaskParameter> outputs = new ArrayList<>();
         List<TESVolume> volumes = new ArrayList<>();
-        List<String> firstCommandLineParts = new ArrayList<>();
-        List<String> secondCommandLineParts = new ArrayList<>();
-        List<String> thirdCommandLineParts = new ArrayList<>();
-        List<TESDockerExecutor> dockerExecutors = new ArrayList<>();
+        List<String> initCommand = new ArrayList<>();
+        List<String> mainCommand = new ArrayList<>();
+        List<String> finalizeCommand = new ArrayList<>();
+        List<TESDockerExecutor> commands = new ArrayList<>();
 
         // TODO this has the effect of ensuring the working directory is created
         //      but the interface isn't great. Need to think about a better interface.
@@ -238,6 +238,18 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         // Prepare CWL input file into TES-compatible files
         job = storage.transformInputFiles(job);
+        FileValueHelper.updateOutputFiles(job, (FileValue fileValue) -> {
+          logger.debug("======================================== OUT ===================================================\n{}\n{}", fileValue.getLocation(), fileValue.getPath());
+          outputs.add(new TESTaskParameter(
+            fileValue.getName(),
+            null,
+            fileValue.getPath(),
+            fileValue.getLocation(),
+            (fileValue instanceof DirectoryValue) ? FileType.Directory.name() : FileType.File.name(),
+            false
+          ));
+          return fileValue;
+        });
 
         // Add all job inputs to TES Job inputs parameters
         FileValueHelper.updateInputFiles(job, (FileValue fileValue) -> {
@@ -252,25 +264,12 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           return fileValue;
         });
 
-        // Write job.json file to job.json file
-        // TODO currently this is hard-coded to a local file system
-        //      need a better interface from storage service to support execution
-        //      with shared local file system
+        // Write job.json file
         Bindings bindings = BindingsFactory.create(job);
         FileUtils.writeStringToFile(
           storage.stagingPath(job.getId(), "job.json").toFile(),
           JSONHelper.writeObject(job)
         );
-
-        // TODO why is this needed? Either mount the whole directory or mount individual files, but not both.
-//        inputs.add(new TESTaskParameter(
-//          "mount",
-//          null,
-//          storage.baseDirURI().toString(),
-//          storage.containerPath(),
-//          FileType.Directory.name(),
-//          true
-//        ));
 
         inputs.add(new TESTaskParameter(
           "working_dir",
@@ -288,47 +287,51 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           FileType.File.name(),
           true
         ));
-        
-        outputs.add(new TESTaskParameter(
-          "working_dir",
-          null,
-          storage.outputPath(job.getId(), "working_dir").toUri().toString(),
-          storage.containerPath("working_dir").toString(),
-          FileType.Directory.name(),
-          false
-        ));
 
+        // TODO should explicitly name all output files, instead of entire directory?
+        //      but how to handle glob?
+//        outputs.add(new TESTaskParameter(
+//          "working_dir",
+//          null,
+//          storage.outputPath(job.getId(), "working_dir").toUri().toString(),
+//          storage.containerPath("working_dir").toString(),
+//          FileType.Directory.name(),
+//          false
+//        ));
+
+        // TODO why are these outputs?
         if (!bindings.isSelfExecutable(job)) {
-          outputs.add(new TESTaskParameter(
-            "command.sh",
-            null,
-            storage.outputPath(job.getId(), "command.sh").toUri().toString(),
-            storage.containerPath("command.sh").toString(),
-            FileType.File.name(),
-            false
-          ));
-          outputs.add(new TESTaskParameter(
-            "environment.sh",
-            null,
-            storage.outputPath(job.getId(), "environment.sh").toUri().toString(),
-            storage.containerPath("environment.sh").toString(),
-            FileType.File.name(),
-            false
-          ));
+//          outputs.add(new TESTaskParameter(
+//            "command.sh",
+//            null,
+//            storage.outputPath(job.getId(), "command.sh").toUri().toString(),
+//            storage.containerPath("command.sh").toString(),
+//            FileType.File.name(),
+//            false
+//          ));
+//          outputs.add(new TESTaskParameter(
+//            "environment.sh",
+//            null,
+//            storage.outputPath(job.getId(), "environment.sh").toUri().toString(),
+//            storage.containerPath("environment.sh").toString(),
+//            FileType.File.name(),
+//            false
+//          ));
         }
-        
-        firstCommandLineParts.add("/usr/share/rabix-tes-command-line/rabix");
-        firstCommandLineParts.add("-j");
-        firstCommandLineParts.add(storage.containerPath("job.json").toString());
-        firstCommandLineParts.add("-w");
-        firstCommandLineParts.add(storage.containerPath("working_dir").toString());
-        firstCommandLineParts.add("-m");
-        firstCommandLineParts.add("initialize");
 
         // Initialization command
-        dockerExecutors.add(new TESDockerExecutor(
+
+        initCommand.add("/usr/share/rabix-tes-command-line/rabix");
+        initCommand.add("-j");
+        initCommand.add(storage.containerPath("job.json").toString());
+        initCommand.add("-w");
+        initCommand.add(storage.containerPath("working_dir").toString());
+        initCommand.add("-m");
+        initCommand.add("initialize");
+
+        commands.add(new TESDockerExecutor(
           BUNNY_COMMAND_LINE_DOCKER_IMAGE,
-          firstCommandLineParts,
+          initCommand,
           storage.containerPath("working_dir").toString(),
           null,
           storage.containerPath("standard_out.log").toString(),
@@ -348,8 +351,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         }
         
         if (!bindings.isSelfExecutable(job)) {
-          secondCommandLineParts.add("/bin/sh");
-          secondCommandLineParts.add("../command.sh");
+          mainCommand.add("/bin/sh");
+          mainCommand.add("../command.sh");
 
           CommandLine commandLine = bindings.buildCommandLineObject(
             job,
@@ -370,28 +373,29 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           }
 
           // Main job command
-          dockerExecutors.add(new TESDockerExecutor(
+          commands.add(new TESDockerExecutor(
             imageId,
-            secondCommandLineParts,
+            mainCommand,
             storage.containerPath("working_dir").toString(),
             null,
             commandLineToolStdout,
             commandLineToolErrLog
           ));
         }
-        
-        thirdCommandLineParts.add("/usr/share/rabix-tes-command-line/rabix");
-        thirdCommandLineParts.add("-j");
-        thirdCommandLineParts.add(storage.containerPath("job.json").toString());
-        thirdCommandLineParts.add("-w");
-        thirdCommandLineParts.add(storage.containerPath("working_dir").toString());
-        thirdCommandLineParts.add("-m");
-        thirdCommandLineParts.add("finalize");
 
         // Finalization command
-        dockerExecutors.add(new TESDockerExecutor(
+
+        finalizeCommand.add("/usr/share/rabix-tes-command-line/rabix");
+        finalizeCommand.add("-j");
+        finalizeCommand.add(storage.containerPath("job.json").toString());
+        finalizeCommand.add("-w");
+        finalizeCommand.add(storage.containerPath("working_dir").toString());
+        finalizeCommand.add("-m");
+        finalizeCommand.add("finalize");
+
+        commands.add(new TESDockerExecutor(
           BUNNY_COMMAND_LINE_DOCKER_IMAGE,
-          thirdCommandLineParts,
+          finalizeCommand,
           storage.containerPath("working_dir").toString(),
           null,
           storage.containerPath("standard_out.log").toString(),
@@ -402,7 +406,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           "vol_work",
           1,
           null,
-          storage.containerPath("").toString()
+          storage.containerPath().toString()
         ));
 
         TESResources resources = new TESResources(
@@ -421,7 +425,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           outputs,
           resources,
           job.getId(),
-          dockerExecutors
+          commands
         );
         
         TESJobId tesJobId = tesHttpClient.runTask(task);

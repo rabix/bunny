@@ -17,9 +17,9 @@ public interface TESStorageService {
 
   Job transformInputFiles(Job job) throws BindingException;
   Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobID) throws BindingException;
-  Path outputPath(String first, String... more);
-  Path stagingPath(String first, String... more);
-  Path containerPath(String first, String... more);
+  Path outputPath(String... args);
+  Path stagingPath(String... args);
+  Path containerPath(String... args);
  
   public static class LocalFileStorage {
     private final String baseDir;

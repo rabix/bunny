@@ -125,7 +125,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
     return (Map<String, Object>) FileValueHelper.updateFileValues(result, (FileValue fileValue) -> {
 
       String location = fileValue.getPath();
-      logger.debug("TRANFORM OUTPUT FILE +++++++++++++++++++ {}", location);
+      logger.debug("+++++++++++++++++++++++++++++++TRANFORM OUTPUT FILE +++++++++++++++++++ {} {}", location);
 
       if (location.startsWith(DOCKER_PATH_PREFIX)) {
         location = Paths.get(jobID, location.substring(DOCKER_PATH_PREFIX.length() + 1)).toString();
@@ -133,33 +133,35 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
       if (!location.startsWith(File.pathSeparator)) {
         location = Paths.get(storageBase, location).toString();
       }
-      fileValue.setPath(location);
+//      fileValue.setPath(location);
       fileValue.setLocation(location);
       return fileValue;
     });
   }
 
-  public Path stagingPath(String first, String... more) {
-    Path p = buildPath(stagingBase, first, more);
+  public Path stagingPath(String... args) {
+    Path p = buildPath(stagingBase, args);
     // TODO check that parent isn't higher than base dir
     createDir(p.getParent());
     return p;
   }
 
-  // TODO how to define where bunny uploads intermediate files? Configuration
-  //      is that what sharedFileStorage is for?
-  public Path outputPath(String first, String... more) {
-    return buildPath(storageBase, first, more);
+  public Path outputPath(String... args) {
+    return buildPath(storageBase, args);
   }
 
-  public Path containerPath(String first, String... more) {
-    return buildPath(DOCKER_PATH_PREFIX, first, more);
+  public Path containerPath(String... args) {
+    return buildPath(DOCKER_PATH_PREFIX, args);
   }
 
-  private Path buildPath(String base, String first, String[] more) {
+  private Path buildPath(String base, String[] args) {
+    if (args.length == 0) {
+      return Paths.get(base);
+    }
+    String first = args[0];
     Path path = Paths.get(base, first);
-    for (String x : more) {
-      path = Paths.get(path.toString(), x);
+    for (int i = 1; i < args.length; i++) {
+      path = Paths.get(path.toString(), args[i]);
     }
     return path;
   }
