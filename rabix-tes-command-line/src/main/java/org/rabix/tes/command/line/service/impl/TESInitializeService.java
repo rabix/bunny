@@ -50,18 +50,9 @@ public class TESInitializeService implements TESCommandLineService {
         VerboseLogger.log("Do not generate command.sh file. Tool is an expression tool.");
         return;
       }
-      
-      String commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
-        @Override
-        public String map(String path, Map<String, Object> config) throws FileMappingException {
-          return path;
-        }
-      }).build();
 
       File resultFile = new File(workingDir.getParentFile(), "command.sh");
-      FileUtils.writeStringToFile(resultFile, commandLine);
-      VerboseLogger.log(String.format("File %s created.", resultFile.getAbsolutePath()));
-      
+
       EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
       Map<String, String> environmentVariables = environmentVariableResource != null ? environmentVariableResource.getVariables() : new HashMap<String, String>();
       Resources resources = job.getResources();
@@ -80,9 +71,17 @@ public class TESInitializeService implements TESCommandLineService {
           envVarContentBuilder.append("export ").append(variableEntry.getKey()).append("=").append(variableEntry.getValue()).append("\n");
         }
       }
-      File environmentFile = new File(workingDir.getParentFile(), "environment.sh");
-      FileUtils.writeStringToFile(environmentFile, envVarContentBuilder.toString());
-      VerboseLogger.log(String.format("File %s created.", environmentFile.getAbsolutePath()));
+      FileUtils.writeStringToFile(resultFile, envVarContentBuilder.toString());
+
+      String commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
+        @Override
+        public String map(String path, Map<String, Object> config) throws FileMappingException {
+          return path;
+        }
+      }).build();
+
+      FileUtils.writeStringToFile(resultFile, envVarContentBuilder.toString() + "\n" + commandLine);
+
     } catch (BindingException e) {
       logger.error("Failed to use Bindings", e);
       throw new TESCommandLineException("Failed to use Bindings", e);
