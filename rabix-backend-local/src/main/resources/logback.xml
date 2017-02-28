@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+		<Target>System.err</Target>
+		<encoder>
+			<pattern>FUUUUUU [%d{yyyy-MM-dd HH:mm:ss.SSS}] [%level] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="debug">
+		<appender-ref ref="STDERR" />
+	</root>
+
+</configuration>
