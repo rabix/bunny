@@ -161,7 +161,7 @@ public class BackendCommandLine {
       }
 
       Map<String, Object> configOverrides = new HashMap<>();
-      configOverrides.put("backend.cleaner.heartbeatPeriodMills", Double.POSITIVE_INFINITY);
+      configOverrides.put("backend.cleaner.heartbeatPeriodMills", 5000L);
       String executionDirPath = commandLine.getOptionValue("basedir");
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
