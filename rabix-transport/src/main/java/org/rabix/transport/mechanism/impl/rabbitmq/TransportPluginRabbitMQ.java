@@ -31,6 +31,8 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
   
   private ExecutorService receiverThreadPool = Executors.newCachedThreadPool();
 
+  private boolean durable;
+  
   public TransportPluginRabbitMQ(Configuration configuration) throws TransportPluginException {
     this.configuration = configuration;
     initConnection();
@@ -52,6 +54,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
           factory.useSslProtocol();
         }
       }
+      durable = TransportConfigRabbitMQ.durableQueues(configuration);
       connection = factory.newConnection();
     } catch (Exception e) {
       throw new TransportPluginException("Failed to initialize TransportPluginRabbitMQ", e);
@@ -65,7 +68,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
     Channel channel = null;
     try {
       channel = connection.createChannel();
-      channel.exchangeDeclare(exchange, type, true);
+      channel.exchangeDeclare(exchange, type, durable);
     } catch (Exception e) {
       throw new TransportPluginException("Failed to declare RabbitMQ exchange " + exchange + " and type " + type, e);
     } finally {
@@ -88,6 +91,22 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
       channel.exchangeDelete(exchange, true);
     } catch (Exception e) {
       throw new TransportPluginException("Failed to delete RabbitMQ exchange " + exchange, e);
+    } finally {
+      if (channel != null) {
+        try {
+          channel.close();
+        } catch (Exception ignore) {
+        }
+      }
+    }
+  }
+  public void deleteQueue(String queue) {
+    Channel channel = null;
+    try {
+      channel = connection.createChannel();
+      channel.queueDelete(queue);
+    } catch (Exception e) {
+      logger.info("Failed to delete RabbitMQ queue " + queue, e);
     } finally {
       if (channel != null) {
         try {
@@ -124,7 +143,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
               logger.info("Reconnected to " + queue);
               break;
             } catch (TransportPluginException e1) {
-              logger.info("Reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
+              logger.info("Sender reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
             }
           }
         }
@@ -185,16 +204,15 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
     void start() {
       QueueingConsumer consumer = null;
 
-      String queueName = queue.getExchange() + "_" + queue.getRoutingKey();
+      String queueName = queue.getQueueName();
       boolean initChannel = true;
 
         while (!isStopped) {
           try {
-
             if (initChannel) {
               final Channel channel = connection.createChannel();
 
-              channel.queueDeclare(queueName, true, false, false, null);
+              channel.queueDeclare(queueName, durable, false, false, null);
               channel.queueBind(queueName, queue.getExchange(), queue.getRoutingKey());
               consumer = new QueueingConsumer(channel) {
                 @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
@@ -217,7 +235,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
             errorCallback.handleError(e);
           } catch (Exception e) {
             logger.error("Failed to receive a message from " + queue, e);
-            while (true) {
+            while (!isStopped) {
               try {
                 Thread.sleep(RETRY_TIMEOUT * 1000);
               } catch (InterruptedException e1) {
@@ -230,7 +248,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
                 initChannel = true;
                 break;
               } catch (TransportPluginException e1) {
-                logger.info("Reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
+                logger.info("Receiver reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
               }
             }
           }

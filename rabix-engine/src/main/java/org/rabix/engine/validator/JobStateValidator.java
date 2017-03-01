@@ -36,11 +36,14 @@ public class JobStateValidator {
   }
   
   public static JobState checkState(JobRecord jobRecord, JobState jobState) throws JobStateValidationException {
-    JobState currentState = jobRecord.getState();
+    return checkState(jobRecord.getState(), jobState);
+  }
+  
+  public static JobState checkState(JobState currentState, JobState jobState) throws JobStateValidationException {
     if (transitions.get(currentState).contains(jobState)) {
       return jobState;
     } else {
-      throw new JobStateValidationException("Job state cannot transition from " + jobRecord.getState() + " to " + jobState);
+      throw new JobStateValidationException("Job state cannot transition from " + currentState + " to " + jobState);
     }
   }
 

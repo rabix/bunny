@@ -18,7 +18,9 @@ public interface EventProcessor {
 
   void addToQueue(Event event);
   
-  void addToExternalQueue(Event event, boolean persist);
+  void addToExternalQueue(Event event);
+  
+  void persist(Event event);
 
   public static class EventProcessorDispatcher {
 

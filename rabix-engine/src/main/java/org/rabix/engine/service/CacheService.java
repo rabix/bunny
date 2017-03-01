@@ -40,7 +40,7 @@ public class CacheService {
     this.clearCache = configuration.getBoolean("cache.clear", true);
   }
   
-  public synchronized Cache getCache(UUID rootId, String entity) {
+  public Cache getCache(UUID rootId, String entity) {
     String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
     
     Map<UUID, Map<String, Cache>> cachesByRoot = caches.get(index);
@@ -56,7 +56,7 @@ public class CacheService {
     return cachesForRoot.get(entity);
   }
   
-  public synchronized void remove(UUID rootId) {
+  public void remove(UUID rootId) {
     if (rootId == null) {
       return;
     }
@@ -68,7 +68,7 @@ public class CacheService {
     cachesByRoot.remove(rootId);
   }
   
-  public synchronized void flush(UUID rootId) {
+  public void flush(UUID rootId) {
     if (rootId == null) {
       return;
     }

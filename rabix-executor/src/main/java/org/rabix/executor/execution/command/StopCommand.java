@@ -31,6 +31,7 @@ public class StopCommand extends JobHandlerCommand {
   public Result run(JobData jobData, JobHandler handler, UUID rootId) {
     UUID jobId = jobData.getJob().getId();
     try {
+      handler.removeContainer();
       handler.stop();
       String message = String.format("Job %s aborted successfully.", jobId);
       jobData = jobDataService.save(jobData, message, JobDataStatus.ABORTED);

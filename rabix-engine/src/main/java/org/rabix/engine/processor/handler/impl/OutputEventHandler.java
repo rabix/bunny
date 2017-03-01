@@ -200,7 +200,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
               int position = InternalSchemaHelper.getScatteredNumber(sourceJob.getId());
               Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, position, event.getEventGroupId());
               eventProcessor.send(updateOutputEvent);
-            } else {
+            } else if (InternalSchemaHelper.getParentId(sourceJob.getId()).equals(destinationVariable.getJobId())) {
               Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
               eventProcessor.send(updateOutputEvent);
             }

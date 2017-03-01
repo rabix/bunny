@@ -2,6 +2,7 @@ package org.rabix.engine.memory.impl;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -9,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
+import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
@@ -63,12 +65,7 @@ public class MemoryJobRepository implements JobRepository {
 
   @Override
   public synchronized Job get(UUID id) {
-    for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
-      if(rootJobs.get(id) != null) {
-        return rootJobs.get(id).getJob();
-      }
-    }
-    return null;
+    return getJobEntity(id) != null ? getJobEntity(id).getJob(): null;
   }
 
   @Override
@@ -103,19 +100,6 @@ public class MemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public synchronized Set<UUID> getJobsByBackendId(UUID backendId) {
-    Set<UUID> backendJobs = new HashSet<UUID>();
-    for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
-      for(JobEntity job: rootJobs.values()) {
-        if(job.getBackendId().equals(backendId)) {
-          backendJobs.add(job.getJob().getId());
-        }
-      }
-    }
-    return backendJobs;
-  }
-
-  @Override
   public synchronized Set<Job> getReadyJobsByGroupId(UUID groupId) {
     Set<Job> groupIdJobs = new HashSet<Job>();
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
@@ -140,4 +124,30 @@ public class MemoryJobRepository implements JobRepository {
     }
     return readyFreeJobs;
   }
+
+  @Override
+  public void updateBackendIds(Iterator<JobBackendPair> jobBackendPair) {
+    
+  }
+
+  @Override
+  public UUID getBackendId(UUID jobId) {
+    return getJobEntity(jobId) != null ? getJobEntity(jobId).getBackendId() : null;
+    
+  }
+
+  @Override
+  public JobStatus getStatus(UUID id) {
+    return getJobEntity(id) != null ? getJobEntity(id).getJob().getStatus() : null;
+  }
+  
+  private JobEntity getJobEntity(UUID jobId) {
+    for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
+      if(rootJobs.get(jobId) != null) {
+        return rootJobs.get(jobId);
+      }
+    }
+    return null;
+  }
+  
 }

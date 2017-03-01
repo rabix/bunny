@@ -1,9 +1,12 @@
 package org.rabix.engine.repository;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Job.JobStatus;
+import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 
 public interface JobRepository {
 
@@ -12,6 +15,8 @@ public interface JobRepository {
   void update(Job job);
   
   void updateBackendId(UUID jobId, UUID backendId);
+  
+  void updateBackendIds(Iterator<JobBackendPair> jobBackendPair);
   
   void dealocateJobs(UUID backendId);
   
@@ -23,11 +28,13 @@ public interface JobRepository {
   
   Set<UUID> getBackendsByRootId(UUID rootId);
   
-  Set<UUID> getJobsByBackendId(UUID backendId);
+  UUID getBackendId(UUID jobId);
   
   Set<Job> getReadyJobsByGroupId(UUID groupId);
 
   Set<Job> getReadyFree();
+  
+  JobStatus getStatus(UUID id);
   
   public class JobEntity {
     
@@ -109,7 +116,6 @@ public interface JobRepository {
         return false;
       return true;
     }
-
     @Override
     public String toString() {
       return "JobEntity [job=" + job + ", groupId=" + groupId + ", backendId=" + backendId + "]";

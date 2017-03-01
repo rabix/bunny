@@ -61,8 +61,13 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
   
   @Override
-  public void addToExternalQueue(Event event, boolean persist) {
-    getEventProcessor(event.getContextId()).addToExternalQueue(event, persist);
+  public void persist(Event event) {
+    getEventProcessor(event.getContextId()).persist(event);
+  }
+  
+  @Override
+  public void addToExternalQueue(Event event) {
+    getEventProcessor(event.getContextId()).addToExternalQueue(event);
   }
   
   @Override
@@ -82,5 +87,5 @@ public class MultiEventProcessorImpl implements EventProcessor {
     logger.debug("Root Job {} goes to EventProcessor {}", rootId, index);
     return eventProcessors.get(index);
   }
-  
+
 }

@@ -16,19 +16,19 @@ public class ContextRecordService {
     this.contextRecordRepository = contextRecordRepository;
   }
   
-  public synchronized void create(ContextRecord contextRecord) {
+  public void create(ContextRecord contextRecord) {
     contextRecordRepository.insert(contextRecord);
   }
   
-  public synchronized void update(ContextRecord context) {
+  public void update(ContextRecord context) {
     contextRecordRepository.update(context);
   }
   
-  public synchronized ContextRecord find(UUID id) {
+  public ContextRecord find(UUID id) {
     return contextRecordRepository.get(id);
   }
 
-  public synchronized void delete(UUID id) {
+  public void delete(UUID id) {
     contextRecordRepository.delete(id);
   }
   
