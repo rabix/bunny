@@ -124,17 +124,13 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
   public Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobID) throws BindingException {
     return (Map<String, Object>) FileValueHelper.updateFileValues(result, (FileValue fileValue) -> {
 
-      String location = fileValue.getPath();
-      logger.debug("+++++++++++++++++++++++++++++++TRANFORM OUTPUT FILE +++++++++++++++++++ {} {}", location);
-
-      if (location.startsWith(DOCKER_PATH_PREFIX)) {
-        location = Paths.get(jobID, location.substring(DOCKER_PATH_PREFIX.length() + 1)).toString();
+      String path = fileValue.getPath();
+      if (path.startsWith(DOCKER_PATH_PREFIX)) {
+        path = path.substring(DOCKER_PATH_PREFIX.length() + 1);
       }
-      if (!location.startsWith(File.pathSeparator)) {
-        location = Paths.get(storageBase, location).toString();
-      }
-//      fileValue.setPath(location);
+      String location = Paths.get(storageBase, jobID, path).toUri().toString();
       fileValue.setLocation(location);
+      fileValue.setPath(location);
       return fileValue;
     });
   }

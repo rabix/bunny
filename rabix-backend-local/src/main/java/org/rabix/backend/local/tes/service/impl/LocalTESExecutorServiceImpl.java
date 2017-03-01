@@ -238,18 +238,6 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         // Prepare CWL input file into TES-compatible files
         job = storage.transformInputFiles(job);
-        FileValueHelper.updateOutputFiles(job, (FileValue fileValue) -> {
-          logger.debug("======================================== OUT ===================================================\n{}\n{}", fileValue.getLocation(), fileValue.getPath());
-          outputs.add(new TESTaskParameter(
-            fileValue.getName(),
-            null,
-            fileValue.getPath(),
-            fileValue.getLocation(),
-            (fileValue instanceof DirectoryValue) ? FileType.Directory.name() : FileType.File.name(),
-            false
-          ));
-          return fileValue;
-        });
 
         // Add all job inputs to TES Job inputs parameters
         FileValueHelper.updateInputFiles(job, (FileValue fileValue) -> {
@@ -290,14 +278,14 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         // TODO should explicitly name all output files, instead of entire directory?
         //      but how to handle glob?
-//        outputs.add(new TESTaskParameter(
-//          "working_dir",
-//          null,
-//          storage.outputPath(job.getId(), "working_dir").toUri().toString(),
-//          storage.containerPath("working_dir").toString(),
-//          FileType.Directory.name(),
-//          false
-//        ));
+        outputs.add(new TESTaskParameter(
+          "working_dir",
+          null,
+          storage.outputPath(job.getId(), "working_dir").toUri().toString(),
+          storage.containerPath("working_dir").toString(),
+          FileType.Directory.name(),
+          false
+        ));
 
         // TODO why are these outputs?
         if (!bindings.isSelfExecutable(job)) {
