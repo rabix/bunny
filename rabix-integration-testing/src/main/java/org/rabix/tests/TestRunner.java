@@ -48,13 +48,12 @@ public class TestRunner {
         draftName = draft;
         startIntegrationTests(draftName);
 
-        if (!draftName.equals("draft-sb")) {
+        if (draftName.equals("cwl")) {
           startConformanceTests(draftName);
         }
       }
     } catch (RabixTestException e) {
       logger.error("Error occuerred:", e);
-      System.exit(-1);
     }
   }
 
