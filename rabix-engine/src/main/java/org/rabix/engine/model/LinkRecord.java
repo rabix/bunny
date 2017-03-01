@@ -88,6 +88,61 @@ public class LinkRecord implements Cachable {
   public void setDestinationVarType(LinkPortType destinationVarType) {
     this.destinationVarType = destinationVarType;
   }
+  
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((destinationJobId == null) ? 0 : destinationJobId.hashCode());
+    result = prime * result + ((destinationJobPort == null) ? 0 : destinationJobPort.hashCode());
+    result = prime * result + ((destinationVarType == null) ? 0 : destinationVarType.hashCode());
+    result = prime * result + ((rootId == null) ? 0 : rootId.hashCode());
+    result = prime * result + ((sourceJobId == null) ? 0 : sourceJobId.hashCode());
+    result = prime * result + ((sourceJobPort == null) ? 0 : sourceJobPort.hashCode());
+    result = prime * result + ((sourceVarType == null) ? 0 : sourceVarType.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    LinkRecord other = (LinkRecord) obj;
+    if (destinationJobId == null) {
+      if (other.destinationJobId != null)
+        return false;
+    } else if (!destinationJobId.equals(other.destinationJobId))
+      return false;
+    if (destinationJobPort == null) {
+      if (other.destinationJobPort != null)
+        return false;
+    } else if (!destinationJobPort.equals(other.destinationJobPort))
+      return false;
+    if (destinationVarType != other.destinationVarType)
+      return false;
+    if (rootId == null) {
+      if (other.rootId != null)
+        return false;
+    } else if (!rootId.equals(other.rootId))
+      return false;
+    if (sourceJobId == null) {
+      if (other.sourceJobId != null)
+        return false;
+    } else if (!sourceJobId.equals(other.sourceJobId))
+      return false;
+    if (sourceJobPort == null) {
+      if (other.sourceJobPort != null)
+        return false;
+    } else if (!sourceJobPort.equals(other.sourceJobPort))
+      return false;
+    if (sourceVarType != other.sourceVarType)
+      return false;
+    return true;
+  }
 
   @Override
   public String toString() {
