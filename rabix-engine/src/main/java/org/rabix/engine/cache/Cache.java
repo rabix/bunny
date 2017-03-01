@@ -81,6 +81,9 @@ public class Cache {
       CacheItem item = cache.get(key);
       item.cachable = cachable;
       item.hit();
+      if (item.action != Action.INSERT && action != Action.NOOP) {
+        item.action = action;
+      }
     } else {
       cache.put(key, new CacheItem(action, cachable));
     }
@@ -106,7 +109,7 @@ public class Cache {
       if (!CollectionUtils.isEmpty(cached)) {
         merged.add(clazz.cast(cached.get(0)));
       } else {
-        put(cachable, Action.UPDATE);
+        put(cachable, Action.NOOP);
         merged.add(clazz.cast(cachable));
       }
     }

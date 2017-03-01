@@ -20,9 +20,6 @@ public class CacheItem {
 
   public void hit() {
     isDirty = true;
-    if (action == Action.NOOP) {
-      action = Action.UPDATE;
-    }
   }
   
   public void reset() {
