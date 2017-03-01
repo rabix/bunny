@@ -123,8 +123,8 @@ class Backend(object):
 
         params = pika.ConnectionParameters(
             host=self.mq_host,
-            credentials=self.mq_credentials,
-            virtual_host=config['rabbitmq_vhost'] if not self.dev else None,
+            #credentials=self.mq_credentials,
+            #virtual_host=config['rabbitmq_vhost'] if not self.dev else None,
             heartbeat_interval=30
         )
 
@@ -164,9 +164,9 @@ class Backend(object):
         self.channel.basic_publish(exchange=eng_cfg['exchange'],
                                    routing_key=eng_cfg['receive_routing_key'],
                                    body=json.dumps(job))
-        self.channel.basic_publish(exchange=eng_cfg['exchange'],
-                                   routing_key=eng_cfg['receive_routing_key']+'_'+self.backend_id,
-                                   body=json.dumps(job))
+        #self.channel.basic_publish(exchange=eng_cfg['exchange'],
+        #                           routing_key=eng_cfg['receive_routing_key']+'_'+self.backend_id,
+        #                           body=json.dumps(job))
         log.debug('sent job to {}, key: {}'.format(eng_cfg['exchange'], eng_cfg['receive_routing_key']))
 
     def callback_jobs(self, ch, method, properties, body):

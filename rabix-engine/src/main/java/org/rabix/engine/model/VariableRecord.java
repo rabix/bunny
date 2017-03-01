@@ -129,6 +129,46 @@ public class VariableRecord implements Cachable {
   }
 
   @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((jobId == null) ? 0 : jobId.hashCode());
+    result = prime * result + ((portId == null) ? 0 : portId.hashCode());
+    result = prime * result + ((rootId == null) ? 0 : rootId.hashCode());
+    result = prime * result + ((type == null) ? 0 : type.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    VariableRecord other = (VariableRecord) obj;
+    if (jobId == null) {
+      if (other.jobId != null)
+        return false;
+    } else if (!jobId.equals(other.jobId))
+      return false;
+    if (portId == null) {
+      if (other.portId != null)
+        return false;
+    } else if (!portId.equals(other.portId))
+      return false;
+    if (rootId == null) {
+      if (other.rootId != null)
+        return false;
+    } else if (!rootId.equals(other.rootId))
+      return false;
+    if (type != other.type)
+      return false;
+    return true;
+  }
+
+  @Override
   public String toString() {
     return "VariableRecord [rootId=" + rootId + ", jobId=" + jobId + ", portId=" + portId + ", type=" + type
         + ", value=" + value + ", isWrapped=" + isWrapped + ", numberOfGlobals=" + numberOfGlobals + ", linkMerge=" + linkMerge + "]";

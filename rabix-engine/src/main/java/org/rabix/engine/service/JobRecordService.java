@@ -85,7 +85,7 @@ public class JobRecordService {
       return (JobRecord) records.get(0);
     }
     JobRecord record = jobRecordRepository.get(id, rootId);
-    cache.put(record, Action.UPDATE);
+    cache.put(record, Action.NOOP);
     return record;
   }
   
@@ -96,7 +96,7 @@ public class JobRecordService {
       return (JobRecord) records.get(0);
     }
     JobRecord record = jobRecordRepository.getRoot(rootId);
-    cache.put(record, Action.UPDATE);
+    cache.put(record, Action.NOOP);
     return record;
   }
   

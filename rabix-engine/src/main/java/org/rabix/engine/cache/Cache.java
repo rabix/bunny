@@ -85,6 +85,16 @@ public class Cache {
       cache.put(key, new CacheItem(action, cachable));
     }
   }
+  
+  public synchronized void putIfAbsent(Cachable cachable, Action action) {
+    if (cachable == null) {
+      return;
+    }
+    CacheKey key = cachable.getCacheKey();
+    if (!cache.containsKey(key)) {
+      cache.put(key, new CacheItem(action, cachable));
+    }
+  }
 
   public synchronized <T extends Cachable> List<T> merge(List<T> cachables, Class<T> clazz) {
     if (cachables == null) {
