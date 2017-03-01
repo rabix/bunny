@@ -7,12 +7,12 @@ import org.rabix.engine.repository.AppRepository;
 
 import com.google.inject.Inject;
 
-public class MemoryAppRepository implements AppRepository{
+public class InMemoryAppRepository implements AppRepository{
 
   private Map<String, String> appRepository ;
   
   @Inject
-  public MemoryAppRepository() {
+  public InMemoryAppRepository() {
     this.appRepository = new ConcurrentHashMap<String, String>();
   }
 

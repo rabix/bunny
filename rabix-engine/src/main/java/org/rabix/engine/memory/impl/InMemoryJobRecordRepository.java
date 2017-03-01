@@ -18,14 +18,14 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class MemoryJobRecordRepository extends JobRecordRepository {
+public class InMemoryJobRecordRepository extends JobRecordRepository {
 
-  private final static Logger logger = LoggerFactory.getLogger(MemoryJobRecordRepository.class);
+  private final static Logger logger = LoggerFactory.getLogger(InMemoryJobRecordRepository.class);
 
   Map<UUID, Map<UUID, JobRecord>> jobRecordsPerRoot;
 
   @Inject
-  public MemoryJobRecordRepository() {
+  public InMemoryJobRecordRepository() {
     this.jobRecordsPerRoot = new ConcurrentHashMap<UUID, Map<UUID, JobRecord>>();
   }
 

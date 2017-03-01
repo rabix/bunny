@@ -11,12 +11,12 @@ import org.rabix.transport.backend.Backend;
 
 import com.google.inject.Inject;
 
-public class MemoryBackendRepository implements BackendRepository{
+public class InMemoryBackendRepository implements BackendRepository{
 
   Map<UUID, BackendEntity> backendRepository;
   
   @Inject
-  public MemoryBackendRepository() {
+  public InMemoryBackendRepository() {
     this.backendRepository = new ConcurrentHashMap<UUID, BackendEntity>();
   }
 

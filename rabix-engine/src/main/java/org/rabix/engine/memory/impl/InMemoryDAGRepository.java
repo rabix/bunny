@@ -11,12 +11,12 @@ import org.rabix.engine.repository.DAGRepository;
 
 import com.google.inject.Inject;
 
-public class MemoryDAGRepository implements DAGRepository {
+public class InMemoryDAGRepository implements DAGRepository {
 
   Map<UUID, DAGNode> dagRepository;
   
   @Inject
-  public MemoryDAGRepository() {
+  public InMemoryDAGRepository() {
     this.dagRepository = new ConcurrentHashMap<UUID, DAGNode>();
   }
 

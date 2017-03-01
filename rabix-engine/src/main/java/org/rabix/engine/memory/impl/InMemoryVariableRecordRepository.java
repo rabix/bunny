@@ -15,12 +15,12 @@ import org.rabix.engine.repository.VariableRecordRepository;
 
 import com.google.inject.Inject;
 
-public class MemoryVariableRecordRepository extends VariableRecordRepository {
+public class InMemoryVariableRecordRepository extends VariableRecordRepository {
 
   private ConcurrentMap<UUID, List<VariableRecord>> variableRecordsPerContext;
   
   @Inject
-  public MemoryVariableRecordRepository() {
+  public InMemoryVariableRecordRepository() {
     variableRecordsPerContext = new ConcurrentHashMap<UUID, List<VariableRecord>>();
   }
 

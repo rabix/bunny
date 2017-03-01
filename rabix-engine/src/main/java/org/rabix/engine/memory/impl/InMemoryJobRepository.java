@@ -15,12 +15,12 @@ import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
 
-public class MemoryJobRepository implements JobRepository {
+public class InMemoryJobRepository implements JobRepository {
 
   Map<UUID, Map<UUID, JobEntity>> jobRepository;
   
   @Inject
-  public MemoryJobRepository() {
+  public InMemoryJobRepository() {
     this.jobRepository = new ConcurrentHashMap<UUID, Map<UUID, JobEntity>>();
   }
 

@@ -9,12 +9,12 @@ import org.rabix.engine.repository.ContextRecordRepository;
 
 import com.google.inject.Inject;
 
-public class MemoryContextRecordRepository implements ContextRecordRepository {
+public class InMemoryContextRecordRepository implements ContextRecordRepository {
 
   Map<UUID, ContextRecord> contextRecordRepository;
   
   @Inject
-  public MemoryContextRecordRepository() {
+  public InMemoryContextRecordRepository() {
     this.contextRecordRepository = new ConcurrentHashMap<UUID, ContextRecord>();
   }
 

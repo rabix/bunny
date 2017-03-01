@@ -3,8 +3,8 @@ package org.rabix.engine;
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.lru.dag.DAGCache;
-import org.rabix.engine.memory.MemoryRepositoryModule;
-import org.rabix.engine.memory.MemoryRepositoryRegistry;
+import org.rabix.engine.memory.InMemoryRepositoryModule;
+import org.rabix.engine.memory.InMemoryRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.processor.handler.impl.ContextStatusEventHandler;
@@ -29,8 +29,8 @@ public class EngineModuleLocal extends AbstractModule {
 
   @Override
   protected void configure() {
-    install(new MemoryRepositoryModule());
-    bind(TransactionHelper.class).to(MemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
+    install(new InMemoryRepositoryModule());
+    bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     bind(CacheService.class).in(Scopes.SINGLETON);
     
     bind(DAGCache.class).in(Scopes.SINGLETON);

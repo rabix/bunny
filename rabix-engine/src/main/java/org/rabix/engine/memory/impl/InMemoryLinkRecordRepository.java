@@ -15,12 +15,12 @@ import org.rabix.engine.repository.LinkRecordRepository;
 
 import com.google.inject.Inject;
 
-public class MemoryLinkRecordRepository extends LinkRecordRepository {
+public class InMemoryLinkRecordRepository extends LinkRecordRepository {
 
   Map<UUID, List<LinkRecord>> linkRecordRepository;
   
   @Inject
-  public MemoryLinkRecordRepository() {
+  public InMemoryLinkRecordRepository() {
     this.linkRecordRepository = new ConcurrentHashMap<UUID, List<LinkRecord>>();
   }
 

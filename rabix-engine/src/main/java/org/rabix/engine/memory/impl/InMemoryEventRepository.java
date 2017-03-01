@@ -13,12 +13,12 @@ import org.rabix.engine.repository.EventRepository;
 
 import com.google.inject.Inject;
 
-public class MemoryEventRepository implements EventRepository {
+public class InMemoryEventRepository implements EventRepository {
 
   Map<UUID, EventEntity> eventRepository;
   
   @Inject
-  public MemoryEventRepository() {
+  public InMemoryEventRepository() {
     this.eventRepository = new ConcurrentHashMap<UUID, EventEntity>();
   }
 
