@@ -6,6 +6,7 @@ import java.util.Map;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
@@ -28,15 +29,16 @@ public class TESFinalizeService implements TESCommandLineService {
       bindings = BindingsFactory.create(job);
       job = bindings.preprocess(job, workingDir, null);
       
-      String standardErrorLog = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
+      String standardErrorLog = ERROR_LOG;
+      CommandLine cl = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
         @Override
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
-      }).getStandardError();
-      
-      if (standardErrorLog == null) {
-        standardErrorLog = ERROR_LOG;
+      });
+
+      if (cl != null) {
+        standardErrorLog = cl.getStandardError();
       }
 
       if (!bindings.isSuccessful(job, 0)) { // TODO change exitCode
