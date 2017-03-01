@@ -134,7 +134,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     try {
       dispatcherLock.lock();
       for (Job job : jobs) {
-        Set<UUID> backendIds = jobService.getBackendsByRootId(job.getId());
+        Set<UUID> backendIds = jobService.getBackendsByRootId(job.getRootId());
         for (UUID backendId : backendIds) {
           if (backendId != null) {
             BackendStub<?, ?, ?> backendStub = getBackendStub(backendId);
