@@ -45,10 +45,8 @@ public class MemoryJobRepository implements JobRepository {
 
   @Override
   public synchronized void updateBackendId(UUID jobId, UUID backendId) {
-    for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
-      if(rootJobs.get(jobId) != null) {
-         rootJobs.get(jobId).setBackendId(backendId);
-      }
+    if(getJobEntity(jobId) != null) {
+      getJobEntity(jobId).setBackendId(backendId);
     }
   }
 
@@ -127,7 +125,10 @@ public class MemoryJobRepository implements JobRepository {
 
   @Override
   public void updateBackendIds(Iterator<JobBackendPair> jobBackendPair) {
-    
+    while(jobBackendPair.hasNext()) {
+      JobBackendPair jbp = jobBackendPair.next();
+      updateBackendId(jbp.getJobId(), jbp.getBackendId());
+    }
   }
 
   @Override
