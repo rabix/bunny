@@ -53,8 +53,8 @@ public class VariableRecordService {
       cache.putIfAbsent(variableRecord, Action.NOOP);
     }
     Set<VariableRecord> result = new HashSet<>();
-    result.addAll(fromDB);
     result.addAll(fromCache);
+    result.addAll(fromDB);
     return new ArrayList<VariableRecord>(result);
   }
   
@@ -71,8 +71,8 @@ public class VariableRecordService {
       cache.putIfAbsent(variableRecord, Action.NOOP);
     }
     Set<VariableRecord> result = new HashSet<>();
-    result.addAll(fromDB);
     result.addAll(fromCache);
+    result.addAll(fromDB);
     return new ArrayList<VariableRecord>(result);
   }
 
