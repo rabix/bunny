@@ -46,7 +46,7 @@ import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
-import org.rabix.engine.EngineModule;
+import org.rabix.engine.EngineModuleLocal;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
@@ -225,8 +225,8 @@ public class BackendCommandLine {
       
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
-          new SimpleFTPModule(), 
-          new EngineModule(),
+          new SimpleFTPModule(),
+          new EngineModuleLocal(),
           new AbstractModule() {
             @Override
             protected void configure() {
@@ -234,6 +234,7 @@ public class BackendCommandLine {
               
               bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
               bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceLocalImpl.class).in(Scopes.SINGLETON);
+              
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
               bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);

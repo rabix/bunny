@@ -164,6 +164,14 @@ public interface JDBIJobRepository extends JobRepository {
       this.jobId = jobId;
       this.backendId = backendId;
     }
+
+    public UUID getJobId() {
+      return jobId;
+    }
+
+    public UUID getBackendId() {
+      return backendId;
+    }
     
   }
 
