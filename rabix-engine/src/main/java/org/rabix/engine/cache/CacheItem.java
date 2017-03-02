@@ -15,15 +15,9 @@ public class CacheItem {
   public CacheItem(Action action, Cachable cachable) {
     this.action = action;
     this.cachable = cachable;
-    this.isDirty = true;
   }
 
-  public void hit() {
-    isDirty = true;
-  }
-  
   public void reset() {
-    isDirty = false;
     action = Action.NOOP;
   }
   
