@@ -46,8 +46,8 @@ public class LinkRecordService {
         });
     List<LinkRecord> fromDB = linkRecordRepository.getBySourceJobId(jobId, rootId);
     Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromDB);
     result.addAll(fromCache);
+    result.addAll(fromDB);
     return new ArrayList<>(result);
   }
 
@@ -64,8 +64,8 @@ public class LinkRecordService {
     ;
     List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, varType, rootId);
     Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromDB);
     result.addAll(fromCache);
+    result.addAll(fromDB);
     return new ArrayList<>(result);
   }
   
@@ -82,8 +82,8 @@ public class LinkRecordService {
     ;
     List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, portId, rootId);
     Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromDB);
     result.addAll(fromCache);
+    result.addAll(fromDB);
     return new ArrayList<>(result);
   }
   
@@ -100,8 +100,8 @@ public class LinkRecordService {
     ;
     List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndDestinationType(jobId, portId, varType, rootId);
     Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromDB);
     result.addAll(fromCache);
+    result.addAll(fromDB);
     return new ArrayList<>(result);
   }
 
