@@ -66,6 +66,10 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
   public void send(Job job) {
     this.transportPlugin.send(sendToBackendQueue, job);
   }
+  
+  public void send(Object message) {
+    this.transportPlugin.send(sendToBackendQueue, message);
+  }
 
   public Backend getBackend() {
     return backend;

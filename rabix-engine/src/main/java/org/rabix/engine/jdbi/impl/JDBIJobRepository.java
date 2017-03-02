@@ -18,6 +18,7 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository.BackendIDMapper;
+import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobEntityMapper;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobMapper;
 import org.rabix.engine.repository.JobRepository;
 import org.skife.jdbi.v2.SQLStatement;
@@ -32,7 +33,7 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-@RegisterMapper({ JobMapper.class, BackendIDMapper.class })
+@RegisterMapper({ JobMapper.class, JobEntityMapper.class, BackendIDMapper.class })
 public interface JDBIJobRepository extends JobRepository {
 
   @Override
@@ -49,7 +50,7 @@ public interface JDBIJobRepository extends JobRepository {
   
   @Override
   @SqlBatch("update job set backend_id=:backend_id where id=:id")
-  void updateBackendIds(@BindJobBackendPair Iterator<JobBackendPair> jobBackendPair);
+  void updateBackendIds(@BindJobEntity Iterator<JobEntity> jobBackendPair);
   
   @Override
   @SqlUpdate("update job set backend_id=null, status='READY'::job_status where backend_id=:backend_id and status in ('READY'::job_status,'RUNNING'::job_status)")
@@ -85,7 +86,7 @@ public interface JDBIJobRepository extends JobRepository {
 
   @Override
   @SqlQuery("select * from job where backend_id is null and status='READY'::job_status")
-  Set<Job> getReadyFree();
+  Set<JobEntity> getReadyFree();
   
   public static class JobMapper implements ResultSetMapper<Job> {
     public Job map(int index, ResultSet r, StatementContext ctx) throws SQLException {
@@ -105,6 +106,30 @@ public interface JDBIJobRepository extends JobRepository {
       Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
 
       return new Job(id, parent_id, root_id, name, app, status, message, inputs, outputs, Collections.emptyMap(), res, Collections.emptySet());
+    }
+  }
+  
+  public static class JobEntityMapper implements ResultSetMapper<JobEntity> {
+    public JobEntity map(int index, ResultSet r, StatementContext ctx) throws SQLException {
+      UUID id = r.getObject("id", UUID.class);
+      UUID root_id = r.getObject("root_id", UUID.class);
+      UUID groupId = r.getObject("group_id", UUID.class);
+      UUID backendId = r.getObject("backend_id", UUID.class);
+      UUID parentId = r.getObject("parent_id", UUID.class);
+      String name = r.getString("name");
+      String app = r.getString("app");
+      Job.JobStatus status = Job.JobStatus.valueOf(r.getString("status"));
+      String message = r.getString("message");
+      String inputsJson = r.getString("inputs");
+      String outputsJson = r.getString("outputs");
+      String resourcesStr = r.getString("resources");
+      Resources res = JSONHelper.readObject(resourcesStr, Resources.class);
+
+      Map<String, Object> inputs = JSONHelper.readMap(inputsJson);
+      Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
+
+      Job job = new Job(id, parentId, root_id, name, app, status, message, inputs, outputs, Collections.emptyMap(), res, Collections.emptySet());
+      return new JobEntity(job, groupId, backendId);
     }
   }
   
@@ -133,6 +158,23 @@ public interface JDBIJobRepository extends JobRepository {
             q.bind("outputs", JSONHelper.writeObject(job.getOutputs()));
             q.bind("app", job.getApp());
             q.bind("resources", JSONHelper.writeObject(job.getResources()));
+          }
+        };
+      }
+    }
+  }
+  
+  @BindingAnnotation(JDBIJobRepository.BindJobEntity.JobBinderFactory.class)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ ElementType.PARAMETER })
+  public static @interface BindJobEntity {
+    public static class JobBinderFactory implements BinderFactory<Annotation> {
+      public Binder<JDBIJobRepository.BindJobEntity, JobEntity> build(Annotation annotation) {
+        return new Binder<JDBIJobRepository.BindJobEntity, JobEntity>() {
+          public void bind(SQLStatement<?> q, JDBIJobRepository.BindJobEntity bind, JobEntity entity) {
+            Job job = entity.getJob();
+            q.bind("id", job.getId());
+            q.bind("backend_id", entity.getBackendId());
           }
         };
       }

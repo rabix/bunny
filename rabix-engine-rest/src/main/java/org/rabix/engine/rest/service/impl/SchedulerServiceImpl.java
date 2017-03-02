@@ -1,17 +1,15 @@
 package org.rabix.engine.rest.service.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -19,7 +17,7 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
+import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.rest.backend.stub.BackendStub;
 import org.rabix.engine.rest.backend.stub.BackendStub.HeartbeatCallback;
@@ -27,6 +25,7 @@ import org.rabix.engine.rest.service.BackendService;
 import org.rabix.engine.rest.service.BackendServiceException;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.SchedulerService;
+import org.rabix.engine.rest.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.service.RecordDeleteService;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
@@ -38,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class SchedulerServiceImpl implements SchedulerService {
+public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback {
 
   private final static Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
 
@@ -62,14 +61,15 @@ public class SchedulerServiceImpl implements SchedulerService {
   private final TransactionHelper transactionHelper;
   private final RecordDeleteService recordDeleteService;
   
-  private final Map<Job, BackendStub<?, ?, ?>> scheduledJobs = new HashMap<>();
+  private final SchedulerCallback schedulerCallback;
   
-  private final List<JobBackendPair> jobBackendPairs = new ArrayList<>();
-
+  private final AtomicReference<Set<SchedulerMessage>> messages = new AtomicReference<Set<SchedulerMessage>>(null);
+  
   @Inject
-  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, RecordDeleteService recordDeleteService) {
+  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, RecordDeleteService recordDeleteService, SchedulerCallback schedulerCallback) {
     this.jobService = jobService;
     this.backendService = backendService;
+    this.schedulerCallback = schedulerCallback;
     this.transactionHelper = repositoriesFactory;
     this.recordDeleteService = recordDeleteService;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
@@ -104,30 +104,35 @@ public class SchedulerServiceImpl implements SchedulerService {
           if (backendStubs.isEmpty()) {
             return null;
           }
-
-          Set<Job> freeJobs = jobService.getReadyFree();
-          for (Job freeJob : freeJobs) {
-            BackendStub<?, ?, ?> backendStub = nextBackend();
-
-            jobBackendPairs.add(new JobBackendPair(freeJob.getId(), backendStub.getBackend().getId()));
-            scheduledJobs.put(freeJob, backendStub);
-            logger.info("Job {} sent to {}.", freeJob.getId(), backendStub.getBackend().getId());
-          }
-          jobService.updateBackends(jobBackendPairs);
+          Set<JobEntity> entities = jobService.getReadyFree();
+          messages.set(schedulerCallback.onSchedule(entities, getBackendIds()));
+          jobService.updateBackends(entities);
           return null;
         }
       });
-      for (Entry<Job, BackendStub<?, ?, ?>> mapping : scheduledJobs.entrySet()) {
-        mapping.getValue().send(mapping.getKey());
+
+      for (SchedulerMessage message : messages.get()) {
+        getBackendStub(message.getBackendId()).send(message.getPayload());
+        logger.info("Message sent to {}.", message.getBackendId());
       }
-      jobBackendPairs.clear();
-      scheduledJobs.clear();
     } catch (Exception e) {
       logger.error("Failed to schedule Jobs", e);
       // TODO handle exception
     } finally {
       dispatcherLock.unlock();
     }
+  }
+  
+  @Override
+  public Set<SchedulerMessage> onSchedule(Set<JobEntity> entities, Set<UUID> backendIDs) {
+    Set<SchedulerMessage> messages = new HashSet<>();
+    for (JobEntity entity : entities) {
+      BackendStub<?, ?, ?> backendStub = nextBackend();
+      UUID backendID = backendStub.getBackend().getId();
+      entity.setBackendId(backendStub.getBackend().getId());
+      messages.add(new SchedulerMessage(backendID, entity.getJob()));
+    }
+    return messages;
   }
 
   public boolean stop(Job... jobs) {
@@ -206,7 +211,15 @@ public class SchedulerServiceImpl implements SchedulerService {
     position = (position + 1) % backendStubs.size();
     return backendStub;
   }
-
+  
+  private Set<UUID> getBackendIds() {
+    Set<UUID> ids = new HashSet<>();
+    for (BackendStub<?, ?, ?> backendStub : backendStubs) {
+      ids.add(backendStub.getBackend().getId());
+    }
+    return ids;
+  }
+  
   private BackendStub<?, ?, ?> getBackendStub(UUID id) {
     for (BackendStub<?, ?, ?> backendStub : backendStubs) {
       if (backendStub.getBackend().getId().equals(id)) {

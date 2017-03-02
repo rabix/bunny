@@ -1,7 +1,6 @@
 package org.rabix.engine.rest.service.impl;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -26,10 +25,10 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.JobRepository;
+import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.rest.helpers.IntermediaryFilesHelper;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
@@ -239,17 +238,16 @@ public class JobServiceImpl implements JobService {
   }
   
   public void delete(UUID jobId) {
-//  this.jobBackendRepository.delete(SchemaHelper.toUUID(jobId));
-//  TODO think about it
-}
+    // TODO think about it
+  }
 
   public void updateBackend(UUID jobId, UUID backendId) {
     this.jobRepository.updateBackendId(jobId, backendId);
   }
   
   @Override
-  public void updateBackends(List<JobBackendPair> jobBackendPairs) {
-    this.jobRepository.updateBackendIds(jobBackendPairs.iterator());
+  public void updateBackends(Set<JobEntity> entities) {
+    this.jobRepository.updateBackendIds(entities.iterator());
   }
 
   public Set<UUID> getBackendsByRootId(UUID rootId) {
@@ -260,7 +258,7 @@ public class JobServiceImpl implements JobService {
     jobRepository.dealocateJobs(backendId);
   }
   
-  public Set<Job> getReadyFree() {
+  public Set<JobEntity> getReadyFree() {
     return jobRepository.getReadyFree();
   }
 

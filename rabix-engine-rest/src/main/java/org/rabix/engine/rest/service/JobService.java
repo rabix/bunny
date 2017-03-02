@@ -1,13 +1,12 @@
 package org.rabix.engine.rest.service;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 import org.rabix.engine.processor.EventProcessor;
+import org.rabix.engine.repository.JobRepository.JobEntity;
 
 public interface JobService {
 
@@ -25,13 +24,13 @@ public interface JobService {
 
   void updateBackend(UUID jobId, UUID backendId);
 
-  void updateBackends(List<JobBackendPair> jobBackendPairs);
+  void updateBackends(Set<JobEntity> entities);
   
   Set<UUID> getBackendsByRootId(UUID rootId);
 
   void dealocateJobs(UUID backendId);
 
-  Set<Job> getReadyFree();
+  Set<JobEntity> getReadyFree();
 
   Job get(UUID id);
 

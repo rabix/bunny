@@ -36,6 +36,7 @@ import org.rabix.engine.rest.service.BootstrapServiceException;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.SchedulerService;
+import org.rabix.engine.rest.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
 import org.rabix.engine.rest.service.impl.BootstrapServiceImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
@@ -78,6 +79,7 @@ public class ServerBuilder {
             bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
             bind(IntermediaryFilesService.class).to(NoOpIntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
+            bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
           }
         }));
     BootstrapUtils.install(locator);
