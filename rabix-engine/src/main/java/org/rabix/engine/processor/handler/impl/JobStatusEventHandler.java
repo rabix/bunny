@@ -115,7 +115,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         try {
           job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
           if (!job.getName().equals(InternalSchemaHelper.ROOT_NAME)) {
-            jobRepository.insert(job, event.getEventGroupId());
+            jobRepository.insert(job, event.getEventGroupId(), event.getProducedByNode());
           } else {
             jobRepository.update(job);
           }
@@ -153,7 +153,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             // if root is CommandLineTool create OutputUpdateEvents
             for (PortCounter portCounter : jobRecord.getOutputCounters()) {
               Object output = event.getResult().get(portCounter.getPort());
-              eventProcessor.send(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId()));
+              eventProcessor.send(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId(), event.getProducedByNode()));
             }
           }
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
@@ -168,7 +168,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       } else {
         for (PortCounter portCounter : jobRecord.getOutputCounters()) {
           Object output = event.getResult().get(portCounter.getPort());
-          eventProcessor.addToQueue(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId()));
+          eventProcessor.addToQueue(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId(), event.getProducedByNode()));
         }
       }
       break;
@@ -192,7 +192,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
           engineStatusCallback.onJobFailed(failedJob);
           
-          eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobState.FAILED, null, event.getEventGroupId())); // TODO remove hardcoded 'root' value
+          eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobState.FAILED, null, event.getEventGroupId(), event.getProducedByNode()));
         } catch (Exception e) {
           logger.error("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
           throw new EventHandlerException("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
@@ -251,7 +251,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             ready(childJobRecord, event);  
           }
           else {
-            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), rootId, JobState.READY, null, event.getEventGroupId());
+            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), rootId, JobState.READY, null, event.getEventGroupId(), event.getProducedByNode());
             eventProcessor.send(jobStatusEvent);
           }
         }
@@ -263,7 +263,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             VariableRecord stepVariable = new VariableRecord(rootId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), null);
             variableRecordService.create(stepVariable);
           }
-          Event updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId());
+          Event updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
           eventProcessor.send(updateEvent);
         }
       }

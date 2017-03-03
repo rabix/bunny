@@ -103,22 +103,21 @@ public class JobServiceImpl implements JobService {
               return null;
             }
             JobStateValidator.checkState(jobRecord, JobState.RUNNING);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(),
-                job.getId());
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), job.getId(), job.getName());
             break;
           case FAILED:
             if (JobState.FAILED.equals(jobRecord.getState())) {
               return null;
             }
             JobStateValidator.checkState(jobRecord, JobState.FAILED);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, job.getId());
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, job.getId(), job.getName());
             break;
           case COMPLETED:
             if (JobState.COMPLETED.equals(jobRecord.getState())) {
               return null;
             }
             JobStateValidator.checkState(jobRecord, JobState.COMPLETED);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs(), job.getId());
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs(), job.getId(), job.getName());
             break;
           default:
             break;
@@ -162,9 +161,9 @@ public class JobServiceImpl implements JobService {
 
           updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.RUNNING);
           updatedJob = Job.cloneWithConfig(updatedJob, config);
-          jobRepository.insert(updatedJob, null);
+          jobRepository.insert(updatedJob, null, null);
 
-          InitEvent initEvent = new InitEvent(UUID.randomUUID(), updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash);
+          InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, null);
           eventProcessor.persist(initEvent);
           eventWrapper.set(initEvent);
           jobWrapper.set(updatedJob);

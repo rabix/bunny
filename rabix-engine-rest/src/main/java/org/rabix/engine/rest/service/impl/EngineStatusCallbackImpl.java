@@ -85,10 +85,8 @@ public class EngineStatusCallbackImpl implements EngineStatusCallback {
       long numberOfCores;
       long memory;
       if (job.getConfig() != null) {
-        numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu"))
-            : SystemEnvironmentHelper.getNumberOfCores();
-        memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem"))
-            : SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+        numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : SystemEnvironmentHelper.getNumberOfCores();
+        memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
       } else {
         numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
         memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();

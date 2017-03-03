@@ -24,15 +24,15 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public synchronized void insert(Job job, UUID groupId) {
+  public synchronized void insert(Job job, UUID groupId, String producedByNode) {
     Map<UUID, JobEntity> rootJobs = jobRepository.get(job.getRootId());
     if(rootJobs == null) {
       rootJobs = new HashMap<UUID, JobEntity>();
-      rootJobs.put(job.getId(), new JobEntity(job, groupId));
+      rootJobs.put(job.getId(), new JobEntity(job, groupId, producedByNode));
       jobRepository.put(job.getRootId(), rootJobs);
     }
     else {
-      rootJobs.put(job.getId(), new JobEntity(job, groupId));
+      rootJobs.put(job.getId(), new JobEntity(job, groupId, producedByNode));
     }
   }
 

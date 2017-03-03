@@ -9,7 +9,7 @@ import org.rabix.bindings.model.Job.JobStatus;
 
 public interface JobRepository {
 
-  void insert(Job job, UUID groupId);
+  void insert(Job job, UUID groupId, String producedByNode);
   
   void update(Job job);
   
@@ -39,19 +39,22 @@ public interface JobRepository {
     
     Job job;
     UUID groupId;
+    String producedByNode;
     UUID backendId;
     
-    public JobEntity(Job job, UUID groupId, UUID backendId) {
+    public JobEntity(Job job, UUID groupId, String producedByNode, UUID backendId) {
       super();
       this.job = job;
       this.groupId = groupId;
       this.backendId = backendId;
+      this.producedByNode = producedByNode;
     }
 
-    public JobEntity(Job job, UUID groupId) {
+    public JobEntity(Job job, UUID groupId, String producedByNode) {
       super();
       this.job = job;
       this.groupId = groupId;
+      this.producedByNode = producedByNode;
       this.backendId = null;
     }
 
@@ -66,7 +69,11 @@ public interface JobRepository {
     public UUID getGroupId() {
       return groupId;
     }
-
+    
+    public String getProducedByNode() {
+      return producedByNode;
+    }
+    
     public void setGroupId(UUID groupId) {
       this.groupId = groupId;
     }
@@ -83,8 +90,6 @@ public interface JobRepository {
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ((backendId == null) ? 0 : backendId.hashCode());
-      result = prime * result + ((groupId == null) ? 0 : groupId.hashCode());
       result = prime * result + ((job == null) ? 0 : job.hashCode());
       return result;
     }
@@ -98,16 +103,6 @@ public interface JobRepository {
       if (getClass() != obj.getClass())
         return false;
       JobEntity other = (JobEntity) obj;
-      if (backendId == null) {
-        if (other.backendId != null)
-          return false;
-      } else if (!backendId.equals(other.backendId))
-        return false;
-      if (groupId == null) {
-        if (other.groupId != null)
-          return false;
-      } else if (!groupId.equals(other.groupId))
-        return false;
       if (job == null) {
         if (other.job != null)
           return false;
@@ -115,10 +110,7 @@ public interface JobRepository {
         return false;
       return true;
     }
-    @Override
-    public String toString() {
-      return "JobEntity [job=" + job + ", groupId=" + groupId + ", backendId=" + backendId + "]";
-    }
+
   }
   
 }

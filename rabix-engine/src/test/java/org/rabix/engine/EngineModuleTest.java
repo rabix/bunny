@@ -84,7 +84,7 @@ public class EngineModuleTest {
 
     // INIT
     UUID nullJobId = UUID.randomUUID();
-    InitEvent ie = new InitEvent(UUID.randomUUID(), new HashMap<>(), nullJobId, Collections.emptyMap(), null);
+    InitEvent ie = new InitEvent(UUID.randomUUID(), new HashMap<>(), nullJobId, Collections.emptyMap(), null, null);
     hf.get(ie.getType()).handle(ie);
 
     ContextRecord cr = crs.find(nullJobId);
@@ -104,7 +104,7 @@ public class EngineModuleTest {
 
     // JOB COMPLETED
     JobStatusEvent jse = new JobStatusEvent("root", nullJobId, JobRecordService.JobState.COMPLETED,
-        Collections.emptyMap(), UUID.randomUUID());
+        Collections.emptyMap(), UUID.randomUUID(), "node");
     hf.get(jse.getType()).handle(jse);
 
     job = ArgumentCaptor.forClass(Job.class);
@@ -139,7 +139,7 @@ public class EngineModuleTest {
     DAGNode node = b.translateToDAG(new Job(appUrl, inputs));
 
     UUID rootJobId = UUID.randomUUID();
-    InitEvent ie = new InitEvent(UUID.randomUUID(), new HashMap<>(), rootJobId, Collections.emptyMap(), null);
+    InitEvent ie = new InitEvent(UUID.randomUUID(), new HashMap<>(), rootJobId, Collections.emptyMap(), null, "node");
     hf.get(ie.getType()).handle(ie);
 
     ContextRecord cr = crs.find(rootJobId);

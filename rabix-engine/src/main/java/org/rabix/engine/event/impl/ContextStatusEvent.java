@@ -78,4 +78,9 @@ public class ContextStatusEvent implements Event {
     return null;
   }
 
+  @Override
+  public String getProducedByNode() {
+    return null;
+  }
+
 }
