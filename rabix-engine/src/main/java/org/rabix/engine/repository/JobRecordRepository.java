@@ -10,7 +10,7 @@ import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CachableRepository;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 
 public abstract class JobRecordRepository implements CachableRepository {
 

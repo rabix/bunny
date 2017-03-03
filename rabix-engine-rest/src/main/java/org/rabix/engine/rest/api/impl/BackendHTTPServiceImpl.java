@@ -6,7 +6,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.rabix.engine.rest.api.BackendHTTPService;
-import org.rabix.engine.rest.service.BackendService;
+import org.rabix.engine.service.BackendService;
 import org.rabix.transport.backend.Backend;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

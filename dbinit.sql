@@ -68,18 +68,19 @@ create index context_record_status_index on context_record(status);
 CREATE TYPE job_status as enum ('PENDING', 'READY', 'STARTED', 'ABORTED', 'FAILED', 'COMPLETED', 'RUNNING');
 
 CREATE TABLE job (
-    id			    uuid primary key,
-    root_id 	    uuid,
-    name            text not null,
-    parent_id       uuid,
-    status          job_status not null,
-    message         text,
-    inputs          jsonb,
-    outputs         jsonb,
-    resources       jsonb,
-    group_id	    uuid,
-    backend_id      uuid references backend on delete SET NULL,
-    app             text,
+    id			      uuid primary key,
+    root_id 	      uuid,
+    name              text not null,
+    parent_id         uuid,
+    status            job_status not null,
+    message           text,
+    inputs            jsonb,
+    outputs           jsonb,
+    resources         jsonb,
+    group_id	      uuid,
+    produced_by_node  text,
+    backend_id        uuid references backend on delete SET NULL,
+    app               text,
     CHECK (backend_id IS NOT NULL OR status <> 'RUNNING'::job_status OR parent_id IS NULL)
 );
 

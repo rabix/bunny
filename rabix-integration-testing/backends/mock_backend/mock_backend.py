@@ -52,7 +52,7 @@ def main():
         heartbeat_thread.stop()
 
     except (KeyboardInterrupt, SystemExit):
-        log.debug('Caught exception, stopping heartbeat thread')
+        log.debug('Caught exception')
         heartbeat_thread.stop()
     finally:
         heartbeat_thread.stop()
@@ -228,30 +228,21 @@ class MockBackend(Backend):
             job['status'] = 'COMPLETED'
 
             # root/. is to hide the file
+            dirname = str('cache/' + job['name']).replace('root.', 'root/')
             # convert .1-9999 to /1-9999
-            dirname = job['name']
-            dirname = re.sub(r'\.', r'/.', dirname)
-            dirname = re.sub(r'\.([0-9]+)', r'/.\1.meta', dirname)
-            _dirname = dirname.split('/')
-            _s = []
-            for _d in _dirname:
-                if not _d.endswith('.meta') and _d.startswith('.'):
-                    _s.append(_d[1:])
-                else:
-                    _s.append(_d)
-            dirname = '/'.join(_s)
+            # if re.search(r'\.([0-9]+)$', dirname):
+            #     dirname = re.sub(r'\.([0-9]+)$', r'.meta/\1', dirname)
+            # else:
+            #     dirname += '.meta'
 
-            dirname = str('cache/' + dirname).replace('..', '.').replace('//', '/')
-
-            # dirname = re.sub(r'\.([0-9]+)$', r'/\1', dirname)
-            print('Creating cache dir: ' + str(dirname))
+            dirname = re.sub(r'\.([0-9]+)$', r'/\1', dirname)
 
             try:
                 os.makedirs(dirname)
             except:
                 pass
 
-            fpw = open(dirname + '/job.json', 'w')
+            fpw = open(dirname + '/cwl.output.json', 'w')
             fpw.write(json.dumps(job['outputs']))
             fpw.close()
             fpw = open(dirname + '/_mock', 'w')
@@ -273,11 +264,11 @@ class MockBackend(Backend):
         self.cache_path = cache_path
 
         for path, dirs, files in os.walk(cache_path):
-            if 'job.json' not in files:
+            if 'cwl.output.json' not in files:
                 continue
-            name = path[len(cache_path)+1:].replace('/', '.').replace('.meta', '').replace('..', '.')
+            name = path[len(cache_path)+1:].replace('/', '.')
             try:
-                with open(os.path.join(path, 'job.json')) as fp:
+                with open(os.path.join(path, 'cwl.output.json')) as fp:
                     self.cache[name] = json.load(fp)
                     if not self.cache[name]:
                         log.debug('Empty outputs for', name)
@@ -285,7 +276,6 @@ class MockBackend(Backend):
                 log.debug('filename: ' + name)
                 log.exception(e)
                 continue
-        print(self.cache.keys())
 
     def mock_output(self, outputs):
         result = {}
