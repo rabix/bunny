@@ -69,6 +69,12 @@ public class CWLDocumentResolver {
   public static final String NAMESPACES_KEY = "$namespaces";
   public static final String SCHEMADEF_KEY = "SchemaDefRequirement";
   public static final String CWL_VERSION_KEY = "cwlVersion";
+  
+  public static final String INPUTS_KEY_LONG = "inputs";
+  public static final String INPUTS_KEY_SHORT = "in";
+  
+  public static final String OUTPUTS_KEY_LONG = "outputs";
+  public static final String OUTPUTS_KEY_SHORT = "out";
 
   public static final String COMMAND_LINE_TOOL = "CommandLineTool";
   public static final String EXPRESSION_TOOL = "ExpressionTool";
@@ -139,7 +145,7 @@ public class CWLDocumentResolver {
       ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
 
-    traverse(appUrl, root, file, null, root);
+    traverse(appUrl, root, file, null, root, false);
 
     for (CWLDocumentResolverReplacement replacement : getReplacements(appUrl)) {
       if (replacement.getParentNode().isArray()) {
@@ -265,10 +271,10 @@ public class CWLDocumentResolver {
     }
   }
 
-  private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode)
-      throws BindingException {
+  private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode, boolean inputsOrOutputs) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
 
+    JsonNode typeNode = null;
     boolean isInclude = currentNode.has(RESOLVER_REFERENCE_INCLUDE_KEY);
 
     if (isInclude) {
@@ -282,23 +288,37 @@ public class CWLDocumentResolver {
     }
 
     namespace(currentNode);
-
+    
     boolean isReference = currentNode.has(RESOLVER_REFERENCE_KEY);
     boolean appReference = currentNode.has(APP_STEP_KEY) && currentNode.get(APP_STEP_KEY).isTextual();
     boolean typeReference = currentNode.has(TYPE_KEY) && currentNode.get(TYPE_KEY).isTextual()
         && isTypeReference(currentNode.get(TYPE_KEY).textValue());
     boolean isJsonPointer = currentNode.has(RESOLVER_JSON_POINTER_KEY) && parentNode != null; // we skip the first level
                                                                                               // $job
-
-    if (isReference || isJsonPointer || typeReference || appReference) {
-      String referencePath = null;
+    String referencePath = null;
+    boolean typeReplace = false;
+    if(inputsOrOutputs) {
+      if(currentNode.isContainerNode()) {
+        for (JsonNode subnode : currentNode) {
+          if(currentNode.size() == 1 && subnode.isTextual()) {
+            referencePath = subnode.asText();
+            if(isTypeReference(referencePath)) {
+              typeNode = subnode;
+              typeReplace = true;
+            }
+          }
+        }
+      }
+    }
+    
+    if (isReference || isJsonPointer || typeReference || appReference || typeReplace) {
       if (isReference) {
         referencePath = currentNode.get(RESOLVER_REFERENCE_KEY).textValue();
       } else if (appReference) {
         referencePath = currentNode.get(APP_STEP_KEY).textValue();
       } else if (typeReference) {
         referencePath = currentNode.get(TYPE_KEY).textValue();
-      } else {
+      } else if(isJsonPointer) {
         referencePath = currentNode.get(RESOLVER_JSON_POINTER_KEY).textValue();
       }
 
@@ -314,7 +334,7 @@ public class CWLDocumentResolver {
 
         JsonNode referenceDocumentRoot = findDocumentRoot(root, file, referencePath, isJsonPointer);
         ParentChild parentChild = findReferencedNode(referenceDocumentRoot, referencePath);
-        JsonNode resolvedNode = traverse(appUrl, root, file, parentChild.parent, parentChild.child);
+        JsonNode resolvedNode = traverse(appUrl, root, file, parentChild.parent, parentChild.child, false);
         if (resolvedNode == null) {
           return null;
         }
@@ -324,21 +344,38 @@ public class CWLDocumentResolver {
         getReferenceCache(appUrl).put(referencePath, reference);
       }
       if (appReference) {
-        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("run"), referencePath));
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get(APP_STEP_KEY), referencePath));
       } else if (typeReference) {
-        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("type"), referencePath));
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get(TYPE_KEY), referencePath));
+      } else if (typeReplace) {
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, typeNode, referencePath));
       } else {
         getReplacements(appUrl).add(new CWLDocumentResolverReplacement(parentNode, currentNode, referencePath));
       }
       return reference.getResolvedNode();
     } else if (currentNode.isContainerNode()) {
       for (JsonNode subnode : currentNode) {
-        traverse(appUrl, root, file, currentNode, subnode);
+        inputsOrOutputs = checkIsItInputsOrOutputs(currentNode, subnode, inputsOrOutputs);
+        traverse(appUrl, root, file, currentNode, subnode, inputsOrOutputs);
       }
     }
     return currentNode;
   }
 
+  private static boolean checkIsItInputsOrOutputs(JsonNode currentNode, JsonNode subnode, boolean previous) {
+    boolean result = false;
+    if (currentNode.has(INPUTS_KEY_LONG) && currentNode.get(INPUTS_KEY_LONG).equals(subnode)) {
+      result = true;
+    } else if (currentNode.has(INPUTS_KEY_SHORT) && currentNode.get(INPUTS_KEY_SHORT).equals(subnode)) {
+      result = true;
+    } else if (currentNode.has(OUTPUTS_KEY_LONG) && currentNode.get(OUTPUTS_KEY_LONG).equals(subnode)) {
+      result = true;
+    } else if (currentNode.has(OUTPUTS_KEY_SHORT) && currentNode.get(OUTPUTS_KEY_SHORT).equals(subnode)) {
+      result = true;
+    }
+    return result;
+  }
+  
   private static boolean isApp(JsonNode node) {
     return node.has(CLASS_KEY) && (node.get(CLASS_KEY).asText().equals(COMMAND_LINE_TOOL)
         || node.get(CLASS_KEY).asText().equals(EXPRESSION_TOOL) || node.get(CLASS_KEY).asText().equals(WORKFLOW)
