@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 
 public interface JobRepository {
 
@@ -16,7 +15,7 @@ public interface JobRepository {
   
   void updateBackendId(UUID jobId, UUID backendId);
   
-  void updateBackendIds(Iterator<JobBackendPair> jobBackendPair);
+  void updateBackendIds(Iterator<JobEntity> jobBackendPair);
   
   void dealocateJobs(UUID backendId);
   
@@ -32,7 +31,7 @@ public interface JobRepository {
   
   Set<Job> getReadyJobsByGroupId(UUID groupId);
 
-  Set<Job> getReadyFree();
+  Set<JobEntity> getReadyFree();
   
   JobStatus getStatus(UUID id);
   

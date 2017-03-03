@@ -51,16 +51,21 @@ import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
+import org.rabix.engine.rest.backend.stub.BackendStub;
+import org.rabix.engine.rest.backend.stub.BackendStubFactory;
 import org.rabix.engine.rest.service.BackendService;
 import org.rabix.engine.rest.service.BackendServiceException;
 import org.rabix.engine.rest.service.IntermediaryFilesService;
 import org.rabix.engine.rest.service.JobService;
 import org.rabix.engine.rest.service.JobServiceException;
 import org.rabix.engine.rest.service.SchedulerService;
+import org.rabix.engine.rest.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.rest.service.impl.BackendServiceImpl;
+import org.rabix.engine.rest.service.impl.EngineStatusCallbackImpl;
 import org.rabix.engine.rest.service.impl.IntermediaryFilesServiceLocalImpl;
 import org.rabix.engine.rest.service.impl.JobServiceImpl;
 import org.rabix.engine.rest.service.impl.SchedulerServiceImpl;
+import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
@@ -87,6 +92,7 @@ import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
 import org.rabix.transport.backend.impl.BackendLocal;
+import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,6 +244,8 @@ public class BackendCommandLine {
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
               bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+              bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+              bind(EngineStatusCallback.class).to(EngineStatusCallbackImpl.class).in(Scopes.SINGLETON);
               bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
               bind(DownloadService.class).to(LocalDownloadServiceImpl.class).in(Scopes.SINGLETON);
               bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
@@ -392,7 +400,6 @@ public class BackendCommandLine {
       }
 
       final SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
-      schedulerService.start();
       
       final JobService jobService = injector.getInstance(JobService.class);
       final BackendService backendService = injector.getInstance(BackendService.class);
@@ -401,7 +408,15 @@ public class BackendCommandLine {
       BackendLocal backendLocal = new BackendLocal();
       backendLocal = backendService.create(backendLocal);
       executorService.initialize(backendLocal);
-
+      BackendStub<?, ?, ?> backendStub;
+      try {
+        backendStub = injector.getInstance(BackendStubFactory.class).create(jobService, backendLocal);
+        schedulerService.addBackendStub(backendStub);
+        schedulerService.start();
+      } catch (TransportPluginException e2) {
+        // TODO Auto-generated catch block
+        e2.printStackTrace();
+      }
       Object commonInputs = null;
       try {
         commonInputs = bindings.translateToCommon(inputs);

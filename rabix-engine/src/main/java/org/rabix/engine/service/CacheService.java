@@ -3,8 +3,8 @@ package org.rabix.engine.service;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -29,15 +29,14 @@ public class CacheService {
   private VariableRecordRepository variableRecordRepository;
 
   private Configuration configuration;
-  private boolean clearCache;
   
   @Inject
-  public CacheService(JobRecordRepository jobRecordRepository, LinkRecordRepository linkRecordRepository, VariableRecordRepository variableRecordRepository, Configuration configuration) {
+  public CacheService(JobRecordRepository jobRecordRepository, LinkRecordRepository linkRecordRepository,
+      VariableRecordRepository variableRecordRepository, Configuration configuration) {
     this.configuration = configuration;
     this.jobRecordRepository = jobRecordRepository;
     this.linkRecordRepository = linkRecordRepository;
     this.variableRecordRepository = variableRecordRepository;
-    this.clearCache = configuration.getBoolean("cache.clear", true);
   }
   
   public Cache getCache(UUID rootId, String entity) {
@@ -81,21 +80,8 @@ public class CacheService {
     if (cachesForRoot == null) {
       return;
     }
-    for(Entry<String, Cache> cacheEntry : cachesForRoot.entrySet()) {
-      Cache cache = cacheEntry.getValue();
-      String cacheName = cacheEntry.getKey();
-      if (clearCache) {
-        cache.flush(true);
-        continue;
-      }
-      
-      switch (cacheName) {
-      case LinkRecord.CACHE_NAME:
-        cache.flush(true);
-        break;
-      default:
-        cache.flush(false);
-      }
+    for (Entry<String, Cache> cacheEntry : cachesForRoot.entrySet()) {
+      cacheEntry.getValue().flush();
     }
   }
   

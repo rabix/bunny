@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobBackendPair;
 import org.rabix.engine.repository.JobRepository;
 
 import com.google.inject.Inject;
@@ -111,12 +110,12 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public synchronized Set<Job> getReadyFree() {
-    Set<Job> readyFreeJobs = new HashSet<Job>();
+  public synchronized Set<JobEntity> getReadyFree() {
+    Set<JobEntity> readyFreeJobs = new HashSet<JobEntity>();
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       for(JobEntity job: rootJobs.values()) {
         if(job.getBackendId() == null && job.getJob().getStatus().equals(JobStatus.READY)) {
-          readyFreeJobs.add(job.getJob());
+          readyFreeJobs.add(job);
         }
       }
     }
@@ -124,11 +123,11 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public void updateBackendIds(Iterator<JobBackendPair> jobBackendPair) {
-    while(jobBackendPair.hasNext()) {
-      JobBackendPair jbp = jobBackendPair.next();
-      updateBackendId(jbp.getJobId(), jbp.getBackendId());
-    }
+  public void updateBackendIds(Iterator<JobEntity> entities) {
+//    while(jobBackendPair.hasNext()) {
+//      JobBackendPair jbp = jobBackendPair.next();
+//      updateBackendId(jbp.getJobId(), jbp.getBackendId());
+//    }
   }
 
   @Override

@@ -144,6 +144,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       jobRecordService.update(jobRecord);
       break;
     case COMPLETED:
+      jobRecord.setState(JobState.READY);
+      jobRecordService.update(jobRecord);
+      
       if (jobRecord.isRoot()) {
         try {
           if(!jobRecord.isContainer()) {
@@ -170,6 +173,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case FAILED:
+      jobRecord.setState(JobState.READY);
+      jobRecordService.update(jobRecord);
+      
       if (jobRecord.isRoot()) {
         try {
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, null);
