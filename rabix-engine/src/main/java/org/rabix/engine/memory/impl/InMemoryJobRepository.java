@@ -111,16 +111,15 @@ public class InMemoryJobRepository implements JobRepository {
 
   @Override
   public synchronized Set<JobEntity> getReadyFree() {
-//    Set<Job> readyFreeJobs = new HashSet<Job>();
-//    for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
-//      for(JobEntity job: rootJobs.values()) {
-//        if(job.getBackendId() == null && job.getJob().getStatus().equals(JobStatus.READY)) {
-//          readyFreeJobs.add(job.getJob());
-//        }
-//      }
-//    }
-//    return readyFreeJobs;
-    return null;
+    Set<JobEntity> readyFreeJobs = new HashSet<JobEntity>();
+    for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
+      for(JobEntity job: rootJobs.values()) {
+        if(job.getBackendId() == null && job.getJob().getStatus().equals(JobStatus.READY)) {
+          readyFreeJobs.add(job);
+        }
+      }
+    }
+    return readyFreeJobs;
   }
 
   @Override
