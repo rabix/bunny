@@ -50,7 +50,7 @@ public interface JDBIJobRepository extends JobRepository {
   
   @Override
   @SqlBatch("update job set backend_id=:backend_id where id=:id")
-  void updateBackendIds(@BindJobEntity Iterator<JobEntity> jobBackendPair);
+  void updateBackendIds(@BindJobEntityBackendId Iterator<JobEntity> entities);
   
   @Override
   @SqlUpdate("update job set backend_id=null, status='READY'::job_status where backend_id=:backend_id and status in ('READY'::job_status,'RUNNING'::job_status)")
@@ -173,7 +173,19 @@ public interface JDBIJobRepository extends JobRepository {
         return new Binder<JDBIJobRepository.BindJobEntity, JobEntity>() {
           public void bind(SQLStatement<?> q, JDBIJobRepository.BindJobEntity bind, JobEntity entity) {
             Job job = entity.getJob();
-            q.bind("id", job.getId());
+            if (job != null) {
+              q.bind("id", job.getId());
+              q.bind("root_id", job.getRootId());
+              q.bind("name", job.getName());
+              q.bind("parent_id", job.getParentId());
+              q.bind("status", job.getStatus().toString());
+              q.bind("message", job.getMessage());
+              q.bind("inputs", JSONHelper.writeObject(job.getInputs()));
+              q.bind("outputs", JSONHelper.writeObject(job.getOutputs()));
+              q.bind("app", job.getApp());
+              q.bind("resources", JSONHelper.writeObject(job.getResources()));
+            }
+            q.bind("group_id", entity.getGroupId());
             q.bind("backend_id", entity.getBackendId());
           }
         };
@@ -181,40 +193,20 @@ public interface JDBIJobRepository extends JobRepository {
     }
   }
   
-  @BindingAnnotation(JDBIJobRepository.BindJobBackendPair.JobBinderFactory.class)
+  @BindingAnnotation(JDBIJobRepository.BindJobEntityBackendId.JobBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })
-  public static @interface BindJobBackendPair {
+  public static @interface BindJobEntityBackendId {
     public static class JobBinderFactory implements BinderFactory<Annotation> {
-      public Binder<JDBIJobRepository.BindJobBackendPair, JobBackendPair> build(Annotation annotation) {
-        return new Binder<JDBIJobRepository.BindJobBackendPair, JobBackendPair>() {
-          public void bind(SQLStatement<?> q, JDBIJobRepository.BindJobBackendPair bind, JobBackendPair job) {
-            q.bind("id", job.jobId);
-            q.bind("backend_id", job.backendId);
+      public Binder<JDBIJobRepository.BindJobEntityBackendId, JobEntity> build(Annotation annotation) {
+        return new Binder<JDBIJobRepository.BindJobEntityBackendId, JobEntity>() {
+          public void bind(SQLStatement<?> q, JDBIJobRepository.BindJobEntityBackendId bind, JobEntity entity) {
+            q.bind("id", entity.getJob().getId());
+            q.bind("backend_id", entity.getBackendId());
           }
         };
       }
     }
   }
   
-  public static class JobBackendPair {
-    private UUID jobId;
-    private UUID backendId;
-    
-    public JobBackendPair(UUID jobId, UUID backendId) {
-      super();
-      this.jobId = jobId;
-      this.backendId = backendId;
-    }
-
-    public UUID getJobId() {
-      return jobId;
-    }
-
-    public UUID getBackendId() {
-      return backendId;
-    }
-    
-  }
-
 }

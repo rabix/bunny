@@ -1,6 +1,7 @@
 package org.rabix.engine.rest.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -63,7 +64,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
   
   private final SchedulerCallback schedulerCallback;
   
-  private final AtomicReference<Set<SchedulerMessage>> messages = new AtomicReference<Set<SchedulerMessage>>(null);
+  private final AtomicReference<Set<SchedulerMessage>> messages = new AtomicReference<Set<SchedulerMessage>>(Collections.<SchedulerMessage>emptySet());
   
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, RecordDeleteService recordDeleteService, SchedulerCallback schedulerCallback) {
@@ -105,16 +106,18 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
             return null;
           }
           Set<JobEntity> entities = jobService.getReadyFree();
-          messages.set(schedulerCallback.onSchedule(entities, getBackendIds()));
-          jobService.updateBackends(entities);
+          if (!entities.isEmpty()) {
+            messages.set(schedulerCallback.onSchedule(entities, getBackendIds()));
+            jobService.updateBackends(entities);
+          }
           return null;
         }
       });
-
       for (SchedulerMessage message : messages.get()) {
         getBackendStub(message.getBackendId()).send(message.getPayload());
         logger.info("Message sent to {}.", message.getBackendId());
       }
+      messages.set(Collections.<SchedulerMessage>emptySet());
     } catch (Exception e) {
       logger.error("Failed to schedule Jobs", e);
       // TODO handle exception
