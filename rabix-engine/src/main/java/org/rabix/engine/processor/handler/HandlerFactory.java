@@ -28,14 +28,6 @@ public class HandlerFactory {
     this.contextStatusEventHandler = contextStatusEventHandler;
   }
   
-  /**
-   * Initialize some callbacks 
-   */
-  public void initialize(EngineStatusCallback engineStatusCallback) {
-    this.statusEventHandler.initialize(engineStatusCallback);
-    this.outputEventHandler.initialize(engineStatusCallback);
-  }
-  
   @SuppressWarnings("unchecked")
   public <T extends Event> EventHandler<T> get(EventType eventType) {
     switch (eventType) {
