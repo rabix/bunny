@@ -17,10 +17,10 @@ import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordService;
+import org.rabix.engine.service.impl.LinkRecordService;
+import org.rabix.engine.service.impl.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 
 import com.google.inject.Inject;
 
@@ -93,7 +93,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
     update(job, variable);
     if (job.isReady()) {
-      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId());
+      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId(), event.getProducedByNode());
       eventProcessor.send(jobStatusEvent);
     }
   }
@@ -113,7 +113,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     for (LinkRecord link : links) {
       VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
 
-      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId());
+      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {

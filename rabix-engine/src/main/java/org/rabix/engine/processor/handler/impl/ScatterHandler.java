@@ -24,10 +24,10 @@ import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.model.scatter.ScatterStrategyFactory;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordService;
+import org.rabix.engine.service.impl.LinkRecordService;
+import org.rabix.engine.service.impl.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 
 import com.google.inject.Inject;
 
@@ -159,12 +159,12 @@ public class ScatterHandler {
         linkRecordService.create(link);
 
         if (inputPort.isScatter()) {
-          Event eventInputPort = new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), mapping.getValue(inputPort.getId()), 1, event.getEventGroupId());
+          Event eventInputPort = new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), mapping.getValue(inputPort.getId()), 1, event.getEventGroupId(), event.getProducedByNode());
           events.add(eventInputPort);
         } else {
           if (job.isInputPortReady(inputPort.getId())) {
             VariableRecord variable = variableRecordService.find(job.getId(), inputPort.getId(), LinkPortType.INPUT, job.getRootId());
-            events.add(new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), variableRecordService.getValue(variable), 1, event.getEventGroupId()));
+            events.add(new InputUpdateEvent(job.getRootId(), jobNId, inputPort.getId(), variableRecordService.getValue(variable), 1, event.getEventGroupId(), event.getProducedByNode()));
           }
         }
       }

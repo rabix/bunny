@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.repository.JobRecordRepository;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

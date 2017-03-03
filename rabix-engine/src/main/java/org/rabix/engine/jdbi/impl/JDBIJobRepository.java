@@ -37,8 +37,8 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 public interface JDBIJobRepository extends JobRepository {
 
   @Override
-  @SqlUpdate("insert into job (id,root_id,name, parent_id, status, message, inputs, outputs, resources, group_id,app) values (:id,:root_id,:name,:parent_id,:status::job_status,:message,:inputs::jsonb,:outputs::jsonb,:resources::jsonb,:group_id,:app)")
-  void insert(@BindJob Job job, @Bind("group_id") UUID groupId);
+  @SqlUpdate("insert into job (id,root_id,name, parent_id, status, message, inputs, outputs, resources, group_id, produced_by_node, app) values (:id,:root_id,:name,:parent_id,:status::job_status,:message,:inputs::jsonb,:outputs::jsonb,:resources::jsonb,:group_id,:produced_by_node,:app)")
+  void insert(@BindJob Job job, @Bind("group_id") UUID groupId, @Bind("produced_by_node") String producedByNode);
 
   @Override
   @SqlUpdate("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app where id=:id")
@@ -118,6 +118,7 @@ public interface JDBIJobRepository extends JobRepository {
       UUID parentId = r.getObject("parent_id", UUID.class);
       String name = r.getString("name");
       String app = r.getString("app");
+      String producedByNode = r.getString("produced_by_node");
       Job.JobStatus status = Job.JobStatus.valueOf(r.getString("status"));
       String message = r.getString("message");
       String inputsJson = r.getString("inputs");
@@ -129,7 +130,7 @@ public interface JDBIJobRepository extends JobRepository {
       Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
 
       Job job = new Job(id, parentId, root_id, name, app, status, message, inputs, outputs, Collections.emptyMap(), res, Collections.emptySet());
-      return new JobEntity(job, groupId, backendId);
+      return new JobEntity(job, groupId, producedByNode, backendId);
     }
   }
   
@@ -186,6 +187,7 @@ public interface JDBIJobRepository extends JobRepository {
               q.bind("resources", JSONHelper.writeObject(job.getResources()));
             }
             q.bind("group_id", entity.getGroupId());
+            q.bind("produced_by_node", entity.getProducedByNode());
             q.bind("backend_id", entity.getBackendId());
           }
         };

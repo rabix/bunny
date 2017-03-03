@@ -24,11 +24,11 @@ import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.ContextRecordService;
+import org.rabix.engine.service.impl.JobRecordService;
+import org.rabix.engine.service.impl.LinkRecordService;
+import org.rabix.engine.service.impl.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.slf4j.Logger;
@@ -99,7 +99,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
         if(sourceJob.isRoot() && sourceJob.isContainer()) {
           // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
-          eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId()));
+          eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
         }
         return;
       }
@@ -146,12 +146,12 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
               value = value != null ? value : event.getValue();
               int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-              Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId());
+              Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
               eventProcessor.send(updateInputEvent);
             } else {
               if (sourceJob.isOutputPortReady(event.getPortId())) {
                 value = value != null ? value : variableService.getValue(sourceVariable);
-                Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
+                Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
                 eventProcessor.send(updateInputEvent);
               }
             }
@@ -161,17 +161,17 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             if (destinationJob.getOutputPortIncoming(event.getPortId()) > 1) {
               if (sourceJob.isOutputPortReady(event.getPortId())) {
                 value = value != null? value : variableService.getValue(sourceVariable);
-                Event updateInputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
+                Event updateInputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
                 eventProcessor.send(updateInputEvent);
               }
             } else {
               value = value != null? value : event.getValue();
               if (isValueFromScatterStrategy) {
-                Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, false, 1, 1, event.getEventGroupId());
+                Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, false, 1, 1, event.getEventGroupId(), event.getProducedByNode());
                 eventProcessor.send(updateOutputEvent);
               } else {
                 int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-                Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId());
+                Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
                 eventProcessor.send(updateOutputEvent);
               }
             }
@@ -191,17 +191,17 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         for (VariableRecord destinationVariable : destinationVariables) {
           switch (destinationVariable.getType()) {
           case INPUT:
-            Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
+            Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
             eventProcessor.send(updateInputEvent);
             break;
           case OUTPUT:
             if (sourceJob.isScattered()) {
               int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
               int position = InternalSchemaHelper.getScatteredNumber(sourceJob.getId());
-              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, position, event.getEventGroupId());
+              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, position, event.getEventGroupId(), event.getProducedByNode());
               eventProcessor.send(updateOutputEvent);
             } else if (InternalSchemaHelper.getParentId(sourceJob.getId()).equals(destinationVariable.getJobId())) {
-              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
+              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
               eventProcessor.send(updateOutputEvent);
             }
             break;

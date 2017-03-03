@@ -20,10 +20,10 @@ import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.ContextRecordService;
+import org.rabix.engine.service.impl.JobRecordService;
+import org.rabix.engine.service.impl.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 
 import com.google.inject.Inject;
 
@@ -74,14 +74,14 @@ public class InitEventHandler implements EventHandler<InitEvent> {
 
     if (node.getInputPorts().isEmpty()) {
       // the node is ready
-      eventProcessor.send(new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId()));
+      eventProcessor.send(new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId(), event.getProducedByNode()));
       return;
     }
     
     Map<String, Object> mixedInputs = mixInputs(node, event.getValue());
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       Object value = mixedInputs.get(inputPort.getId());
-      eventProcessor.send(new InputUpdateEvent(event.getContextId(), node.getId(), inputPort.getId(), value, 1, event.getEventGroupId()));
+      eventProcessor.send(new InputUpdateEvent(event.getContextId(), node.getId(), inputPort.getId(), value, 1, event.getEventGroupId(), event.getProducedByNode()));
     }
   }
   

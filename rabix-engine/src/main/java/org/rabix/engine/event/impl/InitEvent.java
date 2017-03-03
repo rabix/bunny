@@ -15,6 +15,8 @@ public class InitEvent implements Event {
 
   @JsonProperty("eventGroupId")
   private final UUID eventGroupId;
+  @JsonProperty("producedByNode")
+  private final String producedByNode;
   @JsonProperty("value")
   private final Map<String, Object> value;
   @JsonProperty("rootId")
@@ -26,9 +28,11 @@ public class InitEvent implements Event {
   
   @JsonCreator
   public InitEvent(@JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("value") Map<String, Object> value,
-      @JsonProperty("rootId") UUID rootId, @JsonProperty("config") Map<String, Object> config, @JsonProperty("dagHash") String dagHash) {
+      @JsonProperty("rootId") UUID rootId, @JsonProperty("config") Map<String, Object> config,
+      @JsonProperty("dagHash") String dagHash, @JsonProperty("producedByNode") String producedByNode) {
     super();
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
     this.value = value;
     this.rootId = rootId;
     this.config = config;
@@ -51,6 +55,11 @@ public class InitEvent implements Event {
   @Override
   public UUID getEventGroupId() {
     return eventGroupId;
+  }
+  
+  @Override
+  public String getProducedByNode() {
+    return producedByNode;
   }
   
   public Map<String, Object> getConfig() {
@@ -112,5 +121,6 @@ public class InitEvent implements Event {
   public PersistentEventType getPersistentType() {
     return PersistentEventType.INIT;
   }
+
 
 }

@@ -15,12 +15,12 @@ import org.rabix.engine.processor.handler.impl.OutputEventHandler;
 import org.rabix.engine.processor.handler.impl.ScatterHandler;
 import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
 import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.service.CacheService;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.RecordDeleteService;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.CacheService;
+import org.rabix.engine.service.impl.ContextRecordService;
+import org.rabix.engine.service.impl.JobRecordService;
+import org.rabix.engine.service.impl.LinkRecordService;
+import org.rabix.engine.service.impl.RecordDeleteService;
+import org.rabix.engine.service.impl.VariableRecordService;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;

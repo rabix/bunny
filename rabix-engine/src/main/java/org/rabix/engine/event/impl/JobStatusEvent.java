@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.rabix.engine.event.Event;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,24 +23,28 @@ public class JobStatusEvent implements Event {
   
   @JsonProperty("eventGroupId")
   private final UUID eventGroupId;
+  @JsonProperty("producedByNode")
+  private final String producedByNode;
   
-  public JobStatusEvent(String jobId, UUID contextId, JobState state, Map<String, Object> result, UUID eventGroupId) {
+  public JobStatusEvent(String jobId, UUID contextId, JobState state, Map<String, Object> result, UUID eventGroupId, String producedByNode) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.state = state;
     this.result = result;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
   }
   
   @JsonCreator
   public JobStatusEvent(@JsonProperty("jobId") String jobId, @JsonProperty("state") JobState state,
       @JsonProperty("contextId") UUID contextId, @JsonProperty("result") Map<String, Object> result,
-      @JsonProperty("eventGroupId") UUID eventGroupId) {
+      @JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("producedByNode") String producedByNode) {
     this.jobId = jobId;
     this.state = state;
     this.contextId = contextId;
     this.result = result;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
   }
 
   public String getJobId() {
@@ -63,6 +67,11 @@ public class JobStatusEvent implements Event {
   @Override
   public UUID getEventGroupId() {
     return eventGroupId;
+  }
+  
+  @Override
+  public String getProducedByNode() {
+    return producedByNode;
   }
   
   @Override

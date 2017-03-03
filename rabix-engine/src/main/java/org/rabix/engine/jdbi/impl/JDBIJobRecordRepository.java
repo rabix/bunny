@@ -20,7 +20,7 @@ import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.model.JobRecord.PortCounter;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.repository.JobRecordRepository;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;

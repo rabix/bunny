@@ -28,12 +28,14 @@ public class InputUpdateEvent implements Event {
   private final boolean isLookAhead;            // it's a look ahead event
   @JsonProperty("eventGroupId")
   private final UUID eventGroupId;
+  @JsonProperty("producedByNode")
+  private final String producedByNode;
   
-  public InputUpdateEvent(UUID contextId, String jobId, String portId, Object value, Integer position, UUID eventGroupId) {
-    this(contextId, jobId, portId, value, false, null, position, eventGroupId);
+  public InputUpdateEvent(UUID contextId, String jobId, String portId, Object value, Integer position, UUID eventGroupId, String producedByNode) {
+    this(contextId, jobId, portId, value, false, null, position, eventGroupId, producedByNode);
   }
 
-  public InputUpdateEvent(UUID contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, UUID eventGroupId) {
+  public InputUpdateEvent(UUID contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, UUID eventGroupId, String producedByNode) {
     this.jobId = jobId;
     this.portId = portId;
     this.value = value;
@@ -42,13 +44,14 @@ public class InputUpdateEvent implements Event {
     this.numberOfScattered = scatteredNodes;
     this.position = position;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
   }
 
   @JsonCreator
   public InputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") UUID contextId,
       @JsonProperty("portId") String portId, @JsonProperty("value") Object value,
       @JsonProperty("position") Integer position, @JsonProperty("numberOfScattered") Integer numberOfScattered,
-      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") UUID eventGroupId) {
+      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("producedByNode") String producedByNode) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.portId = portId;
@@ -57,6 +60,7 @@ public class InputUpdateEvent implements Event {
     this.numberOfScattered = numberOfScattered;
     this.isLookAhead = isLookAhead;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
   }
 
   public String getJobId() {
@@ -82,6 +86,11 @@ public class InputUpdateEvent implements Event {
   @Override
   public UUID getEventGroupId() {
     return eventGroupId;
+  }
+  
+  @Override
+  public String getProducedByNode() {
+    return producedByNode;
   }
   
   @Override

@@ -28,12 +28,15 @@ public class OutputUpdateEvent implements Event {
   private final Integer numberOfScattered;      // number of scattered nodes
   @JsonProperty("eventGroupId")
   private final UUID eventGroupId;
+  @JsonProperty("producedByNode")
+  private final String producedByNode;
 
-  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object value, Integer position, UUID eventGroupId) {
-    this(contextId, jobId, portId, value, false, null, position, eventGroupId);
+  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object value, Integer position, UUID eventGroupId, String producedByNode) {
+    this(contextId, jobId, portId, value, false, null, position, eventGroupId, producedByNode);
   }
   
-  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object outputValue, boolean fromScatter, Integer numberOfScattered, Integer position, UUID eventGroupId) {
+  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object outputValue, boolean fromScatter,
+      Integer numberOfScattered, Integer position, UUID eventGroupId, String producedByNode) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.portId = portId;
@@ -41,14 +44,16 @@ public class OutputUpdateEvent implements Event {
     this.position = position;
     this.fromScatter = fromScatter;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
     this.numberOfScattered = numberOfScattered;
   }
-  
+
   @JsonCreator
   public OutputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") UUID contextId,
       @JsonProperty("value") Object value, @JsonProperty("portId") String portId,
       @JsonProperty("position") Integer position, @JsonProperty("fromScatter") boolean fromScatter,
-      @JsonProperty("numberOfScattered") Integer numberOfScattered, @JsonProperty("eventGroupId") UUID eventGroupId) {
+      @JsonProperty("numberOfScattered") Integer numberOfScattered, @JsonProperty("eventGroupId") UUID eventGroupId,
+      @JsonProperty("producedByNode") String producedByNode) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.value = value;
@@ -57,6 +62,7 @@ public class OutputUpdateEvent implements Event {
     this.fromScatter = fromScatter;
     this.numberOfScattered = numberOfScattered;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
   }
 
   public String getJobId() {
@@ -86,6 +92,11 @@ public class OutputUpdateEvent implements Event {
   @Override
   public UUID getEventGroupId() {
     return eventGroupId;
+  }
+  
+  @Override
+  public String getProducedByNode() {
+    return producedByNode;
   }
   
   @Override

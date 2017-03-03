@@ -8,8 +8,8 @@ import javax.ws.rs.core.Response.Status;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.engine.rest.api.JobHTTPService;
-import org.rabix.engine.rest.service.JobService;
-import org.rabix.engine.rest.service.JobServiceException;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobServiceException;
 
 import com.google.inject.Inject;
 

@@ -25,13 +25,13 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.PortCounter;
+import org.rabix.engine.service.impl.ContextRecordService;
+import org.rabix.engine.service.impl.JobRecordService;
+import org.rabix.engine.service.impl.LinkRecordService;
+import org.rabix.engine.service.impl.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordService.JobState;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.model.VariableRecord;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.VariableRecordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

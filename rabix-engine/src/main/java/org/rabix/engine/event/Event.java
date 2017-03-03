@@ -58,5 +58,7 @@ public interface Event {
   UUID getContextId();
   
   UUID getEventGroupId();
+
+  String getProducedByNode();
   
 }
