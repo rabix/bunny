@@ -30,8 +30,6 @@ import com.google.common.base.Preconditions;
 
 public class SBDocumentResolver {
 
-  public static final String RESOLVER_REFERENCE_KEY = "import";
-  public static final String RESOLVER_REFERENCE_INCLUDE_KEY = "include";
   public static final String CWL_VERSION_KEY = "cwlVersion";
   
   public static final String RESOLVER_JSON_POINTER_KEY = "$job";
@@ -108,27 +106,11 @@ public class SBDocumentResolver {
   private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
 
-    boolean isInclude = currentNode.has(RESOLVER_REFERENCE_INCLUDE_KEY);
-    if (isInclude) {
-      String path = currentNode.get(RESOLVER_REFERENCE_INCLUDE_KEY).textValue();
-      String content = loadContents(file, path);
 
-      SBDocumentResolverReference reference = new SBDocumentResolverReference(false, new TextNode(content));
-      getReferenceCache(appUrl).put(path, reference);
-      getReplacements(appUrl).add(new SBDocumentResolverReplacement(parentNode, currentNode, path));
-      return null;
-    }
-    
-    boolean isReference = currentNode.has(RESOLVER_REFERENCE_KEY);
     boolean isJsonPointer = currentNode.has(RESOLVER_JSON_POINTER_KEY) && parentNode != null; // we skip the first level $job
 
-    if (isReference || isJsonPointer) {
-      String referencePath = null;
-      if (isReference) {
-        referencePath = currentNode.get(RESOLVER_REFERENCE_KEY).textValue();
-      } else {
-        referencePath = currentNode.get(RESOLVER_JSON_POINTER_KEY).textValue();
-      }
+    if (isJsonPointer) {
+      String referencePath = currentNode.get(RESOLVER_JSON_POINTER_KEY).textValue();
 
       SBDocumentResolverReference reference = getReferenceCache(appUrl).get(referencePath);
       if (reference != null) {
