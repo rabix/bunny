@@ -44,9 +44,7 @@ public interface JobService {
 
   void handleJobFailed(Job failedJob);
 
-  void handleJobsReady(Set<Job> jobs);
-
-  void handleJobReady(Job job);
+  void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode);
 
   void handleJobContainerReady(Job containerJob);
 

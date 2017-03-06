@@ -93,7 +93,7 @@ public class EventProcessorImpl implements EventProcessor {
                 cacheService.flush(eventReference.get().getContextId());
                 
                 Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(eventReference.get().getEventGroupId());
-                jobService.handleJobsReady(readyJobs);
+                jobService.handleJobsReady(readyJobs, eventReference.get().getContextId(), eventReference.get().getProducedByNode());
  
 //                eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.PROCESSED);
                 eventRepository.delete(eventReference.get().getEventGroupId());

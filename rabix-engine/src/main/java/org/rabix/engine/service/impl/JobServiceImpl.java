@@ -269,35 +269,29 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public void handleJobReady(Job job) {
+  public void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode){
     if (isLocalBackend) {
-      long numberOfCores;
-      long memory;
-      if (job.getConfig() != null) {
-        numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : SystemEnvironmentHelper.getNumberOfCores();
-        memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
-      } else {
-        numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
-        memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+      for (Job job : jobs) {
+        long numberOfCores;
+        long memory;
+        if (job.getConfig() != null) {
+          numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : SystemEnvironmentHelper.getNumberOfCores();
+          memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+        } else {
+          numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
+          memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+        }
+        Resources resources = new Resources(numberOfCores, memory, null, true, null, null, null, null);
+        job = Job.cloneWithResources(job, resources);
+        jobRepository.update(job);
       }
-      Resources resources = new Resources(numberOfCores, memory, null, true, null, null, null, null);
-      job = Job.cloneWithResources(job, resources);
-      jobRepository.update(job);
     }
     try {
-      engineStatusCallback.onJobReady(job);
+      engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
     } catch (EngineStatusCallbackException e) {
-      logger.error("Engine status callback failed",e);
+      logger.error("Engine status callback failed", e);
     }
   }
-
-  @Override
-  public void handleJobsReady(Set<Job> jobs){
-    for (Job job : jobs) {
-      handleJobReady(job);
-    }
-  }
-
 
   @Override
   public void handleJobFailed(final Job failedJob){
