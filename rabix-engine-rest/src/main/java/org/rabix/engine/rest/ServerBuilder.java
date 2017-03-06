@@ -44,6 +44,7 @@ import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.impl.NoOpEngineStatusCallback;
 import org.rabix.engine.stub.BackendStubFactory;
+import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +79,7 @@ public class ServerBuilder {
             bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
             bind(BootstrapService.class).to(BootstrapServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
-            bind(BackendStubFactory.class).in(Scopes.SINGLETON);
+            bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
             bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
             bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
             bind(IntermediaryFilesService.class).to(NoOpIntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);

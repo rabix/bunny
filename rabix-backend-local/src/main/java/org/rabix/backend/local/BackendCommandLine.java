@@ -66,6 +66,7 @@ import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
+import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
@@ -253,6 +254,7 @@ public class BackendCommandLine {
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
               bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
               bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
+              bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
               
               if (isTesEnabled) {
                 bind(TESHttpClient.class).in(Scopes.SINGLETON);
@@ -410,7 +412,7 @@ public class BackendCommandLine {
       executorService.initialize(backendLocal);
       BackendStub<?, ?, ?> backendStub;
       try {
-        backendStub = injector.getInstance(BackendStubFactory.class).create(jobService, backendLocal);
+        backendStub = injector.getInstance(BackendStubFactory.class).create(backendLocal);
         schedulerService.addBackendStub(backendStub);
         schedulerService.start();
       } catch (TransportPluginException e2) {
