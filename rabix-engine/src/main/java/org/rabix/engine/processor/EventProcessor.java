@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.status.EngineStatusCallback;
 
 public interface EventProcessor {
 
