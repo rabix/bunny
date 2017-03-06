@@ -8,7 +8,7 @@ import org.rabix.engine.status.EngineStatusCallback;
 
 public interface EventProcessor {
 
-  void start(EngineStatusCallback engineStatusCallback);
+  void start();
 
   void stop();
 

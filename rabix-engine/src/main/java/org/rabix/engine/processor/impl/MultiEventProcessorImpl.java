@@ -35,9 +35,9 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
 
   @Override
-  public void start(EngineStatusCallback engineStatusCallback) {
+  public void start() {
     for (EventProcessorImpl singleEventProcessor : eventProcessors.values()) {
-      singleEventProcessor.start(engineStatusCallback);
+      singleEventProcessor.start();
     }
     this.isRunning = true;
   }

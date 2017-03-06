@@ -33,7 +33,6 @@ import org.rabix.engine.service.impl.JobRecordService;
 import org.rabix.engine.service.impl.LinkRecordService;
 import org.rabix.engine.service.impl.VariableRecordService;
 import org.rabix.engine.status.EngineStatusCallback;
-import org.rabix.engine.status.impl.NoOpEngineStatusCallback;
 import org.rabix.engine.test.DummyConfigModule;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -74,7 +73,7 @@ public class EngineModuleTest {
   public void testNull() throws Exception {
     EngineStatusCallback esc = mock(EngineStatusCallback.class);
 
-    ep.start(esc);
+    ep.start();
     String simpleApp = ResourceHelper.readResource("apps/null.cwl.yml");
     String appUrl = URIHelper.createDataURI(simpleApp);
     Bindings b = BindingsFactory.create(appUrl);
@@ -129,7 +128,7 @@ public class EngineModuleTest {
 
   @Test(enabled=false)
   public void testSimple() throws Exception {
-    ep.start(new NoOpEngineStatusCallback());
+    ep.start();
 
     String simpleApp = ResourceHelper.readResource("apps/simple.cwl.yml");
     String appUrl = URIHelper.createDataURI(simpleApp);
