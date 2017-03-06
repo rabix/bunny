@@ -116,6 +116,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             jobRepository.update(job);
           }
         } catch (BindingException e1) {
+          // FIXME: is this really safe to ignore?
           logger.info("Failed to create job", e1);
         }
       }
@@ -125,7 +126,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService,
                 dagNodeDB, appDB, false);
           } catch (BindingException e) {
-            logger.error("Failed to create containerJob " + containerJob, e);
             throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
           }
           jobService.handleJobContainerReady(containerJob);
@@ -155,7 +155,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           deleteRecords(rootJob.getId());
           cacheService.remove(jobRecord.getRootId());
         } catch (Exception e) {
-          logger.error("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
+//          logger.error("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
         }
       } else {
@@ -199,7 +199,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
           cacheService.remove(jobRecord.getRootId());
         } catch (Exception e) {
-          logger.error("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
+//          logger.error("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
           throw new EventHandlerException("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
         }
       } else {
@@ -209,7 +209,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           
           eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobState.FAILED, null, event.getEventGroupId(), event.getProducedByNode()));
         } catch (Exception e) {
-          logger.error("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
+//          logger.error("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
           throw new EventHandlerException("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
         }
       }
@@ -310,9 +310,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       JobRecord childJob = scatterHelper.createJobRecord(newJobId, job.getExternalId(), node, false, contextId, job.getDagHash());
       jobRecordService.create(childJob);
 
+      // FIXME: lots of string building for debug messages
       StringBuilder childJobLogBuilder = new StringBuilder("\n -- JobRecord ").append(newJobId).append(", isBlocking ").append(childJob.isBlocking()).append("\n");
       for (DAGLinkPort port : node.getInputPorts()) {
-        if(port.getTransform() != null) {
+        if (port.getTransform() != null) {
           childJob.setBlocking(true);
         }
         VariableRecord childVariable = new VariableRecord(contextId, newJobId, port.getId(), LinkPortType.INPUT, port.getDefaultValue(), node.getLinkMerge(port.getId(), port.getType()));
@@ -326,6 +327,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         variableRecordService.create(childVariable);
       }
       logger.debug(childJobLogBuilder.toString());
+
     }
     for (DAGLink link : containerNode.getLinks()) {
       String originalJobID = InternalSchemaHelper.normalizeId(job.getId());

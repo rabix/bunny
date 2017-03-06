@@ -70,7 +70,6 @@ public class FilePermissionServiceImpl implements FilePermissionService {
       dockerClient.waitContainer(containerId);
       dockerClient.removeContainer(containerId);
     } catch (Exception e) {
-      logger.error("Failed to start container.", e);
       throw new ContainerException("Failed to start container.", e);
     }
   }
@@ -99,14 +98,15 @@ public class FilePermissionServiceImpl implements FilePermissionService {
   }
   
   public static String getUid() {
-    String uid = "";;
+    String uid = "";
     String userName = System.getProperty("user.name");
     String command = "id -u " + userName;
     Process child;
     try {
       child = Runtime.getRuntime().exec(command);
     } catch (IOException e) {
-      logger.error("Failed to get UID for user", e);
+      logger.error("Failed to get UID for user {}", userName);
+      logger.error("", e);
       return null;
     }
     InputStream in = child.getInputStream();;
@@ -117,14 +117,14 @@ public class FilePermissionServiceImpl implements FilePermissionService {
       }
       return uid.replace(System.getProperty("line.separator"), "");
     } catch (IOException e){
-      logger.error("Failed to get UID for user" + userName, e);
+      logger.error("Failed to get UID for user " + userName, e);
       return null;
     }
     finally {
       try {
         in.close();
       } catch (IOException e) {
-        logger.error("Failed to get UID for user" + userName, e);
+        logger.error("Failed to get UID for user " + userName, e);
       }
     }
   }
@@ -137,7 +137,7 @@ public class FilePermissionServiceImpl implements FilePermissionService {
     try {
       child = Runtime.getRuntime().exec(command);
     } catch (IOException e) {
-      logger.error("Failed to get UID for user", e);
+      logger.error("Failed to get GID for user", e);
       return null;
     }
     InputStream in = child.getInputStream();;
@@ -148,14 +148,14 @@ public class FilePermissionServiceImpl implements FilePermissionService {
       }
       return uid.replace(System.getProperty("line.separator"), "");
     } catch (IOException e){
-      logger.error("Failed to get UID for user" + userName, e);
+      logger.error("Failed to get GID for user" + userName, e);
       return null;
     }
     finally {
       try {
         in.close();
       } catch (IOException e) {
-        logger.error("Failed to get UID for user" + userName, e);
+        logger.error("Failed to get GID for user" + userName, e);
       }
     }
   }

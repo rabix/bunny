@@ -140,10 +140,10 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
 
             try {
               initConnection();
-              logger.info("Reconnected to " + queue);
+              logger.info("Reconnected to {}", queue);
               break;
             } catch (TransportPluginException e1) {
-              logger.info("Sender reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
+              logger.info("Sender reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
             }
           }
         }
@@ -244,11 +244,11 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
 
               try {
                 initConnection();
-                logger.info("Reconnected to " + queueName);
+                logger.info("Reconnected to {}", queueName);
                 initChannel = true;
                 break;
               } catch (TransportPluginException e1) {
-                logger.info("Receiver reconnect failed. Trying again in " + RETRY_TIMEOUT + " seconds.");
+                logger.info("Receiver reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
               }
             }
           }

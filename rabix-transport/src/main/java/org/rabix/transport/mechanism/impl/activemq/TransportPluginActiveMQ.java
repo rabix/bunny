@@ -63,7 +63,7 @@ public class TransportPluginActiveMQ implements TransportPlugin<TransportQueueAc
       producer.send(message);
       return ResultPair.<T> success();
     } catch (JMSException e) {
-      logger.error("Failed to send a message to " + queue, e);
+//      logger.error("Failed to send a message to " + queue, e);
       return ResultPair.<T> fail("Failed to send a message to " + queue, e);
     } finally {
       try {

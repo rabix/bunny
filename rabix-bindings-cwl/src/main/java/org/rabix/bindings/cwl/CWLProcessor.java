@@ -160,8 +160,8 @@ public class CWLProcessor implements ProtocolProcessor {
         Map<String, Object> mappedResult = new CWLPortProcessor(job).processOutputs(result, new CWLFilePathMapProcessorCallback(logFilePathMapper, config));
         BeanSerializer.serializePartial(resultFile, mappedResult);
       } catch (CWLPortProcessorException e) {
-        logger.error("Failed to map outputs", e);
-        throw new CWLGlobException(e);
+//        logger.error("Failed to map outputs", e);
+        throw new CWLGlobException("Failed to map outputs", e);
       }
     } else {
       BeanSerializer.serializePartial(resultFile, result);
@@ -302,7 +302,7 @@ public class CWLProcessor implements ProtocolProcessor {
     if (outputEval != null) {
       Object self = result != null ? result : Collections.emptyList();
       result = CWLBindingHelper.evaluateOutputEval(job, self, binding);
-      logger.info("OutputEval transformed result into {}.", result);
+      logger.debug("OutputEval transformed result into {}.", result);
     }
     if (CWLSchemaHelper.isFileFromSchema(schema) || CWLSchemaHelper.isDirectoryFromSchema(schema)) {
 	  if (result instanceof List<?>) {
@@ -366,7 +366,7 @@ public class CWLProcessor implements ProtocolProcessor {
       try {
         result.add(formFileValue(file, job, outputBinding, outputPort, hashAlgorithm, workingDir));
       } catch (Exception e) {
-        logger.error("Failed to extract outputs", e);
+//        logger.error("Failed to extract outputs", e);
         throw new CWLGlobException("Failed to extract outputs.", e);
       }
     }
