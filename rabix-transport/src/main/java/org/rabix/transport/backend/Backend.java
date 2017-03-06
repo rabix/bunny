@@ -23,6 +23,8 @@ public abstract class Backend {
 
   @JsonProperty("id")
   protected UUID id;
+  @JsonProperty("name")
+  protected String name;
   
   public static enum BackendType {
     LOCAL,
@@ -38,6 +40,14 @@ public abstract class Backend {
     this.id = id;
   }
 
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+  
   public abstract BackendType getType();
 
   @Override

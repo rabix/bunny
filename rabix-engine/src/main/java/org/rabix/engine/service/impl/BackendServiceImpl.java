@@ -77,7 +77,7 @@ public class BackendServiceImpl implements BackendService {
   public void startBackend(Backend backend) throws BackendServiceException {
     BackendStub<?, ?, ?> backendStub;
     try {
-      backendStub = backendStubFactory.create(jobService, backend);
+      backendStub = backendStubFactory.create(backend);
     } catch (TransportPluginException e) {
       throw new BackendServiceException(e);
     }
@@ -93,8 +93,8 @@ public class BackendServiceImpl implements BackendService {
       if (((BackendRabbitMQ) backend).getBackendConfiguration() == null) {
         String backendExchange = TransportConfigRabbitMQ.getBackendExchange(configuration);
         String backendExchangeType = TransportConfigRabbitMQ.getBackendExchangeType(configuration);
-        String backendReceiveRoutingKey = TransportConfigRabbitMQ.getBackendReceiveRoutingKey(configuration);
-        String backendReceiveControlRoutingKey = TransportConfigRabbitMQ.getBackendReceiveControlRoutingKey(configuration);
+        String backendReceiveRoutingKey = TransportConfigRabbitMQ.getBackendReceiveRoutingKey(configuration)+ "_" + backend.getId();;
+        String backendReceiveControlRoutingKey = TransportConfigRabbitMQ.getBackendReceiveControlRoutingKey(configuration)+ "_" + backend.getId();;
         Long heartbeatPeriodMills = TransportConfigRabbitMQ.getBackendHeartbeatTimeMills(configuration);
 
         backendExchange = backendExchange + "_" + backend.getId();
@@ -118,6 +118,11 @@ public class BackendServiceImpl implements BackendService {
   
   private UUID generateUniqueBackendId() {
     return UUID.randomUUID();
+  }
+  
+  @Override
+  public void updateHeartbeatInfo(UUID id, Timestamp ts) throws BackendServiceException {
+    backendRepository.updateHeartbeatInfo(id, ts);
   }
 
   @Override
