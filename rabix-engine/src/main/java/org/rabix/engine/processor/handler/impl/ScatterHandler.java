@@ -16,18 +16,18 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.model.JobRecord;
+import org.rabix.engine.model.JobRecord.PortCounter;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.model.VariableRecord;
-import org.rabix.engine.model.JobRecord.PortCounter;
 import org.rabix.engine.model.scatter.RowMapping;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.model.scatter.ScatterStrategyFactory;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.impl.JobRecordService;
-import org.rabix.engine.service.impl.LinkRecordService;
-import org.rabix.engine.service.impl.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.google.inject.Inject;
 
@@ -42,7 +42,9 @@ public class ScatterHandler {
   private final ScatterStrategyFactory scatterStrategyFactory;
   
   @Inject
-  public ScatterHandler(final DAGNodeDB dagNodeDB, final JobRecordService jobRecordService, final VariableRecordService variableRecordService, final LinkRecordService linkRecordService, final EventProcessor eventProcessor, final ScatterStrategyFactory scatterStrategyFactory) {
+  public ScatterHandler(final DAGNodeDB dagNodeDB, final JobRecordService jobRecordService,
+      final VariableRecordService variableRecordService, final LinkRecordService linkRecordService,
+      final EventProcessor eventProcessor, final ScatterStrategyFactory scatterStrategyFactory) {
     this.dagNodeDB = dagNodeDB;
     this.eventProcessor = eventProcessor;
     this.jobRecordService = jobRecordService;

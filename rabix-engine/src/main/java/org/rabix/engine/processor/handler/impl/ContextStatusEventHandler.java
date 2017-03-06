@@ -4,7 +4,7 @@ import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.impl.ContextRecordService;
+import org.rabix.engine.service.ContextRecordService;
 
 import com.google.inject.Inject;
 

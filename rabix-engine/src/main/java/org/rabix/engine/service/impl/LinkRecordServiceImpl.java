@@ -13,18 +13,20 @@ import org.rabix.engine.cache.CacheItem.Action;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.model.LinkRecord.LinkRecordCacheKey;
 import org.rabix.engine.repository.LinkRecordRepository;
+import org.rabix.engine.service.CacheService;
+import org.rabix.engine.service.LinkRecordService;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class LinkRecordService {
+public class LinkRecordServiceImpl implements LinkRecordService {
 
   private CacheService cacheService;
   private LinkRecordRepository linkRecordRepository;
   
   @Inject
-  public LinkRecordService(LinkRecordRepository linkRecordRepository, CacheService cacheService) {
+  public LinkRecordServiceImpl(LinkRecordRepository linkRecordRepository, CacheService cacheService) {
     this.cacheService = cacheService;
     this.linkRecordRepository = linkRecordRepository;
   }

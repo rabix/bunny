@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 public class JobStateValidator {
   

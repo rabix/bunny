@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

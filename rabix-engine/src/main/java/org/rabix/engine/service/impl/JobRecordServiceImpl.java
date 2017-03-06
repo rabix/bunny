@@ -13,14 +13,16 @@ import org.rabix.engine.cache.CacheItem.Action;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.PortCounter;
 import org.rabix.engine.repository.JobRecordRepository;
+import org.rabix.engine.service.CacheService;
+import org.rabix.engine.service.JobRecordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class JobRecordService {
+public class JobRecordServiceImpl implements JobRecordService {
 
-  private final static Logger logger = LoggerFactory.getLogger(JobRecordService.class);
+  private final static Logger logger = LoggerFactory.getLogger(JobRecordServiceImpl.class);
   
   public static enum JobState {
     PENDING,
@@ -34,13 +36,9 @@ public class JobRecordService {
   private JobRecordRepository jobRecordRepository;
   
   @Inject
-  public JobRecordService(JobRecordRepository jobRecordRepository, CacheService cacheService) {
+  public JobRecordServiceImpl(JobRecordRepository jobRecordRepository, CacheService cacheService) {
     this.cacheService = cacheService;
     this.jobRecordRepository = jobRecordRepository;
-  }
-  
-  public static UUID generateUniqueId() {
-    return UUID.randomUUID();
   }
   
   public void create(JobRecord jobRecord) {

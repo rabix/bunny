@@ -31,11 +31,15 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobServiceException;
+import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.SchedulerService;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
+import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.rabix.engine.validator.JobStateValidator;
@@ -75,10 +79,12 @@ public class JobServiceImpl implements JobService {
   private EngineStatusCallback engineStatusCallback;
   
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService,
-      LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeDB dagNodeDB, AppDB appDB,
-      JobRepository jobRepository, TransactionHelper transactionHelper, EngineStatusCallback statusCallback, Configuration configuration, IntermediaryFilesService intermediaryFilesService) {
-    
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
+      VariableRecordService variableRecordService, LinkRecordService linkRecordService,
+      ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeDB dagNodeDB, AppDB appDB,
+      JobRepository jobRepository, TransactionHelper transactionHelper, EngineStatusCallback statusCallback,
+      Configuration configuration, IntermediaryFilesService intermediaryFilesService) {
+
     this.dagNodeDB = dagNodeDB;
     this.appDB = appDB;
     this.eventProcessor = eventProcessor;

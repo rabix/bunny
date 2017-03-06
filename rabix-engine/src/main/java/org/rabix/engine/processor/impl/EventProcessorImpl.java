@@ -23,10 +23,9 @@ import org.rabix.engine.repository.EventRepository;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
+import org.rabix.engine.service.CacheService;
+import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobService;
-import org.rabix.engine.service.impl.CacheService;
-import org.rabix.engine.service.impl.ContextRecordService;
-import org.rabix.engine.status.EngineStatusCallbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

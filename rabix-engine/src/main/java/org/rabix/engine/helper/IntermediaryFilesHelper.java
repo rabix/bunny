@@ -12,7 +12,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.service.IntermediaryFilesService;
-import org.rabix.engine.service.impl.LinkRecordService;
+import org.rabix.engine.service.LinkRecordService;
 
 public class IntermediaryFilesHelper {
   

@@ -19,9 +19,12 @@ import org.rabix.engine.helper.IntermediaryFilesHelper;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobServiceException;
+import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.SchedulerService;
+import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.slf4j.Logger;
@@ -56,10 +59,11 @@ public class EngineStatusCallbackImpl implements EngineStatusCallback {
   private Set<UUID> stoppingRootIds = new HashSet<>();
 
   @Inject
-  public EngineStatusCallbackImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService,
-      LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler,
-      IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, AppDB appDB, JobRepository jobRepository, JobService jobService) {
-    
+  public EngineStatusCallbackImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
+      VariableRecordService variableRecordService, LinkRecordService linkRecordService, SchedulerService scheduler,
+      IntermediaryFilesService intermediaryFilesService, Configuration configuration, DAGNodeDB dagNodeDB, AppDB appDB,
+      JobRepository jobRepository, JobService jobService) {
+
     this.jobRepository = jobRepository;
 
     this.jobRecordService = jobRecordService;
@@ -68,7 +72,7 @@ public class EngineStatusCallbackImpl implements EngineStatusCallback {
     this.scheduler = scheduler;
 
     this.intermediaryFilesService = intermediaryFilesService;
-    
+
     deleteFilesUponExecution = configuration.getBoolean("rabix.delete_files_upon_execution", false);
     deleteIntermediaryFiles = configuration.getBoolean("rabix.delete_intermediary_files", false);
     keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);

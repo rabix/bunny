@@ -17,10 +17,11 @@ import org.rabix.engine.processor.EventProcessor.EventProcessorDispatcher;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.LinkRecordRepository;
 import org.rabix.engine.repository.VariableRecordRepository;
+import org.rabix.engine.service.CacheService;
 
 import com.google.inject.Inject;
 
-public class CacheService {
+public class CacheServiceImpl implements CacheService {
 
   private ConcurrentMap<String, Map<UUID, Map<String, Cache>>> caches = new ConcurrentHashMap<String, Map<UUID, Map<String, Cache>>>();
   
@@ -31,7 +32,7 @@ public class CacheService {
   private Configuration configuration;
   
   @Inject
-  public CacheService(JobRecordRepository jobRecordRepository, LinkRecordRepository linkRecordRepository,
+  public CacheServiceImpl(JobRecordRepository jobRecordRepository, LinkRecordRepository linkRecordRepository,
       VariableRecordRepository variableRecordRepository, Configuration configuration) {
     this.configuration = configuration;
     this.jobRecordRepository = jobRecordRepository;

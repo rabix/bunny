@@ -4,15 +4,16 @@ import java.util.UUID;
 
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.repository.ContextRecordRepository;
+import org.rabix.engine.service.ContextRecordService;
 
 import com.google.inject.Inject;
 
-public class ContextRecordService {
+public class ContextRecordServiceImpl implements ContextRecordService {
 
   private ContextRecordRepository contextRecordRepository;
   
   @Inject
-  public ContextRecordService(ContextRecordRepository contextRecordRepository) {
+  public ContextRecordServiceImpl(ContextRecordRepository contextRecordRepository) {
     this.contextRecordRepository = contextRecordRepository;
   }
   

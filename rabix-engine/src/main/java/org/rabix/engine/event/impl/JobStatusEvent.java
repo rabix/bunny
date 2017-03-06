@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.rabix.engine.event.Event;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

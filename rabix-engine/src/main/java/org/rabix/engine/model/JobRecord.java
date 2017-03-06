@@ -10,7 +10,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CacheKey;
 import org.rabix.engine.model.scatter.ScatterStrategy;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
