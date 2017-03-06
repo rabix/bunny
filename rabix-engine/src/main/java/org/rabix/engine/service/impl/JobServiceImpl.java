@@ -97,6 +97,7 @@ public class JobServiceImpl implements JobService {
     deleteIntermediaryFiles = configuration.getBoolean("rabix.delete_intermediary_files", false);
     keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);
     isLocalBackend = configuration.getBoolean("local.backend", false);
+    eventProcessor.start();
   }
   
   @Override
