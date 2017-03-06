@@ -1,5 +1,6 @@
 package org.rabix.engine.service;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ public interface BackendService {
   void stopBackend(Backend backend) throws BackendServiceException;
   
   void updateHeartbeatInfo(HeartbeatInfo info) throws BackendServiceException;
+
+  void updateHeartbeatInfo(UUID id, Timestamp info) throws BackendServiceException;
 
   Long getHeartbeatInfo(UUID id);
   

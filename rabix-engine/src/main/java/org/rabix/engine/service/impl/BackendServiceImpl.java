@@ -119,6 +119,11 @@ public class BackendServiceImpl implements BackendService {
   private UUID generateUniqueBackendId() {
     return UUID.randomUUID();
   }
+  
+  @Override
+  public void updateHeartbeatInfo(UUID id, Timestamp ts) throws BackendServiceException {
+    backendRepository.updateHeartbeatInfo(id, ts);
+  }
 
   @Override
   public void updateHeartbeatInfo(HeartbeatInfo info) throws BackendServiceException {
