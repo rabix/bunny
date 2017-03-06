@@ -136,13 +136,13 @@ class Backend(object):
         try:
             self.channel.queue_bind(exchange=be_cfg['exchange'],
                                     queue='jobs',
-                                    routing_key=be_cfg['receive_routing_key'] + '_' + self.backend_id)
+                                    routing_key=be_cfg['receive_routing_key'])
         except Exception as e:
             log.exception('exception caught: ' + str(e) + ', exchange not found')
 
         self.channel.queue_bind(exchange=be_cfg['exchange'],
                                 queue='control',
-                                routing_key=be_cfg['receive_control_routing_key'] + '_' + self.backend_id)
+                                routing_key=be_cfg['receive_control_routing_key'])
 
         log.debug('!!!!!!!!!!!!!!! starting consume')
         self.channel.basic_consume(self.callback_jobs, queue='jobs')
