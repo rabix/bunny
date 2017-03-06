@@ -7,7 +7,6 @@ import org.rabix.engine.processor.handler.impl.InitEventHandler;
 import org.rabix.engine.processor.handler.impl.InputEventHandler;
 import org.rabix.engine.processor.handler.impl.JobStatusEventHandler;
 import org.rabix.engine.processor.handler.impl.OutputEventHandler;
-import org.rabix.engine.status.EngineStatusCallback;
 
 import com.google.inject.Inject;
 
