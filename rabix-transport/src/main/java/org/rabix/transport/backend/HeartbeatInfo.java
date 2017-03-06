@@ -20,6 +20,10 @@ public class HeartbeatInfo {
     this.timestamp = timestamp;
   }
 
+  public HeartbeatInfo(@JsonProperty("timestamp") Long timestamp) {
+    this.timestamp = timestamp;
+  }
+
   public UUID getId() {
     return id;
   }
