@@ -49,6 +49,11 @@ public class DefaultEngineStatusCallback implements EngineStatusCallback {
   public void onJobRootFailed(Job rootJob) throws EngineStatusCallbackException {
     logger.debug("onJobFailed(jobId={})", rootJob.getId());
   }
+  
+  @Override
+  public void onJobRootAborted(Job rootJob) throws EngineStatusCallbackException {
+    logger.debug("onJobAborted(jobId={})", rootJob.getId());
+  }
 
   @Override
   public void onJobContainerReady(Job rootJob) throws EngineStatusCallbackException {

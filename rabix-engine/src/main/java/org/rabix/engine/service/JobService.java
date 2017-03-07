@@ -48,4 +48,6 @@ public interface JobService {
 
   void handleJobContainerReady(Job containerJob);
 
+  void handleJobRootAborted(Job rootJob);
+
 }
