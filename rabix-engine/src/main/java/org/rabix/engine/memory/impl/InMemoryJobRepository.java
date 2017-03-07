@@ -124,10 +124,10 @@ public class InMemoryJobRepository implements JobRepository {
 
   @Override
   public void updateBackendIds(Iterator<JobEntity> entities) {
-//    while(jobBackendPair.hasNext()) {
-//      JobBackendPair jbp = jobBackendPair.next();
-//      updateBackendId(jbp.getJobId(), jbp.getBackendId());
-//    }
+    while(entities.hasNext()) {
+      JobEntity jbp = entities.next();
+      updateBackendId(jbp.getJob().getId(), jbp.getBackendId());
+    }
   }
 
   @Override
