@@ -7,8 +7,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
-import java.util.UUID;
 
+import org.rabix.bindings.model.Job;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +25,8 @@ public class IntermediaryFilesServiceLocalImpl extends IntermediaryFilesService 
   }
   
   @Override
-  public void handleUnusedFiles(UUID rootId) {
-    Set<String> unusedFiles = getUnusedFiles(rootId);
+  public void handleUnusedFiles(Job job) {
+    Set<String> unusedFiles = getUnusedFiles(job.getRootId());
     for (String p : unusedFiles) {
       Path path = Paths.get(p);
       try {

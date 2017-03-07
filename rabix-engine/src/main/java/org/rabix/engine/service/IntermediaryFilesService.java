@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.rabix.bindings.model.FileValue;
+import org.rabix.bindings.model.Job;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.engine.helper.IntermediaryFilesHelper;
 import org.slf4j.Logger;
@@ -73,7 +74,7 @@ public abstract class IntermediaryFilesService {
     }
   }
   
-  public abstract void handleUnusedFiles(UUID rootId);
+  public abstract void handleUnusedFiles(Job job);
   
   public void dumpFiles() {
     VerboseLogger.log("Intermediary files table");

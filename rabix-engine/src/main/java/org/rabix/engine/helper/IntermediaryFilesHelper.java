@@ -41,10 +41,17 @@ public class IntermediaryFilesHelper {
         List<FileValue> files = FileValueHelper.getFilesFromValue(entry.getValue());
         if (!files.isEmpty()) {
           List<LinkRecord> links = linkRecordService.findBySource(job.getName(), entry.getKey(), job.getRootId());
+          Set<String> destinationJobs = new HashSet<String>();
           Integer count = links.size();
           for (LinkRecord link : links) {
+            if(destinationJobs.contains(link.getDestinationJobId())) {
+              count--;
+              continue;
+            }
+            destinationJobs.add(link.getDestinationJobId());
             if(link.getDestinationJobId().equals(InternalSchemaHelper.getJobIdFromScatteredId(job.getName())) && InternalSchemaHelper.getScatteredNumber(job.getName()) != null) {
               isScattered = true;
+              break;
             }
             if(!link.getDestinationJobId().equals(InternalSchemaHelper.ROOT_NAME) && link.getDestinationVarType().equals(LinkPortType.OUTPUT)) {
               count--;
@@ -66,7 +73,7 @@ public class IntermediaryFilesHelper {
           }
         }
         intermediaryFilesService.decrementFiles(job.getRootId(), inputs);
-        intermediaryFilesService.handleUnusedFiles(job.getRootId());
+        intermediaryFilesService.handleUnusedFiles(job);
       }
       intermediaryFilesService.dumpFiles();
     }
@@ -83,7 +90,7 @@ public class IntermediaryFilesHelper {
       }
     }
     intermediaryFilesService.jobFailed(job.getRootId(), rootInputs);
-    intermediaryFilesService.handleUnusedFiles(job.getRootId());
+    intermediaryFilesService.handleUnusedFiles(job);
   }
   
   public static void extractPathsFromFileValue(Set<String> paths, FileValue file) {
