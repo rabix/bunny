@@ -36,7 +36,7 @@ public interface JobService {
 
   void handleJobCompleted(Job job);
 
-  void handleJobRootPartiallyCompleted(Job rootJob);
+  void handleJobRootPartiallyCompleted(Job rootJob, String producedBy);
 
   void handleJobRootFailed(Job job);
 

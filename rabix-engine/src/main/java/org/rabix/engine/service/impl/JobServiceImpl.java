@@ -416,10 +416,10 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public void handleJobRootPartiallyCompleted(Job rootJob){
+  public void handleJobRootPartiallyCompleted(Job rootJob, String producedBy){
     logger.info("Root {} is partially completed.", rootJob.getId());
     try{
-      engineStatusCallback.onJobRootPartiallyCompleted(rootJob);
+      engineStatusCallback.onJobRootPartiallyCompleted(rootJob, producedBy);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
     }
