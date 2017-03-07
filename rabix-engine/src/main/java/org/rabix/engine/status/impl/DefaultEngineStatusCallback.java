@@ -41,7 +41,7 @@ public class DefaultEngineStatusCallback implements EngineStatusCallback {
   }
   
   @Override
-  public void onJobRootPartiallyCompleted(Job rootJob) throws EngineStatusCallbackException {
+  public void onJobRootPartiallyCompleted(Job rootJob, String producedBy) throws EngineStatusCallbackException {
     logger.debug("onJobRootPartiallyCompleted(jobId={})", rootJob.getId());
   }
 
