@@ -96,7 +96,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     try {
       JobStateValidator.checkState(jobRecord, event.getState());
     } catch (JobStateValidationException e) {
-      logger.warn("Cannot transition from state " + jobRecord.getState() + " to " + event.getState());
+      logger.warn("Cannot transition from state {} to {}", jobRecord.getState(), event.getState());
       return;
     }
     
