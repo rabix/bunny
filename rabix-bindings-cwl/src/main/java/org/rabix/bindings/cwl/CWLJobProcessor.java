@@ -39,8 +39,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
     try {
       return process(null, job);
     } catch (CWLException e) {
-//      logger.error("Failed to process Job.", e);
-      throw new BeanProcessorException("Failed to process Job.", e);
+      throw new BeanProcessorException("Failed to process CWLv1 Job.", e);
     }
   }
   

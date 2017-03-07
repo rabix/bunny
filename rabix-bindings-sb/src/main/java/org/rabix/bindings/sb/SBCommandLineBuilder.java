@@ -55,7 +55,6 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdin = commandLineTool.getStdin(sbJob);
     } catch (SBExpressionException e) {
-      logger.error("Failed to extract standard input.", e);
       throw new BindingException("Failed to extract standard input.", e);
     }
 
@@ -63,7 +62,6 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdout = commandLineTool.getStdout(sbJob);
     } catch (SBExpressionException e) {
-      logger.error("Failed to extract standard output.", e);
       throw new BindingException("Failed to extract standard outputs.", e);
     }
 
@@ -100,7 +98,6 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdin = commandLineTool.getStdin(job);
     } catch (SBExpressionException e) {
-      logger.error("Failed to extract standard input.", e);
       throw new BindingException("Failed to extract standard input.", e);
     }
     if (!StringUtils.isEmpty(stdin)) {
@@ -111,7 +108,6 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdout = commandLineTool.getStdout(job);
     } catch (SBExpressionException e) {
-      logger.error("Failed to extract standard output.", e);
       throw new BindingException("Failed to extract standard outputs.", e);
     }
     if (!StringUtils.isEmpty(stdout)) {
@@ -183,7 +179,6 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
         }
       }
     } catch (SBExpressionException e) {
-      logger.error("Failed to build command line.", e);
       throw new BindingException("Failed to build command line.", e);
     }
     return result;

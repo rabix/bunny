@@ -136,7 +136,6 @@ public class CWLExpressionResolver {
           }
           return ex.substring(0, m.start(0)) + leafStr + paramInterpolate(ex.substring(m.end(0)), obj, false);
         } catch (JsonProcessingException e) {
-//          logger.error("Failed to serialize {} to JSON.", leaf);
           throw new CWLExpressionException("Failed to serialize " + leaf + " to JSON.", e);
         }
       }
@@ -167,7 +166,6 @@ public class CWLExpressionResolver {
         try {
           leafStr = sortMapper.writeValueAsString(evaluated);
         } catch (JsonProcessingException e) {
-//          logger.error("Failed to serialize {} to JSON.", evaluated);
           throw new CWLExpressionException("Failed to serialize " + evaluated + " to JSON.", e);
         }
         if (leafStr.startsWith("\"")) {

@@ -160,7 +160,6 @@ public class CWLProcessor implements ProtocolProcessor {
         Map<String, Object> mappedResult = new CWLPortProcessor(job).processOutputs(result, new CWLFilePathMapProcessorCallback(logFilePathMapper, config));
         BeanSerializer.serializePartial(resultFile, mappedResult);
       } catch (CWLPortProcessorException e) {
-//        logger.error("Failed to map outputs", e);
         throw new CWLGlobException("Failed to map outputs", e);
       }
     } else {
@@ -366,7 +365,6 @@ public class CWLProcessor implements ProtocolProcessor {
       try {
         result.add(formFileValue(file, job, outputBinding, outputPort, hashAlgorithm, workingDir));
       } catch (Exception e) {
-//        logger.error("Failed to extract outputs", e);
         throw new CWLGlobException("Failed to extract outputs.", e);
       }
     }

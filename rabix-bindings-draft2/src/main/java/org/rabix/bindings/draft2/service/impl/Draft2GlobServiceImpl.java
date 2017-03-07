@@ -43,7 +43,6 @@ public class Draft2GlobServiceImpl implements Draft2GlobService {
       try {
         glob = Draft2ExpressionBeanHelper.<String> evaluate(job, glob);
       } catch (Draft2ExpressionException e) {
-        logger.error("Failed to evaluate glob " + glob, e);
         throw new Draft2GlobException("Failed to evaluate glob " + glob, e);
       }
     }
@@ -123,7 +122,6 @@ public class Draft2GlobServiceImpl implements Draft2GlobService {
 
         });
       } catch (IOException e) {
-        logger.error("Failed to traverse through working directory", e);
         throw new Draft2GlobException("Failed to traverse through working directory", e);
       }
     }

@@ -594,7 +594,7 @@ public class BackendCommandLine {
     }
     File config = new File(new File(BackendCommandLine.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParentFile().getParentFile() + "/config");
 
-    logger.debug("Config path: " + config.getCanonicalPath());
+    logger.debug("Config path: {}", config.getCanonicalPath());
     if (config.exists() && config.isDirectory()) {
       logger.debug("Configuration directory found localy.");
       return config;

@@ -105,8 +105,7 @@ public class FilePermissionServiceImpl implements FilePermissionService {
     try {
       child = Runtime.getRuntime().exec(command);
     } catch (IOException e) {
-      logger.error("Failed to get UID for user {}", userName);
-      logger.error("", e);
+      logger.error("Failed to get UID for user " + userName, e);
       return null;
     }
     InputStream in = child.getInputStream();;

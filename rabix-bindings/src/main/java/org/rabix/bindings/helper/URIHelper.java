@@ -156,7 +156,7 @@ public class URIHelper {
       }
       return response.toString();
     } catch (IOException e) {
-      logger.error("Failed to load data from URL " + uri, e);
+      logger.error("Failed to load data from URL {}: {}", uri, e.getMessage());
       throw e;
     }
   }
@@ -167,7 +167,7 @@ public class URIHelper {
       String absoluteFilePath = new File(filePath).getCanonicalPath();
       return FileUtils.readFileToString(new File(absoluteFilePath), DEFAULT_ENCODING);
     } catch (IOException e) {
-      logger.error("Failed to load data from file " + uri, e);
+      logger.error("Failed to load data from file {}: {}", uri, e.getMessage());
       throw e;
     }
   }
