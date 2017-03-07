@@ -423,6 +423,15 @@ public class JobServiceImpl implements JobService {
       logger.error("Engine status callback failed",e);
     }
   }
+  @Override
+  public void handleJobRootAborted(Job rootJob){
+    logger.info("Root {} Has been aborted", rootJob.getId());
+    try{
+      engineStatusCallback.onJobRootAborted(rootJob);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed",e);
+    }
+  }
 
   @Override
   public void handleJobCompleted(Job job){
