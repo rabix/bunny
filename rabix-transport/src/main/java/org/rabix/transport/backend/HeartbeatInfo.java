@@ -10,10 +10,17 @@ public class HeartbeatInfo {
   private UUID id;
   @JsonProperty("timestamp")
   private Long timestamp;
-  
+
   @JsonCreator
+  public HeartbeatInfo() {
+  }
+
   public HeartbeatInfo(@JsonProperty("id") UUID id, @JsonProperty("timestamp") Long timestamp) {
     this.id = id;
+    this.timestamp = timestamp;
+  }
+
+  public HeartbeatInfo(@JsonProperty("timestamp") Long timestamp) {
     this.timestamp = timestamp;
   }
 

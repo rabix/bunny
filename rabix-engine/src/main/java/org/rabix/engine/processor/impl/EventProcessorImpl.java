@@ -23,10 +23,9 @@ import org.rabix.engine.repository.EventRepository;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
-import org.rabix.engine.service.impl.CacheService;
-import org.rabix.engine.service.impl.ContextRecordService;
-import org.rabix.engine.status.EngineStatusCallback;
-import org.rabix.engine.status.EngineStatusCallbackException;
+import org.rabix.engine.service.CacheService;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.JobService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,22 +57,22 @@ public class EventProcessorImpl implements EventProcessor {
   
   private final JobRepository jobRepository;
   private final EventRepository eventRepository;
+  private final JobService jobService;
   
   @Inject
   public EventProcessorImpl(HandlerFactory handlerFactory, ContextRecordService contextRecordService,
       TransactionHelper transactionHelper, CacheService cacheService, EventRepository eventRepository,
-      JobRepository jobRepository) {
+      JobRepository jobRepository, JobService jobService) {
     this.handlerFactory = handlerFactory;
     this.contextRecordService = contextRecordService;
     this.transactionHelper = transactionHelper;
     this.cacheService = cacheService;
     this.eventRepository = eventRepository;
     this.jobRepository = jobRepository;
+    this.jobService = jobService;
   }
 
-  public void start(EngineStatusCallback engineStatusCallback) {
-    this.handlerFactory.initialize(engineStatusCallback);
-    
+  public void start() {
     executorService.execute(new Runnable() {
       @Override
       public void run() {
@@ -94,12 +93,8 @@ public class EventProcessorImpl implements EventProcessor {
                 cacheService.flush(eventReference.get().getContextId());
                 
                 Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(eventReference.get().getEventGroupId());
-                try {
-                  engineStatusCallback.onJobsReady(readyJobs);
-                } catch (EngineStatusCallbackException e) {
-                  logger.error("Failed to call onJobsReady() callback", e);
-                  // TODO handle exception
-                }
+                jobService.handleJobsReady(readyJobs, eventReference.get().getContextId(), eventReference.get().getProducedByNode());
+ 
 //                eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.PROCESSED);
                 eventRepository.delete(eventReference.get().getEventGroupId());
                 return null;

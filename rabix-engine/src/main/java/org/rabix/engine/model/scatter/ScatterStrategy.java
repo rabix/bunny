@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
-import org.rabix.engine.service.impl.VariableRecordService;
+import org.rabix.engine.service.VariableRecordService;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

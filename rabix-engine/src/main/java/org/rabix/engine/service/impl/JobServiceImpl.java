@@ -1,16 +1,23 @@
 package org.rabix.engine.service.impl;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
+import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.dag.DAGNode;
+import org.rabix.common.SystemEnvironmentHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.db.AppDB;
@@ -18,16 +25,23 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
+import org.rabix.engine.helper.IntermediaryFilesHelper;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobServiceException;
+import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.SchedulerService;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
+import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.status.EngineStatusCallbackException;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +65,26 @@ public class JobServiceImpl implements JobService {
   private final SchedulerService scheduler;
   
   private final TransactionHelper transactionHelper;
+
+  private boolean deleteFilesUponExecution;
+  private boolean deleteIntermediaryFiles;
+  private boolean keepInputFiles;
+  private boolean isLocalBackend;
+
+  private IntermediaryFilesService intermediaryFilesService;
+  private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
+
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+  private Set<UUID> stoppingRootIds = new HashSet<>();
+  private EngineStatusCallback engineStatusCallback;
   
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeDB dagNodeDB, AppDB appDB, JobRepository jobRepository, TransactionHelper transactionHelper, EngineStatusCallback statusCallback) {
+  public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
+      VariableRecordService variableRecordService, LinkRecordService linkRecordService,
+      ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeDB dagNodeDB, AppDB appDB,
+      JobRepository jobRepository, TransactionHelper transactionHelper, EngineStatusCallback statusCallback,
+      Configuration configuration, IntermediaryFilesService intermediaryFilesService) {
+
     this.dagNodeDB = dagNodeDB;
     this.appDB = appDB;
     this.eventProcessor = eventProcessor;
@@ -65,8 +96,14 @@ public class JobServiceImpl implements JobService {
     this.contextRecordService = contextRecordService;
     this.scheduler = scheduler;
     this.transactionHelper = transactionHelper;
+    this.engineStatusCallback = statusCallback;
+    this.intermediaryFilesService = intermediaryFilesService;
     
-    this.eventProcessor.start(statusCallback);
+    deleteFilesUponExecution = configuration.getBoolean("rabix.delete_files_upon_execution", false);
+    deleteIntermediaryFiles = configuration.getBoolean("rabix.delete_intermediary_files", false);
+    keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);
+    isLocalBackend = configuration.getBoolean("local.backend", false);
+    eventProcessor.start();
   }
   
   @Override
@@ -231,4 +268,182 @@ public class JobServiceImpl implements JobService {
     return jobRepository.getReadyFree();
   }
 
+  @Override
+  public void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode){
+    if (isLocalBackend) {
+      for (Job job : jobs) {
+        long numberOfCores;
+        long memory;
+        if (job.getConfig() != null) {
+          numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : SystemEnvironmentHelper.getNumberOfCores();
+          memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+        } else {
+          numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
+          memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+        }
+        Resources resources = new Resources(numberOfCores, memory, null, true, null, null, null, null);
+        job = Job.cloneWithResources(job, resources);
+        jobRepository.update(job);
+      }
+    }
+    try {
+      engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed", e);
+    }
+  }
+
+  @Override
+  public void handleJobFailed(final Job failedJob){
+    if (isLocalBackend) {
+      synchronized (stoppingRootIds) {
+        if (stoppingRootIds.contains(failedJob.getRootId())) {
+          return;
+        }
+        stoppingRootIds.add(failedJob.getRootId());
+
+        try {
+          stop(failedJob.getRootId());
+        } catch (JobServiceException e) {
+          logger.error("Failed to stop Root job " + failedJob.getRootId(), e);
+        }
+        executorService.submit(new Runnable() {
+          @Override
+          public void run() {
+            while (true) {
+              try {
+                boolean exit = true;
+                for (Job job : jobRepository.getByRootId(failedJob.getRootId())) {
+                  if (!job.isRoot() && !isFinished(job.getStatus())) {
+                    exit = false;
+                    break;
+                  }
+                }
+                if (exit) {
+                  handleJobRootFailed(failedJob);
+                  break;
+                }
+                Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+              } catch (Exception e) {
+                logger.error("Failed to stop root Job " + failedJob.getRootId(), e);
+                break;
+              }
+            }
+          }
+        });
+      }
+    }
+    if (deleteIntermediaryFiles) {
+      IntermediaryFilesHelper.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()), intermediaryFilesService, keepInputFiles);
+    }
+    try {
+      engineStatusCallback.onJobFailed(failedJob);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed", e);
+    }
+  }
+
+  private boolean isFinished(JobStatus jobStatus) {
+    switch (jobStatus) {
+      case COMPLETED:
+      case FAILED:
+      case ABORTED:
+        return true;
+      default:
+        return false;
+    }
+  }
+  @Override
+  public void handleJobContainerReady(Job containerJob) {
+    if (deleteIntermediaryFiles) {
+      IntermediaryFilesHelper.handleContainerReady(containerJob, linkRecordService, intermediaryFilesService, keepInputFiles);
+    }
+    try {
+      engineStatusCallback.onJobContainerReady(containerJob);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed", e);
+    }
+  }
+
+  @Override
+  public void handleJobRootCompleted(Job job){
+    if (deleteFilesUponExecution) {
+      scheduler.freeBackend(job);
+
+      if (isLocalBackend) {
+        try {
+          Thread.sleep(FREE_RESOURCES_WAIT_TIME);
+        } catch (InterruptedException e) {
+        }
+      }
+    }
+
+    job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
+    job = JobHelper.fillOutputs(job, jobRecordService, variableRecordService);
+    jobRepository.update(job);
+    try {
+      engineStatusCallback.onJobRootCompleted(job);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed", e);
+    }
+  }
+
+  @Override
+  public void handleJobRootFailed(Job job){
+    synchronized (stoppingRootIds) {
+      if (deleteFilesUponExecution) {
+        scheduler.freeBackend(job);
+
+        if (isLocalBackend) {
+          try {
+            Thread.sleep(FREE_RESOURCES_WAIT_TIME);
+          } catch (InterruptedException e) {
+          }
+        }
+      }
+
+      job = Job.cloneWithStatus(job, JobStatus.FAILED);
+      jobRepository.update(job);
+
+      scheduler.deallocate(job);
+      stoppingRootIds.remove(job.getId());
+    }
+    try {
+      engineStatusCallback.onJobRootFailed(job);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed", e);
+    }
+  }
+
+  @Override
+  public void handleJobRootPartiallyCompleted(Job rootJob, String producedBy){
+    logger.info("Root {} is partially completed.", rootJob.getId());
+    try{
+      engineStatusCallback.onJobRootPartiallyCompleted(rootJob, producedBy);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed",e);
+    }
+  }
+  @Override
+  public void handleJobRootAborted(Job rootJob){
+    logger.info("Root {} Has been aborted", rootJob.getId());
+    try{
+      engineStatusCallback.onJobRootAborted(rootJob);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed",e);
+    }
+  }
+
+  @Override
+  public void handleJobCompleted(Job job){
+    logger.info("Job {} is completed.", job.getName());
+    if (deleteIntermediaryFiles) {
+      IntermediaryFilesHelper.handleJobCompleted(job, linkRecordService, intermediaryFilesService);
+    }
+    try{
+      engineStatusCallback.onJobCompleted(job);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed",e);
+    }
+  }
 }

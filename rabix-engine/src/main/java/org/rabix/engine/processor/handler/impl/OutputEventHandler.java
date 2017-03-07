@@ -24,11 +24,11 @@ import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.impl.ContextRecordService;
-import org.rabix.engine.service.impl.JobRecordService;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
-import org.rabix.engine.service.impl.LinkRecordService;
-import org.rabix.engine.service.impl.VariableRecordService;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.slf4j.Logger;
@@ -107,7 +107,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     
     if (sourceJob.isRoot()) {
       try {
-        engineStatusCallback.onJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())));
+        engineStatusCallback.onJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.getProducedByNode());
       } catch (EngineStatusCallbackException e) {
         logger.error("Failed to call onReady callback for Job " + sourceJob.getId(), e);
         throw new EventHandlerException("Failed to call onJobRootPartiallyCompleted callback for Job " + sourceJob.getId(), e);

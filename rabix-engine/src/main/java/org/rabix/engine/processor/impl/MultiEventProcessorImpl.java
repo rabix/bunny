@@ -8,7 +8,6 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.status.EngineStatusCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +34,9 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
 
   @Override
-  public void start(EngineStatusCallback engineStatusCallback) {
+  public void start() {
     for (EventProcessorImpl singleEventProcessor : eventProcessors.values()) {
-      singleEventProcessor.start(engineStatusCallback);
+      singleEventProcessor.start();
     }
     this.isRunning = true;
   }

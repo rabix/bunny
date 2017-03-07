@@ -34,4 +34,20 @@ public interface JobService {
 
   Job get(UUID id);
 
+  void handleJobCompleted(Job job);
+
+  void handleJobRootPartiallyCompleted(Job rootJob, String producedBy);
+
+  void handleJobRootFailed(Job job);
+
+  void handleJobRootCompleted(Job job);
+
+  void handleJobFailed(Job failedJob);
+
+  void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode);
+
+  void handleJobContainerReady(Job containerJob);
+
+  void handleJobRootAborted(Job rootJob);
+
 }

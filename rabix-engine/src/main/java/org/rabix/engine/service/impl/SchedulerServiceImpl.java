@@ -1,5 +1,6 @@
 package org.rabix.engine.service.impl;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
+import org.rabix.engine.service.StoreCleanupService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.SchedulerService.SchedulerCallback;
@@ -59,19 +61,19 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
   private final BackendService backendService;
 
   private final TransactionHelper transactionHelper;
-  private final RecordDeleteService recordDeleteService;
+  private final StoreCleanupService storeCleanupService;
   
   private final SchedulerCallback schedulerCallback;
   
   private final AtomicReference<Set<SchedulerMessage>> messages = new AtomicReference<Set<SchedulerMessage>>(Collections.<SchedulerMessage>emptySet());
   
   @Inject
-  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, RecordDeleteService recordDeleteService, SchedulerCallback schedulerCallback) {
+  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback) {
     this.jobService = jobService;
     this.backendService = backendService;
     this.schedulerCallback = schedulerCallback;
     this.transactionHelper = repositoriesFactory;
-    this.recordDeleteService = recordDeleteService;
+    this.storeCleanupService = storeCleanupService;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
   }
 
@@ -92,7 +94,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
     });
 
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
-    recordDeleteService.start();
+    storeCleanupService.start();
   }
 
   private void schedule() {
@@ -163,7 +165,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       backendStub.start(new HeartbeatCallback() {
         @Override
         public void save(HeartbeatInfo info) throws Exception {
-          backendService.updateHeartbeatInfo(info);
+          backendService.updateHeartbeatInfo(backendStub.getBackend().getId(), new Timestamp(info.getTimestamp()));
         }
       }, new ReceiveCallback<Job>() {
         @Override

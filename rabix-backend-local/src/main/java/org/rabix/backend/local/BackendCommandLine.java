@@ -59,13 +59,14 @@ import org.rabix.engine.service.JobServiceException;
 import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.service.impl.BackendServiceImpl;
-import org.rabix.engine.service.impl.EngineStatusCallbackImpl;
 import org.rabix.engine.service.impl.IntermediaryFilesServiceLocalImpl;
 import org.rabix.engine.service.impl.JobServiceImpl;
 import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
+import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
@@ -245,7 +246,7 @@ public class BackendCommandLine {
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
               bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
               bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
-              bind(EngineStatusCallback.class).to(EngineStatusCallbackImpl.class).in(Scopes.SINGLETON);
+              bind(EngineStatusCallback.class).to(DefaultEngineStatusCallback.class).in(Scopes.SINGLETON);
               bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
               bind(DownloadService.class).to(LocalDownloadServiceImpl.class).in(Scopes.SINGLETON);
               bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
@@ -253,6 +254,7 @@ public class BackendCommandLine {
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
               bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
               bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
+              bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
               
               if (isTesEnabled) {
                 bind(TESHttpClient.class).in(Scopes.SINGLETON);
@@ -410,7 +412,7 @@ public class BackendCommandLine {
       executorService.initialize(backendLocal);
       BackendStub<?, ?, ?> backendStub;
       try {
-        backendStub = injector.getInstance(BackendStubFactory.class).create(jobService, backendLocal);
+        backendStub = injector.getInstance(BackendStubFactory.class).create(backendLocal);
         schedulerService.addBackendStub(backendStub);
         schedulerService.start();
       } catch (TransportPluginException e2) {

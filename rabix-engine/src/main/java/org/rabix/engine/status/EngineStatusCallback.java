@@ -1,6 +1,7 @@
 package org.rabix.engine.status;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 
@@ -8,7 +9,7 @@ public interface EngineStatusCallback {
 
   void onJobReady(Job job) throws EngineStatusCallbackException;
 
-  void onJobsReady(Set<Job> jobs) throws EngineStatusCallbackException;
+  void onJobsReady(Set<Job> jobs, UUID rootId, String producedByNode) throws EngineStatusCallbackException;
   
   void onJobCompleted(Job job) throws EngineStatusCallbackException;
   
@@ -18,8 +19,10 @@ public interface EngineStatusCallback {
   
   void onJobRootCompleted(Job rootJob) throws EngineStatusCallbackException;
   
-  void onJobRootPartiallyCompleted(Job rootJob) throws EngineStatusCallbackException;
-  
+  void onJobRootPartiallyCompleted(Job rootJob, String producedBy) throws EngineStatusCallbackException;
+
   void onJobRootFailed(Job rootJob) throws EngineStatusCallbackException;
+  
+  void onJobRootAborted(Job rootJob) throws EngineStatusCallbackException;
   
 }

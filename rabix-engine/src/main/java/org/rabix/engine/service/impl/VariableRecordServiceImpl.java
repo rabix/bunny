@@ -14,18 +14,20 @@ import org.rabix.engine.cache.CacheItem.Action;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.model.VariableRecord.VariableRecordCacheKey;
 import org.rabix.engine.repository.VariableRecordRepository;
+import org.rabix.engine.service.CacheService;
+import org.rabix.engine.service.VariableRecordService;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class VariableRecordService {
+public class VariableRecordServiceImpl implements VariableRecordService {
 
   private CacheService cacheService;
   private VariableRecordRepository variableRecordRepository;
 
   @Inject
-  public VariableRecordService(VariableRecordRepository variableRecordRepository, CacheService cacheService) {
+  public VariableRecordServiceImpl(VariableRecordRepository variableRecordRepository, CacheService cacheService) {
     this.cacheService = cacheService;
     this.variableRecordRepository = variableRecordRepository;
   }

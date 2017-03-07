@@ -1,6 +1,7 @@
 package org.rabix.engine.status.impl;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.engine.status.EngineStatusCallback;
@@ -8,9 +9,9 @@ import org.rabix.engine.status.EngineStatusCallbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NoOpEngineStatusCallback implements EngineStatusCallback {
+public class DefaultEngineStatusCallback implements EngineStatusCallback {
 
-  private final static Logger logger = LoggerFactory.getLogger(NoOpEngineStatusCallback.class);
+  private final static Logger logger = LoggerFactory.getLogger(DefaultEngineStatusCallback.class);
   
   @Override
   public void onJobReady(Job job) throws EngineStatusCallbackException {
@@ -18,8 +19,10 @@ public class NoOpEngineStatusCallback implements EngineStatusCallback {
   }
   
   @Override
-  public void onJobsReady(Set<Job> jobs) throws EngineStatusCallbackException {
-    logger.debug("onJobsReady()");
+  public void onJobsReady(Set<Job> jobs, UUID rootId, String producedByNode) throws EngineStatusCallbackException {
+    for (Job job : jobs) {
+      onJobReady(job);
+    }
   }
 
   @Override
@@ -38,13 +41,18 @@ public class NoOpEngineStatusCallback implements EngineStatusCallback {
   }
   
   @Override
-  public void onJobRootPartiallyCompleted(Job rootJob) throws EngineStatusCallbackException {
+  public void onJobRootPartiallyCompleted(Job rootJob, String producedBy) throws EngineStatusCallbackException {
     logger.debug("onJobRootPartiallyCompleted(jobId={})", rootJob.getId());
   }
 
   @Override
   public void onJobRootFailed(Job rootJob) throws EngineStatusCallbackException {
     logger.debug("onJobFailed(jobId={})", rootJob.getId());
+  }
+  
+  @Override
+  public void onJobRootAborted(Job rootJob) throws EngineStatusCallbackException {
+    logger.debug("onJobAborted(jobId={})", rootJob.getId());
   }
 
   @Override

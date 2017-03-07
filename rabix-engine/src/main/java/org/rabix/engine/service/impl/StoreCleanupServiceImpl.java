@@ -7,15 +7,16 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
+import org.rabix.engine.service.StoreCleanupService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class RecordDeleteService {
+public class StoreCleanupServiceImpl implements StoreCleanupService {
 
-  private final static Logger logger = LoggerFactory.getLogger(RecordDeleteService.class);
+  private final static Logger logger = LoggerFactory.getLogger(StoreCleanupServiceImpl.class);
   
   private final static long DEFAULT_SLEEP = TimeUnit.SECONDS.toMillis(4);
 
@@ -26,7 +27,7 @@ public class RecordDeleteService {
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @Inject
-  public RecordDeleteService(JobRecordRepository jobRecordRepository, TransactionHelper transactionService, Configuration configuration) {
+  public StoreCleanupServiceImpl(JobRecordRepository jobRecordRepository, TransactionHelper transactionService, Configuration configuration) {
     this.sleepPeriod = configuration.getLong("db.delete_period", DEFAULT_SLEEP);
     this.jobRecordRepository = jobRecordRepository;
     this.transactionService = transactionService;

@@ -19,8 +19,8 @@ public class EngineStubRabbitMQ extends EngineStub<TransportQueueRabbitMQ, Backe
     this.heartbeatTimeMills = configuration.getLong("rabbitmq.backend.heartbeatTimeMills", DEFAULT_HEARTBEAT_TIME);
     
     BackendConfiguration backendConfiguration = backendRabbitMQ.getBackendConfiguration();
-    this.sendToBackendQueue = new TransportQueueRabbitMQ(backendConfiguration.getExchange(), backendConfiguration.getExchangeType(), backendConfiguration.getReceiveRoutingKey() + "_" + backend.getId());
-    this.sendToBackendControlQueue = new TransportQueueRabbitMQ(backendConfiguration.getExchange(), backendConfiguration.getExchangeType(), backendConfiguration.getReceiveControlRoutingKey() + "_" + backend.getId());
+    this.sendToBackendQueue = new TransportQueueRabbitMQ(backendConfiguration.getExchange(), backendConfiguration.getExchangeType(), backendConfiguration.getReceiveRoutingKey());
+    this.sendToBackendControlQueue = new TransportQueueRabbitMQ(backendConfiguration.getExchange(), backendConfiguration.getExchangeType(), backendConfiguration.getReceiveControlRoutingKey());
     
     EngineConfiguration engineConfiguration = backendRabbitMQ.getEngineConfiguration();
     this.receiveFromBackendQueue = new TransportQueueRabbitMQ(engineConfiguration.getExchange(), engineConfiguration.getExchangeType(), engineConfiguration.getReceiveRoutingKey());

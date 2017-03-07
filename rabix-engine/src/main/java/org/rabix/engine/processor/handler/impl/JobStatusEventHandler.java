@@ -33,13 +33,13 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.service.impl.CacheService;
-import org.rabix.engine.service.impl.ContextRecordService;
-import org.rabix.engine.service.impl.JobRecordService;
-import org.rabix.engine.service.impl.LinkRecordService;
-import org.rabix.engine.service.impl.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordService.JobState;
-import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.service.CacheService;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.validator.JobStateValidationException;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
@@ -62,16 +62,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final ContextRecordService contextRecordService;
   
   private final JobRepository jobRepository;
-  
-  private EngineStatusCallback engineStatusCallback;
-  
+  private final JobService jobService;
   private final CacheService cacheService;
 
   @Inject
   public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobRecordService jobRecordService,
       final LinkRecordService linkRecordService, final VariableRecordService variableRecordService,
       final ContextRecordService contextRecordService, final EventProcessor eventProcessor,
-      final ScatterHandler scatterHelper, final JobRepository jobRepository, final CacheService cacheService) {
+      final ScatterHandler scatterHelper, final JobRepository jobRepository, final CacheService cacheService, final JobService jobService) {
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
@@ -80,13 +78,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.contextRecordService = contextRecordService;
     this.variableRecordService = variableRecordService;
     this.appDB = appDB;
+    this.jobService = jobService;
     
     this.cacheService = cacheService;
     this.jobRepository = jobRepository;
-  }
-
-  public void initialize(EngineStatusCallback engineStatusCallback) {
-    this.engineStatusCallback = engineStatusCallback;
   }
 
   @Override
@@ -123,21 +118,18 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           logger.info("Failed to create job", e1);
         }
       }
-      else {
-        Job containerJob = null;
-        try {
-          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, false);
-        } catch (BindingException e) {
-          logger.error("Failed to create containerJob " + containerJob, e);
-          throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
+        else {
+          Job containerJob = null;
+          try {
+            containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService,
+                dagNodeDB, appDB, false);
+          } catch (BindingException e) {
+            logger.error("Failed to create containerJob " + containerJob, e);
+            throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
+          }
+          jobService.handleJobContainerReady(containerJob);
+
         }
-        try {
-          engineStatusCallback.onJobContainerReady(containerJob);
-        } catch (Exception e) {
-          logger.error("Failed to call onReady callback for Job " + containerJob, e);
-          throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
-        }
-      }
       break;
     case RUNNING:
       jobRecord.setState(JobState.RUNNING);
@@ -158,7 +150,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           }
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, event.getResult());
-          engineStatusCallback.onJobRootCompleted(rootJob);
+          jobService.handleJobRootCompleted(rootJob);
           deleteRecords(rootJob.getId());
           cacheService.remove(jobRecord.getRootId());
         } catch (Exception e) {
@@ -179,7 +171,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       if (jobRecord.isRoot()) {
         try {
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, null);
-          engineStatusCallback.onJobRootFailed(rootJob);
+          jobService.handleJobRootFailed(rootJob);
           
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
           cacheService.remove(jobRecord.getRootId());
@@ -190,7 +182,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       } else {
         try {
           Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
-          engineStatusCallback.onJobFailed(failedJob);
+          jobService.handleJobFailed(failedJob);
           
           eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobState.FAILED, null, event.getEventGroupId(), event.getProducedByNode()));
         } catch (Exception e) {

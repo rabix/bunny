@@ -28,12 +28,12 @@ import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.HandlerFactory;
-import org.rabix.engine.service.impl.ContextRecordService;
-import org.rabix.engine.service.impl.JobRecordService;
-import org.rabix.engine.service.impl.LinkRecordService;
-import org.rabix.engine.service.impl.VariableRecordService;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
-import org.rabix.engine.status.impl.NoOpEngineStatusCallback;
 import org.rabix.engine.test.DummyConfigModule;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -74,7 +74,7 @@ public class EngineModuleTest {
   public void testNull() throws Exception {
     EngineStatusCallback esc = mock(EngineStatusCallback.class);
 
-    ep.start(esc);
+    ep.start();
     String simpleApp = ResourceHelper.readResource("apps/null.cwl.yml");
     String appUrl = URIHelper.createDataURI(simpleApp);
     Bindings b = BindingsFactory.create(appUrl);
@@ -103,7 +103,7 @@ public class EngineModuleTest {
     assertNull(job.getValue().getOutputs());
 
     // JOB COMPLETED
-    JobStatusEvent jse = new JobStatusEvent("root", nullJobId, JobRecordService.JobState.COMPLETED,
+    JobStatusEvent jse = new JobStatusEvent("root", nullJobId, JobRecordServiceImpl.JobState.COMPLETED,
         Collections.emptyMap(), UUID.randomUUID(), "node");
     hf.get(jse.getType()).handle(jse);
 
@@ -129,7 +129,7 @@ public class EngineModuleTest {
 
   @Test(enabled=false)
   public void testSimple() throws Exception {
-    ep.start(new NoOpEngineStatusCallback());
+    ep.start();
 
     String simpleApp = ResourceHelper.readResource("apps/simple.cwl.yml");
     String appUrl = URIHelper.createDataURI(simpleApp);
