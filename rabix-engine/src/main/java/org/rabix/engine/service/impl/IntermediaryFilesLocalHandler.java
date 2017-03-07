@@ -15,12 +15,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class IntermediaryFilesServiceLocalHandler implements IntermediaryFilesHandler {
+public class IntermediaryFilesLocalHandler implements IntermediaryFilesHandler {
   
-  private final static Logger logger = LoggerFactory.getLogger(IntermediaryFilesServiceLocalHandler.class);
+  private final static Logger logger = LoggerFactory.getLogger(IntermediaryFilesLocalHandler.class);
   
   @Inject
-  private IntermediaryFilesServiceLocalHandler() {
+  private IntermediaryFilesLocalHandler() {
   }
   
   @Override

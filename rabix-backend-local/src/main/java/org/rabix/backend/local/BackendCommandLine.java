@@ -61,7 +61,7 @@ import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.service.impl.BackendServiceImpl;
 import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
-import org.rabix.engine.service.impl.IntermediaryFilesServiceLocalHandler;
+import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
 import org.rabix.engine.service.impl.JobServiceImpl;
 import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
@@ -243,7 +243,7 @@ public class BackendCommandLine {
               
               bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
               bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
-              bind(IntermediaryFilesHandler.class).to(IntermediaryFilesServiceLocalHandler.class).in(Scopes.SINGLETON);
+              bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
               
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
