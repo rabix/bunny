@@ -25,7 +25,6 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.helper.IntermediaryFilesHelper;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.JobRepository;
@@ -359,7 +358,7 @@ public class JobServiceImpl implements JobService {
       }
     }
     if (deleteIntermediaryFiles) {
-      IntermediaryFilesHelper.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()), intermediaryFilesService, keepInputFiles);
+      intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()), keepInputFiles);
     }
     try {
       engineStatusCallback.onJobFailed(failedJob);
@@ -381,7 +380,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobContainerReady(Job containerJob) {
     if (deleteIntermediaryFiles) {
-      IntermediaryFilesHelper.handleContainerReady(containerJob, linkRecordService, intermediaryFilesService, keepInputFiles);
+      intermediaryFilesService.handleContainerReady(containerJob, keepInputFiles);
     }
     try {
       engineStatusCallback.onJobContainerReady(containerJob);
@@ -470,7 +469,7 @@ public class JobServiceImpl implements JobService {
   public void handleJobCompleted(Job job){
     logger.info("Job {} is completed.", job.getName());
     if (deleteIntermediaryFiles) {
-      IntermediaryFilesHelper.handleJobCompleted(job, linkRecordService, intermediaryFilesService);
+      intermediaryFilesService.handleJobCompleted(job);
     }
     try{
       engineStatusCallback.onJobCompleted(job);
