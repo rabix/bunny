@@ -196,6 +196,10 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     return result;
   }
   
+  private boolean hasInputBinding(CWLInputPort port){
+    Object schema = port.getSchema();
+      return ((schema instanceof Map<?,?>) && ((Map) schema).containsKey("inputBinding"));
+  }
 
   @SuppressWarnings("unchecked")
   private CWLCommandLinePart buildCommandLinePart(CWLJob job, CWLInputPort inputPort, Object inputBinding, Object value, Object schema, String key) throws BindingException {
@@ -203,10 +207,14 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     
-    if (inputBinding == null) {
-      return null;
+    if (inputBinding == null){
+      if (hasInputBinding(inputPort)) {
+        inputBinding = new HashMap<String, Object>();
+      } else {
+        return null;
+      }
     }
-
+    
     int position = CWLBindingHelper.getPosition(inputBinding);
     String separator = CWLBindingHelper.getSeparator(inputBinding);
     String prefix = CWLBindingHelper.getPrefix(inputBinding);
