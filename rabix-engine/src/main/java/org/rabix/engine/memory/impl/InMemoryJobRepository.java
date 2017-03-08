@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -148,6 +149,27 @@ public class InMemoryJobRepository implements JobRepository {
       }
     }
     return null;
+  }
+
+  @Override
+  public void update(Iterator<Job> jobs) {
+    while(jobs.hasNext()){
+      Job next = jobs.next();
+      jobRepository.get(next.getRootId()).get(next.getId()).setJob(next);
+    }
+  }
+
+  @Override
+  public void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> statuses) {  
+    Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
+    jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus()))
+        .forEach(p -> {p.setJob(Job.cloneWithStatus(p.getJob(), status));});
+  }
+
+  @Override
+  public Set<Job> get(UUID rootId, Set<JobStatus> statuses) {
+    Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
+    return jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus())).map(p->p.getJob()).collect(Collectors.toSet());
   }
   
 }

@@ -50,7 +50,7 @@ CREATE INDEX event_status_index on event(status);
 
 -- Context
 --changeset initial:4 dbms:postgres
-CREATE TYPE context_record_status AS ENUM('RUNNING', 'COMPLETED', 'FAILED');
+CREATE TYPE context_record_status AS ENUM('RUNNING', 'COMPLETED', 'FAILED', 'ABORTED');
 
 CREATE TABLE context_record (
     id          uuid primary key,
@@ -98,7 +98,7 @@ create index job_backend_status_root_index on job(backend_id, status, root_id);
 
 -- JobRecord
 --changeset initial:6 dbms:postgres
-CREATE TYPE job_record_state as ENUM ('PENDING', 'READY', 'RUNNING', 'COMPLETED', 'FAILED');
+CREATE TYPE job_record_state as ENUM ('PENDING', 'READY', 'RUNNING', 'COMPLETED', 'FAILED', 'ABORTED');
 
 CREATE TABLE job_record (
     external_id		        uuid primary key,

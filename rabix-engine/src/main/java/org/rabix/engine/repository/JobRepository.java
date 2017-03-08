@@ -13,6 +13,10 @@ public interface JobRepository {
   
   void update(Job job);
   
+  void update(Iterator<Job> jobs);
+  
+  void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> whereStatuses);
+  
   void updateBackendId(UUID jobId, UUID backendId);
   
   void updateBackendIds(Iterator<JobEntity> jobBackendPair);
@@ -24,6 +28,8 @@ public interface JobRepository {
   Set<Job> get();
   
   Set<Job> getByRootId(UUID rootId);
+  
+  Set<Job> get(UUID rootID, Set<JobStatus> whereStatuses);
   
   Set<UUID> getBackendsByRootId(UUID rootId);
   
@@ -112,5 +118,5 @@ public interface JobRepository {
     }
 
   }
-  
+
 }

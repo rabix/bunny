@@ -31,9 +31,12 @@ import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import org.skife.jdbi.v2.unstable.BindIn;
 
 @RegisterMapper({ JobMapper.class, JobEntityMapper.class, BackendIDMapper.class })
+@UseStringTemplate3StatementLocator
 public interface JDBIJobRepository extends JobRepository {
 
   @Override
@@ -43,6 +46,10 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlUpdate("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app where id=:id")
   void update(@BindJob Job job);
+  
+  @Override
+  @SqlBatch("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app where id=:id")
+  void update(@BindJob Iterator<Job> jobs);
 
   @Override
   @SqlUpdate("update job set backend_id=:backend_id where id=:id")
@@ -51,6 +58,10 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlBatch("update job set backend_id=:backend_id where id=:id")
   void updateBackendIds(@BindJobEntityBackendId Iterator<JobEntity> entities);
+
+  @Override
+  @SqlUpdate("update job set status=:status::job_status where status::text in (<statuses>) and root_id=:root_id")
+  void updateStatus(@Bind("root_id") UUID rootId, @Bind("status") JobStatus status, @BindIn("statuses") Set<JobStatus> whereStatuses);
   
   @Override
   @SqlUpdate("update job set backend_id=null, status='READY'::job_status where backend_id=:backend_id and status in ('READY'::job_status,'RUNNING'::job_status)")
@@ -67,6 +78,10 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlQuery("select * from job")
   Set<Job> get();
+  
+  @Override
+  @SqlQuery("select * from job where status::text in (<statuses>) and root_id=:root_id")
+  Set<Job> get(@Bind("root_id") UUID rootID, @BindIn("statuses") Set<JobStatus> whereStatuses);
   
   @Override
   @SqlQuery("select backend_id from job where root_id=:root_id")

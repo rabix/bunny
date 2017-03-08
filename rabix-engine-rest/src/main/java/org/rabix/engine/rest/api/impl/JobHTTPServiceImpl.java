@@ -7,6 +7,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobServiceException;
@@ -61,6 +62,22 @@ public class JobHTTPServiceImpl implements JobHTTPService {
     return ok();
   }
   
+  @Override
+  public Response stop(UUID id) {
+    try {
+      Job job = new Job(null, null);
+      job = Job.cloneWithStatus(job, JobStatus.ABORTED);
+      job = Job.cloneWithId(job, id);
+      job = Job.cloneWithRootId(job, id);
+      job = Job.cloneWithName(job, "root");
+      
+      jobService.update(job);
+    } catch (JobServiceException e) {
+      return error();
+    }
+    return ok();
+  }
+  
   private Response entityNotFound() {
     return Response.status(Status.NOT_FOUND).build();
   }
@@ -79,4 +96,5 @@ public class JobHTTPServiceImpl implements JobHTTPService {
     }
     return Response.ok().entity(items).build();
   }
+
 }

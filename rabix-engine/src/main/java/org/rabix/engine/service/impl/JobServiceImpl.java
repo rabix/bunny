@@ -75,6 +75,7 @@ public class JobServiceImpl implements JobService {
   private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
 
   private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+  
   private Set<UUID> stoppingRootIds = new HashSet<>();
   private EngineStatusCallback engineStatusCallback;
   
@@ -115,14 +116,17 @@ public class JobServiceImpl implements JobService {
       transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
         @Override
         public Void call() throws Exception {
-          UUID backendId = jobRepository.getBackendId(job.getId());
-          if (backendId == null) {
-            logger.warn("Tried to update Job " + job.getId() + " without backend assigned.");
-            return null;
+          if (!job.isRoot()) {
+            UUID backendId = jobRepository.getBackendId(job.getId());
+            if (backendId == null) {
+              logger.warn("Tried to update Job " + job.getId() + " without backend assigned.");
+              return null;
+            }  
+            
+            JobStatus dbStatus = jobRepository.getStatus(job.getId());
+            JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
           }
-          JobStatus dbStatus = jobRepository.getStatus(job.getId());
-          JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
-
+          
           JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
           if (jobRecord == null) {
             logger.info("Possible stale message. Job {} for root {} doesn't exist.", job.getName(), job.getRootId());
@@ -144,6 +148,15 @@ public class JobServiceImpl implements JobService {
             }
             JobStateValidator.checkState(jobRecord, JobState.FAILED);
             statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, job.getId(), job.getName());
+            break;
+          case ABORTED:
+            if (JobState.ABORTED.equals(jobRecord.getState())) {
+              return null;
+            }
+            JobStateValidator.checkState(jobRecord, JobState.ABORTED);
+            Job rootJob = jobRepository.get(jobRecord.getRootId());
+            handleJobRootAborted(rootJob);
+            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobState.ABORTED, null, rootJob.getId(), rootJob.getName());
             break;
           case COMPLETED:
             if (JobState.COMPLETED.equals(jobRecord.getState())) {
@@ -215,17 +228,29 @@ public class JobServiceImpl implements JobService {
     }
   }
   
-  @Override
-  public void stop(UUID id) throws JobServiceException {
-    logger.debug("Stop Job {}", id);
+  public void stop(Job job) throws JobServiceException {
+    logger.debug("Stop Job {}", job.getId());
     
-    Job job = jobRepository.get(id);
     if (job.isRoot()) {
+      Set<JobStatus> statuses = new HashSet<>();
+      statuses.add(JobStatus.READY);
+      statuses.add(JobStatus.PENDING);
+      statuses.add(JobStatus.RUNNING);
+      statuses.add(JobStatus.STARTED);
+      jobRepository.updateStatus(job.getId(), JobStatus.ABORTED, statuses);
+
       Set<Job> jobs = jobRepository.getByRootId(job.getRootId());
       scheduler.stop(jobs.toArray(new Job[jobs.size()]));
     } else {
+      // TODO implement the rest of the logic
       scheduler.stop(job);
     }
+  }
+  
+  @Override
+  public void stop(UUID id) throws JobServiceException {
+    Job job = jobRepository.get(id);
+    stop(job);
   }
   
   @Override
@@ -424,13 +449,20 @@ public class JobServiceImpl implements JobService {
       logger.error("Engine status callback failed",e);
     }
   }
+  
   @Override
-  public void handleJobRootAborted(Job rootJob){
-    logger.info("Root {} Has been aborted", rootJob.getId());
-    try{
+  public void handleJobRootAborted(Job rootJob) {
+    logger.info("Root {} has been aborted", rootJob.getId());
+
+    try {
+      stop(rootJob);
+    } catch (JobServiceException e) {
+      logger.error("Failed to stop jobs", e);
+    }
+    try {
       engineStatusCallback.onJobRootAborted(rootJob);
     } catch (EngineStatusCallbackException e) {
-      logger.error("Engine status callback failed",e);
+      logger.error("Engine status callback failed", e);
     }
   }
 

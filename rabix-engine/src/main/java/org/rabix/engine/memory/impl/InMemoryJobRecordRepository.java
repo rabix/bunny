@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
@@ -150,5 +151,19 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
     }
     return readyJobs;
   }
-  
+
+  @Override
+  public void updateStatus(UUID rootId, JobState state, Set<JobState> whereStates) {
+    Map<UUID, JobRecord> jobs = jobRecordsPerRoot.get(rootId);
+    jobs.values().stream().filter(p -> whereStates.contains(p.getState())).forEach(p -> {
+      p.setState(state);
+    });
+  }
+
+  @Override
+  public List<JobRecord> get(UUID rootId, Set<JobState> states) {
+    Map<UUID, JobRecord> jobs = jobRecordsPerRoot.get(rootId);
+    return jobs.values().stream().filter(p -> states.contains(p.getState())).collect(Collectors.toList());
+  }
+
 }

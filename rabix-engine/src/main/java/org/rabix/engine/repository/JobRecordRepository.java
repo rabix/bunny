@@ -63,5 +63,9 @@ public abstract class JobRecordRepository implements CachableRepository {
   public abstract List<JobRecord> getByParent(UUID parentId, UUID rootId);
   
   public abstract List<JobRecord> getReady(UUID rootId);
+
+  public abstract void updateStatus(UUID rootId, JobState state, Set<JobState> whereStates);
+
+  public abstract List<JobRecord> get(UUID rootId, Set<JobState> states);
   
 }
