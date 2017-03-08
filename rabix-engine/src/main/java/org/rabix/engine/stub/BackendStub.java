@@ -30,6 +30,8 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
   protected Q receiveFromBackendQueue;
   protected Q receiveFromBackendHeartbeatQueue;
 
+  protected boolean enableControlMesages;
+  
   private ExecutorService executorService = Executors.newFixedThreadPool(2);
   
   public static interface HeartbeatCallback {
@@ -76,7 +78,9 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
   }
 
   public void send(EngineControlMessage controlMessage) {
-    transportPlugin.send(sendToBackendControlQueue, controlMessage);
+    if (enableControlMesages) {
+      transportPlugin.send(sendToBackendControlQueue, controlMessage);
+    }
   }
 
 }

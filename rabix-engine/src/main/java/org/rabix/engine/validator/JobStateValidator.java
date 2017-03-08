@@ -24,6 +24,7 @@ public class JobStateValidator {
     transitions.put(JobState.READY, transitionFromReady);
     List<JobState> transitionFromRunning = new ArrayList<JobState>();
     transitionFromRunning.add(JobState.COMPLETED);
+    transitionFromRunning.add(JobState.ABORTED);
     transitionFromRunning.add(JobState.FAILED);
     transitions.put(JobState.RUNNING, transitionFromRunning);
     List<JobState> transitionFromCompleted = new ArrayList<JobState>();
@@ -31,6 +32,9 @@ public class JobStateValidator {
     transitions.put(JobState.COMPLETED, transitionFromCompleted);
     List<JobState> transitionFromFailed = new ArrayList<JobState>();
     transitions.put(JobState.FAILED, transitionFromFailed);
+    List<JobState> transitionFromAborted = new ArrayList<JobState>();
+    transitionFromAborted.add(JobState.COMPLETED);
+    transitions.put(JobState.ABORTED, transitionFromAborted);
     
     transitions = Collections.unmodifiableMap(transitions);
   }

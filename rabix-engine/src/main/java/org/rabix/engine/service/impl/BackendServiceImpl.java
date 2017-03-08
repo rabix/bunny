@@ -12,7 +12,6 @@ import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
-import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
@@ -31,7 +30,6 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
   
-  private final JobService jobService;
   private final SchedulerService scheduler;
   private final BackendStubFactory backendStubFactory;
   private final TransactionHelper transactionHelper;
@@ -40,10 +38,8 @@ public class BackendServiceImpl implements BackendService {
   private final BackendRepository backendRepository;
 
   @Inject
-  public BackendServiceImpl(JobService jobService, BackendStubFactory backendStubFactory,
-      SchedulerService backendDispatcher, TransactionHelper transactionHelper, BackendRepository backendRepository,
-      Configuration configuration) {
-    this.jobService = jobService;
+  public BackendServiceImpl(BackendStubFactory backendStubFactory, SchedulerService backendDispatcher,
+      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration) {
     this.scheduler = backendDispatcher;
     this.backendStubFactory = backendStubFactory;
     this.transactionHelper = transactionHelper;

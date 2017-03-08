@@ -25,6 +25,10 @@ public interface JobHTTPService {
   @Path("/{id}")
   Response save(@PathParam("id") UUID id, Job job);
   
+  @PUT
+  @Path("/stop/{id}")
+  Response stop(@PathParam("id") UUID id);
+  
   @GET
   Response get();
   

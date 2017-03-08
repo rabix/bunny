@@ -150,5 +150,16 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
     }
     return readyJobs;
   }
+
+  @Override
+  public void updateStatus(UUID rootId, JobState state, Set<JobState> whereStates) {
+    // TODO Auto-generated method stub
+  }
+
+  @Override
+  public List<JobRecord> get(UUID rootId, Set<JobState> states) {
+    // TODO Auto-generated method stub
+    return null;
+  }
   
 }

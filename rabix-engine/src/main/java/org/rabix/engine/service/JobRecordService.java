@@ -1,11 +1,13 @@
 package org.rabix.engine.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.model.JobRecord;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 public interface JobRecordService {
 
@@ -25,6 +27,8 @@ public interface JobRecordService {
   
   JobRecord find(String id, UUID rootId);
   
+  List<JobRecord> find(UUID rootId, Set<JobState> statuses);
+  
   JobRecord findRoot(UUID rootId);
   
   void increaseInputPortIncoming(JobRecord jobRecord, String port);
@@ -40,5 +44,5 @@ public interface JobRecordService {
   void resetOutputPortCounter(JobRecord jobRecord, int value, String port);
   
   void resetOutputPortCounters(JobRecord jobRecord, int value);
-  
+
 }

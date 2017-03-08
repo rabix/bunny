@@ -149,5 +149,21 @@ public class InMemoryJobRepository implements JobRepository {
     }
     return null;
   }
+
+  @Override
+  public void update(Iterator<Job> jobs) {
+    // TODO Auto-generated method stub
+  }
+
+  @Override
+  public void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> statuses) {
+    // TODO Auto-generated method stub
+  }
+
+  @Override
+  public Set<Job> get(UUID rootID, Set<JobStatus> whereStatuses) {
+    // TODO Auto-generated method stub
+    return null;
+  }
   
 }
