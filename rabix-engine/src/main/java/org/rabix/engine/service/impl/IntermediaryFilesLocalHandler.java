@@ -9,24 +9,22 @@ import java.nio.file.Paths;
 import java.util.Set;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class IntermediaryFilesServiceLocalImpl extends IntermediaryFilesService {
+public class IntermediaryFilesLocalHandler implements IntermediaryFilesHandler {
   
-  private final static Logger logger = LoggerFactory.getLogger(IntermediaryFilesServiceLocalImpl.class);
-
+  private final static Logger logger = LoggerFactory.getLogger(IntermediaryFilesLocalHandler.class);
+  
   @Inject
-  public IntermediaryFilesServiceLocalImpl () {
-    super();
+  private IntermediaryFilesLocalHandler() {
   }
   
   @Override
-  public void handleUnusedFiles(Job job) {
-    Set<String> unusedFiles = getUnusedFiles(job.getRootId());
+  public void handleUnusedFiles(Job job, Set<String> unusedFiles) {
     for (String p : unusedFiles) {
       Path path = Paths.get(p);
       try {
