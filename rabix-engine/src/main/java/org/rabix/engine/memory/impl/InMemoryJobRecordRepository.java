@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
@@ -16,6 +18,7 @@ import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Functions;
 import com.google.inject.Inject;
 
 public class InMemoryJobRecordRepository extends JobRecordRepository {
@@ -153,13 +156,16 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
 
   @Override
   public void updateStatus(UUID rootId, JobState state, Set<JobState> whereStates) {
-    // TODO Auto-generated method stub
+    Map<UUID, JobRecord> jobs = jobRecordsPerRoot.get(rootId);
+    jobs.values().stream().filter(p -> whereStates.contains(p.getState())).forEach(p -> {
+      p.setState(state);
+    });
   }
 
   @Override
   public List<JobRecord> get(UUID rootId, Set<JobState> states) {
-    // TODO Auto-generated method stub
-    return null;
+    Map<UUID, JobRecord> jobs = jobRecordsPerRoot.get(rootId);
+    return jobs.values().stream().filter(p -> states.contains(p.getState())).collect(Collectors.toList());
   }
-  
+
 }

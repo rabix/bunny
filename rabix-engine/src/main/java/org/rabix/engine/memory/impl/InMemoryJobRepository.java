@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -152,18 +154,23 @@ public class InMemoryJobRepository implements JobRepository {
 
   @Override
   public void update(Iterator<Job> jobs) {
-    // TODO Auto-generated method stub
+    while(jobs.hasNext()){
+      Job next = jobs.next();
+      jobRepository.get(next.getRootId()).get(next.getId()).setJob(next);
+    }
   }
 
   @Override
-  public void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> statuses) {
-    // TODO Auto-generated method stub
+  public void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> statuses) {  
+    Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
+    jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus()))
+        .forEach(p -> {p.setJob(Job.cloneWithStatus(p.getJob(), status));});
   }
 
   @Override
-  public Set<Job> get(UUID rootID, Set<JobStatus> whereStatuses) {
-    // TODO Auto-generated method stub
-    return null;
+  public Set<Job> get(UUID rootId, Set<JobStatus> statuses) {
+    Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
+    return jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus())).map(p->p.getJob()).collect(Collectors.toSet());
   }
   
 }
