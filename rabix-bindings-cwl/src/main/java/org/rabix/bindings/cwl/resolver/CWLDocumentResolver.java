@@ -70,6 +70,12 @@ public class CWLDocumentResolver {
   public static final String SCHEMADEF_KEY = "SchemaDefRequirement";
   public static final String CWL_VERSION_KEY = "cwlVersion";
 
+  public static final String INPUTS_KEY_LONG = "inputs";
+  public static final String INPUTS_KEY_SHORT = "in";
+
+  public static final String OUTPUTS_KEY_LONG = "outputs";
+  public static final String OUTPUTS_KEY_SHORT = "out";
+
   public static final String COMMAND_LINE_TOOL = "CommandLineTool";
   public static final String EXPRESSION_TOOL = "ExpressionTool";
   public static final String WORKFLOW = "Workflow";
@@ -139,7 +145,7 @@ public class CWLDocumentResolver {
       ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
 
-    traverse(appUrl, root, file, null, root);
+    traverse(appUrl, root, file, null, root, false);
 
     for (CWLDocumentResolverReplacement replacement : getReplacements(appUrl)) {
       if (replacement.getParentNode().isArray()) {
@@ -192,14 +198,14 @@ public class CWLDocumentResolver {
     }
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);
-    
+
     if (rewriteDefaultPaths) {
       addAppLocations(root, appUrl);
       cache.put(appUrl, JSONHelper.writeObject(root));
     }
     return cache.get(appUrl);
   }
-  
+
   private static void addAppLocations(JsonNode node, String previous) {
     try {
       if (node.isContainerNode()) {
@@ -208,14 +214,14 @@ public class CWLDocumentResolver {
           String base = null;
           String location = null;
           if (appLocationNode != null) {
-            if(appLocationNode.isTextual()) {
+            if (appLocationNode.isTextual()) {
               return;
             }
             base = ((ObjectNode) appLocationNode).get("base").asText();
             location = ((ObjectNode) appLocationNode).get("location").asText();
           }
           ((ObjectNode) node).remove(APP_LOCATION);
-          
+
           if (base == null) {
             base = previous;
           }
@@ -237,7 +243,7 @@ public class CWLDocumentResolver {
             addAppLocations(subnode, previous);
           }
         }
-      } 
+      }
     } catch (Exception e) {
     }
   }
@@ -265,10 +271,11 @@ public class CWLDocumentResolver {
     }
   }
 
-  private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode)
-      throws BindingException {
+  private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode,
+      boolean inputsOrOutputs) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
 
+    JsonNode typeNode = null;
     boolean isInclude = currentNode.has(RESOLVER_REFERENCE_INCLUDE_KEY);
 
     if (isInclude) {
@@ -289,16 +296,30 @@ public class CWLDocumentResolver {
         && isTypeReference(currentNode.get(TYPE_KEY).textValue());
     boolean isJsonPointer = currentNode.has(RESOLVER_JSON_POINTER_KEY) && parentNode != null; // we skip the first level
                                                                                               // $job
+    String referencePath = null;
+    boolean typeReplace = false;
+    if (inputsOrOutputs) {
+      if (currentNode.isContainerNode()) {
+        for (JsonNode subnode : currentNode) {
+          if (currentNode.size() == 1 && subnode.isTextual()) {
+            referencePath = subnode.asText();
+            if (isTypeReference(referencePath)) {
+              typeNode = subnode;
+              typeReplace = true;
+            }
+          }
+        }
+      }
+    }
 
-    if (isReference || isJsonPointer || typeReference || appReference) {
-      String referencePath = null;
+    if (isReference || isJsonPointer || typeReference || appReference || typeReplace) {
       if (isReference) {
         referencePath = currentNode.get(RESOLVER_REFERENCE_KEY).textValue();
       } else if (appReference) {
         referencePath = currentNode.get(APP_STEP_KEY).textValue();
       } else if (typeReference) {
         referencePath = currentNode.get(TYPE_KEY).textValue();
-      } else {
+      } else if (isJsonPointer) {
         referencePath = currentNode.get(RESOLVER_JSON_POINTER_KEY).textValue();
       }
 
@@ -314,7 +335,7 @@ public class CWLDocumentResolver {
 
         JsonNode referenceDocumentRoot = findDocumentRoot(root, file, referencePath, isJsonPointer);
         ParentChild parentChild = findReferencedNode(referenceDocumentRoot, referencePath);
-        JsonNode resolvedNode = traverse(appUrl, root, file, parentChild.parent, parentChild.child);
+        JsonNode resolvedNode = traverse(appUrl, root, file, parentChild.parent, parentChild.child, false);
         if (resolvedNode == null) {
           return null;
         }
@@ -324,19 +345,39 @@ public class CWLDocumentResolver {
         getReferenceCache(appUrl).put(referencePath, reference);
       }
       if (appReference) {
-        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("run"), referencePath));
+        getReplacements(appUrl)
+            .add(new CWLDocumentResolverReplacement(currentNode, currentNode.get(APP_STEP_KEY), referencePath));
       } else if (typeReference) {
-        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get("type"), referencePath));
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get(TYPE_KEY), referencePath));
+      } else if (typeReplace && !(isReference || isJsonPointer || typeReference || appReference)) {
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, typeNode, referencePath));
       } else {
         getReplacements(appUrl).add(new CWLDocumentResolverReplacement(parentNode, currentNode, referencePath));
       }
       return reference.getResolvedNode();
     } else if (currentNode.isContainerNode()) {
       for (JsonNode subnode : currentNode) {
-        traverse(appUrl, root, file, currentNode, subnode);
+        inputsOrOutputs = checkIsItInputsOrOutputs(currentNode, subnode, inputsOrOutputs);
+        traverse(appUrl, root, file, currentNode, subnode, inputsOrOutputs);
       }
     }
     return currentNode;
+  }
+
+  private static boolean checkIsItInputsOrOutputs(JsonNode currentNode, JsonNode subnode, boolean previous) {
+    boolean result = false;
+    if(!currentNode.has(APP_STEP_KEY)) {
+      if (currentNode.has(INPUTS_KEY_LONG) && currentNode.get(INPUTS_KEY_LONG).equals(subnode)) {
+        result = true;
+      } else if (currentNode.has(INPUTS_KEY_SHORT) && currentNode.get(INPUTS_KEY_SHORT).equals(subnode)) {
+        result = true;
+      } else if (currentNode.has(OUTPUTS_KEY_LONG) && currentNode.get(OUTPUTS_KEY_LONG).equals(subnode)) {
+        result = true;
+      } else if (currentNode.has(OUTPUTS_KEY_SHORT) && currentNode.get(OUTPUTS_KEY_SHORT).equals(subnode)) {
+        result = true;
+      }
+    }
+    return result;
   }
 
   private static boolean isApp(JsonNode node) {
@@ -360,7 +401,8 @@ public class CWLDocumentResolver {
   }
 
   @SuppressWarnings("deprecation")
-  private static void replaceObjectItem(String appURL, JsonNode root, CWLDocumentResolverReplacement replacement) throws BindingException {
+  private static void replaceObjectItem(String appURL, JsonNode root, CWLDocumentResolverReplacement replacement)
+      throws BindingException {
     JsonNode parent = replacement.getParentNode() == null ? root : replacement.getParentNode();
 
     Iterator<Entry<String, JsonNode>> fieldIterator = parent.fields();
@@ -390,7 +432,7 @@ public class CWLDocumentResolver {
     }
     ObjectNode appLocationNode = JsonNodeFactory.instance.objectNode();
     if (URIHelper.isFile(appURL)) {
-      appLocationNode.put("base", URIHelper.getURIInfo(appURL));  
+      appLocationNode.put("base", URIHelper.getURIInfo(appURL));
     } else {
       appLocationNode.put("base", appURL);
     }
@@ -404,7 +446,8 @@ public class CWLDocumentResolver {
     }
   }
 
-  private static void replaceArrayItem(String appURL, JsonNode root, CWLDocumentResolverReplacement replacement) throws BindingException {
+  private static void replaceArrayItem(String appURL, JsonNode root, CWLDocumentResolverReplacement replacement)
+      throws BindingException {
     JsonNode parent = replacement.getParentNode() == null ? root : replacement.getParentNode();
 
     Iterator<JsonNode> nodeIterator = parent.elements();
@@ -521,7 +564,8 @@ public class CWLDocumentResolver {
     return new ParentChild(parent, child);
   }
 
-  private static JsonNode removeFragmentIdentifier(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode, String fragment) throws BindingException {
+  private static JsonNode removeFragmentIdentifier(String appUrl, JsonNode root, File file, JsonNode parentNode,
+      JsonNode currentNode, String fragment) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
     if (currentNode.isTextual() && currentNode.asText().startsWith(DOCUMENT_FRAGMENT_SEPARATOR)) {
       CWLDocumentResolverReference reference = new CWLDocumentResolverReference();
@@ -537,7 +581,8 @@ public class CWLDocumentResolver {
   }
 
   private synchronized static List<CWLDocumentResolverReplacement> getReplacements(String url) {
-    LinkedList<CWLDocumentResolverReplacement> replacementsPerUrl = (LinkedList<CWLDocumentResolverReplacement>) replacements.get(url);
+    LinkedList<CWLDocumentResolverReplacement> replacementsPerUrl = (LinkedList<CWLDocumentResolverReplacement>) replacements
+        .get(url);
     if (replacementsPerUrl == null) {
       replacementsPerUrl = new LinkedList<CWLDocumentResolverReplacement>();
       replacements.put(url, replacementsPerUrl);

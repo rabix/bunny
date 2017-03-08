@@ -61,7 +61,7 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   public synchronized List<LinkRecord> getBySource(String sourceJobId, String sourceJobPortId, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
     for (LinkRecord lr : getLinkRecords(rootId)) {
-      if (lr.getSourceJobId().equals(sourceJobId) && lr.getSourceJobPort().equals(sourceJobPortId) && lr.getRootId().equals(rootId)) {
+      if (lr.getSourceJobId().equals(sourceJobId) && lr.getSourceJobPort().equals(sourceJobPortId)) {
         result.add(lr);
       }
     }
@@ -83,7 +83,7 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   public synchronized List<LinkRecord> getBySourceAndSourceType(String sourceJobId, LinkPortType sourceType, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
     for (LinkRecord lr : getLinkRecords(rootId)) {
-      if (lr.getSourceJobId().equals(rootId) && lr.getSourceVarType().equals(sourceType) && lr.getRootId().equals(rootId)) {
+      if (lr.getSourceJobId().equals(sourceJobId) && lr.getSourceVarType().equals(sourceType)) {
         result.add(lr);
       }
     }
@@ -94,7 +94,7 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   public synchronized List<LinkRecord> getBySourceAndDestinationType(String sourceJobId, String sourceJobPortId, LinkPortType destinationType, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
     for (LinkRecord lr : getLinkRecords(rootId)) {
-      if (lr.getSourceJobId().equals(sourceJobId) && lr.getSourceJobPort().equals(sourceJobPortId) && lr.getDestinationVarType().equals(destinationType) && lr.getRootId().equals(rootId)) {
+      if (lr.getSourceJobId().equals(sourceJobId) && lr.getSourceJobPort().equals(sourceJobPortId) && lr.getDestinationVarType().equals(destinationType)) {
         result.add(lr);
       }
     }
