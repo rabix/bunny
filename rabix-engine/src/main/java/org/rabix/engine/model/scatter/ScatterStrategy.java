@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface ScatterStrategy {
 
-  void enable(String port, Object value, Integer position);
+  void enable(String port, Object value, Integer position, Integer sizePerPort);
 
   void commit(List<RowMapping> mappings);
   

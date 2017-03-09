@@ -23,5 +23,5 @@ public interface VariableRecordService {
   Object linkMerge(VariableRecord variableRecord);
 
   Object getValue(VariableRecord variableRecord);
-  
+
 }

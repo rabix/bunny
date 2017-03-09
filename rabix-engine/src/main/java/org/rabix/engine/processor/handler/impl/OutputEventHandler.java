@@ -102,7 +102,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     }
     
     if (sourceJob.isRoot()) {
-        jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.getProducedByNode());
+      jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.getProducedByNode());
     }
     
     Object value = null;
