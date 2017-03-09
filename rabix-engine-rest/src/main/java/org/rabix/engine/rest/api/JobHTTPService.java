@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Job.JobStatus;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/v0/engine/jobs")
@@ -25,15 +26,15 @@ public interface JobHTTPService {
   @Path("/{id}")
   Response save(@PathParam("id") UUID id, Job job);
   
-  @PUT
-  @Path("/stop/{id}")
-  Response stop(@PathParam("id") UUID id);
-  
   @GET
   Response get();
   
   @GET
   @Path("/{id}")
   public Response get(@PathParam("id")  UUID id);
+
+  @PUT
+  @Path("/{id}/{status}")
+  Response update(@PathParam("id") UUID id, @PathParam("status") JobStatus status);
   
 }
