@@ -100,17 +100,6 @@ public class CWLCommandLineTool extends CWLJobApp {
     return arguments;
   }
 
-  @JsonIgnore
-  public Object getArgument(CWLJob job, Object binding) throws CWLExpressionException {
-    if (binding instanceof Map<?, ?>) {
-      Object value = ((Map<?, ?>) binding).get(KEY_ARGUMENT_VALUE);
-      if (value != null) {
-        return CWLExpressionResolver.resolve(value, job, null);
-      }
-    }
-    return CWLExpressionResolver.resolve(binding, job, null);
-  }
-
   public static String generateRandomStdoutGlob() {
     return RANDOM_STDOUT_PREFIX + UUID.randomUUID().toString();
   }

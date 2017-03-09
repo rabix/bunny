@@ -571,7 +571,7 @@ public class BackendCommandLine {
   }
   
   private static void printVersionAndExit(Options posixOptions) {
-    System.out.println("Rabix 1.0.0-RC2");
+    System.out.println("Rabix 1.0.0-RC3");
     System.exit(0);
   }
 

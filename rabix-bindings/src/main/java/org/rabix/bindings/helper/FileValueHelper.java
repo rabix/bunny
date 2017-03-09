@@ -81,7 +81,7 @@ public class FileValueHelper {
    */
   public static DataType getDataTypeFromValue(Object value) {
     if (value==null)
-      return new DataType(DataType.Type.ANY);
+      return new DataType(DataType.Type.NULL);
 
     // DIRECTORY
     if (value instanceof DirectoryValue)
