@@ -81,6 +81,7 @@ CREATE TABLE job (
     produced_by_node  text,
     backend_id        uuid references backend on delete SET NULL,
     app               text,
+    config            jsonb,
     CHECK (backend_id IS NOT NULL OR status <> 'RUNNING'::job_status OR parent_id IS NULL)
 );
 
