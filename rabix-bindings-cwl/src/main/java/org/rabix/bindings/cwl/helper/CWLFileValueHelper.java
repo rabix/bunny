@@ -248,19 +248,21 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       setLocation(getPath(value), value);
     }
     
-    File file = new File(path);
-    if(name == null) {
-      name = file.getName();
-    }
-    if(dirname == null) {
-      File parent = file.getParentFile();
-      dirname = parent != null ? parent.getPath(): null;
-    }
-    if(nameroot == null) {
-      nameroot = getBasename(file.getName());
-    }
-    if(nameext == null) {
-      nameext = getNameext(file.getName());
+    if(path != null) {
+      File file = new File(path);
+      if(name == null) {
+        name = file.getName();
+      }
+      if(dirname == null) {
+        File parent = file.getParentFile();
+        dirname = parent != null ? parent.getPath(): null;
+      }
+      if(nameroot == null) {
+        nameroot = getBasename(file.getName());
+      }
+      if(nameext == null) {
+        nameext = getNameext(file.getName());
+      }
     }
     
     Map<String, Object> properties = new HashMap<>();
