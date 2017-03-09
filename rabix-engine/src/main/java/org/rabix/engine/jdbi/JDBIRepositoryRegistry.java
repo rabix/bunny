@@ -1,14 +1,6 @@
 package org.rabix.engine.jdbi;
 
-import org.rabix.engine.jdbi.impl.JDBIAppRepository;
-import org.rabix.engine.jdbi.impl.JDBIBackendRepository;
-import org.rabix.engine.jdbi.impl.JDBIContextRecordRepository;
-import org.rabix.engine.jdbi.impl.JDBIDAGRepository;
-import org.rabix.engine.jdbi.impl.JDBIEventRepository;
-import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository;
-import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository;
-import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository;
+import org.rabix.engine.jdbi.impl.*;
 import org.rabix.engine.repository.TransactionHelper;
 import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
@@ -39,7 +31,10 @@ public abstract class JDBIRepositoryRegistry extends TransactionHelper {
   
   @CreateSqlObject
   public abstract JDBIContextRecordRepository contextRecordRepository();
-  
+
+  @CreateSqlObject
+  public abstract JDBIJobStatsRecordRepository jobStatsRecordRepository();
+
   @CreateSqlObject
   public abstract JDBIEventRepository eventRepository();
   

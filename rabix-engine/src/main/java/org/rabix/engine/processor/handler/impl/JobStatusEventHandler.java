@@ -27,18 +27,14 @@ import org.rabix.engine.event.impl.OutputUpdateEvent;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.PortCounter;
+import org.rabix.engine.model.JobStatsRecord;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.service.CacheService;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobService;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.*;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.validator.JobStateValidationException;
 import org.rabix.engine.validator.JobStateValidator;
@@ -60,6 +56,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final LinkRecordService linkRecordService;
   private final VariableRecordService variableRecordService;
   private final ContextRecordService contextRecordService;
+  private final JobStatsRecordService jobStatsRecordService;
   
   private final JobRepository jobRepository;
   private final JobService jobService;
@@ -69,13 +66,15 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobRecordService jobRecordService,
       final LinkRecordService linkRecordService, final VariableRecordService variableRecordService,
       final ContextRecordService contextRecordService, final EventProcessor eventProcessor,
-      final ScatterHandler scatterHelper, final JobRepository jobRepository, final CacheService cacheService, final JobService jobService) {
+      final ScatterHandler scatterHelper, final JobRepository jobRepository, final CacheService cacheService,
+      final JobService jobService, final JobStatsRecordService jobStatsRecordService) {
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
     this.contextRecordService = contextRecordService;
+    this.jobStatsRecordService = jobStatsRecordService;
     this.variableRecordService = variableRecordService;
     this.appDB = appDB;
     this.jobService = jobService;
@@ -91,6 +90,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
       return;
     }
+
+    JobStatsRecord jobStatsRecord = null;
+    if (jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId()))
+      jobStatsRecord = jobStatsRecordService.findOrCreate(jobRecord.getRootId());
     try {
       JobStateValidator.checkState(jobRecord, event.getState());
     } catch (JobStateValidationException e) {
@@ -134,11 +137,18 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     case RUNNING:
       jobRecord.setState(JobState.RUNNING);
       jobRecordService.update(jobRecord);
+      if (jobStatsRecord != null) {
+        jobStatsRecord.increaseRunning();
+        jobStatsRecordService.update(jobStatsRecord);
+      }
       break;
     case COMPLETED:
       jobRecord.setState(JobState.READY);
       jobRecordService.update(jobRecord);
-      
+      if (jobStatsRecord != null) {
+        jobStatsRecord.increaseCompleted();
+        jobStatsRecordService.update(jobStatsRecord);
+      }
       if (jobRecord.isRoot()) {
         try {
           if(!jobRecord.isContainer()) {
