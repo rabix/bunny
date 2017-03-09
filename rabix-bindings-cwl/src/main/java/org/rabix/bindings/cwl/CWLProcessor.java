@@ -495,10 +495,11 @@ public class CWLProcessor implements ProtocolProcessor {
 
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    Object specificValue = CWLValueTranslator.translateToSpecific(value);
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     Object result = null;
     try {
-      result = CWLExpressionResolver.resolve(transform, cwlJob, value);
+      result = CWLExpressionResolver.resolve(transform, cwlJob, specificValue);
       return CWLValueTranslator.translateToCommon(result);
     } catch (CWLExpressionException e) {
       throw new BindingException(e);
