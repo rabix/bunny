@@ -77,25 +77,27 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     jobRecordService.update(sourceJob);
     
     if (sourceJob.isCompleted()) {
-      try {
-        Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
-        jobService.handleJobCompleted(completedJob);
-      } catch (BindingException e) {
-        logger.error("Failed to create Job " + sourceJob.getId(), e);
-      }
-      
-      if (sourceJob.isRoot()) {
-        Map<String, Object> outputs = new HashMap<>();
-        List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
-        for (VariableRecord outputVariable : outputVariables) {
-          Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
-          outputs.put(outputVariable.getPortId(), value);
+      if(sourceJob.getOutputCounter(sourceVariable.getPortId()) != null) {
+        try {
+          Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
+          jobService.handleJobCompleted(completedJob);
+        } catch (BindingException e) {
+          logger.error("Failed to create Job " + sourceJob.getId(), e);
         }
-        if(sourceJob.isRoot() && sourceJob.isContainer()) {
-          // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
-          eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
+        
+        if (sourceJob.isRoot()) {
+          Map<String, Object> outputs = new HashMap<>();
+          List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
+          for (VariableRecord outputVariable : outputVariables) {
+            Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
+            outputs.put(outputVariable.getPortId(), value);
+          }
+          if(sourceJob.isRoot() && sourceJob.isContainer()) {
+            // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
+            eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
+          }
+          return;
         }
-        return;
       }
     }
     

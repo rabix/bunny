@@ -289,8 +289,6 @@ public class Draft3Processor implements ProtocolProcessor {
         case 1:
           result = ((List<?>) result).get(0);
           break;
-        default:
-          throw new BindingException("Invalid file format " + result);
         }
       }
     }

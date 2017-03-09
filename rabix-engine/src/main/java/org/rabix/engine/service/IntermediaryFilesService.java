@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 
-
 public interface IntermediaryFilesService {
 
   void addOrIncrement(UUID rootId, FileValue file, Integer usage);

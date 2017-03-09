@@ -55,10 +55,12 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     
     final Set<File> files = new LinkedHashSet<>();
     for (String singleGlob : globs) {
-      if (singleGlob.equals(".")) { // TODO fix this
-        singleGlob = workingDir.getName();
+      if (singleGlob.equals(".")) {
+        files.add(workingDir);
+        continue;
       }
       final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + singleGlob);
+      final Path startDir = workingDir.toPath();
       try {
         Files.walkFileTree(workingDir.toPath(), new SimpleFileVisitor<Path>() {
           @Override
@@ -70,7 +72,8 @@ public class CWLGlobServiceImpl implements CWLGlobService {
           }
           @Override
           public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            if (matcher.matches(dir.getFileName())) {
+            if (matcher.matches(dir.getFileName()) &&
+                !startDir.equals(dir)) {
               files.add(dir.toFile());
             }
             return super.preVisitDirectory(dir, attrs);

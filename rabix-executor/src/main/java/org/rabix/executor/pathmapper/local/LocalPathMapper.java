@@ -2,6 +2,7 @@ package org.rabix.executor.pathmapper.local;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import org.rabix.bindings.mapper.FileMappingException;
@@ -21,7 +22,7 @@ public class LocalPathMapper implements FilePathMapper {
   
   @Override
   public String map(String path, Map<String, Object> config) throws FileMappingException {
-    if (!path.startsWith(File.separator)) {
+    if (!Paths.get(path).isAbsolute()) {
       try {
         return new File(storageConfig.getPhysicalExecutionBaseDir(), path).getCanonicalPath();
       } catch (IOException e) {

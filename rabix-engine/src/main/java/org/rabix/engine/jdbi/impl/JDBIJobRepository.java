@@ -40,15 +40,15 @@ import org.skife.jdbi.v2.unstable.BindIn;
 public interface JDBIJobRepository extends JobRepository {
 
   @Override
-  @SqlUpdate("insert into job (id,root_id,name, parent_id, status, message, inputs, outputs, resources, group_id, produced_by_node, app) values (:id,:root_id,:name,:parent_id,:status::job_status,:message,:inputs::jsonb,:outputs::jsonb,:resources::jsonb,:group_id,:produced_by_node,:app)")
+  @SqlUpdate("insert into job (id,root_id,name, parent_id, status, message, inputs, outputs, resources, group_id, produced_by_node, app, config) values (:id,:root_id,:name,:parent_id,:status::job_status,:message,:inputs::jsonb,:outputs::jsonb,:resources::jsonb,:group_id,:produced_by_node,:app,:config::jsonb)")
   void insert(@BindJob Job job, @Bind("group_id") UUID groupId, @Bind("produced_by_node") String producedByNode);
 
   @Override
-  @SqlUpdate("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app where id=:id")
+  @SqlUpdate("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app,config=:config::jsonb where id=:id")
   void update(@BindJob Job job);
   
   @Override
-  @SqlBatch("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app where id=:id")
+  @SqlBatch("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app,config=:config::jsonb where id=:id")
   void update(@BindJob Iterator<Job> jobs);
 
   @Override
@@ -115,12 +115,14 @@ public interface JDBIJobRepository extends JobRepository {
       String inputsJson = r.getString("inputs");
       String outputsJson = r.getString("outputs");
       String resourcesStr = r.getString("resources");
+      String configJson = r.getString("config");
       Resources res = JSONHelper.readObject(resourcesStr, Resources.class);
 
       Map<String, Object> inputs = JSONHelper.readMap(inputsJson);
       Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
+      Map<String, Object> config = JSONHelper.readMap(configJson);
 
-      return new Job(id, parent_id, root_id, name, app, status, message, inputs, outputs, Collections.emptyMap(), res, Collections.emptySet());
+      return new Job(id, parent_id, root_id, name, app, status, message, inputs, outputs, config, res, Collections.emptySet());
     }
   }
   
@@ -138,13 +140,16 @@ public interface JDBIJobRepository extends JobRepository {
       String message = r.getString("message");
       String inputsJson = r.getString("inputs");
       String outputsJson = r.getString("outputs");
+      String configJson = r.getString("config");
       String resourcesStr = r.getString("resources");
       Resources res = JSONHelper.readObject(resourcesStr, Resources.class);
+      
 
       Map<String, Object> inputs = JSONHelper.readMap(inputsJson);
       Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
+      Map<String, Object> config = JSONHelper.readMap(configJson);
 
-      Job job = new Job(id, parentId, root_id, name, app, status, message, inputs, outputs, Collections.emptyMap(), res, Collections.emptySet());
+      Job job = new Job(id, parentId, root_id, name, app, status, message, inputs, outputs, config, res, Collections.emptySet());
       return new JobEntity(job, groupId, producedByNode, backendId);
     }
   }
@@ -174,6 +179,7 @@ public interface JDBIJobRepository extends JobRepository {
             q.bind("outputs", JSONHelper.writeObject(job.getOutputs()));
             q.bind("app", job.getApp());
             q.bind("resources", JSONHelper.writeObject(job.getResources()));
+            q.bind("config", JSONHelper.writeObject(job.getConfig()));
           }
         };
       }
@@ -200,6 +206,7 @@ public interface JDBIJobRepository extends JobRepository {
               q.bind("outputs", JSONHelper.writeObject(job.getOutputs()));
               q.bind("app", job.getApp());
               q.bind("resources", JSONHelper.writeObject(job.getResources()));
+              q.bind("config", JSONHelper.writeObject(job.getConfig()));
             }
             q.bind("group_id", entity.getGroupId());
             q.bind("produced_by_node", entity.getProducedByNode());
