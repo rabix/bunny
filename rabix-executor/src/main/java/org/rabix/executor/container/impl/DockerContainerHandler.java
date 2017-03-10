@@ -477,7 +477,7 @@ public class DockerContainerHandler implements ContainerHandler {
     public final static long MINUTE = 60 * SECOND;
     public final static long METHOD_TIMEOUT = 10 * MINUTE; // maximize time (it's mostly because of big Docker images)
     public final static long DEFAULT_DOCKER_CLIENT_TIMEOUT = 1000 * SECOND;
-    public final static long SLEEP_TIME = 1 * SECOND;
+    public final static long SLEEP_TIME = 30 * SECOND;
     
     public static final String DOCKER_HOST_ENVVAR = "DOCKER_HOST";
     public static final String DOCKER_HOST_CONFIG = "docker.host";

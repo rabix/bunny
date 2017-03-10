@@ -313,8 +313,6 @@ public class CWLProcessor implements ProtocolProcessor {
         case 1:
           result = ((List<?>) result).get(0);
           break;
-        default:
-          throw new BindingException("Invalid file format " + result);
         }
       }
     }
@@ -497,10 +495,11 @@ public class CWLProcessor implements ProtocolProcessor {
 
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    Object specificValue = CWLValueTranslator.translateToSpecific(value);
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     Object result = null;
     try {
-      result = CWLExpressionResolver.resolve(transform, cwlJob, value);
+      result = CWLExpressionResolver.resolve(transform, cwlJob, specificValue);
       return CWLValueTranslator.translateToCommon(result);
     } catch (CWLExpressionException e) {
       throw new BindingException(e);

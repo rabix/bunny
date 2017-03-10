@@ -2,6 +2,7 @@ package org.rabix.engine.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
@@ -29,7 +30,8 @@ public class JobRecordServiceImpl implements JobRecordService {
     READY,
     RUNNING,
     COMPLETED,
-    FAILED
+    FAILED,
+    ABORTED
   }
 
   private CacheService cacheService;
@@ -74,6 +76,14 @@ public class JobRecordServiceImpl implements JobRecordService {
       return cache.<JobRecord> merge(recordsByParent, JobRecord.class);
     }
     return recordsByParent;
+  }
+  
+  @Override
+  public List<JobRecord> find(UUID rootId, Set<JobState> statuses) {
+    List<JobRecord> records = jobRecordRepository.get(rootId, statuses);
+
+    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
+    return cache.<JobRecord> merge(records, JobRecord.class);
   }
   
   public JobRecord find(String id, UUID rootId) {

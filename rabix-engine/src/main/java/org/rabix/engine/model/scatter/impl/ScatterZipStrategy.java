@@ -67,7 +67,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
     }
   }
   
-  public void enable(String port, Object value, Integer position) {
+  public void enable(String port, Object value, Integer position, Integer sizePerPort) {
     Preconditions.checkNotNull(port);
     Preconditions.checkNotNull(position);
     

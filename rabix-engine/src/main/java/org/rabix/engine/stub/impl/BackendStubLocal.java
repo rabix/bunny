@@ -19,6 +19,8 @@ public class BackendStubLocal extends BackendStub<TransportQueueLocal, BackendLo
     this.sendToBackendControlQueue = new TransportQueueLocal(backendLocal.getToBackendControlQueue());
     this.receiveFromBackendQueue = new TransportQueueLocal(backendLocal.getFromBackendQueue());
     this.receiveFromBackendHeartbeatQueue = new TransportQueueLocal(backendLocal.getFromBackendHeartbeatQueue());
+    
+    this.enableControlMesages = configuration.getBoolean("bunny.enable_backend_control_messages", true);
   }
 
 }

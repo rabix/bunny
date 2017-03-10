@@ -8,7 +8,8 @@ public class ContextRecord {
   public static enum ContextStatus {
     RUNNING,
     COMPLETED,
-    FAILED
+    FAILED,
+    ABORTED
   }
   
   private UUID id;

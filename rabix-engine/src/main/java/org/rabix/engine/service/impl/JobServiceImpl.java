@@ -25,7 +25,6 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.helper.IntermediaryFilesHelper;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.JobRepository;
@@ -75,8 +74,10 @@ public class JobServiceImpl implements JobService {
   private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
 
   private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+  
   private Set<UUID> stoppingRootIds = new HashSet<>();
   private EngineStatusCallback engineStatusCallback;
+  private boolean setResources;
   
   @Inject
   public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
@@ -103,6 +104,7 @@ public class JobServiceImpl implements JobService {
     deleteIntermediaryFiles = configuration.getBoolean("rabix.delete_intermediary_files", false);
     keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);
     isLocalBackend = configuration.getBoolean("local.backend", false);
+    setResources = configuration.getBoolean("bunny.set_resources", false);
     eventProcessor.start();
   }
   
@@ -115,14 +117,17 @@ public class JobServiceImpl implements JobService {
       transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
         @Override
         public Void call() throws Exception {
-          UUID backendId = jobRepository.getBackendId(job.getId());
-          if (backendId == null) {
-            logger.warn("Tried to update Job " + job.getId() + " without backend assigned.");
-            return null;
+          if (!job.isRoot()) {
+            UUID backendId = jobRepository.getBackendId(job.getId());
+            if (backendId == null) {
+              logger.warn("Tried to update Job " + job.getId() + " without backend assigned.");
+              return null;
+            }  
+            
+            JobStatus dbStatus = jobRepository.getStatus(job.getId());
+            JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
           }
-          JobStatus dbStatus = jobRepository.getStatus(job.getId());
-          JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
-
+          
           JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
           if (jobRecord == null) {
             logger.info("Possible stale message. Job {} for root {} doesn't exist.", job.getName(), job.getRootId());
@@ -144,6 +149,15 @@ public class JobServiceImpl implements JobService {
             }
             JobStateValidator.checkState(jobRecord, JobState.FAILED);
             statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, job.getId(), job.getName());
+            break;
+          case ABORTED:
+            if (JobState.ABORTED.equals(jobRecord.getState())) {
+              return null;
+            }
+            JobStateValidator.checkState(jobRecord, JobState.ABORTED);
+            Job rootJob = jobRepository.get(jobRecord.getRootId());
+            handleJobRootAborted(rootJob);
+            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobState.ABORTED, null, rootJob.getId(), rootJob.getName());
             break;
           case COMPLETED:
             if (JobState.COMPLETED.equals(jobRecord.getState())) {
@@ -215,17 +229,29 @@ public class JobServiceImpl implements JobService {
     }
   }
   
-  @Override
-  public void stop(UUID id) throws JobServiceException {
-    logger.debug("Stop Job {}", id);
+  public void stop(Job job) throws JobServiceException {
+    logger.debug("Stop Job {}", job.getId());
     
-    Job job = jobRepository.get(id);
     if (job.isRoot()) {
+      Set<JobStatus> statuses = new HashSet<>();
+      statuses.add(JobStatus.READY);
+      statuses.add(JobStatus.PENDING);
+      statuses.add(JobStatus.RUNNING);
+      statuses.add(JobStatus.STARTED);
+      jobRepository.updateStatus(job.getId(), JobStatus.ABORTED, statuses);
+
       Set<Job> jobs = jobRepository.getByRootId(job.getRootId());
       scheduler.stop(jobs.toArray(new Job[jobs.size()]));
     } else {
+      // TODO implement the rest of the logic
       scheduler.stop(job);
     }
+  }
+  
+  @Override
+  public void stop(UUID id) throws JobServiceException {
+    Job job = jobRepository.get(id);
+    stop(job);
   }
   
   @Override
@@ -270,7 +296,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode){
-    if (isLocalBackend) {
+    if (setResources) {
       for (Job job : jobs) {
         long numberOfCores;
         long memory;
@@ -334,7 +360,7 @@ public class JobServiceImpl implements JobService {
       }
     }
     if (deleteIntermediaryFiles) {
-      IntermediaryFilesHelper.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()), intermediaryFilesService, keepInputFiles);
+      intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()), keepInputFiles);
     }
     try {
       engineStatusCallback.onJobFailed(failedJob);
@@ -356,7 +382,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobContainerReady(Job containerJob) {
     if (deleteIntermediaryFiles) {
-      IntermediaryFilesHelper.handleContainerReady(containerJob, linkRecordService, intermediaryFilesService, keepInputFiles);
+      intermediaryFilesService.handleContainerReady(containerJob, keepInputFiles);
     }
     try {
       engineStatusCallback.onJobContainerReady(containerJob);
@@ -424,12 +450,28 @@ public class JobServiceImpl implements JobService {
       logger.error("Engine status callback failed",e);
     }
   }
+  
+  @Override
+  public void handleJobRootAborted(Job rootJob) {
+    logger.info("Root {} has been aborted", rootJob.getId());
+
+    try {
+      stop(rootJob);
+    } catch (JobServiceException e) {
+      logger.error("Failed to stop jobs", e);
+    }
+    try {
+      engineStatusCallback.onJobRootAborted(rootJob);
+    } catch (EngineStatusCallbackException e) {
+      logger.error("Engine status callback failed", e);
+    }
+  }
 
   @Override
   public void handleJobCompleted(Job job){
     logger.info("Job {} is completed.", job.getName());
     if (deleteIntermediaryFiles) {
-      IntermediaryFilesHelper.handleJobCompleted(job, linkRecordService, intermediaryFilesService);
+      intermediaryFilesService.handleJobCompleted(job);
     }
     try{
       engineStatusCallback.onJobCompleted(job);

@@ -73,6 +73,8 @@ public class JobHelper {
       return JobState.READY;
     case PENDING:
       return JobState.PENDING;
+    case ABORTED:
+      return JobState.ABORTED;
     default:
       break;
     }

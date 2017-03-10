@@ -20,7 +20,9 @@ public interface EngineStatusCallback {
   void onJobRootCompleted(Job rootJob) throws EngineStatusCallbackException;
   
   void onJobRootPartiallyCompleted(Job rootJob, String producedBy) throws EngineStatusCallbackException;
-  
+
   void onJobRootFailed(Job rootJob) throws EngineStatusCallbackException;
+  
+  void onJobRootAborted(Job rootJob) throws EngineStatusCallbackException;
   
 }

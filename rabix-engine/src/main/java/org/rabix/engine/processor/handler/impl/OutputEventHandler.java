@@ -18,14 +18,17 @@ import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.event.impl.OutputUpdateEvent;
 import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobStatsRecord;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.*;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +46,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   private LinkRecordService linkService;
   private VariableRecordService variableService;
   private ContextRecordService contextService;
-  private JobStatsRecordService jobStatsRecordService;
+    
   private final EventProcessor eventProcessor;
   
   private DAGNodeDB dagNodeDB;
@@ -51,7 +54,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   private JobService jobService;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, AppDB appDB, JobService jobService, JobStatsRecordService jobStatsRecordService) {
+  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, AppDB appDB, JobService jobService) {
     this.dagNodeDB = dagNodeDB;
     this.appDB = appDB;
     this.jobRecordService = jobRecordService;
@@ -60,7 +63,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     this.variableService = variableService;
     this.eventProcessor = eventProcessor;
     this.jobService = jobService;
-    this.jobStatsRecordService = jobStatsRecordService;
   }
   
   public void handle(final OutputUpdateEvent event) throws EventHandlerException {
@@ -75,37 +77,32 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     jobRecordService.update(sourceJob);
     
     if (sourceJob.isCompleted()) {
-      if ((sourceJob.isContainer() || sourceJob.isScatterWrapper()) &&
-        sourceJob.getParentId() != null && sourceJob.getParentId().equals(sourceJob.getRootId())) {
-        JobStatsRecord jobStatsRecord = jobStatsRecordService.findOrCreate(sourceJob.getRootId());
-        jobStatsRecord.increaseCompleted();
-        jobStatsRecord.increaseRunning();
-        jobStatsRecordService.update(jobStatsRecord);
-      }
-      try {
-        Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
-        jobService.handleJobCompleted(completedJob);
-      } catch (BindingException e) {
-        logger.error("Failed to create Job " + sourceJob.getId(), e);
-      }
-      
-      if (sourceJob.isRoot()) {
-        Map<String, Object> outputs = new HashMap<>();
-        List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
-        for (VariableRecord outputVariable : outputVariables) {
-          Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
-          outputs.put(outputVariable.getPortId(), value);
+      if(sourceJob.getOutputCounter(sourceVariable.getPortId()) != null) {
+        try {
+          Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
+          jobService.handleJobCompleted(completedJob);
+        } catch (BindingException e) {
+          logger.error("Failed to create Job " + sourceJob.getId(), e);
         }
-        if(sourceJob.isRoot() && sourceJob.isContainer()) {
-          // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
-          eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
+        
+        if (sourceJob.isRoot()) {
+          Map<String, Object> outputs = new HashMap<>();
+          List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
+          for (VariableRecord outputVariable : outputVariables) {
+            Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
+            outputs.put(outputVariable.getPortId(), value);
+          }
+          if(sourceJob.isRoot() && sourceJob.isContainer()) {
+            // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
+            eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
+          }
+          return;
         }
-        return;
       }
     }
     
     if (sourceJob.isRoot()) {
-        jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.getProducedByNode());
+      jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.getProducedByNode());
     }
     
     Object value = null;

@@ -44,7 +44,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<docker-client.version>3.5.12</docker-client.version>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.rabix</groupId>

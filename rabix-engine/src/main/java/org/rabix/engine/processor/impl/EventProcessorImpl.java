@@ -118,7 +118,7 @@ public class EventProcessorImpl implements EventProcessor {
     while (event != null) {
       try {
         ContextRecord context = contextRecordService.find(event.getContextId());
-        if (context != null && context.getStatus().equals(ContextStatus.FAILED)) {
+        if (context != null && (context.getStatus().equals(ContextStatus.FAILED) || context.getStatus().equals(ContextStatus.ABORTED))) {
           logger.info("Skip event {}. Context {} has been invalidated.", event, context.getId());
           return;
         }

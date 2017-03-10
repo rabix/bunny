@@ -119,7 +119,7 @@ public class ScatterHandler {
   
   private void createScatteredJobs(JobRecord job, Event event, String port, Object value, DAGNode node, Integer numberOfScattered, Integer position) throws EventHandlerException {
     ScatterStrategy scatterStrategy = job.getScatterStrategy();
-    scatterStrategy.enable(port, value, position);
+    scatterStrategy.enable(port, value, position, numberOfScattered);
     
     List<RowMapping> mappings = null;
     try {

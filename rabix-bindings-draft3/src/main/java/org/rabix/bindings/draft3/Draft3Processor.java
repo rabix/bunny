@@ -289,8 +289,6 @@ public class Draft3Processor implements ProtocolProcessor {
         case 1:
           result = ((List<?>) result).get(0);
           break;
-        default:
-          throw new BindingException("Invalid file format " + result);
         }
       }
     }
@@ -444,10 +442,11 @@ public class Draft3Processor implements ProtocolProcessor {
 
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    Object specificValue = Draft3ValueTranslator.translateToSpecific(value);
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     Object result = null;
     try {
-      result = Draft3ExpressionResolver.resolve(transform, draft3Job, value);
+      result = Draft3ExpressionResolver.resolve(transform, draft3Job, specificValue);
       return Draft3ValueTranslator.translateToCommon(result);
     } catch (Draft3ExpressionException e) {
       throw new BindingException(e);

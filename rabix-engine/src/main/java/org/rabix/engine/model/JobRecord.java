@@ -365,6 +365,13 @@ public class JobRecord implements Cachable {
     public void setScatter(Boolean scatter) {
       this.scatter = scatter;
     }
+
+    @Override
+    public String toString() {
+      return "PortCounter [port=" + port + ", counter=" + counter + ", scatter=" + scatter + ", incoming=" + incoming
+          + ", updatedAsSourceCounter=" + updatedAsSourceCounter + ", globalCounter=" + globalCounter + "]";
+    }
+    
   }
   
   public static class JobCacheKey implements CacheKey {

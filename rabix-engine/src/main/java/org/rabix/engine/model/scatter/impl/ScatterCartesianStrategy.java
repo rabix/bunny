@@ -33,6 +33,8 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   private Map<String, LinkedList<Object>> values;
   @JsonProperty("positions")
   private Map<String, LinkedList<Integer>> positions;
+  @JsonProperty("sizePerPort")
+  private Map<String, Integer> sizePerPort;
 
   @JsonProperty("scatterMethod")
   private ScatterMethod scatterMethod;
@@ -41,11 +43,13 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   public ScatterCartesianStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
       @JsonProperty("values") Map<String, LinkedList<Object>> values,
       @JsonProperty("positions") Map<String, LinkedList<Integer>> positions,
-      @JsonProperty("scatterMethod") ScatterMethod scatterMethod) {
+      @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
+      @JsonProperty("sizePerPort") Map<String, Integer> sizePerPort) {
     super();
     this.combinations = combinations;
     this.values = values;
     this.positions = positions;
+    this.sizePerPort = sizePerPort;
     this.scatterMethod = scatterMethod;
   }
 
@@ -54,6 +58,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     this.positions = new HashMap<>();
     this.combinations = new LinkedList<>();
     this.scatterMethod = dagNode.getScatterMethod();
+    this.sizePerPort = new HashMap<>();
     initialize(dagNode);
   }
 
@@ -71,7 +76,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public synchronized void enable(String port, Object value, Integer position) {
+  public synchronized void enable(String port, Object value, Integer position, Integer sizePerPort) {
     LinkedList<Integer> positionList = positions.get(port);
     positionList = expand(positionList, position);
     positionList.set(position - 1, position);
@@ -81,6 +86,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     valueList = expand(valueList, position);
     valueList.set(position - 1, value);
     values.put(port, valueList);
+    this.sizePerPort.put(port, sizePerPort);
   }
 
   @Override
@@ -171,7 +177,11 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
 
   @Override
   public synchronized int enabledCount() {
-    return combinations.size();
+    int size = 1;
+    for (Entry<String, Integer> sizePerPort : this.sizePerPort.entrySet()) {
+      size = size * sizePerPort.getValue();
+    }
+    return size;
   }
 
   @Override

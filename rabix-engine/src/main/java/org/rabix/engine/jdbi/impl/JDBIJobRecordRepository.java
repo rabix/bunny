@@ -31,11 +31,14 @@ import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import org.skife.jdbi.v2.unstable.BindIn;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
 @RegisterMapper(JobRecordMapper.class)
+@UseStringTemplate3StatementLocator
 public abstract class JDBIJobRecordRepository extends JobRecordRepository {
 
   @Override
@@ -54,6 +57,10 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   @SqlBatch("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state::job_record_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
   public abstract void updateBatch(@BindJobRecord Iterator<JobRecord> records);
 
+  @Override
+  @SqlUpdate("update job_record set job_state=:state::job_record_state where root_id=:root_id and job_state::text in (<states>)")
+  public abstract void updateStatus(@Bind("root_id") UUID rootId, @Bind("state") JobState state, @BindIn("states") Set<JobState> whereStates);
+  
   @Override
   @SqlUpdate("delete from job_record where job_state=:state::job_record_state")
   public abstract int deleteByStatus(@Bind("state") JobState state);
@@ -79,8 +86,12 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   public abstract List<JobRecord> getByParent(@Bind("parent_id") UUID parentId, @Bind("root_id") UUID rootId);
   
   @Override
-  @SqlQuery("select * from job_record where job_state='READY'::job_record_state and root_id=?")
+  @SqlQuery("select * from job_record where job_state='READY'::job_record_state and root_id=:root_id")
   public abstract List<JobRecord> getReady(@Bind("root_id") UUID rootId);
+  
+  @Override
+  @SqlQuery("select * from job_record where job_state::text in (<states>) and root_id=:root_id")
+  public abstract List<JobRecord> get(@Bind("root_id") UUID rootId, @BindIn("states") Set<JobState> states);
   
   @BindingAnnotation(BindJobRecord.JobBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)

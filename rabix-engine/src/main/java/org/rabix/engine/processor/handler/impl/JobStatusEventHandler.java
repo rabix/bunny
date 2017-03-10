@@ -24,6 +24,7 @@ import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.event.impl.OutputUpdateEvent;
+import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.model.JobRecord.PortCounter;
@@ -173,6 +174,22 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           eventProcessor.addToQueue(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId(), event.getProducedByNode()));
         }
       }
+      break;
+    case ABORTED:
+      Set<JobState> jobRecordStatuses = new HashSet<>();
+      jobRecordStatuses.add(JobState.PENDING);
+      jobRecordStatuses.add(JobState.READY);
+      jobRecordStatuses.add(JobState.RUNNING);
+
+      List<JobRecord> records = jobRecordService.find(jobRecord.getRootId(), jobRecordStatuses);
+      for (JobRecord record : records) {
+        record.setState(JobState.ABORTED);
+        jobRecordService.update(record);
+      }
+      
+      ContextRecord contextRecord = contextRecordService.find(jobRecord.getRootId());
+      contextRecord.setStatus(ContextStatus.ABORTED);
+      contextRecordService.update(contextRecord);
       break;
     case FAILED:
       jobRecord.setState(JobState.READY);
