@@ -3,6 +3,7 @@ package org.rabix.executor.rest;
 import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.UUID;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.ApplicationPath;
