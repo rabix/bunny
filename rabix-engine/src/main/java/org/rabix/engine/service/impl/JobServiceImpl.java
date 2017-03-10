@@ -261,13 +261,9 @@ public class JobServiceImpl implements JobService {
   }
   
   @Override
-  public Set<Job> get() {
-    return jobRepository.get();
-  }
-  
-  @Override
   public Job get(UUID id) {
-    return jobRepository.get(id);
+    Job job = jobRepository.get(id);
+    return job == null? completedJobRepository.get(id) : job;
   }
   
   public void delete(UUID jobId) {

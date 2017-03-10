@@ -18,8 +18,6 @@ public interface JobService {
   
   void stop(UUID id) throws JobServiceException;
   
-  Set<Job> get();
-  
   void delete(UUID jobId);
 
   void updateBackend(UUID jobId, UUID backendId);

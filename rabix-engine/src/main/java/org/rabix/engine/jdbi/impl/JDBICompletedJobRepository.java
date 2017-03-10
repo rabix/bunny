@@ -7,14 +7,15 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.Job.JobStatus;
+import org.rabix.bindings.model.Resources;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.jdbi.impl.JDBICompletedJobRepository.CompletedJobEntityMapper;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository.BindJob;
 import org.rabix.engine.repository.CompletedJobRepository;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
@@ -26,12 +27,11 @@ public interface JDBICompletedJobRepository extends CompletedJobRepository {
 
   @Override
   @SqlUpdate("insert into completed_job (id,root_id,name, parent_id, message, inputs, outputs, resources, app, config) values (:id,:root_id,:name,:parent_id,:message,:inputs::jsonb,:outputs::jsonb,:resources::jsonb,:app,:config::jsonb)")
-  void insert(@BindJob Job job, @Bind("backend_id") UUID backendId);
-  
-  @Override
-  @SqlUpdate("insert into completed_job (id,root_id,name, parent_id, message, inputs, outputs, resources, app, config) values (:id,:root_id,:name,:parent_id,:message,:inputs::jsonb,:outputs::jsonb,:resources::jsonb,:app,:config::jsonb)")
   void insert(@BindJob Job job);
 
+  @Override
+  @SqlQuery("select * from completed_job where id=:id")
+  Job get(@Bind("id") UUID id);
   
   public static class CompletedJobEntityMapper implements ResultSetMapper<Job> {
     public Job map(int index, ResultSet r, StatementContext ctx) throws SQLException {

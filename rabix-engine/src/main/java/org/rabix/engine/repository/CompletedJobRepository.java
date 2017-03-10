@@ -8,6 +8,6 @@ public interface CompletedJobRepository {
 
   void insert(Job job);
   
-  void insert(Job job, UUID backendId);
+  Job get(UUID id);
   
 }
