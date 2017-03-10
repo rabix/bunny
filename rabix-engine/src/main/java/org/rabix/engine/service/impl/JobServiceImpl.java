@@ -42,7 +42,6 @@ import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
-import org.rabix.engine.validator.JobStateValidationException;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,10 +124,6 @@ public class JobServiceImpl implements JobService {
               logger.warn("Tried to update Job " + job.getId() + " without backend assigned.");
               return null;
             }  
-
-            if (JobStatus.COMPLETED.equals(job.getStatus()) && completedJobRepository.exists(job.getId())) {
-              throw new JobStateValidationException("Job state cannot transition from COMPLETED to COMPLETED");
-            }
             
             JobStatus dbStatus = jobRepository.getStatus(job.getId());
             JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
@@ -175,12 +170,7 @@ public class JobServiceImpl implements JobService {
           default:
             break;
           }
-          if (JobStatus.COMPLETED.equals(job.getStatus())) {
-            completedJobRepository.insert(job);
-            jobRepository.delete(job.getId());
-          } else {
-            jobRepository.update(job);
-          }
+          jobRepository.update(job);
           eventProcessor.persist(statusEvent);
           eventWrapper.set(statusEvent);
           isSuccessful.set(true);
@@ -281,7 +271,7 @@ public class JobServiceImpl implements JobService {
   }
   
   public void delete(UUID jobId) {
-    jobRepository.delete(jobId);
+    // TODO think about it
   }
 
   public void updateBackend(UUID jobId, UUID backendId) {
@@ -390,7 +380,6 @@ public class JobServiceImpl implements JobService {
         return false;
     }
   }
-  
   @Override
   public void handleJobContainerReady(Job containerJob) {
     if (deleteIntermediaryFiles) {
@@ -418,9 +407,7 @@ public class JobServiceImpl implements JobService {
 
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
     job = JobHelper.fillOutputs(job, jobRecordService, variableRecordService);
-    
-    completedJobRepository.insert(job);
-    jobRepository.delete(job.getId());
+    jobRepository.update(job);
     try {
       engineStatusCallback.onJobRootCompleted(job);
     } catch (EngineStatusCallbackException e) {
@@ -484,6 +471,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobCompleted(Job job){
     logger.info("Job {} is completed.", job.getName());
+    completedJobRepository.insert(job);
     if (deleteIntermediaryFiles) {
       intermediaryFilesService.handleJobCompleted(job);
     }

@@ -13,9 +13,8 @@ public class InMemoryCompletedJobRepository implements CompletedJobRepository{
   }
 
   @Override
-  public boolean exists(UUID id) {
+  public void insert(Job job, UUID backendId) {
     // DO NOTHING
-    return false;
   }
 
 }

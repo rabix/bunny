@@ -197,7 +197,7 @@ CREATE TABLE completed_job
     root_id uuid,
     name text NOT NULL,
     parent_id uuid,
-    message text,
+    message text
     inputs jsonb,
     outputs jsonb,
     resources jsonb,

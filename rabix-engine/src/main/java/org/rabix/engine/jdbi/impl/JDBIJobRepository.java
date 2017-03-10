@@ -103,10 +103,6 @@ public interface JDBIJobRepository extends JobRepository {
   @SqlQuery("select * from job where backend_id is null and status='READY'::job_status")
   Set<JobEntity> getReadyFree();
   
-  @Override
-  @SqlUpdate("delete from job where id=:id")
-  void delete(@Bind("id") UUID id);
-  
   public static class JobMapper implements ResultSetMapper<Job> {
     public Job map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       UUID id = r.getObject("id", UUID.class);

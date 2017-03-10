@@ -1,6 +1,6 @@
 bunny_engine_url: http://localhost:8081
 cache_directory: /Users/janko/Desktop/Archive/varscan
-engine_heartbeat_interval: 10
+engine_heartbeat_interval: 20
 mocks_file: /home/milos/tools/bunny_mock_backend/config/mocks.json
 
 rabbitmq_host: localhost

@@ -41,8 +41,6 @@ public interface JobRepository {
   
   JobStatus getStatus(UUID id);
   
-  void delete(UUID jobId);
-  
   public class JobEntity {
     
     Job job;
@@ -120,6 +118,5 @@ public interface JobRepository {
     }
 
   }
-
 
 }
