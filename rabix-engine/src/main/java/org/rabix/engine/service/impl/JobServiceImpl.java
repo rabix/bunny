@@ -77,6 +77,7 @@ public class JobServiceImpl implements JobService {
   
   private Set<UUID> stoppingRootIds = new HashSet<>();
   private EngineStatusCallback engineStatusCallback;
+  private boolean setResources;
   
   @Inject
   public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
@@ -103,6 +104,7 @@ public class JobServiceImpl implements JobService {
     deleteIntermediaryFiles = configuration.getBoolean("rabix.delete_intermediary_files", false);
     keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);
     isLocalBackend = configuration.getBoolean("local.backend", false);
+    setResources = configuration.getBoolean("bunny.set_resources", false);
     eventProcessor.start();
   }
   
@@ -294,7 +296,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode){
-    if (isLocalBackend) {
+    if (setResources) {
       for (Job job : jobs) {
         long numberOfCores;
         long memory;

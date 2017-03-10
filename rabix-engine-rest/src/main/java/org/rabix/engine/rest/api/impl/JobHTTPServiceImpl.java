@@ -65,11 +65,8 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   @Override
   public Response update(UUID id, JobStatus status) {
     try {
-      Job job = new Job(null, null);
+      Job job = jobService.get(id);
       job = Job.cloneWithStatus(job, status);
-      job = Job.cloneWithId(job, id);
-      job = Job.cloneWithRootId(job, id);
-      job = Job.cloneWithName(job, "root");
       
       jobService.update(job);
     } catch (JobServiceException e) {
