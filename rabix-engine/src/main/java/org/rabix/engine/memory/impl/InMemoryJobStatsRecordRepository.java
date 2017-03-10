@@ -1,9 +1,7 @@
 package org.rabix.engine.memory.impl;
 
 import com.google.inject.Inject;
-import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.JobStatsRecord;
-import org.rabix.engine.repository.ContextRecordRepository;
 import org.rabix.engine.repository.JobStatsRecordRepository;
 
 import java.util.Map;
@@ -21,13 +19,13 @@ public class InMemoryJobStatsRecordRepository implements JobStatsRecordRepositor
 
   @Override
   public synchronized int insert(JobStatsRecord jobStatsRecord) {
-    jobStatsRecordRepository.put(jobStatsRecord.getJobId(), jobStatsRecord);
+    jobStatsRecordRepository.put(jobStatsRecord.getRootId(), jobStatsRecord);
     return 1;
   }
 
   @Override
   public synchronized int update(JobStatsRecord jobStatsRecord) {
-    jobStatsRecordRepository.put(jobStatsRecord.getJobId(), jobStatsRecord);
+    jobStatsRecordRepository.put(jobStatsRecord.getRootId(), jobStatsRecord);
     return 1;
   }
 

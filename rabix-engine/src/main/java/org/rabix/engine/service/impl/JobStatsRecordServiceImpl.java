@@ -28,21 +28,21 @@ public class JobStatsRecordServiceImpl implements JobStatsRecordService {
     jobStatsRecordRepository.update(jobStatsRecord);
   }
   
-  public JobStatsRecord find(UUID jobId) {
-    return jobStatsRecordRepository.get(jobId);
+  public JobStatsRecord find(UUID rootId) {
+    return jobStatsRecordRepository.get(rootId);
   }
 
-  @Override public JobStatsRecord findOrCreate(UUID jobId) {
-    JobStatsRecord jobStatsRecord = find(jobId);
+  @Override public JobStatsRecord findOrCreate(UUID rootId) {
+    JobStatsRecord jobStatsRecord = find(rootId);
     if (jobStatsRecord == null) {
-      jobStatsRecord = new JobStatsRecord(jobId, 0, 0);
+      jobStatsRecord = new JobStatsRecord(rootId, 0, 0, 0);
       create(jobStatsRecord);
     }
     return jobStatsRecord;
   }
 
-  public void delete(UUID jobId) {
-    jobStatsRecordRepository.delete(jobId);
+  public void delete(UUID rootId) {
+    jobStatsRecordRepository.delete(rootId);
   }
 
 }

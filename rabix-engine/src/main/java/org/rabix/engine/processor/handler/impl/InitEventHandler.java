@@ -16,12 +16,14 @@ import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 import org.rabix.engine.model.JobRecord;
+import org.rabix.engine.model.JobStatsRecord;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
@@ -37,14 +39,16 @@ public class InitEventHandler implements EventHandler<InitEvent> {
   private JobRecordService jobRecordService;
   private ContextRecordService contextRecordService;
   private VariableRecordService variableRecordService;
+  private JobStatsRecordService jobStatsRecordService;
 
   @Inject
-  public InitEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) {
+  public InitEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, JobStatsRecordService jobStatsRecordService) {
     this.nodeDB = dagNodeDB;
     this.eventProcessor = eventProcessor;
     this.jobRecordService = jobRecordService;
     this.contextRecordService = contextRecordService;
     this.variableRecordService = variableRecordService;
+    this.jobStatsRecordService = jobStatsRecordService;
   }
 
   public void handle(final InitEvent event) throws EventHandlerException {
@@ -55,6 +59,15 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     JobRecord job = new JobRecord(event.getContextId(), node.getId(), event.getContextId(), null, JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
 
     jobRecordService.create(job);
+    if (job.isRoot()) {
+      JobStatsRecord jobStatsRecord = jobStatsRecordService.findOrCreate(job.getRootId());
+      if (node instanceof DAGContainer) {
+        jobStatsRecord.setTotal(((DAGContainer) node).getChildren().size());
+      } else {
+        jobStatsRecord.setTotal(1);
+      }
+      jobStatsRecordService.update(jobStatsRecord);
+    }
 
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       if (job.getState().equals(JobState.PENDING)) {

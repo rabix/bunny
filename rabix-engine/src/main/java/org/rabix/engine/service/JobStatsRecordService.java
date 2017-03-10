@@ -10,9 +10,9 @@ public interface JobStatsRecordService {
   
   void update(JobStatsRecord jobStatsRecord);
 
-  JobStatsRecord find(UUID jobId);
+  JobStatsRecord find(UUID rootId);
 
-  JobStatsRecord findOrCreate(UUID jobId);
+  JobStatsRecord findOrCreate(UUID rootId);
 
-  void delete(UUID jobId);
+  void delete(UUID rootId);
 }

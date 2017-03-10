@@ -4,22 +4,24 @@ import java.util.UUID;
 
 public class JobStatsRecord {
 
-  private UUID jobId;
+  private UUID rootId;
   private int completed;
   private int running;
+  private int total;
 
-  public JobStatsRecord(final UUID jobId, int completed, int running) {
-    this.jobId = jobId;
+  public JobStatsRecord(final UUID rootId, int completed, int running, int total) {
+    this.rootId = rootId;
     this.completed = completed;
     this.running = running;
+    this.total = total;
   }
   
-  public UUID getJobId() {
-    return jobId;
+  public UUID getRootId() {
+    return rootId;
   }
 
-  public void setJobId(UUID jobId) {
-    this.jobId = jobId;
+  public void setRootId(UUID rootId) {
+    this.rootId = rootId;
   }
 
   public int getCompleted() {
@@ -34,6 +36,14 @@ public class JobStatsRecord {
     return running;
   }
 
+  public int getTotal() {
+    return total;
+  }
+
+  public void setTotal(int total) {
+    this.total = total;
+  }
+
   public void setRunning(int running) {
     this.running = running;
   }
@@ -43,7 +53,9 @@ public class JobStatsRecord {
   public void increaseCompleted() {
     completed++;
   }
+
   @Override public String toString() {
-    return "JobStatsRecord{" + "jobId=" + jobId + ", completed=" + completed + ", running=" + running + '}';
+    return "JobStatsRecord{" + "rootId=" + rootId + ", completed=" + completed + ", running=" + running + ", total="
+        + total + '}';
   }
 }

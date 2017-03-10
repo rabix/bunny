@@ -10,8 +10,8 @@ public interface JobStatsRecordRepository {
   
   int update(JobStatsRecord jobStatsRecord);
 
-  JobStatsRecord get(UUID jobId);
+  JobStatsRecord get(UUID rootId);
 
-  int delete(UUID jobId);
+  int delete(UUID rootId);
 
 }
