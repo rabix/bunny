@@ -246,8 +246,15 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
               long currentTime = System.currentTimeMillis();
 
+              List<Backend> activeBackends = backendService.getActiveBackends();
+              for (Backend backend : activeBackends) {
+                BackendStub<?, ?, ?> backendStub = getBackendStub(backend.getId());
+                if (backendStub == null) {
+                  jobService.dealocateJobs(backend.getId());
+                }
+              }
+              
               Iterator<BackendStub<?, ?, ?>> backendIterator = backendStubs.iterator();
-
               while (backendIterator.hasNext()) {
                 BackendStub<?, ?, ?> backendStub = backendIterator.next();
                 Backend backend = backendStub.getBackend();
