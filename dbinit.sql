@@ -206,4 +206,6 @@ CREATE TABLE completed_job
     CONSTRAINT completed_job_pkey PRIMARY KEY (id)
 )
 
+create index completed_job_id_index on completed_job(id);
+
 --rollback DROP TABLE completed_job;
