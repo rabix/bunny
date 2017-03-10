@@ -188,3 +188,9 @@ CREATE INDEX variable_record_type_index on variable_record (job_id, type, contex
 CREATE INDEX variable_record_port_index on variable_record (job_id, port_id, context_id);
 
 --rollback DROP TABLE variable_record; DROP TYPE link_merge_type;
+CREATE TABLE job_stats (
+    root_id				uuid references job on delete cascade,
+    completed   		integer not null,
+    running        		integer not null,
+    total          		integer not null
+);
