@@ -376,3 +376,20 @@ ALTER TABLE ONLY variable_record
 ALTER TABLE ONLY variable_record
     ADD CONSTRAINT variable_record_job_id_fkey FOREIGN KEY (job_id, context_id) REFERENCES job_record(id, root_id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED;
 --rollback ALTER TABLE ONLY variable_record DROP CONSTRAINT variable_record_job_id_fkey; 
+
+--changeset bunny:1487849040814-64 dbms:postgresql
+CREATE TABLE completed_job
+(
+    id uuid NOT NULL,
+    root_id uuid,
+    name text NOT NULL,
+    parent_id uuid,
+    message text
+    inputs jsonb,
+    outputs jsonb,
+    resources jsonb,
+    app text,
+    config jsonb,
+    CONSTRAINT completed_job_pkey PRIMARY KEY (id)
+)
+--rollback DROP TABLE completed_job

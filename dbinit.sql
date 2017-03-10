@@ -188,3 +188,22 @@ CREATE INDEX variable_record_type_index on variable_record (job_id, type, contex
 CREATE INDEX variable_record_port_index on variable_record (job_id, port_id, context_id);
 
 --rollback DROP TABLE variable_record; DROP TYPE link_merge_type;
+
+-- CompletedJobs
+--changeset initial:10 dbms:postgres
+CREATE TABLE completed_job
+(
+    id uuid NOT NULL,
+    root_id uuid,
+    name text NOT NULL,
+    parent_id uuid,
+    message text
+    inputs jsonb,
+    outputs jsonb,
+    resources jsonb,
+    app text,
+    config jsonb,
+    CONSTRAINT completed_job_pkey PRIMARY KEY (id)
+)
+
+--rollback DROP TABLE completed_job;
