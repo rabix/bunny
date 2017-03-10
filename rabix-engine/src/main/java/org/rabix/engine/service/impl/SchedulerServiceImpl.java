@@ -165,7 +165,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       backendStub.start(new HeartbeatCallback() {
         @Override
         public void save(HeartbeatInfo info) throws Exception {
-          backendService.updateHeartbeatInfo(backendStub.getBackend().getId(), new Timestamp(info.getTimestamp()));
+          backendService.updateHeartbeatInfo(info.getId(), new Timestamp(info.getTimestamp()));
         }
       }, new ReceiveCallback<Job>() {
         @Override

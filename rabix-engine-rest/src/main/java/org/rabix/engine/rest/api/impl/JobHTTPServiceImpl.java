@@ -39,11 +39,6 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response get() {
-    return ok(jobService.get());
-  }
-  
-  @Override
   public Response get(UUID id) {
     Job job = jobService.get(id);
     if (job == null) {

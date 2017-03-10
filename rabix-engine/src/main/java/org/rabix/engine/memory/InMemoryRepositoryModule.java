@@ -2,6 +2,7 @@ package org.rabix.engine.memory;
 
 import org.rabix.engine.memory.impl.InMemoryAppRepository;
 import org.rabix.engine.memory.impl.InMemoryBackendRepository;
+import org.rabix.engine.memory.impl.InMemoryCompletedJobRepository;
 import org.rabix.engine.memory.impl.InMemoryContextRecordRepository;
 import org.rabix.engine.memory.impl.InMemoryDAGRepository;
 import org.rabix.engine.memory.impl.InMemoryEventRepository;
@@ -11,6 +12,7 @@ import org.rabix.engine.memory.impl.InMemoryLinkRecordRepository;
 import org.rabix.engine.memory.impl.InMemoryVariableRecordRepository;
 import org.rabix.engine.repository.AppRepository;
 import org.rabix.engine.repository.BackendRepository;
+import org.rabix.engine.repository.CompletedJobRepository;
 import org.rabix.engine.repository.ContextRecordRepository;
 import org.rabix.engine.repository.DAGRepository;
 import org.rabix.engine.repository.EventRepository;
@@ -33,6 +35,7 @@ public class InMemoryRepositoryModule extends AbstractModule {
     bind(EventRepository.class).to(InMemoryEventRepository.class).in(Scopes.SINGLETON);
     bind(JobRecordRepository.class).to(InMemoryJobRecordRepository.class).in(Scopes.SINGLETON);
     bind(JobRepository.class).to(InMemoryJobRepository.class).in(Scopes.SINGLETON);
+    bind(CompletedJobRepository.class).to(InMemoryCompletedJobRepository.class).in(Scopes.SINGLETON);
     bind(LinkRecordRepository.class).to(InMemoryLinkRecordRepository.class).in(Scopes.SINGLETON);
     bind(VariableRecordRepository.class).to(InMemoryVariableRecordRepository.class).in(Scopes.SINGLETON);
   }
