@@ -58,7 +58,7 @@ public class JobServiceImpl implements JobService {
   private final ContextRecordService contextRecordService;
 
   private final JobRepository jobRepository;
-  private final CompletedJobRepository completedJobRepository;
+//  private final CompletedJobRepository completedJobRepository;
   private final DAGNodeDB dagNodeDB;
   private final AppDB appDB;
   
@@ -92,7 +92,7 @@ public class JobServiceImpl implements JobService {
     this.appDB = appDB;
     this.eventProcessor = eventProcessor;
     this.jobRepository = jobRepository;
-    this.completedJobRepository = completedJobRepository;
+//    this.completedJobRepository = completedJobRepository;
     
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
@@ -264,8 +264,8 @@ public class JobServiceImpl implements JobService {
   
   @Override
   public Job get(UUID id) {
-    Job job = jobRepository.get(id);
-    return job == null? completedJobRepository.get(id) : job;
+    return jobRepository.get(id);
+//    return job == null? completedJobRepository.get(id) : job;
   }
   
   public void delete(UUID jobId) {
@@ -469,7 +469,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobCompleted(Job job){
     logger.info("Job {} is completed.", job.getName());
-    completedJobRepository.insert(job);
+//    completedJobRepository.insert(job);
     if (deleteIntermediaryFiles) {
       intermediaryFilesService.handleJobCompleted(job);
     }
