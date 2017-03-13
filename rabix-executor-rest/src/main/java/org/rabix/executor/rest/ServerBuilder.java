@@ -149,16 +149,9 @@ public class ServerBuilder {
 
       Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
       WebTarget webTarget = client.target(engineHost + ":" + enginePort + "/v0/engine/backends");
-      UUID id = UUID.randomUUID();
       String rabbitHost = configuration.getString("rabbitmq.host");
-      String rabbitEngineExchange = configuration.getString("rabbitmq.engine.exchange");
-      String rabbitEngineExchangeType = configuration.getString("rabbitmq.engine.exchangeType");
-      String rabbitEngineReceiveRoutingKey = configuration.getString("rabbitmq.engine.receiveRoutingKey")+"_"+id;
-      String rabbitEngineHeartbeatRoutingKey = configuration.getString("rabbitmq.engine.heartbeatRoutingKey")+"_"+id;
-      
-      EngineConfiguration engineConfiguration = new EngineConfiguration(rabbitEngineExchange, rabbitEngineExchangeType, rabbitEngineReceiveRoutingKey, rabbitEngineHeartbeatRoutingKey);
 
-      BackendRabbitMQ backendRabbitMQ = new BackendRabbitMQ(id, rabbitHost, engineConfiguration, null);
+      BackendRabbitMQ backendRabbitMQ = new BackendRabbitMQ(null, rabbitHost, null, null);
       
       Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
       Response response = invocationBuilder.post(Entity.entity(backendRabbitMQ, MediaType.APPLICATION_JSON));
