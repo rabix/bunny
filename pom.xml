@@ -22,7 +22,7 @@
 		<module>rabix-bindings-draft3</module>
 		<module>rabix-bindings-sb</module>
 		<module>rabix-tes-command-line</module>
-	</modules>
+  </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
