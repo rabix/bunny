@@ -171,5 +171,16 @@ public class InMemoryJobRepository implements JobRepository {
     Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
     return jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus())).map(p->p.getJob()).collect(Collectors.toSet());
   }
+
+  @Override
+  public Set<Job> getRootsByStatus(JobStatus status) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void deleteByRootIds(Set<UUID> rootIds) {
+    // TODO Auto-generated method stub
+  }
   
 }

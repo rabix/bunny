@@ -72,6 +72,10 @@ public interface JDBIJobRepository extends JobRepository {
   Job get(@Bind("id") UUID id);
   
   @Override
+  @SqlQuery("select * from job where id=root_id and status=:status::job_status")
+  Set<Job> getRootsByStatus(@Bind("status") JobStatus status);
+  
+  @Override
   @SqlQuery("select status from job where id=:id")
   JobStatus getStatus(@Bind("id") UUID id);
   
@@ -102,6 +106,10 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlQuery("select * from job where backend_id is null and status='READY'::job_status")
   Set<JobEntity> getReadyFree();
+  
+  @Override
+  @SqlUpdate("delete from job where root_id in (<ids>)")
+  void deleteByRootIds(@BindIn("ids") Set<UUID> rootIds);
   
   public static class JobMapper implements ResultSetMapper<Job> {
     public Job map(int index, ResultSet r, StatementContext ctx) throws SQLException {
