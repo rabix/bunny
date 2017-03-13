@@ -27,9 +27,6 @@ public interface JobHTTPService {
   Response save(@PathParam("id") UUID id, Job job);
   
   @GET
-  Response get();
-  
-  @GET
   @Path("/{id}")
   public Response get(@PathParam("id")  UUID id);
 
