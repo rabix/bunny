@@ -21,12 +21,14 @@ import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.StoreCleanupService;
 import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.impl.CacheServiceImpl;
 import org.rabix.engine.service.impl.ContextRecordServiceImpl;
 import org.rabix.engine.service.impl.JobRecordServiceImpl;
 import org.rabix.engine.service.impl.LinkRecordServiceImpl;
 import org.rabix.engine.service.impl.StoreCleanupServiceImpl;
 import org.rabix.engine.service.impl.VariableRecordServiceImpl;
+import org.rabix.engine.service.impl.JobStatsRecordServiceImpl;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;

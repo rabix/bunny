@@ -11,6 +11,7 @@ import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.LinkRecordRepository;
 import org.rabix.engine.repository.VariableRecordRepository;
+import org.rabix.engine.repository.JobStatsRecordRepository;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.logging.SLF4JLog;
 

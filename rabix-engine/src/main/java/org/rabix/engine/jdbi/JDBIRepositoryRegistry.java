@@ -9,6 +9,7 @@ import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository;
 import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository;
 import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository;
+import org.rabix.engine.jdbi.impl.JDBIJobStatsRecordRepository;
 import org.rabix.engine.repository.TransactionHelper;
 import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
