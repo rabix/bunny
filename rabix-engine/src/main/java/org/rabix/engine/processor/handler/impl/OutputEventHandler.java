@@ -78,13 +78,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     
     if (sourceJob.isCompleted()) {
       if(sourceJob.getOutputCounter(sourceVariable.getPortId()) != null) {
-        try {
-          Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
-          jobService.handleJobCompleted(completedJob);
-        } catch (BindingException e) {
-          logger.error("Failed to create Job " + sourceJob.getId(), e);
-        }
-        
         if (sourceJob.isRoot()) {
           Map<String, Object> outputs = new HashMap<>();
           List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
@@ -92,6 +85,9 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
             outputs.put(outputVariable.getPortId(), value);
           }
+          Job rootJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
+          jobService.handleJobRootPartiallyCompleted(rootJob, event.getProducedByNode());        
+
           if(sourceJob.isRoot() && sourceJob.isContainer()) {
             // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
             eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
