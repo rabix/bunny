@@ -93,7 +93,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
 
     JobStatsRecord jobStatsRecord = null;
-    if (jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId()))
+    if ((jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId())) ||
+        (jobRecord.isRoot() && !jobRecord.isContainer() && !jobRecord.isScatterWrapper()))
       jobStatsRecord = jobStatsRecordService.findOrCreate(jobRecord.getRootId());
     try {
       JobStateValidator.checkState(jobRecord, event.getState());
