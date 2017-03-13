@@ -85,28 +85,31 @@ public class BackendServiceImpl implements BackendService {
     if (backend.getId() == null) {
       backend.setId(generateUniqueBackendId());
     }
+    
     switch (backend.getType()) {
       case RABBIT_MQ:
-        if (((BackendRabbitMQ) backend).getBackendConfiguration() == null) {
+        BackendRabbitMQ backendRabbitMQ = (BackendRabbitMQ) backend;
+        String idPostfix = "_" + backend.getId();
+        if (backendRabbitMQ.getBackendConfiguration() == null) {
           String backendExchange = TransportConfigRabbitMQ.getBackendExchange(configuration);
           String backendExchangeType = TransportConfigRabbitMQ.getBackendExchangeType(configuration);
-          String backendReceiveRoutingKey = TransportConfigRabbitMQ.getBackendReceiveRoutingKey(configuration) + "_" + backend.getId();
-          String backendReceiveControlRoutingKey = TransportConfigRabbitMQ.getBackendReceiveControlRoutingKey(configuration) + "_" + backend.getId();
+          String backendReceiveRoutingKey = TransportConfigRabbitMQ.getBackendReceiveRoutingKey(configuration) + idPostfix;
+          String backendReceiveControlRoutingKey = TransportConfigRabbitMQ.getBackendReceiveControlRoutingKey(configuration) + idPostfix;
           Long heartbeatPeriodMills = TransportConfigRabbitMQ.getBackendHeartbeatTimeMills(configuration);
 
           BackendConfiguration backendConfiguration = new BackendConfiguration(backendExchange, backendExchangeType, backendReceiveRoutingKey,
               backendReceiveControlRoutingKey, heartbeatPeriodMills);
-          ((BackendRabbitMQ) backend).setBackendConfiguration(backendConfiguration);
+          backendRabbitMQ.setBackendConfiguration(backendConfiguration);
         }
-        if (((BackendRabbitMQ) backend).getEngineConfiguration() == null) {
+        if (backendRabbitMQ.getEngineConfiguration() == null) {
           String rabbitEngineExchange = configuration.getString("rabbitmq.engine.exchange");
           String rabbitEngineExchangeType = configuration.getString("rabbitmq.engine.exchangeType");
-          String rabbitEngineReceiveRoutingKey = configuration.getString("rabbitmq.engine.receiveRoutingKey") + "_" + backend.getId();
-          String rabbitEngineHeartbeatRoutingKey = configuration.getString("rabbitmq.engine.heartbeatRoutingKey") + "_" + backend.getId();
+          String rabbitEngineReceiveRoutingKey = configuration.getString("rabbitmq.engine.receiveRoutingKey") + idPostfix;
+          String rabbitEngineHeartbeatRoutingKey = configuration.getString("rabbitmq.engine.heartbeatRoutingKey") + idPostfix;
 
           EngineConfiguration engineConfiguration = new EngineConfiguration(rabbitEngineExchange, rabbitEngineExchangeType, rabbitEngineReceiveRoutingKey,
               rabbitEngineHeartbeatRoutingKey);
-          ((BackendRabbitMQ) backend).setEngineConfiguration(engineConfiguration);
+          backendRabbitMQ.setEngineConfiguration(engineConfiguration);
           }
         return backend;
       

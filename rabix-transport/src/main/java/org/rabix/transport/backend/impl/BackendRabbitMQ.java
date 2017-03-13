@@ -10,28 +10,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class BackendRabbitMQ extends Backend {
 
-  @JsonProperty("host")
-  private String host;
   @JsonProperty("engine_configuration")
   private EngineConfiguration engineConfiguration;
   @JsonProperty("backend_configuration")
   private BackendConfiguration backendConfiguration;
   
+
+  public BackendRabbitMQ() {
+
+  }
+
+  public BackendRabbitMQ(String name) {
+    this.name = name;
+  }
+
   @JsonCreator
-  public BackendRabbitMQ(@JsonProperty("id") UUID id, @JsonProperty("host") String host, @JsonProperty("engine_configuration") EngineConfiguration engineConfiguration, @JsonProperty("backend_configuration") BackendConfiguration backendConfiguration) {
+  public BackendRabbitMQ(@JsonProperty("id") UUID id, @JsonProperty("engine_configuration") EngineConfiguration engineConfiguration, @JsonProperty("backend_configuration") BackendConfiguration backendConfiguration) {
     this.id = id;
-    this.host = host;
     this.engineConfiguration = engineConfiguration;
     this.backendConfiguration = backendConfiguration;
   }
   
-  public String getHost() {
-    return host;
-  }
-
-  public void setHost(String host) {
-    this.host = host;
-  }
 
   public EngineConfiguration getEngineConfiguration() {
     return engineConfiguration;
@@ -233,7 +232,6 @@ public class BackendRabbitMQ extends Backend {
     int result = super.hashCode();
     result = prime * result + ((backendConfiguration == null) ? 0 : backendConfiguration.hashCode());
     result = prime * result + ((engineConfiguration == null) ? 0 : engineConfiguration.hashCode());
-    result = prime * result + ((host == null) ? 0 : host.hashCode());
     return result;
   }
 
@@ -256,17 +254,12 @@ public class BackendRabbitMQ extends Backend {
         return false;
     } else if (!engineConfiguration.equals(other.engineConfiguration))
       return false;
-    if (host == null) {
-      if (other.host != null)
-        return false;
-    } else if (!host.equals(other.host))
-      return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "BackendRabbitMQ [host=" + host + ", engineConfiguration=" + engineConfiguration + ", backendConfiguration=" + backendConfiguration + ", id=" + id + "]";
+    return "BackendRabbitMQ [engineConfiguration=" + engineConfiguration + ", backendConfiguration=" + backendConfiguration + ", id=" + id + "]";
   }
 
 }
