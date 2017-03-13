@@ -257,6 +257,16 @@ public class JobHandlerImpl implements JobHandler {
           continue;
         }
         if (fileRequirement instanceof SingleInputFileRequirement || fileRequirement instanceof SingleInputDirectoryRequirement) {
+          FileValue content = ((SingleInputFileRequirement) fileRequirement).getContent();
+          if (FileValue.isLiteral(content)) {
+            if (fileRequirement instanceof SingleInputDirectoryRequirement) {
+              destinationFile.mkdirs();
+            } else {
+              destinationFile.createNewFile();              
+            }
+            return;
+          }
+          
           String path = ((SingleInputFileRequirement) fileRequirement).getContent().getPath();
           String mappedPath = inputFileMapper.map(path, job.getConfig());
           File file = new File(mappedPath);
