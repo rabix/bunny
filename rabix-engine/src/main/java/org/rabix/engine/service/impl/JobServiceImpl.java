@@ -27,7 +27,6 @@ import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.repository.CompletedJobRepository;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
@@ -85,14 +84,13 @@ public class JobServiceImpl implements JobService {
   public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
       VariableRecordService variableRecordService, LinkRecordService linkRecordService,
       ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeDB dagNodeDB, AppDB appDB,
-      JobRepository jobRepository,CompletedJobRepository completedJobRepository, TransactionHelper transactionHelper, EngineStatusCallback statusCallback,
+      JobRepository jobRepository, TransactionHelper transactionHelper, EngineStatusCallback statusCallback,
       Configuration configuration, IntermediaryFilesService intermediaryFilesService) {
 
     this.dagNodeDB = dagNodeDB;
     this.appDB = appDB;
     this.eventProcessor = eventProcessor;
     this.jobRepository = jobRepository;
-//    this.completedJobRepository = completedJobRepository;
     
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
@@ -265,7 +263,6 @@ public class JobServiceImpl implements JobService {
   @Override
   public Job get(UUID id) {
     return jobRepository.get(id);
-//    return job == null? completedJobRepository.get(id) : job;
   }
   
   public void delete(UUID jobId) {
@@ -469,7 +466,6 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobCompleted(Job job){
     logger.info("Job {} is completed.", job.getName());
-//    completedJobRepository.insert(job);
     if (deleteIntermediaryFiles) {
       intermediaryFilesService.handleJobCompleted(job);
     }

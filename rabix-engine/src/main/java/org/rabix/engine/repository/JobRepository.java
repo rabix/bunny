@@ -29,6 +29,8 @@ public interface JobRepository {
   
   Set<Job> getByRootId(UUID rootId);
   
+  Set<Job> getRootsByStatus(JobStatus status);
+  
   Set<Job> get(UUID rootID, Set<JobStatus> whereStatuses);
   
   Set<UUID> getBackendsByRootId(UUID rootId);
@@ -40,6 +42,8 @@ public interface JobRepository {
   Set<JobEntity> getReadyFree();
   
   JobStatus getStatus(UUID id);
+  
+  void deleteByRootIds(Set<UUID> rootIds);
   
   public class JobEntity {
     
