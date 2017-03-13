@@ -16,8 +16,10 @@ public interface BackendRepository {
   void insert(UUID id, Backend backend, Timestamp heartbeatInfo, BackendStatus status);
   
   void update(UUID id, Backend configuration);
-  
+
   Backend get(UUID id);
+  
+  Backend getByName(String name);
   
   List<Backend> getByStatus(BackendStatus status);
   

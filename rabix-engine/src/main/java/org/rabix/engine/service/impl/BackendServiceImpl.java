@@ -1,6 +1,7 @@
 package org.rabix.engine.service.impl;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -140,6 +141,23 @@ public class BackendServiceImpl implements BackendService {
   @Override
   public void stopBackend(Backend backend) throws BackendServiceException {
     backendRepository.updateStatus(backend.getId(), BackendStatus.INACTIVE);
+  }
+
+  @Override
+  public void startInactiveBackend(UUID id) throws BackendServiceException {
+    backendRepository.updateHeartbeatInfo(id, Timestamp.from(Instant.now()));
+    backendRepository.updateStatus(id, BackendStatus.ACTIVE);    
+    Backend backend = backendRepository.get(id);
+    this.startBackend(backend);
+  }
+
+  @Override
+  public void startInactiveBackend(String name) throws BackendServiceException {
+    if(name==null)
+      throw new BackendServiceException("Can't start a backend without a name");
+    
+    Backend backend = backendRepository.getByName(name);
+    this.startInactiveBackend(backend.getId());
   }
   
 }

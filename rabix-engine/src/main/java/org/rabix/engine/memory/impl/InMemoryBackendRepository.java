@@ -60,5 +60,13 @@ public class InMemoryBackendRepository implements BackendRepository{
   public synchronized Timestamp getHeartbeatInfo(UUID id) {
     return backendRepository.get(id).getHeartbeatInfo();
   }
+
+  @Override
+  public Backend getByName(String name) {
+    BackendEntity be = backendRepository.values().stream().filter(b -> b.getBackend().getName().equals(name)).findAny().orElse(null);
+    if (be == null)
+      return null;
+    return be.getBackend();
+  }
   
 }
