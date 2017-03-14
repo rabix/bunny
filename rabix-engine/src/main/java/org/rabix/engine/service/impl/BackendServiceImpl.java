@@ -19,6 +19,7 @@ import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.BackendConfiguration;
+import org.rabix.transport.backend.impl.BackendRabbitMQ.EngineConfiguration;
 import org.rabix.transport.mechanism.TransportPluginException;
 import org.rabix.transport.mechanism.impl.rabbitmq.TransportConfigRabbitMQ;
 import org.slf4j.Logger;
@@ -84,21 +85,34 @@ public class BackendServiceImpl implements BackendService {
     if (backend.getId() == null) {
       backend.setId(generateUniqueBackendId());
     }
+    
     switch (backend.getType()) {
-    case RABBIT_MQ:
-      if (((BackendRabbitMQ) backend).getBackendConfiguration() == null) {
-        String backendExchange = TransportConfigRabbitMQ.getBackendExchange(configuration);
-        String backendExchangeType = TransportConfigRabbitMQ.getBackendExchangeType(configuration);
-        String backendReceiveRoutingKey = TransportConfigRabbitMQ.getBackendReceiveRoutingKey(configuration)+ "_" + backend.getId();;
-        String backendReceiveControlRoutingKey = TransportConfigRabbitMQ.getBackendReceiveControlRoutingKey(configuration)+ "_" + backend.getId();;
-        Long heartbeatPeriodMills = TransportConfigRabbitMQ.getBackendHeartbeatTimeMills(configuration);
+      case RABBIT_MQ:
+        BackendRabbitMQ backendRabbitMQ = (BackendRabbitMQ) backend;
+        String idPostfix = "_" + backend.getId();
+        if (backendRabbitMQ.getBackendConfiguration() == null) {
+          String backendExchange = TransportConfigRabbitMQ.getBackendExchange(configuration);
+          String backendExchangeType = TransportConfigRabbitMQ.getBackendExchangeType(configuration);
+          String backendReceiveRoutingKey = TransportConfigRabbitMQ.getBackendReceiveRoutingKey(configuration) + idPostfix;
+          String backendReceiveControlRoutingKey = TransportConfigRabbitMQ.getBackendReceiveControlRoutingKey(configuration) + idPostfix;
+          Long heartbeatPeriodMills = TransportConfigRabbitMQ.getBackendHeartbeatTimeMills(configuration);
 
-        backendExchange = backendExchange + "_" + backend.getId();
-        BackendConfiguration backendConfiguration = new BackendConfiguration(backendExchange, backendExchangeType, backendReceiveRoutingKey, backendReceiveControlRoutingKey, heartbeatPeriodMills);
-        ((BackendRabbitMQ) backend).setBackendConfiguration(backendConfiguration);
+          BackendConfiguration backendConfiguration = new BackendConfiguration(backendExchange, backendExchangeType, backendReceiveRoutingKey,
+              backendReceiveControlRoutingKey, heartbeatPeriodMills);
+          backendRabbitMQ.setBackendConfiguration(backendConfiguration);
+        }
+        if (backendRabbitMQ.getEngineConfiguration() == null) {
+          String rabbitEngineExchange = configuration.getString("rabbitmq.engine.exchange");
+          String rabbitEngineExchangeType = configuration.getString("rabbitmq.engine.exchangeType");
+          String rabbitEngineReceiveRoutingKey = configuration.getString("rabbitmq.engine.receiveRoutingKey") + idPostfix;
+          String rabbitEngineHeartbeatRoutingKey = configuration.getString("rabbitmq.engine.heartbeatRoutingKey") + idPostfix;
+
+          EngineConfiguration engineConfiguration = new EngineConfiguration(rabbitEngineExchange, rabbitEngineExchangeType, rabbitEngineReceiveRoutingKey,
+              rabbitEngineHeartbeatRoutingKey);
+          backendRabbitMQ.setEngineConfiguration(engineConfiguration);
+          }
         return backend;
-      }
-      break;
+      
     case LOCAL:
       break;
     default:
