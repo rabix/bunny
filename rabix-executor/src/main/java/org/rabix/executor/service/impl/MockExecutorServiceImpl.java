@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
@@ -39,6 +40,8 @@ public class MockExecutorServiceImpl implements ExecutorService {
   private EngineStub<?, ?, ?> engineStub;
   
   private Map<String, Job> cachedJobs = new HashMap<>(); 
+  
+  private java.util.concurrent.ExecutorService threadPool = Executors.newFixedThreadPool(10);
   
   @Inject
   public MockExecutorServiceImpl(Configuration configuration) {
@@ -111,10 +114,15 @@ public class MockExecutorServiceImpl implements ExecutorService {
 
   @Override
   public void start(Job job, UUID rootId) {
-    Job updatedJob = Job.cloneWithOutputs(job, cachedJobs.get(job.getName()).getOutputs());
-    updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.COMPLETED);
-    engineStub.send(updatedJob);
-    logger.info("Cached Job {} sent.", job.getName());
+    threadPool.submit(new Runnable() {
+      @Override
+      public void run() {
+        Job updatedJob = Job.cloneWithOutputs(job, cachedJobs.get(job.getName()).getOutputs());
+        updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.COMPLETED);
+        engineStub.send(updatedJob);
+        logger.info("Cached Job {} sent.", job.getName());
+      }
+    });
   }
 
   @Override
