@@ -172,8 +172,7 @@ public class Draft3Processor implements ProtocolProcessor {
         Map<String, Object> mappedResult = new Draft3PortProcessor(job).processOutputs(result, new Draft3FilePathMapProcessorCallback(logFilePathMapper, config));
         BeanSerializer.serializePartial(resultFile, mappedResult);
       } catch (Draft3PortProcessorException e) {
-        logger.error("Failed to map outputs", e);
-        throw new Draft3GlobException(e);
+        throw new Draft3GlobException("Failed to map outputs", e);
       }
     } else {
       BeanSerializer.serializePartial(resultFile, result);
@@ -368,7 +367,6 @@ public class Draft3Processor implements ProtocolProcessor {
           Draft3FileValueHelper.setContents(fileData);
         }
       } catch (Exception e) {
-        logger.error("Failed to extract outputs", e);
         throw new Draft3GlobException("Failed to extract outputs.", e);
       }
     }

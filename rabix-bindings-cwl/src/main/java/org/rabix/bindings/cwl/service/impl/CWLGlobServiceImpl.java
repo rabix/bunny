@@ -40,7 +40,6 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     try {
       glob = CWLExpressionResolver.resolve(glob, job, null);
     } catch (CWLExpressionException e) {
-      logger.error("Failed to evaluate glob " + glob, e);
       throw new CWLGlobException("Failed to evaluate glob " + glob, e);
     }
     if (glob == null) {
@@ -84,7 +83,6 @@ public class CWLGlobServiceImpl implements CWLGlobService {
           }
         });
       } catch (IOException e) {
-        logger.error("Failed to traverse through working directory", e);
         throw new CWLGlobException("Failed to traverse through working directory", e);
       }
     }

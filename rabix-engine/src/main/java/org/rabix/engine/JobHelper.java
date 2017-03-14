@@ -20,6 +20,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
+import org.rabix.common.logging.DebugAppender;
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.model.ContextRecord;
@@ -124,7 +125,9 @@ public class JobHelper {
 
     boolean autoBoxingEnabled = false;   // get from configuration
     
-    StringBuilder inputsLogBuilder = new StringBuilder("\n ---- JobRecord ").append(job.getId()).append("\n");
+    DebugAppender inputsLogBuilder = new DebugAppender(logger);
+
+    inputsLogBuilder.append("\n ---- JobRecord ", job.getId(), "\n");
     
     Map<String, Object> inputs = new HashMap<>();
     
@@ -168,7 +171,7 @@ public class JobHelper {
               value = transformed;
             }
           }
-          inputsLogBuilder.append(" ---- Input ").append(inputVariable.getPortId()).append(", value ").append(value).append("\n");
+          inputsLogBuilder.append(" ---- Input ", inputVariable.getPortId(), ", value ", value, "\n");
           inputs.put(inputVariable.getPortId(), value);
         }
       }
@@ -231,6 +234,14 @@ public class JobHelper {
       outputs.put(outputVariable.getPortId(), variableRecordService.getValue(outputVariable));
     }
     return Job.cloneWithOutputs(job, outputs);
+  }
+
+  private void appendDebug(StringBuilder buffer, Object... mesages) {
+    if (logger.isDebugEnabled()) {
+      for (Object m: mesages) {
+        buffer.append(m);
+      }
+    }
   }
   
 }

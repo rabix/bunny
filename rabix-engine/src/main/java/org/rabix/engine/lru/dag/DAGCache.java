@@ -26,7 +26,7 @@ public class DAGCache extends LRUCache<String, DAGNode> {
   @Inject
   public DAGCache(Configuration configuration) {
     super(CACHE_NAME, configuration.getInteger("dagcache.size", DEFAULT_CACHE_SIZE));
-    logger.debug(String.format("%s initialized with size=%d", CACHE_NAME, getCacheSize()));
+    logger.debug("{} initialized with size={}", CACHE_NAME, getCacheSize());
   }
   
   public DAGCache(int cacheSize) {
@@ -37,8 +37,8 @@ public class DAGCache extends LRUCache<String, DAGNode> {
     DAGNode res = null;
     res = get(dagHash);
     if(res != null) {
-      logger.debug(String.format("DAGNode rootId=%s, id=%s found in cache", rootId, id));
-      logger.debug(String.format("Cache size=%d", size()));
+      logger.debug("DAGNode rootId={}, id={} found in cache", rootId, id);
+      logger.debug("Cache size={}", size());
     }
     return res != null ? getIdFromDAG(id, res) : null;    
   }

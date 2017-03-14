@@ -39,6 +39,7 @@ public class StopCommand extends JobHandlerCommand {
       jobFitter.free(jobData.getJob());
     } catch (ExecutorException | BindingException e) {
       String message = String.format("Failed to stop %s. %s", jobId, e.toString());
+      logger.error(message, e);
       jobData = jobDataService.save(jobData, message, JobDataStatus.FAILED);
     }
     return new Result(true);

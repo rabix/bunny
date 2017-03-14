@@ -62,7 +62,6 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdin = commandLineTool.getStdin(draft3Job);
     } catch (Draft3ExpressionException e) {
-      logger.error("Failed to extract standard input.", e);
       throw new BindingException("Failed to extract standard input.", e);
     }
 
@@ -70,7 +69,6 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdout = commandLineTool.getStdout(draft3Job);
     } catch (Draft3ExpressionException e) {
-      logger.error("Failed to extract standard output.", e);
       throw new BindingException("Failed to extract standard outputs.", e);
     }
 
@@ -151,7 +149,6 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
         }
       }
     } catch (Draft3ExpressionException e) {
-      logger.error("Failed to build command line.", e);
       throw new BindingException("Failed to build command line.", e);
     }
     return result;

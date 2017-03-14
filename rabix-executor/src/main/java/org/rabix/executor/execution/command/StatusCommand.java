@@ -63,6 +63,7 @@ public class StatusCommand extends JobHandlerCommand {
       jobFitter.free(job);
     } catch (Exception e) {
       String message = String.format("Failed to execute status command for %s. %s", jobId, e.getMessage());
+      logger.error(message, e);
       jobData = jobDataService.save(jobData, message, JobDataStatus.FAILED);
       failed(jobData, message, jobHandler.getEngineStub(), e);
       jobHandler.removeContainer();

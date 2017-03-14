@@ -116,7 +116,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       });
       for (SchedulerMessage message : messages.get()) {
         getBackendStub(message.getBackendId()).send(message.getPayload());
-        logger.info("Message sent to {}.", message.getBackendId());
+        logger.debug("Message sent to {}.", message.getBackendId());
       }
       messages.set(Collections.<SchedulerMessage>emptySet());
     } catch (Exception e) {
