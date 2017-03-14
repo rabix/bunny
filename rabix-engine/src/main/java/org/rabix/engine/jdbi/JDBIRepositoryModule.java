@@ -11,6 +11,7 @@ import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.LinkRecordRepository;
 import org.rabix.engine.repository.VariableRecordRepository;
+import org.rabix.engine.repository.JobStatsRecordRepository;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.logging.SLF4JLog;
 
@@ -69,8 +70,8 @@ public class JDBIRepositoryModule extends AbstractModule {
   @Provides
   public JobRepository provideJobRepository(JDBIRepositoryRegistry repositoryRegistry) {
     return repositoryRegistry.jobRepository();
-  }  
-  
+  }
+
   @Provides
   public EventRepository provideEventRepository(JDBIRepositoryRegistry repositoryRegistry) {
     return repositoryRegistry.eventRepository();
@@ -94,5 +95,10 @@ public class JDBIRepositoryModule extends AbstractModule {
   @Provides
   public ContextRecordRepository provideContextRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
     return repositoryRegistry.contextRecordRepository();
+  }
+
+  @Provides
+  public JobStatsRecordRepository provideJobStatsRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
+    return repositoryRegistry.jobStatsRecordRepository();
   }
 }

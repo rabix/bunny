@@ -1,14 +1,6 @@
 package org.rabix.engine.memory;
 
-import org.rabix.engine.memory.impl.InMemoryAppRepository;
-import org.rabix.engine.memory.impl.InMemoryBackendRepository;
-import org.rabix.engine.memory.impl.InMemoryContextRecordRepository;
-import org.rabix.engine.memory.impl.InMemoryDAGRepository;
-import org.rabix.engine.memory.impl.InMemoryEventRepository;
-import org.rabix.engine.memory.impl.InMemoryJobRecordRepository;
-import org.rabix.engine.memory.impl.InMemoryJobRepository;
-import org.rabix.engine.memory.impl.InMemoryLinkRecordRepository;
-import org.rabix.engine.memory.impl.InMemoryVariableRecordRepository;
+import org.rabix.engine.memory.impl.*;
 import org.rabix.engine.repository.TransactionHelper;
 
 import com.google.inject.Inject;
@@ -18,6 +10,7 @@ public class InMemoryRepositoryRegistry extends TransactionHelper {
   InMemoryAppRepository memoryAppRepository;
   InMemoryBackendRepository memoryBackendRepository;
   InMemoryContextRecordRepository memoryContextRecordRepository;
+  InMemoryJobStatsRecordRepository memoryJobStatsRecordRepository;
   InMemoryDAGRepository memoryDAGRepository;
   InMemoryEventRepository memoryEventRepository;
   InMemoryJobRecordRepository memoryJobRecordRepository;
@@ -26,7 +19,7 @@ public class InMemoryRepositoryRegistry extends TransactionHelper {
   InMemoryVariableRecordRepository memoryVariableRecordRepository;
   
   @Inject
-  public InMemoryRepositoryRegistry(InMemoryAppRepository memoryAppRepository, InMemoryBackendRepository memoryBackendRepository, InMemoryContextRecordRepository memoryContextRecordRepository, InMemoryDAGRepository memoryDAGRepository, InMemoryEventRepository memoryEventRepository, InMemoryJobRecordRepository memoryJobRecordRepository, InMemoryJobRepository memoryJobRepository, InMemoryLinkRecordRepository memoryLinkRecordRepository, InMemoryVariableRecordRepository memoryVariableRecordRepository) {
+  public InMemoryRepositoryRegistry(InMemoryAppRepository memoryAppRepository, InMemoryBackendRepository memoryBackendRepository, InMemoryContextRecordRepository memoryContextRecordRepository, InMemoryDAGRepository memoryDAGRepository, InMemoryEventRepository memoryEventRepository, InMemoryJobRecordRepository memoryJobRecordRepository, InMemoryJobRepository memoryJobRepository, InMemoryLinkRecordRepository memoryLinkRecordRepository, InMemoryVariableRecordRepository memoryVariableRecordRepository, InMemoryJobStatsRecordRepository memoryJobStatsRecordRepository) {
     this.memoryAppRepository = memoryAppRepository;
     this.memoryBackendRepository = memoryBackendRepository;
     this.memoryContextRecordRepository = memoryContextRecordRepository;
@@ -36,6 +29,7 @@ public class InMemoryRepositoryRegistry extends TransactionHelper {
     this.memoryJobRepository = memoryJobRepository;
     this.memoryLinkRecordRepository = memoryLinkRecordRepository;
     this.memoryVariableRecordRepository = memoryVariableRecordRepository;
+    this.memoryJobStatsRecordRepository = memoryJobStatsRecordRepository;
   }
   
   public InMemoryAppRepository applicationRepository() {
@@ -69,7 +63,11 @@ public class InMemoryRepositoryRegistry extends TransactionHelper {
   public InMemoryContextRecordRepository contextRecordRepository() {
     return memoryContextRecordRepository;
   }
-  
+
+  public InMemoryJobStatsRecordRepository jobStatsRecordRepository() {
+    return memoryJobStatsRecordRepository;
+  }
+
   public InMemoryEventRepository eventRepository() {
     return memoryEventRepository;
   }
