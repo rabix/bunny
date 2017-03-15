@@ -325,11 +325,6 @@ public class TestRunner {
       Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
           .directory(new File(directory)).start();
 
-      BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String line = null;
-      while ((line = br.readLine()) != null)
-        logger.info(line);
-
       int exitCode = process.waitFor();
 
       if (0 != exitCode) {
@@ -347,32 +342,16 @@ public class TestRunner {
 
   public static void executeConformanceSuite(final String cmdline, final String directory) throws RabixTestException {
     try {
-      File errorLog = new File(directory + "errorConf.log");
       ProcessBuilder processBuilder = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
-          .directory(new File(directory)).redirectError(errorLog).redirectOutput(Redirect.PIPE);
+          .directory(new File(directory));
 
       Map<String, String> env = processBuilder.environment();
       env.put("LC_ALL", "C");
       env.put("buildFileDirPath", buildFileDirPath);
 
       Process process = processBuilder.start();
-      BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-      String line = null;
-      while ((line = br.readLine()) != null)
-        logger.info(line);
 
       int exitCode = process.waitFor();
-
-      FileReader fileReader = new FileReader(errorLog);
-      BufferedReader bufferedReader = new BufferedReader(fileReader);
-      line = null;
-
-      while ((line = bufferedReader.readLine()) != null) {
-        System.out.println(line);
-      }
-
-      bufferedReader.close();
 
       if (0 != exitCode) {
         throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
