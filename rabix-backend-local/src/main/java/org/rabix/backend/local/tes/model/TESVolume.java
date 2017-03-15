@@ -13,13 +13,16 @@ public class TESVolume {
   private String source;
   @JsonProperty("mountPoint")
   private String mountPoint;
+  @JsonProperty("readonly")
+  private boolean readonly;
   
   @JsonCreator
-  public TESVolume(@JsonProperty("name") String name, @JsonProperty("sizeGb") Integer sizeGb, @JsonProperty("source")  String source, @JsonProperty("mountPoint") String mountPoint) {
+  public TESVolume(@JsonProperty("name") String name, @JsonProperty("sizeGb") Integer sizeGb, @JsonProperty("source")  String source, @JsonProperty("mountPoint") String mountPoint, @JsonProperty("readonly") boolean readonly) {
     this.name = name;
     this.sizeGb = sizeGb;
     this.source = source;
     this.mountPoint = mountPoint;
+    this.readonly = readonly;
   }
 
   public String getName() {
@@ -54,9 +57,17 @@ public class TESVolume {
     this.mountPoint = mountPoint;
   }
 
+  public boolean getReadonly() {
+    return readonly;
+  }
+
+  public void setReadonly(boolean readonly) {
+    this.readonly = readonly;
+  }
+
   @Override
   public String toString() {
-    return "TESVolume [name=" + name + ", sizeGb=" + sizeGb + ", source=" + source + ", mountPoint=" + mountPoint + "]";
+    return "TESVolume [name=" + name + ", sizeGb=" + sizeGb + ", source=" + source + ", mountPoint=" + mountPoint + ", readonly=" + readonly + "]";
   }
  
 }

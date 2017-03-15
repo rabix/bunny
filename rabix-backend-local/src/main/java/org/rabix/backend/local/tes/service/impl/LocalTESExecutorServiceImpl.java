@@ -235,6 +235,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         // TODO this has the effect of ensuring the working directory is created
         //      but the interface isn't great. Need to think about a better interface.
         storage.stagingPath(job.getId(), "working_dir", "TODO");
+        storage.stagingPath(job.getId(), "inputs", "TODO");
 
         // Prepare CWL input file into TES-compatible files
         job = storage.transformInputFiles(job);
@@ -260,10 +261,10 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         );
 
         inputs.add(new TESTaskParameter(
-          "working_dir",
+          "inputs",
           null,
-          storage.stagingPath(job.getId(), "working_dir").toUri().toString(),
-          storage.containerPath("working_dir").toString(),
+          storage.stagingPath(job.getId(), "inputs").toUri().toString(),
+          storage.containerPath("inputs").toString(),
           FileType.Directory.name(),
           false));
 
@@ -391,10 +392,19 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         ));
         
         volumes.add(new TESVolume(
-          "vol_work",
+          "working_dir",
           1,
           null,
-          storage.containerPath().toString()
+          storage.containerPath("working_dir").toString(),
+          false
+        ));
+
+        volumes.add(new TESVolume(
+          "inputs",
+          1,
+          null,
+          storage.containerPath("inputs").toString(),
+          true
         ));
 
         TESResources resources = new TESResources(

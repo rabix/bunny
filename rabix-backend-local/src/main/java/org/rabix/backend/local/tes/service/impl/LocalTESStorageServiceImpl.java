@@ -74,7 +74,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
     }
 
     // Prefix path with container base directory
-    path = Paths.get(TESStorageService.DOCKER_PATH_PREFIX, path).toString();
+    path = containerPath("inputs", path).toString();
 
     fileValue.setLocation(location);
     fileValue.setPath(path);
@@ -125,8 +125,9 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
     return (Map<String, Object>) FileValueHelper.updateFileValues(result, (FileValue fileValue) -> {
 
       String path = fileValue.getPath();
-      if (path.startsWith(DOCKER_PATH_PREFIX)) {
-        path = path.substring(DOCKER_PATH_PREFIX.length() + 1);
+      String outputPrefix = containerPath("working_dir").toString();
+      if (path.startsWith(outputPrefix)) {
+        path = path.substring(outputPrefix.length() + 1);
       }
       String location = Paths.get(storageBase, jobID, path).toUri().toString();
       fileValue.setLocation(location);
