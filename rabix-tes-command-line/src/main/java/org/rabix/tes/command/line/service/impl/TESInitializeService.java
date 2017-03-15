@@ -51,7 +51,7 @@ public class TESInitializeService implements TESCommandLineService {
         return;
       }
 
-      File resultFile = new File(workingDir.getParentFile(), "command.sh");
+      File resultFile = new File("command.sh");
 
       EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
       Map<String, String> environmentVariables = environmentVariableResource != null ? environmentVariableResource.getVariables() : new HashMap<String, String>();

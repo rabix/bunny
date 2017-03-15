@@ -256,10 +256,11 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         // Write job.json file
         Bindings bindings = BindingsFactory.create(job);
         FileUtils.writeStringToFile(
-          storage.stagingPath(job.getId(), "job.json").toFile(),
+          storage.stagingPath(job.getId(), "inputs", "job.json").toFile(),
           JSONHelper.writeObject(job)
         );
 
+      /*
         inputs.add(new TESTaskParameter(
           "inputs",
           null,
@@ -267,14 +268,15 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           storage.containerPath("inputs").toString(),
           FileType.Directory.name(),
           false));
+          */
 
         inputs.add(new TESTaskParameter(
           "job.json",
           null,
-          storage.stagingPath(job.getId(), "job.json").toUri().toString(),
-          storage.containerPath("job.json").toString(),
+          storage.stagingPath(job.getId(), "inputs", "job.json").toUri().toString(),
+          storage.containerPath("inputs", "job.json").toString(),
           FileType.File.name(),
-          true
+          false
         ));
 
         // TODO should explicitly name all output files, instead of entire directory?
@@ -312,7 +314,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         initCommand.add("/usr/share/rabix-tes-command-line/rabix");
         initCommand.add("-j");
-        initCommand.add(storage.containerPath("job.json").toString());
+        initCommand.add(storage.containerPath("inputs", "job.json").toString());
         initCommand.add("-w");
         initCommand.add(storage.containerPath("working_dir").toString());
         initCommand.add("-m");
@@ -323,8 +325,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           initCommand,
           storage.containerPath("working_dir").toString(),
           null,
-          storage.containerPath("standard_out.log").toString(),
-          storage.containerPath("standard_error.log").toString()
+          storage.containerPath("working_dir", "standard_out.log").toString(),
+          storage.containerPath("working_dir", "standard_error.log").toString()
         ));
         
         List<Requirement> combinedRequirements = new ArrayList<>();
@@ -341,7 +343,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         
         if (!bindings.isSelfExecutable(job)) {
           mainCommand.add("/bin/sh");
-          mainCommand.add("../command.sh");
+          mainCommand.add("command.sh");
 
           CommandLine commandLine = bindings.buildCommandLineObject(
             job,
@@ -376,7 +378,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         finalizeCommand.add("/usr/share/rabix-tes-command-line/rabix");
         finalizeCommand.add("-j");
-        finalizeCommand.add(storage.containerPath("job.json").toString());
+        finalizeCommand.add(storage.containerPath("inputs", "job.json").toString());
         finalizeCommand.add("-w");
         finalizeCommand.add(storage.containerPath("working_dir").toString());
         finalizeCommand.add("-m");
@@ -387,8 +389,9 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           finalizeCommand,
           storage.containerPath("working_dir").toString(),
           null,
-          storage.containerPath("standard_out.log").toString(),
-          storage.containerPath("standard_error.log").toString()
+          // TODO maybe move these to a "rabix" output path so there's zero chance of conflict with the tool
+          storage.containerPath("working_dir", "standard_out.log").toString(),
+          storage.containerPath("working_dir", "standard_error.log").toString()
         ));
         
         volumes.add(new TESVolume(
