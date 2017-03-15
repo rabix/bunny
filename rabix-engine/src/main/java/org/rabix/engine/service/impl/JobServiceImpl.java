@@ -377,6 +377,7 @@ public class JobServiceImpl implements JobService {
   }
   @Override
   public void handleJobContainerReady(Job containerJob) {
+    logger.info("Container job {} rootId: {} id ready.", containerJob.getName(), containerJob.getRootId());
     if (deleteIntermediaryFiles) {
       intermediaryFilesService.handleContainerReady(containerJob, keepInputFiles);
     }
@@ -389,6 +390,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobRootCompleted(Job job){
+    logger.info("Root job {} completed.", job.getId());
     if (deleteFilesUponExecution) {
       scheduler.freeBackend(job);
 
@@ -412,6 +414,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobRootFailed(Job job){
+    logger.warn("Root job {} failed.", job.getId());
     synchronized (stoppingRootIds) {
       if (deleteFilesUponExecution) {
         scheduler.freeBackend(job);
@@ -465,7 +468,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobCompleted(Job job){
-    logger.info("Job {} is completed.", job.getName());
+    logger.info("Job {} rootId: {} is completed.", job.getName(), job.getRootId());
     if (deleteIntermediaryFiles) {
       intermediaryFilesService.handleJobCompleted(job);
     }

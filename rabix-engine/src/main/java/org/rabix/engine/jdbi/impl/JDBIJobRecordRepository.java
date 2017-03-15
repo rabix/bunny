@@ -7,6 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -42,19 +44,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 public abstract class JDBIJobRecordRepository extends JobRecordRepository {
 
   @Override
-  @SqlUpdate("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state::job_record_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash)")
+  @SqlUpdate("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash,created_at,modified_at) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state::job_record_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash, :created_at,:modified_at)")
   public abstract int insert(@BindJobRecord JobRecord jobRecord);
   
   @Override
-  @SqlUpdate("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state::job_record_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
+  @SqlUpdate("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state::job_record_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash,modified_at='now'::timestamp where id=:id and root_id=:root_id")
   public abstract int update(@BindJobRecord JobRecord jobRecord);
   
   @Override
-  @SqlBatch("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state::job_record_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash)")
+  @SqlBatch("insert into job_record (id,external_id,root_id,parent_id,blocking,job_state,input_counters,output_counters,is_scattered,is_container,is_scatter_wrapper,global_inputs_count,global_outputs_count,scatter_strategy,dag_hash,created_at,modified_at) values (:id,:external_id,:root_id,:parent_id,:blocking,:job_state::job_record_state,:input_counters,:output_counters,:is_scattered,:is_container,:is_scatter_wrapper,:global_inputs_count,:global_outputs_count,:scatter_strategy,:dag_hash,:created_at,:modified_at)")
   public abstract void insertBatch(@BindJobRecord Iterator<JobRecord> records);
   
   @Override
-  @SqlBatch("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state::job_record_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash where id=:id and root_id=:root_id")
+  @SqlBatch("update job_record set id=:id,external_id=:external_id,root_id=:root_id,parent_id=:parent_id,blocking=:blocking,job_state=:job_state::job_record_state,input_counters=:input_counters,output_counters=:output_counters,is_scattered=:is_scattered,is_container=:is_container,is_scatter_wrapper=:is_scatter_wrapper,global_inputs_count=:global_inputs_count,global_outputs_count=:global_outputs_count,scatter_strategy=:scatter_strategy,dag_hash=:dag_hash,modified_at='now'::timestamp where id=:id and root_id=:root_id")
   public abstract void updateBatch(@BindJobRecord Iterator<JobRecord> records);
 
   @Override
@@ -142,6 +144,9 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
             }
             
             q.bind("dag_hash", jobRecord.getDagHash());
+            q.bind("modified_at", Timestamp.valueOf(jobRecord.getModifiedAt()));
+            q.bind("created_at", Timestamp.valueOf(jobRecord.getCreatedAt()));
+
           }
         };
       }
@@ -181,8 +186,10 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
       Integer globalOutputsCount = resultSet.getInt("global_outputs_count");
       String scatterStrategy = resultSet.getString("scatter_strategy");
       String dagHash = resultSet.getString("dag_hash");
+      LocalDateTime createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
+      LocalDateTime modifiedAt = resultSet.getTimestamp("modified_at").toLocalDateTime();
 
-      JobRecord jobRecord = new JobRecord(rootId, id, externalId, parentId, JobState.valueOf(jobState), isContainer, isScattered, externalId.equals(rootId), isBlocking, dagHash);
+      JobRecord jobRecord = new JobRecord(rootId, id, externalId, parentId, JobState.valueOf(jobState), isContainer, isScattered, externalId.equals(rootId), isBlocking, dagHash, createdAt, modifiedAt);
       jobRecord.setScatterWrapper(isScatterWrapper);
       jobRecord.setNumberOfGlobalInputs(globalInputsCount);
       jobRecord.setNumberOfGlobalOutputs(globalOutputsCount);

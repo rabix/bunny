@@ -19,7 +19,8 @@ CREATE TYPE backend_type AS ENUM (
 CREATE TYPE context_record_status AS ENUM (
     'RUNNING',
     'COMPLETED',
-    'FAILED'
+    'FAILED',
+    'ABORTED'
 );
 --rollback DROP TYPE context_record_status;
 
@@ -36,7 +37,8 @@ CREATE TYPE job_record_state AS ENUM (
     'READY',
     'RUNNING',
     'COMPLETED',
-    'FAILED'
+    'FAILED',
+    'ABORTED'
 );
 --rollback DROP TYPE job_record_state;
 
@@ -96,7 +98,9 @@ CREATE TABLE backend (
 CREATE TABLE context_record (
     id uuid NOT NULL,
     status context_record_status NOT NULL,
-    config jsonb
+    config jsonb,
+    created_at timestamp NOT NULL DEFAULT 'now',
+    modified_at timestamp NOT NULL DEFAULT 'now'
 );
 --rollback DROP TABLE context_record;
 
@@ -128,6 +132,7 @@ CREATE TABLE job (
     outputs jsonb,
     resources jsonb,
     group_id uuid,
+    produced_by_node  text,
     backend_id uuid,
     app text,
     config jsonb,
@@ -151,7 +156,9 @@ CREATE TABLE job_record (
     global_inputs_count integer NOT NULL,
     global_outputs_count integer NOT NULL,
     scatter_strategy jsonb,
-    dag_hash text
+    dag_hash text,
+    created_at timestamp NOT NULL DEFAULT 'now',
+    modified_at timestamp NOT NULL DEFAULT 'now'
 );
 --rollback DROP TABLE job_record;
 
@@ -164,7 +171,9 @@ CREATE TABLE link_record (
     destination_job_id text NOT NULL,
     destination_job_port_id text NOT NULL,
     destination_type port_type NOT NULL,
-    "position" integer NOT NULL
+    "position" integer NOT NULL,
+    created_at timestamp NOT NULL DEFAULT 'now',
+    modified_at timestamp NOT NULL DEFAULT 'now'
 );
 --rollback DROP TABLE link_record;
 
@@ -180,7 +189,9 @@ CREATE TABLE variable_record (
     times_updated_count integer NOT NULL,
     context_id uuid,
     is_default boolean NOT NULL,
-    transform jsonb
+    transform jsonb,
+    created_at timestamp NOT NULL DEFAULT 'now',
+    modified_at timestamp NOT NULL DEFAULT 'now'
 );
 --rollback DROP TABLE variable_record;
 
@@ -378,18 +389,20 @@ ALTER TABLE ONLY variable_record
 --rollback ALTER TABLE ONLY variable_record DROP CONSTRAINT variable_record_job_id_fkey; 
 
 --changeset bunny:1487849040814-64 dbms:postgresql
-CREATE TABLE completed_job
-(
-    id uuid NOT NULL,
-    root_id uuid,
-    name text NOT NULL,
-    parent_id uuid,
-    message text
-    inputs jsonb,
-    outputs jsonb,
-    resources jsonb,
-    app text,
-    config jsonb,
-    CONSTRAINT completed_job_pkey PRIMARY KEY (id)
-)
---rollback DROP TABLE completed_job
+CREATE TABLE job_stats (
+    root_id	    uuid NOT NULL,
+    completed   integer NOT NULL,
+    running     integer NOT NULL,
+    total       integer NOT NULL
+);
+--rollback DROP TABLE job_stats
+
+--changeset bunny:1487849040814-65 dbms:postgresql
+ALTER TABLE ONLY job_stats
+    ADD CONSTRAINT job_stats_pkey PRIMARY KEY (root_id);
+--rollback ALTER TABLE ONLY job_stats DROP CONSTRAINT job_stats_pkey;
+
+--changeset bunny:1487849040814-66 dbms:postgresql
+ALTER TABLE ONLY job_stats
+    ADD CONSTRAINT job_stats_id_fkey FOREIGN KEY (root_id) REFERENCES job(id) ON DELETE CASCADE;
+--rollback ALTER TABLE ONLY job_stats DROP CONSTRAINT job_stats_id_fkey;
