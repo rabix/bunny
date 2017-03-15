@@ -79,7 +79,9 @@ CREATE TYPE port_type AS ENUM (
 --changeset bunny:1487849040814-10 dbms:postgresql
 CREATE TABLE application (
     hash text NOT NULL,
-    app text
+    app text,
+    created_at timestamp NOT NULL DEFAULT 'now',
+    modified_at timestamp NOT NULL DEFAULT 'now'
 );
 --rollback DROP TABLE application;
 
@@ -107,7 +109,9 @@ CREATE TABLE context_record (
 --changeset bunny:1487849040814-13 dbms:postgresql
 CREATE TABLE dag_node (
     id uuid NOT NULL,
-    dag jsonb
+    dag jsonb,
+    created_at timestamp NOT NULL DEFAULT 'now',
+    modified_at timestamp NOT NULL DEFAULT 'now'
 );
 --rollback DROP TABLE dag_node;
 
@@ -116,7 +120,9 @@ CREATE TABLE event (
     id uuid NOT NULL,
     type persistent_event_type,
     status event_status NOT NULL,
-    event jsonb
+    event jsonb,
+    created_at timestamp NOT NULL DEFAULT 'now',
+    modified_at timestamp NOT NULL DEFAULT 'now'
 );
 --rollback DROP TABLE event;
 
@@ -134,9 +140,10 @@ CREATE TABLE job (
     group_id uuid,
     produced_by_node  text,
     backend_id uuid,
-    produced_by_node text,
     app text,
     config jsonb,
+    created_at timestamp NOT NULL DEFAULT 'now',
+    modified_at timestamp NOT NULL DEFAULT 'now',
     CONSTRAINT job_backend_status_check CHECK (((backend_id IS NOT NULL) OR (status <> 'RUNNING'::job_status) OR (parent_id IS NULL)))
 );
 --rollback DROP TABLE job;
