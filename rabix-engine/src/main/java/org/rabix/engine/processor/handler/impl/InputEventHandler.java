@@ -18,9 +18,9 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.google.inject.Inject;
 
@@ -38,8 +38,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
   private final EventProcessor eventProcessor;
 
   @Inject
-  public InputEventHandler(EventProcessor eventProcessor, ScatterHandler scatterHelper, JobRecordService jobService,
-                           VariableRecordService variableService, LinkRecordService linkService, DAGNodeDB nodeDB) {
+  public InputEventHandler(EventProcessor eventProcessor, ScatterHandler scatterHelper, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, DAGNodeDB nodeDB) {
     this.nodeDB = nodeDB;
     this.jobService = jobService;
     this.linkService = linkService;
@@ -52,26 +51,22 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
   @Override
   public void handle(InputUpdateEvent event) throws EventHandlerException {
     JobRecord job = jobService.find(event.getJobId(), event.getContextId());
-    VariableRecord variable = variableService.find(
-            event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId()
-    );
+    VariableRecord variable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
 
-    DAGNode node = nodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), event.getContextId());
+    DAGNode node = nodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), event.getContextId(), job.getDagHash());
 
     if (event.isLookAhead()) {
       if (job.isBlocking() || (job.getInputPortIncoming(event.getPortId()) > 1)) {
         return; // guard: should not happen
       } else {
-        job.resetInputPortCounters(event.getNumberOfScattered());
+        jobService.resetInputPortCounters(job, event.getNumberOfScattered());
       }
-    } else if ((job.getInputPortIncoming(event.getPortId()) > 1) &&
-            job.isScatterPort(event.getPortId()) &&
-            !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
-      job.resetOutputPortCounters(job.getInputPortIncoming(event.getPortId()));
+    } else if ((job.getInputPortIncoming(event.getPortId()) > 1) && job.isScatterPort(event.getPortId()) && !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
+      jobService.resetOutputPortCounters(job, job.getInputPortIncoming(event.getPortId()));
     }
     
-    variable.addValue(event.getValue(), event.getPosition(), false);
-    job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
+    variableService.addValue(variable, event.getValue(), event.getPosition(), false);
+    jobService.decrementPortCounter(job, event.getPortId(), LinkPortType.INPUT);
     
     // scatter
     if (!job.isBlocking() && !job.isScattered()) {
@@ -79,9 +74,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
         if ((job.isInputPortBlocking(node, event.getPortId()))) {
           // it's blocking
           if (job.isInputPortReady(event.getPortId())) {
-            scatterHelper.scatterPort(
-                    job, event, event.getPortId(), variable.getValue(), event.getPosition(),
-                    event.getNumberOfScattered(), event.isLookAhead(), false);
+            scatterHelper.scatterPort(job, event, event.getPortId(), variableService.getValue(variable), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), false);
             update(job, variable);
             return;
           }
@@ -92,17 +85,17 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
           return;
         }
       } else if (job.isScatterWrapper()) {
-        sendValuesToScatteredJobs(job, variable, event);
         update(job, variable);
+        sendValuesToScatteredJobs(job, variable, event);
         return;
       }
     }
 
+    update(job, variable);
     if (job.isReady()) {
-      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId());
+      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId(), event.getProducedByNode());
       eventProcessor.send(jobStatusEvent);
     }
-    update(job, variable);
   }
   
   private void update(JobRecord job, VariableRecord variable) {
@@ -115,16 +108,17 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
    */
   private void sendValuesToScatteredJobs(JobRecord job, VariableRecord variable, InputUpdateEvent event) throws EventHandlerException {
     List<LinkRecord> links = linkService.findBySourceAndDestinationType(job.getId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
-    
+
     List<Event> events = new ArrayList<>();
     for (LinkRecord link : links) {
       VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
-      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variable.getValue(), event.getPosition(), event.getEventGroupId());
+
+      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {
       eventProcessor.send(subevent);
-      job.decrementPortCounter(event.getPortId(), LinkPortType.INPUT);
+      jobService.decrementPortCounter(job, event.getPortId(), LinkPortType.INPUT);
     }
   }
 

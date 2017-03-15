@@ -1,14 +1,16 @@
 package org.rabix.engine.rest.api.impl;
 
 import java.util.Collections;
+import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.engine.rest.api.JobHTTPService;
-import org.rabix.engine.rest.service.JobServiceException;
-import org.rabix.engine.rest.service.JobService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobServiceException;
 
 import com.google.inject.Inject;
 
@@ -22,8 +24,14 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response create(Job job) {
+  public Response create(Job job, Integer batch) {
     try {
+      if (batch != null) {
+        for (int i=0;i<batch;i++) {
+          jobService.start(job, null);
+        }
+        return ok("success");
+      }
       return ok(jobService.start(job, null));
     } catch (Exception e) {
       return error();
@@ -31,12 +39,7 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response get() {
-    return ok(jobService.get());
-  }
-  
-  @Override
-  public Response get(String id) {
+  public Response get(UUID id) {
     Job job = jobService.get(id);
     if (job == null) {
       return entityNotFound();
@@ -45,8 +48,21 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response save(String id, Job job) {
+  public Response save(UUID id, Job job) {
     try {
+      jobService.update(job);
+    } catch (JobServiceException e) {
+      return error();
+    }
+    return ok();
+  }
+  
+  @Override
+  public Response update(UUID id, JobStatus status) {
+    try {
+      Job job = jobService.get(id);
+      job = Job.cloneWithStatus(job, status);
+      
       jobService.update(job);
     } catch (JobServiceException e) {
       return error();
@@ -72,4 +88,5 @@ public class JobHTTPServiceImpl implements JobHTTPService {
     }
     return Response.ok().entity(items).build();
   }
+
 }

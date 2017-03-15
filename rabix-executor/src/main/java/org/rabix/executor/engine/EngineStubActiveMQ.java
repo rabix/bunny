@@ -14,6 +14,8 @@ public class EngineStubActiveMQ extends EngineStub<TransportQueueActiveMQ, Backe
     this.executorService = executorService;
     this.transportPlugin = new TransportPluginActiveMQ(configuration);
     
+    this.heartbeatTimeMills = configuration.getLong("rabbitmq.backend.heartbeatTimeMills", DEFAULT_HEARTBEAT_TIME);
+    
     this.sendToBackendQueue = new TransportQueueActiveMQ(backendActiveMQ.getToBackendQueue());
     this.sendToBackendControlQueue = new TransportQueueActiveMQ(backendActiveMQ.getToBackendControlQueue());
     this.receiveFromBackendQueue = new TransportQueueActiveMQ(backendActiveMQ.getFromBackendQueue());

@@ -78,6 +78,7 @@ public class ChecksumHelper {
       byte[] hashedBytes = murmur3Hash.hashBytes(fileBytes).asBytes();
       hashed = HashAlgorithm.MURMUR3.name().toLowerCase() + "$" + bytesToString(hashedBytes);
     } catch (IOException e) {
+      // FIXME: is this safe to ignore?
       logger.error("Failed to create murmur3 checksum for {}", file);
     }
     return hashed;

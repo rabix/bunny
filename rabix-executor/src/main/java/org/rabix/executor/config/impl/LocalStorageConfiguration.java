@@ -5,10 +5,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FilenameUtils;
-
 
 public class LocalStorageConfiguration extends DefaultStorageConfiguration {
 
@@ -27,7 +27,7 @@ public class LocalStorageConfiguration extends DefaultStorageConfiguration {
    * Returns root dir name, ignores rootId param
    */
   @Override
-  public File getRootDir(String rootId, Map<String, Object> config) {
+  public File getRootDir(UUID rootId, Map<String, Object> config) {
     File contextDir = new File(getPhysicalExecutionBaseDir(), rootDir);
     if (!contextDir.exists()) {
       contextDir.mkdirs();

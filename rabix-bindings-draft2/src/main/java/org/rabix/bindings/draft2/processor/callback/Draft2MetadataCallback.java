@@ -77,6 +77,11 @@ public class Draft2MetadataCallback implements Draft2PortProcessorCallback {
         Map<String, Object> metadata = Draft2FileValueHelper.getMetadata(clonedValue);
         Map<String, Object> newMetadata = pathToMetadata.get(path);
         if (metadata != null) {
+          if (newMetadata == null) {
+            newMetadata = metadata;
+          } else {
+            newMetadata.putAll(metadata);
+          }
           newMetadata.putAll(metadata);
         }
         Draft2FileValueHelper.setMetadata(newMetadata, clonedValue);
@@ -95,7 +100,11 @@ public class Draft2MetadataCallback implements Draft2PortProcessorCallback {
             Map<String, Object> metadata = Draft2FileValueHelper.getMetadata(secondaryFileValue);
             Map<String, Object> newMetadata = pathToMetadata.get(path);
             if (metadata != null) {
-              newMetadata.putAll(metadata);
+              if (newMetadata == null) {
+                newMetadata = metadata;
+              } else {
+                newMetadata.putAll(metadata);
+              }
             }
             Draft2FileValueHelper.setMetadata(newMetadata, secondaryFileValue);
             logger.debug("Combined metadata for file {} is {}.", subpath, newMetadata);

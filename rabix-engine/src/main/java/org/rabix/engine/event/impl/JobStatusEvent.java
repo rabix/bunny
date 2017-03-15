@@ -1,28 +1,52 @@
 package org.rabix.engine.event.impl;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.engine.event.Event;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class JobStatusEvent implements Event {
 
+  @JsonProperty("jobId")
   private final String jobId;
+  @JsonProperty("state")
   private final JobState state;
-  private final String contextId;
+  @JsonProperty("contextId")
+  private final UUID contextId;
   
+  @JsonProperty("result")
   private final Map<String, Object> result;
   
-  private final String eventGroupId;
+  @JsonProperty("eventGroupId")
+  private final UUID eventGroupId;
+  @JsonProperty("producedByNode")
+  private final String producedByNode;
   
-  public JobStatusEvent(String jobId, String contextId, JobState state, Map<String, Object> result, String eventGroupId) {
+  public JobStatusEvent(String jobId, UUID contextId, JobState state, Map<String, Object> result, UUID eventGroupId, String producedByNode) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.state = state;
     this.result = result;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
   }
   
+  @JsonCreator
+  public JobStatusEvent(@JsonProperty("jobId") String jobId, @JsonProperty("state") JobState state,
+      @JsonProperty("contextId") UUID contextId, @JsonProperty("result") Map<String, Object> result,
+      @JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("producedByNode") String producedByNode) {
+    this.jobId = jobId;
+    this.state = state;
+    this.contextId = contextId;
+    this.result = result;
+    this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
+  }
+
   public String getJobId() {
     return jobId;
   }
@@ -32,7 +56,7 @@ public class JobStatusEvent implements Event {
   }
 
   @Override
-  public String getContextId() {
+  public UUID getContextId() {
     return contextId;
   }
   
@@ -41,8 +65,13 @@ public class JobStatusEvent implements Event {
   }
   
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
+  }
+  
+  @Override
+  public String getProducedByNode() {
+    return producedByNode;
   }
   
   @Override
@@ -93,6 +122,19 @@ public class JobStatusEvent implements Event {
   @Override
   public String toString() {
     return "JobStatusEvent [jobId=" + jobId + ", state=" + state + ", contextId=" + contextId + ", result=" + result + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    switch (state) {
+    case RUNNING:
+      return PersistentEventType.JOB_STATUS_UPDATE_RUNNING;
+    case COMPLETED:
+      return PersistentEventType.JOB_STATUS_UPDATE_COMPLETED;
+    default:
+      break;
+    }
+    return null;
   }
 
 }

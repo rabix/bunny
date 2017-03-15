@@ -263,6 +263,10 @@ public class FileValue implements Serializable {
     }
     return false;
   }
+  
+  public static boolean isLiteral(FileValue fileValue) {
+    return fileValue.getPath() == null && fileValue.getLocation() == null;
+  }
 
   @SuppressWarnings("unchecked")
   public static FileValue fromMap(Object value) {

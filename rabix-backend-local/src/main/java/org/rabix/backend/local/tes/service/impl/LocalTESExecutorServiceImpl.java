@@ -1,11 +1,7 @@
 package org.rabix.backend.local.tes.service.impl;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -153,7 +149,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     }
 
     try {
-      result = storage.transformOutputFiles(result, job.getId());
+      result = storage.transformOutputFiles(result, job.getId().toString());
     } catch (BindingException e) {
       logger.error("Failed to process output files", e);
       throw new RuntimeException("Failed to process output files", e);
@@ -196,8 +192,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     }
   }
 
-  @Override
-  public void start(Job job, String contextId) {
+  public void start(Job job, UUID contextId) {
     pendingResults.add(new PendingResult(job, taskPoolExecutor.submit(new TaskRunCallable(job))));
   }
 
@@ -234,8 +229,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         // TODO this has the effect of ensuring the working directory is created
         //      but the interface isn't great. Need to think about a better interface.
-        storage.stagingPath(job.getId(), "working_dir", "TODO");
-        storage.stagingPath(job.getId(), "inputs", "TODO");
+        storage.stagingPath(job.getId().toString(), "working_dir", "TODO");
+        storage.stagingPath(job.getId().toString(), "inputs", "TODO");
 
         // Prepare CWL input file into TES-compatible files
         job = storage.transformInputFiles(job);
@@ -256,7 +251,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         // Write job.json file
         Bindings bindings = BindingsFactory.create(job);
         FileUtils.writeStringToFile(
-          storage.stagingPath(job.getId(), "inputs", "job.json").toFile(),
+          storage.stagingPath(job.getId().toString(), "inputs", "job.json").toFile(),
           JSONHelper.writeObject(job)
         );
 
@@ -273,7 +268,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         inputs.add(new TESTaskParameter(
           "job.json",
           null,
-          storage.stagingPath(job.getId(), "inputs", "job.json").toUri().toString(),
+          storage.stagingPath(job.getId().toString(), "inputs", "job.json").toUri().toString(),
           storage.containerPath("inputs", "job.json").toString(),
           FileType.File.name(),
           false
@@ -284,7 +279,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         outputs.add(new TESTaskParameter(
           "working_dir",
           null,
-          storage.outputPath(job.getId(), "working_dir").toUri().toString(),
+          storage.outputPath(job.getId().toString(), "working_dir").toUri().toString(),
           storage.containerPath("working_dir").toString(),
           FileType.Directory.name(),
           false
@@ -425,7 +420,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           inputs,
           outputs,
           resources,
-          job.getId(),
+          job.getId().toString(),
           commands
         );
         
@@ -461,13 +456,13 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
   
   @Override
-  public void stop(List<String> ids, String contextId) {
+  public void stop(List<UUID> ids, UUID contextId) {
     // TODO TES/Funnel has cancel job now
     throw new NotImplementedException("This method is not implemented");
   }
 
   @Override
-  public void free(String rootId, Map<String, Object> config) {
+  public void free(UUID rootId, Map<String, Object> config) {
     throw new NotImplementedException("This method is not implemented");
   }
 
@@ -477,12 +472,12 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public boolean isRunning(String id, String contextId) {
+  public boolean isRunning(UUID id, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
   }
 
   @Override
-  public Map<String, Object> getResult(String id, String contextId) {
+  public Map<String, Object> getResult(UUID id, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
   }
 
@@ -492,7 +487,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
 
   @Override
-  public JobStatus findStatus(String id, String contextId) {
+  public JobStatus findStatus(UUID id, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
   }
 

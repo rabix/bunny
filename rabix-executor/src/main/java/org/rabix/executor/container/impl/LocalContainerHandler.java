@@ -14,17 +14,20 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
+import org.rabix.common.helper.EncodingHelper;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.container.ContainerException;
@@ -44,7 +47,7 @@ public class LocalContainerHandler implements ContainerHandler {
   private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
   private Process process;
-  private String commandLine;
+  private String commandLineString;
   
   public static final String HOME_ENV_VAR = "HOME";
   public static final String TMPDIR_ENV_VAR = "TMPDIR";
@@ -56,16 +59,28 @@ public class LocalContainerHandler implements ContainerHandler {
 
   @Override
   public synchronized void start() throws ContainerException {
+
+
     try {
       VerboseLogger.log(String.format("Local execution (no container) has started"));
       
       Bindings bindings = BindingsFactory.create(job);
-      commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
+
+      CommandLine commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
         @Override
         public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
-      }).build();
+      });
+
+      commandLineString = commandLine.build();
+
+      bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
+        @Override
+        public String map(String path, Map<String, Object> config) throws FileMappingException {
+          return path;
+        }
+      }).getParts();
 
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();
@@ -90,21 +105,18 @@ public class LocalContainerHandler implements ContainerHandler {
         }
       }
       
-      if (commandLine.startsWith("/bin/bash -c")) {
-        commandLine = commandLine.replace("/bin/bash -c", "");
-        processBuilder.command("/bin/bash", "-c", commandLine);
-      } else if (commandLine.startsWith("/bin/sh -c")) {
-        commandLine = commandLine.replace("/bin/sh -c", "");
-        processBuilder.command("/bin/sh", "-c", commandLine);
-      } else if (commandLine.contains("<") || commandLine.contains(">")) {
-        processBuilder.command("/bin/bash", "-c", commandLine);
+
+      if (commandLineString.startsWith("/bin/bash -c")) {
+        commandLineString = normalizeCommandLine(commandLineString.replace("/bin/bash -c", ""));
+        processBuilder.command("/bin/bash", "-c", commandLineString);
+      } else if (commandLineString.startsWith("/bin/sh -c")) {
+        commandLineString = normalizeCommandLine(commandLineString.replace("/bin/sh -c", ""));
+        processBuilder.command("/bin/sh", "-c", commandLineString);
+      } else if (commandLineString.contains("<") || commandLineString.contains(">")) {
+        processBuilder.command("/bin/bash", "-c", commandLineString);
       } else {
-        processBuilder.command(bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
-          @Override
-          public String map(String path, Map<String, Object> config) throws FileMappingException {
-            return path;
-          }
-        }).getParts());
+         List<String> parts = commandLine.getParts().stream().map(EncodingHelper::shellUnquote).collect(Collectors.toList());
+        processBuilder.command(parts);
       }
       processBuilder.directory(workingDir);
       
@@ -122,6 +134,17 @@ public class LocalContainerHandler implements ContainerHandler {
       logger.error("Failed to start application", e);
       throw new ContainerException("Failed to start application", e);
     }
+  }
+  
+  private String normalizeCommandLine(String commandLine) {
+    commandLine = commandLine.trim();
+    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
+      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    }
+    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
+      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    }
+    return commandLine;
   }
 
   @SuppressWarnings("unchecked")
@@ -183,7 +206,7 @@ public class LocalContainerHandler implements ContainerHandler {
   public void dumpCommandLine() throws ContainerException {
     try {
       File commandLineFile = new File(workingDir, JobHandler.COMMAND_LOG);
-      FileUtils.writeStringToFile(commandLineFile, commandLine);
+      FileUtils.writeStringToFile(commandLineFile, commandLineString);
     } catch (IOException e) {
       logger.error("Failed to dump command line into " + JobHandler.COMMAND_LOG);
       throw new ContainerException(e);

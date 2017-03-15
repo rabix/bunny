@@ -278,7 +278,7 @@ public abstract class SBJobApp extends Application {
   
   @Override
   public String serialize() {
-    return BeanSerializer.serializeFull(this);
+    return BeanSerializer.serializePartial(this);
   }
   
   public abstract SBJobAppType getType();

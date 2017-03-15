@@ -29,17 +29,26 @@ import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
-import org.rabix.engine.rest.backend.BackendDispatcher;
-import org.rabix.engine.rest.backend.stub.BackendStubFactory;
-import org.rabix.engine.rest.db.BackendDB;
-import org.rabix.engine.rest.db.JobDB;
-import org.rabix.engine.rest.service.BackendService;
-import org.rabix.engine.rest.service.IntermediaryFilesService;
-import org.rabix.engine.rest.service.JobService;
-import org.rabix.engine.rest.service.impl.BackendServiceImpl;
-import org.rabix.engine.rest.service.impl.IntermediaryFilesServiceLocalImpl;
-import org.rabix.engine.rest.service.impl.JobServiceImpl;
-import org.rabix.transport.backend.BackendPopulator;
+import org.rabix.engine.service.BackendService;
+import org.rabix.engine.service.BootstrapService;
+import org.rabix.engine.service.BootstrapServiceException;
+import org.rabix.engine.service.IntermediaryFilesHandler;
+import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.SchedulerService;
+import org.rabix.engine.service.SchedulerService.SchedulerCallback;
+import org.rabix.engine.service.impl.BackendServiceImpl;
+import org.rabix.engine.service.impl.BootstrapServiceImpl;
+import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
+import org.rabix.engine.service.impl.JobServiceImpl;
+import org.rabix.engine.service.impl.NoOpIntermediaryFilesServiceHandler;
+import org.rabix.engine.service.impl.SchedulerServiceImpl;
+import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
+import org.rabix.engine.stub.BackendStubFactory;
+import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -50,6 +59,8 @@ import com.squarespace.jersey2.guice.BootstrapUtils;
 
 public class ServerBuilder {
 
+  private final static Logger logger = LoggerFactory.getLogger(ServerBuilder.class);
+  
   private final static String ENGINE_PORT_KEY = "engine.port";
 
   private File configDir;
@@ -65,22 +76,35 @@ public class ServerBuilder {
         Arrays.asList(new ServletModule(), new ConfigModule(configDir, null), new EngineModule(), new AbstractModule() {
           @Override
           protected void configure() {
-            bind(JobDB.class).in(Scopes.SINGLETON);
-            bind(BackendDB.class).in(Scopes.SINGLETON);
             bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
-            bind(BackendPopulator.class).in(Scopes.SINGLETON);
+            bind(EngineStatusCallback.class).to(DefaultEngineStatusCallback.class).in(Scopes.SINGLETON);
+            bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+            bind(BootstrapService.class).to(BootstrapServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
-            bind(BackendStubFactory.class).in(Scopes.SINGLETON);
-            bind(BackendDispatcher.class).in(Scopes.SINGLETON);
-            bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceLocalImpl.class);
+            bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
+            bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
             bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
+            bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
+            bind(IntermediaryFilesHandler.class).to(NoOpIntermediaryFilesServiceHandler.class).in(Scopes.SINGLETON);
             bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
+            bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
           }
         }));
     BootstrapUtils.install(locator);
 
     Configuration configuration = injector.getInstance(Configuration.class);
 
+    SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
+    schedulerService.start();
+    
+    BootstrapService eventService = injector.getInstance(BootstrapService.class);
+    try {
+      eventService.replay();
+    } catch (BootstrapServiceException e) {
+      logger.error("Failed to bootstrap engine", e);
+      System.exit(-1);
+    }
+    
     int enginePort = configuration.getInt(ENGINE_PORT_KEY);
     Server server = new Server(enginePort);
 

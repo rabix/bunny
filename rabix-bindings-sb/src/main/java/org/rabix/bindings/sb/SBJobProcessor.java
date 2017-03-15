@@ -33,8 +33,7 @@ public class SBJobProcessor implements BeanProcessor<SBJob> {
     try {
       return process(null, job);
     } catch (SBException e) {
-      logger.error("Failed to process Job.", e);
-      throw new BeanProcessorException(e);
+      throw new BeanProcessorException("Failed to process SBJob.", e);
     }
   }
   

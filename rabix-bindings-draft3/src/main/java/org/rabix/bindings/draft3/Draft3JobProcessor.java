@@ -38,8 +38,7 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
     try {
       return process(null, job);
     } catch (Draft3Exception e) {
-      logger.error("Failed to process Job.", e);
-      throw new BeanProcessorException(e);
+      throw new BeanProcessorException("Failed to process draft-3 Job.", e);
     }
   }
   

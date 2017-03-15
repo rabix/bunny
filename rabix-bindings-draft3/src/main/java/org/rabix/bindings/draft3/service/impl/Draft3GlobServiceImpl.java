@@ -40,7 +40,6 @@ public class Draft3GlobServiceImpl implements Draft3GlobService {
     try {
       glob = Draft3ExpressionResolver.resolve(glob, job, null);
     } catch (Draft3ExpressionException e) {
-      logger.error("Failed to evaluate glob " + glob, e);
       throw new Draft3GlobException("Failed to evaluate glob " + glob, e);
     }
     if (glob == null) {
@@ -71,7 +70,6 @@ public class Draft3GlobServiceImpl implements Draft3GlobService {
           }
         });
       } catch (IOException e) {
-        logger.error("Failed to traverse through working directory", e);
         throw new Draft3GlobException("Failed to traverse through working directory", e);
       }
     }

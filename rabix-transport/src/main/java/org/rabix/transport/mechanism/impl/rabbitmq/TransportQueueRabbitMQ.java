@@ -26,6 +26,10 @@ public class TransportQueueRabbitMQ implements TransportQueue {
     return routingKey;
   }
 
+  public String getQueueName() {
+    return exchange + "_" + routingKey;
+  }
+
   @Override
   public String toString() {
     return "TransportQueueRabbitMQ [exchange=" + exchange + ", exchangeType=" + exchangeType + ", routingKey=" + routingKey + "]";

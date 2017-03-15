@@ -8,6 +8,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
+import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
@@ -15,14 +16,16 @@ import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 import org.rabix.engine.model.JobRecord;
+import org.rabix.engine.model.JobStatsRecord;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.google.inject.Inject;
 
@@ -36,52 +39,62 @@ public class InitEventHandler implements EventHandler<InitEvent> {
   private JobRecordService jobRecordService;
   private ContextRecordService contextRecordService;
   private VariableRecordService variableRecordService;
+  private JobStatsRecordService jobStatsRecordService;
 
   @Inject
-  public InitEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB) {
+  public InitEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, JobStatsRecordService jobStatsRecordService) {
     this.nodeDB = dagNodeDB;
     this.eventProcessor = eventProcessor;
     this.jobRecordService = jobRecordService;
     this.contextRecordService = contextRecordService;
     this.variableRecordService = variableRecordService;
+    this.jobStatsRecordService = jobStatsRecordService;
   }
 
   public void handle(final InitEvent event) throws EventHandlerException {
     ContextRecord context = new ContextRecord(event.getRootId(), event.getConfig(), ContextStatus.RUNNING);
-    
     contextRecordService.create(context);
-    nodeDB.loadDB(event.getNode(), event.getContextId());
     
-    DAGNode node = nodeDB.get(event.getNode().getId(), event.getContextId());
-    JobRecord job = new JobRecord(event.getContextId(), event.getNode().getId(), event.getContextId(), null, JobState.PENDING, node instanceof DAGContainer, false, true, false);
+    DAGNode node = nodeDB.get(InternalSchemaHelper.ROOT_NAME, event.getContextId(), event.getDagHash());
+    JobRecord job = new JobRecord(event.getContextId(), node.getId(), event.getContextId(), null, JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
+
+    jobRecordService.create(job);
+    if (job.isRoot()) {
+      JobStatsRecord jobStatsRecord = jobStatsRecordService.findOrCreate(job.getRootId());
+      if (node instanceof DAGContainer) {
+        jobStatsRecord.setTotal(((DAGContainer) node).getChildren().size());
+      } else {
+        jobStatsRecord.setTotal(1);
+      }
+      jobStatsRecordService.update(jobStatsRecord);
+    }
 
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       if (job.getState().equals(JobState.PENDING)) {
-        job.incrementPortCounter(inputPort, LinkPortType.INPUT);
+        jobRecordService.incrementPortCounter(job, inputPort, LinkPortType.INPUT);
       }
       Object defaultValue = node.getDefaults().get(inputPort.getId());
-      VariableRecord variable = new VariableRecord(event.getContextId(), event.getNode().getId(), inputPort.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(inputPort.getId(), inputPort.getType()));
+      VariableRecord variable = new VariableRecord(event.getContextId(), node.getId(), inputPort.getId(), LinkPortType.INPUT, defaultValue, node.getLinkMerge(inputPort.getId(), inputPort.getType()));
       variableRecordService.create(variable);
     }
 
     for (DAGLinkPort outputPort : node.getOutputPorts()) {
-      job.incrementPortCounter(outputPort, LinkPortType.OUTPUT);
+      jobRecordService.incrementPortCounter(job, outputPort, LinkPortType.OUTPUT);
 
-      VariableRecord variable = new VariableRecord(event.getContextId(), event.getNode().getId(), outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()));
+      VariableRecord variable = new VariableRecord(event.getContextId(), node.getId(), outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()));
       variableRecordService.create(variable);
     }
-    jobRecordService.create(job);
 
     if (node.getInputPorts().isEmpty()) {
       // the node is ready
-      eventProcessor.send(new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId()));
+      eventProcessor.send(new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, null, event.getEventGroupId(), event.getProducedByNode()));
       return;
     }
     
     Map<String, Object> mixedInputs = mixInputs(node, event.getValue());
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       Object value = mixedInputs.get(inputPort.getId());
-      eventProcessor.send(new InputUpdateEvent(event.getContextId(), event.getNode().getId(), inputPort.getId(), value, 1, event.getEventGroupId()));
+      eventProcessor.send(new InputUpdateEvent(event.getContextId(), node.getId(), inputPort.getId(), value, 1, event.getEventGroupId(), event.getProducedByNode()));
     }
   }
   

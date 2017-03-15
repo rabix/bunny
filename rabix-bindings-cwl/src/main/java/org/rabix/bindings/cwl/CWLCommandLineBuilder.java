@@ -58,7 +58,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdin = commandLineTool.getStdin(cwlJob);
     } catch (CWLExpressionException e) {
-      logger.error("Failed to extract standard input.", e);
       throw new BindingException("Failed to extract standard input.", e);
     }
     
@@ -66,7 +65,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdout = commandLineTool.getStdout(cwlJob);
     } catch (CWLExpressionException e) {
-      logger.error("Failed to extract standard output.", e);
       throw new BindingException("Failed to extract standard output.", e);
     }
     if (!StringUtils.isEmpty(stdout)) {
@@ -83,7 +81,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stderr = commandLineTool.getStderr(cwlJob);
     } catch (CWLExpressionException e) {
-      logger.error("Failed to extract standard error.", e);
       throw new BindingException("Failed to extract standard error.", e);
     }
     CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, stderr);
@@ -115,7 +112,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
    */
   @SuppressWarnings("rawtypes")
   public List<Object> buildCommandLineParts(CWLJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
-    logger.info("Building command line parts...");
+    logger.debug("Building command line parts...");
 
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     List<CWLInputPort> inputPorts = commandLineTool.getInputs();
@@ -171,7 +168,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         }
       }
     } catch (CWLExpressionException e) {
-      logger.error("Failed to build command line.", e);
       throw new BindingException("Failed to build command line.", e);
     }
     return result;
@@ -196,6 +192,10 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     return result;
   }
   
+  private boolean hasInputBinding(CWLInputPort port){
+    Object schema = port.getSchema();
+      return ((schema instanceof Map<?,?>) && ((Map) schema).containsKey("inputBinding"));
+  }
 
   @SuppressWarnings("unchecked")
   private CWLCommandLinePart buildCommandLinePart(CWLJob job, CWLInputPort inputPort, Object inputBinding, Object value, Object schema, String key) throws BindingException {
@@ -203,10 +203,14 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     
-    if (inputBinding == null) {
-      return null;
+    if (inputBinding == null){
+      if (hasInputBinding(inputPort)) {
+        inputBinding = new HashMap<String, Object>();
+      } else {
+        return null;
+      }
     }
-
+    
     int position = CWLBindingHelper.getPosition(inputBinding);
     String separator = CWLBindingHelper.getSeparator(inputBinding);
     String prefix = CWLBindingHelper.getPrefix(inputBinding);

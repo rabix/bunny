@@ -1,5 +1,6 @@
 package org.rabix.bindings.model.dag;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,9 +13,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DAGContainer extends DAGNode {
 
   @JsonProperty("links")
-  private final List<DAGLink> links;
+  private List<DAGLink> links = new ArrayList<>();
   @JsonProperty("children")
-  private final List<DAGNode> children;
+  private List<DAGNode> children = new ArrayList<>();
 
   @JsonCreator
   public DAGContainer(@JsonProperty("id") String id, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts, @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("app") Application app, @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("links") List<DAGLink> links, @JsonProperty("children") List<DAGNode> children, @JsonProperty("defaults") Map<String, Object> defaults) {

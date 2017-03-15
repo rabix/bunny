@@ -3,8 +3,7 @@ package org.rabix.executor.rest;
 import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.ApplicationPath;
@@ -27,7 +26,6 @@ import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.rabix.bindings.mapper.FilePathMapper;
-import org.rabix.bindings.model.Job;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.download.impl.NoOpDownloadServiceImpl;
@@ -43,7 +41,6 @@ import org.rabix.executor.rest.api.ExecutorHTTPService;
 import org.rabix.executor.rest.api.impl.ExecutorHTTPServiceImpl;
 import org.rabix.executor.rest.status.NoOpExecutorStatusCallback;
 import org.rabix.executor.service.ExecutorService;
-import org.rabix.executor.service.impl.ExecutorServiceImpl;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
@@ -82,12 +79,13 @@ public class ServerBuilder {
                 bind(ExecutorHTTPService.class).to(ExecutorHTTPServiceImpl.class).in(Scopes.SINGLETON);
                 bind(DownloadService.class).to(NoOpDownloadServiceImpl.class).in(Scopes.SINGLETON);
                 bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ExecutorService.class).to(ExecutorServiceImpl.class).in(Scopes.SINGLETON);
+                bind(ExecutorStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);
+                
                 bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
-                bind(FilePathMapper.class).to(LocalPathMapper.class).in(Scopes.SINGLETON);
+
                 bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
                 bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
-                bind(ExecutorStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);;
+                
               }
         }));
 
@@ -152,14 +150,7 @@ public class ServerBuilder {
       Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
       WebTarget webTarget = client.target(engineHost + ":" + enginePort + "/v0/engine/backends");
 
-      String rabbitHost = configuration.getString("rabbitmq.host");
-      String rabbitEngineExchange = configuration.getString("rabbitmq.engine.exchange");
-      String rabbitEngineExchangeType = configuration.getString("rabbitmq.engine.exchangeType");
-      String rabbitEngineReceiveRoutingKey = configuration.getString("rabbitmq.engine.receiveRoutingKey");
-      String rabbitEngineHeartbeatRoutingKey = configuration.getString("rabbitmq.engine.heartbeatRoutingKey");
-      
-      EngineConfiguration engineConfiguration = new EngineConfiguration(rabbitEngineExchange, rabbitEngineExchangeType, rabbitEngineReceiveRoutingKey, rabbitEngineHeartbeatRoutingKey);
-      BackendRabbitMQ backendRabbitMQ = new BackendRabbitMQ(null, rabbitHost, engineConfiguration, null);
+      BackendRabbitMQ backendRabbitMQ = new BackendRabbitMQ();
       
       Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
       Response response = invocationBuilder.post(Entity.entity(backendRabbitMQ, MediaType.APPLICATION_JSON));
@@ -168,20 +159,4 @@ public class ServerBuilder {
     
   }
   
-  public static void main(String[] args) throws InterruptedException {
-    for (int i = 0; i < 200; i++) {
-      Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
-      WebTarget webTarget = client.target("http://localhost" + ":" + 8081 + "/v0/engine/jobs");
-
-      Map<String, Object> inputs = new HashMap<>();
-      Map<String, Object> file = new HashMap<>();
-      file.put("class", "File");
-      file.put("path", "whale.txt");
-      inputs.put("file1", file);
-
-      Job job = new Job("file:///home/janko/Development/Git/Repositories/common-workflow-language/draft-2/draft-2/count-lines8-wf.cwl", inputs);
-      Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
-      invocationBuilder.post(Entity.entity(job, MediaType.APPLICATION_JSON));
-    }
-  }
 }

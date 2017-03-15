@@ -33,3 +33,6 @@ notifications:
     on_success: always
     on_failure: always 
 
+branches:
+  except:
+   - feature/persistence

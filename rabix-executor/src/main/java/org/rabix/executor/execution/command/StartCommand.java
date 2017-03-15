@@ -1,5 +1,7 @@
 package org.rabix.executor.execution.command;
 
+import java.util.UUID;
+
 import javax.inject.Inject;
 
 import org.rabix.bindings.model.Job;
@@ -22,7 +24,7 @@ public class StartCommand extends JobHandlerCommand {
   }
 
   @Override
-  public Result run(JobData data, JobHandler handler, String contextId) {
+  public Result run(JobData data, JobHandler handler, UUID rootId) {
     Job job = data.getJob();
     try {
       handler.start();
@@ -30,6 +32,7 @@ public class StartCommand extends JobHandlerCommand {
       started(data, "Job " + job.getId() + " started successfully.", handler.getEngineStub());
     } catch (ExecutorException e) {
       String message = String.format("Failed to start %s. %s", job.getId(), e.toString());
+      logger.error(message, e);
       data = jobDataService.save(data, message, JobDataStatus.FAILED);
       failed(data, message, handler.getEngineStub(), e);
       return new Result(true);

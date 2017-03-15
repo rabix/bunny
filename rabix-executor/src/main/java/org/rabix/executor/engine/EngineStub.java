@@ -2,6 +2,7 @@ package org.rabix.executor.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T extends TransportPlugin<Q>> {
 
+  public final static long DEFAULT_HEARTBEAT_TIME = 60000L;
+  
   protected final Logger logger = LoggerFactory.getLogger(getClass());
   
   protected B backend;
@@ -35,6 +38,8 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
   protected Q sendToBackendControlQueue;
   protected Q receiveFromBackendQueue;
   protected Q receiveFromBackendHeartbeatQueue;
+  
+  protected Long heartbeatTimeMills;
   
   protected FileService fileService;
   protected ExecutorService executorService;
@@ -57,7 +62,7 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
       public void handleReceive(EngineControlMessage controlMessage) throws TransportPluginException {
         switch (controlMessage.getType()) {
         case STOP:
-          List<String> ids = new ArrayList<>();
+          List<UUID> ids = new ArrayList<>();
           ids.add(((EngineControlStopMessage)controlMessage).getId());
           executorService.stop(ids, controlMessage.getRootId());
           break;
@@ -80,7 +85,7 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
       public void run() {
         transportPlugin.send(receiveFromBackendHeartbeatQueue, new HeartbeatInfo(backend.getId(), System.currentTimeMillis()));
       }
-    }, 0, 1, TimeUnit.SECONDS);
+    }, 0, heartbeatTimeMills, TimeUnit.MILLISECONDS);
   }
 
   public void stop() {

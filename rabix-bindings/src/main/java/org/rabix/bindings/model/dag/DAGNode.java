@@ -1,5 +1,6 @@
 package org.rabix.bindings.model.dag;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,20 +38,22 @@ public class DAGNode {
   }
   
   @JsonProperty("id")
-  protected final String id;
+  protected String id;
   @JsonDeserialize(using = ApplicationDeserializer.class)
   @JsonSerialize(using = ApplicationSerializer.class)
   @JsonProperty("app")
-  protected final Application app;
+  protected Application app;
+  @JsonProperty("appHash")
+  protected String appHash;
   @JsonProperty("scatterMethod")
-  protected final ScatterMethod scatterMethod;
+  protected ScatterMethod scatterMethod;
   @JsonProperty("inputPorts")
-  protected final List<DAGLinkPort> inputPorts;
+  protected List<DAGLinkPort> inputPorts = new ArrayList<>();
   @JsonProperty("outputPorts")
-  protected final List<DAGLinkPort> outputPorts;
+  protected List<DAGLinkPort> outputPorts = new ArrayList<>();
   
   @JsonProperty("defaults")
-  protected final Map<String, Object> defaults;
+  protected Map<String, Object> defaults;
   
   @JsonCreator
   public DAGNode(@JsonProperty("id") String id,
@@ -65,14 +68,27 @@ public class DAGNode {
     this.outputPorts = outputPorts;
     this.scatterMethod = scatterMethod;
     this.defaults = defaults;
+    this.appHash = null;
   }
 
   public String getId() {
     return id;
   }
-
+  
   public Application getApp() {
     return app;
+  }
+  
+  public void setApp(Application app) {
+    this.app = app;
+  }
+  
+  public String getAppHash() {
+    return appHash;
+  }
+  
+  public void setAppHash(String appHash) {
+    this.appHash = appHash;
   }
 
   public List<DAGLinkPort> getInputPorts() {

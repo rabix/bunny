@@ -1,14 +1,22 @@
 package org.rabix.engine.event.impl;
 
+import java.util.UUID;
+
 import org.rabix.engine.event.Event;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ContextStatusEvent implements Event {
 
-  private final String contextId;
+  @JsonProperty("contextId")
+  private final UUID contextId;
+  @JsonProperty("status")
   private final ContextStatus status;
   
-  public ContextStatusEvent(String contextId, ContextStatus status) {
+  @JsonCreator
+  public ContextStatusEvent(@JsonProperty("contextId") UUID contextId, @JsonProperty("status") ContextStatus status) {
     this.status = status;
     this.contextId = contextId;
   }
@@ -23,12 +31,12 @@ public class ContextStatusEvent implements Event {
   }
   
   @Override
-  public String getContextId() {
+  public UUID getContextId() {
     return contextId;
   }
   
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return null;
   }
 
@@ -63,6 +71,16 @@ public class ContextStatusEvent implements Event {
   @Override
   public String toString() {
     return "ContextStatusEvent [contextId=" + contextId + ", status=" + status + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    return null;
+  }
+
+  @Override
+  public String getProducedByNode() {
+    return null;
   }
 
 }
