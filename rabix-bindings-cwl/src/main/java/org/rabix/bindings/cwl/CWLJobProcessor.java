@@ -26,16 +26,12 @@ import org.rabix.bindings.model.LinkMerge;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.json.processor.BeanProcessor;
 import org.rabix.common.json.processor.BeanProcessorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link BeanProcessor} used for Job processing. It populates some additional fields.
  */
 public class CWLJobProcessor implements BeanProcessor<CWLJob> {
 
-  private final static Logger logger = LoggerFactory.getLogger(CWLJobProcessor.class);
-  
   public static final String DOT_SEPARATOR = ".";
   public static final String SLASH_SEPARATOR = "/";
   
@@ -43,8 +39,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
     try {
       return process(null, job);
     } catch (CWLException e) {
-      logger.error("Failed to process Job.", e);
-      throw new BeanProcessorException(e);
+      throw new BeanProcessorException("Failed to process CWLv1 Job.", e);
     }
   }
   

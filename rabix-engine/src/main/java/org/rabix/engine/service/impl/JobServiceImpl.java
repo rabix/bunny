@@ -41,6 +41,7 @@ import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
+import org.rabix.engine.validator.JobStateValidationException;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +129,6 @@ public class JobServiceImpl implements JobService {
             JobStatus dbStatus = jobRepository.getStatus(job.getId());
             JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
           }
-          
           JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
           if (jobRecord == null) {
             logger.info("Possible stale message. Job {} for root {} doesn't exist.", job.getName(), job.getRootId());
@@ -219,13 +219,13 @@ public class JobServiceImpl implements JobService {
           return null;
         }
       });
+      logger.info("Job {} rootId: {} started", job.getName(), job.getRootId());
       if (isSuccessful.get()) {
         eventProcessor.addToExternalQueue(eventWrapper.get());
         return jobWrapper.get();
       }
       return job;
     } catch (Exception e) {
-      logger.error("Failed to create Bindings", e);
       throw new JobServiceException("Failed to create Bindings", e);
     }
   }
@@ -247,6 +247,7 @@ public class JobServiceImpl implements JobService {
       // TODO implement the rest of the logic
       scheduler.stop(job);
     }
+    logger.info("Job {} rootId: {} stopped", job.getName(), job.getRootId());
   }
   
   @Override
@@ -317,6 +318,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobFailed(final Job failedJob){
+    logger.warn("Job {}, rootId: {} failed: {}", failedJob.getName(), failedJob.getRootId(), failedJob.getMessage());
     if (isLocalBackend) {
       synchronized (stoppingRootIds) {
         if (stoppingRootIds.contains(failedJob.getRootId())) {

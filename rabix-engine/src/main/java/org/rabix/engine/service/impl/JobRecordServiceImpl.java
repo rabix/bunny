@@ -155,7 +155,7 @@ public class JobRecordServiceImpl implements JobRecordService {
   }
   
   public void decrementPortCounter(JobRecord jobRecord, String portId, LinkPortType type) {
-    logger.info("JobRecord {}. Decrementing port {}.", jobRecord.getId(), portId);
+    logger.debug("JobRecord {}. Decrementing port {}.", jobRecord.getId(), portId);
     List<PortCounter> counters = type.equals(LinkPortType.INPUT) ? jobRecord.getInputCounters() : jobRecord.getOutputCounters();
     for (PortCounter portCounter : counters) {
       if (portCounter.port.equals(portId)) {
@@ -165,21 +165,25 @@ public class JobRecordServiceImpl implements JobRecordService {
     printInputPortCounters(jobRecord);
     printOutputPortCounters(jobRecord);
   }
-  
+
   private void printInputPortCounters(JobRecord jobRecord) {
-    StringBuilder builder = new StringBuilder("\nJob ").append(jobRecord.getId()).append(" input counters:\n");
-    for (PortCounter inputPortCounter : jobRecord.getInputCounters()) {
-      builder.append(" -- Input port ").append(inputPortCounter.getPort()).append(", counter=").append(inputPortCounter.counter).append("\n");
+    if (logger.isDebugEnabled()) {
+      StringBuilder builder = new StringBuilder("\nJob ").append(jobRecord.getId()).append(" input counters:\n");
+      for (PortCounter inputPortCounter : jobRecord.getInputCounters()) {
+        builder.append(" -- Input port ").append(inputPortCounter.getPort()).append(", counter=").append(inputPortCounter.counter).append("\n");
+      }
+      logger.debug(builder.toString());
     }
-    logger.debug(builder.toString());
   }
   
   private void printOutputPortCounters(JobRecord jobRecord) {
-    StringBuilder builder = new StringBuilder("\nJob ").append(jobRecord.getId()).append(" output counters:\n");
-    for (PortCounter inputPortCounter : jobRecord.getOutputCounters()) {
-      builder.append(" -- Output port ").append(inputPortCounter.getPort()).append(", counter=").append(inputPortCounter.counter).append("\n");
+    if (logger.isDebugEnabled()) {
+      StringBuilder builder = new StringBuilder("\nJob ").append(jobRecord.getId()).append(" output counters:\n");
+      for (PortCounter inputPortCounter : jobRecord.getOutputCounters()) {
+        builder.append(" -- Output port ").append(inputPortCounter.getPort()).append(", counter=").append(inputPortCounter.counter).append("\n");
+      }
+      logger.debug(builder.toString());
     }
-    logger.debug(builder.toString());
   }
   
   public void resetInputPortCounters(JobRecord jobRecord, int value) {
@@ -206,7 +210,7 @@ public class JobRecordServiceImpl implements JobRecordService {
   }
   
   public void resetOutputPortCounter(JobRecord jobRecord, int value, String port) {
-    logger.info("Reset output port counter {} for {} to {}", port, jobRecord.getId(), value);
+    logger.debug("Reset output port counter {} for {} to {}", port, jobRecord.getId(), value);
     for (PortCounter pc : jobRecord.getOutputCounters()) {
       if (pc.port.equals(port)) {
         int oldValue = pc.globalCounter;
@@ -229,7 +233,7 @@ public class JobRecordServiceImpl implements JobRecordService {
   }
   
   public void resetOutputPortCounters(JobRecord jobRecord, int value) {
-    logger.info("Reset output port counters for {} to {}", jobRecord.getId(), value);
+    logger.debug("Reset output port counters for {} to {}", jobRecord.getId(), value);
     if (jobRecord.getNumberOfGlobalOutputs() == value) {
       return;
     }

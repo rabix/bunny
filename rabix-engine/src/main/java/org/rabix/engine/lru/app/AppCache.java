@@ -17,7 +17,7 @@ public class AppCache extends LRUCache<String, Application>{
   @Inject
   public AppCache(Configuration configuration) {
     super(CACHE_NAME, configuration.getInteger("applicationcache.size", DEFAULT_CACHE_SIZE));
-    logger.debug(String.format("%s initialized with size=%d", CACHE_NAME, getCacheSize()));
+    logger.debug("{} initialized with size={}", CACHE_NAME, getCacheSize());
   }
   
 }

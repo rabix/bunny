@@ -134,6 +134,7 @@ CREATE TABLE job (
     group_id uuid,
     produced_by_node  text,
     backend_id uuid,
+    produced_by_node text,
     app text,
     config jsonb,
     CONSTRAINT job_backend_status_check CHECK (((backend_id IS NOT NULL) OR (status <> 'RUNNING'::job_status) OR (parent_id IS NULL)))

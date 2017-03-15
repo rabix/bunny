@@ -45,7 +45,6 @@ public class SBGlobServiceImpl implements SBGlobService {
       try {
         glob = SBExpressionBeanHelper.<String> evaluate(job, glob);
       } catch (SBExpressionException e) {
-        logger.error("Failed to evaluate glob " + glob, e);
         throw new SBGlobException("Failed to evaluate glob " + glob, e);
       }
     }
@@ -91,7 +90,6 @@ public class SBGlobServiceImpl implements SBGlobService {
 
         });
       } catch (IOException e) {
-        logger.error("Failed to traverse through working directory", e);
         throw new SBGlobException("Failed to traverse through working directory", e);
       }
     }
@@ -126,7 +124,7 @@ public class SBGlobServiceImpl implements SBGlobService {
       resolveSimpleGlob((String) glob, globDirs, result);
     }
     else {
-      logger.debug("Not handled - should never happened");
+      logger.warn("Glob is neither string nor list. Not handled - should never happened");
     }
   }
   

@@ -339,7 +339,6 @@ public class SBProcessor implements ProtocolProcessor {
           SBFileValueHelper.setContents(fileData);
         }
       } catch (Exception e) {
-        logger.error("Failed to extract outputs", e);
         throw new SBGlobException("Failed to extract outputs.", e);
       }
     }
