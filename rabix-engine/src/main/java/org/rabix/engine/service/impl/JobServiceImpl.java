@@ -41,7 +41,6 @@ import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
-import org.rabix.engine.validator.JobStateValidationException;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,6 @@ public class JobServiceImpl implements JobService {
   private final ContextRecordService contextRecordService;
 
   private final JobRepository jobRepository;
-//  private final CompletedJobRepository completedJobRepository;
   private final DAGNodeDB dagNodeDB;
   private final AppDB appDB;
   

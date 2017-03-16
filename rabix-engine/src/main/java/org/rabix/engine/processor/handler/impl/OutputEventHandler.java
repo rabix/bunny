@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
@@ -28,12 +27,10 @@ import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -42,8 +39,6 @@ import com.google.inject.Inject;
  */
 public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
-  private final static Logger logger = LoggerFactory.getLogger(OutputEventHandler.class);
-  
   private JobRecordService jobRecordService;
   private LinkRecordService linkService;
   private VariableRecordService variableService;
