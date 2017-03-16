@@ -1,5 +1,6 @@
 package org.rabix.engine.repository;
 
+import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
@@ -29,7 +30,7 @@ public interface JobRepository {
   
   Set<Job> getByRootId(UUID rootId);
   
-  Set<Job> getRootsByStatus(JobStatus status);
+  Set<Job> getRootJobsForDeletion(JobStatus status, Timestamp olderThanTime);
   
   Set<Job> get(UUID rootID, Set<JobStatus> whereStatuses);
   

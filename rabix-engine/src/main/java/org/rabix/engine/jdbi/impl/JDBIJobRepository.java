@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
@@ -72,8 +73,8 @@ public interface JDBIJobRepository extends JobRepository {
   Job get(@Bind("id") UUID id);
   
   @Override
-  @SqlQuery("select * from job where id=root_id and status=:status::job_status")
-  Set<Job> getRootsByStatus(@Bind("status") JobStatus status);
+  @SqlQuery("select * from job where id=root_id and status=:status::job_status and modified_at \\< :time")
+  Set<Job> getRootJobsForDeletion(@Bind("status") JobStatus status, @Bind("time") Timestamp olderThanTime);
   
   @Override
   @SqlQuery("select status from job where id=:id")
