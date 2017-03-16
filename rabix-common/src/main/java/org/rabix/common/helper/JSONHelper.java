@@ -231,10 +231,7 @@ public class JSONHelper {
     if (node instanceof ArrayNode) {
       List<Object> resultList = new ArrayList<>();
       for (JsonNode subnode : node) {
-        Object result = transform(subnode);
-        if (result != null) {
-          resultList.add(result);
-        }
+        resultList.add(transform(subnode));
       }
       return resultList;
     }
@@ -245,9 +242,7 @@ public class JSONHelper {
       while (iterator.hasNext()) {
         Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
         Object result = transform(subnodeEntry.getValue());
-        if (result != null) {
-          resultMap.put(subnodeEntry.getKey(), result);
-        }
+        resultMap.put(subnodeEntry.getKey(), result);
       }
       return resultMap;
     }
