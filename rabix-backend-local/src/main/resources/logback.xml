@@ -3,7 +3,7 @@
 	<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
 		<Target>System.err</Target>
 		<encoder>
-			<pattern>FUUUUUU [%d{yyyy-MM-dd HH:mm:ss.SSS}] [%level] %msg%n</pattern>
+			<pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%level] %msg%n</pattern>
 		</encoder>
 	</appender>
 
