@@ -7,6 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,11 +33,11 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 public interface JDBIContextRecordRepository extends ContextRecordRepository {
 
   @Override
-  @SqlUpdate("insert into context_record (id,status,config) values (:id,:status::context_record_status,:config)")
+  @SqlUpdate("insert into context_record (id,status,config,created_at,modified_at) values (:id,:status::context_record_status,:config,:created_at,:modified_at)")
   int insert(@BindContextRecord ContextRecord contextRecord);
   
   @Override
-  @SqlUpdate("update context_record set status=:status::context_record_status,config=:config where id=:id")
+  @SqlUpdate("update context_record set status=:status::context_record_status,config=:config,modified_at='now' where id=:id")
   int update(@BindContextRecord ContextRecord contextRecord);
   
   @Override
@@ -64,6 +66,8 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
             } catch (SQLException ex) {
               throw new IllegalStateException("Error Binding config", ex);
             }
+            q.bind("created_at", Timestamp.valueOf(contextRecord.getCreatedAt()));
+            q.bind("modified_at", Timestamp.valueOf(contextRecord.getModifiedAt()));
           }
         };
       }
@@ -75,9 +79,11 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
       UUID id = resultSet.getObject("ID", UUID.class);
       String config = resultSet.getString("CONFIG");
       String status = resultSet.getString("STATUS");
+      LocalDateTime createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
+      LocalDateTime modifiedAt = resultSet.getTimestamp("modified_at").toLocalDateTime();
 
       Map<String, Object> configObject = JSONHelper.readMap(config);
-      return new ContextRecord(id, configObject, ContextStatus.valueOf(status));
+      return new ContextRecord(id, configObject, ContextStatus.valueOf(status), createdAt, modifiedAt);
     }
   }
 }

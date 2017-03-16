@@ -1,9 +1,10 @@
 package org.rabix.engine.model;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-public class ContextRecord {
+public class ContextRecord extends TimestampedModel {
 
   public static enum ContextStatus {
     RUNNING,
@@ -17,6 +18,11 @@ public class ContextRecord {
   private ContextStatus status;
   
   public ContextRecord(final UUID id, Map<String, Object> config, ContextStatus status) {
+    this(id, config, status, LocalDateTime.now(), LocalDateTime.now());
+  }
+
+  public ContextRecord(final UUID id, Map<String, Object> config, ContextStatus status, LocalDateTime createdAt, LocalDateTime modifiedAt) {
+    super(createdAt, modifiedAt);
     this.id = id;
     this.config = config;
     this.status = status;

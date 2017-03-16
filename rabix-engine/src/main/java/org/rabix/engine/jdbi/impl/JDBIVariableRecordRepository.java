@@ -7,6 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -44,19 +46,19 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   }
   
   @Override
-  @SqlUpdate("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type::port_type,:link_merge::link_merge_type,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
+  @SqlUpdate("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform,created_at,modified_at) values (:job_id,:value,:port_id,:type::port_type,:link_merge::link_merge_type,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform,:created_at,:modified_at)")
   public abstract int insert(@BindVariableRecord VariableRecord jobRecord);
   
   @Override
-  @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type::port_type")
+  @SqlUpdate("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform,modified_at='now' where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type::port_type")
   public abstract int update(@BindVariableRecord VariableRecord jobRecord);
   
   @Override
-  @SqlBatch("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform) values (:job_id,:value,:port_id,:type::port_type,:link_merge::link_merge_type,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform)")
+  @SqlBatch("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform,created_at,modified_at) values (:job_id,:value,:port_id,:type::port_type,:link_merge::link_merge_type,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform,:created_at,:modified_at)")
   public abstract void insertBatch(@BindVariableRecord Iterator<VariableRecord> records);
   
   @Override
-  @SqlBatch("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type::port_type")
+  @SqlBatch("update variable_record set value=:value,link_merge=:link_merge::link_merge_type,is_wrapped=:is_wrapped,globals_count=:globals_count,times_updated_count=:times_updated_count,is_default=:is_default,transform=:transform,modified_at='now' where port_id=:port_id and context_id=:context_id and job_id=:job_id and type=:type::port_type")
   public abstract void updateBatch(@BindVariableRecord Iterator<VariableRecord> records);
   
   @Override
@@ -111,6 +113,8 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
             q.bind("times_updated_count", variableRecord.getNumberOfTimesUpdated());
             q.bind("context_id", variableRecord.getRootId());
             q.bind("is_default", variableRecord.isDefault());
+            q.bind("created_at", Timestamp.valueOf(variableRecord.getCreatedAt()));
+            q.bind("modified_at", Timestamp.valueOf(variableRecord.getModifiedAt()));
           }
         };
       }
@@ -134,8 +138,11 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
       Object valueObject = FileValue.deserialize(JSONHelper.transform(JSONHelper.readJsonNode(value)));
       
       Object transformObject = JSONHelper.transform(JSONHelper.readJsonNode(transform));
+
+      LocalDateTime createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
+      LocalDateTime modifiedAt = resultSet.getTimestamp("modified_at").toLocalDateTime();
       
-      VariableRecord variableRecord = new VariableRecord(rootId, jobId, portId, LinkPortType.valueOf(type), valueObject, LinkMerge.valueOf(linkMerge));
+      VariableRecord variableRecord = new VariableRecord(rootId, jobId, portId, LinkPortType.valueOf(type), valueObject, LinkMerge.valueOf(linkMerge), createdAt, modifiedAt);
       variableRecord.setWrapped(isWrapped);
       variableRecord.setNumberGlobals(globalsCount);
       variableRecord.setNumberOfTimesUpdated(timesUpdatedCount);
