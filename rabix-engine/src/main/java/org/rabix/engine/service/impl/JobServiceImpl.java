@@ -196,7 +196,10 @@ public class JobServiceImpl implements JobService {
       transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
         @Override
         public Void call() throws Exception {
-          UUID rootId = UUID.randomUUID();
+          UUID rootId = job.getRootId();
+          if (rootId == null)
+            rootId = UUID.randomUUID();
+          
           Job updatedJob = Job.cloneWithIds(job, rootId, rootId);
           updatedJob = Job.cloneWithName(updatedJob, InternalSchemaHelper.ROOT_NAME);
 
