@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.CommandLine;
@@ -75,13 +76,6 @@ public class LocalContainerHandler implements ContainerHandler {
 
       commandLineString = commandLine.build();
 
-      bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
-        @Override
-        public String map(String path, Map<String, Object> config) throws FileMappingException {
-          return path;
-        }
-      }).getParts();
-
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -104,23 +98,33 @@ public class LocalContainerHandler implements ContainerHandler {
           env.put(envVariableEntry.getKey(), envVariableEntry.getValue());
         }
       }
-      
 
-      if (commandLineString.startsWith("/bin/bash -c")) {
-        commandLineString = normalizeCommandLine(commandLineString.replace("/bin/bash -c", ""));
-        processBuilder.command("/bin/bash", "-c", commandLineString);
-      } else if (commandLineString.startsWith("/bin/sh -c")) {
-        commandLineString = normalizeCommandLine(commandLineString.replace("/bin/sh -c", ""));
-        processBuilder.command("/bin/sh", "-c", commandLineString);
-      } else if (commandLineString.contains("<") || commandLineString.contains(">")) {
-        processBuilder.command("/bin/bash", "-c", commandLineString);
-      } else {
-         List<String> parts = commandLine.getParts().stream().map(EncodingHelper::shellUnquote).collect(Collectors.toList());
-        processBuilder.command(parts);
-      }
+      VerboseLogger.log(String.join(" ", commandLine.getParts()));
+
+      List<String> parts = commandLine.getParts();
+      processBuilder.command(parts);
+
       processBuilder.directory(workingDir);
+
+      String stdIn = commandLine.getStandardIn();
+      String stdOut = commandLine.getStandardOut();
+      String stdErr = commandLine.getStandardError();
+      if(!StringUtils.isEmpty(stdIn)) {
+        VerboseLogger.log("stdIn: " + stdIn);
+        processBuilder.redirectInput(new File(stdIn));
+      }
+
+      if(!StringUtils.isEmpty(stdOut)) {
+        VerboseLogger.log("stdOut: " + stdOut);
+        processBuilder.redirectOutput(new File(stdOut));
+      }
+
+      if(!StringUtils.isEmpty(stdErr)) {
+        VerboseLogger.log("stdErr: " + stdErr);
+        processBuilder.redirectError(new File(stdErr));
+      }
       
-      VerboseLogger.log(String.format("Running command line: %s", commandLine));
+      VerboseLogger.log(String.format("Running command line: %s", commandLineString));
       processFuture = executorService.submit(new Callable<Integer>() {
         @Override
         public Integer call() throws Exception {
@@ -136,16 +140,16 @@ public class LocalContainerHandler implements ContainerHandler {
     }
   }
   
-  private String normalizeCommandLine(String commandLine) {
-    commandLine = commandLine.trim();
-    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
-      commandLine = commandLine.substring(1, commandLine.length() - 1);
-    }
-    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
-      commandLine = commandLine.substring(1, commandLine.length() - 1);
-    }
-    return commandLine;
-  }
+//  private String normalizeCommandLine(String commandLine) {
+//    commandLine = commandLine.trim();
+//    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
+//      commandLine = commandLine.substring(1, commandLine.length() - 1);
+//    }
+//    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
+//      commandLine = commandLine.substring(1, commandLine.length() - 1);
+//    }
+//    return commandLine;
+//  }
 
   @SuppressWarnings("unchecked")
   private <T extends Requirement> T getRequirement(List<Requirement> requirements, Class<T> clazz) {

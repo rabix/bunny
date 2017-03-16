@@ -24,31 +24,30 @@ public class EncodingHelper {
     return new String(dataBytes, DEFAULT_ENCODING);
   }
   
-  public static Object shellQuote(Object argument) {
-    if (argument == null) {
-      return null;
-    }
-    if (!(argument instanceof String)) {
+  public static String shellQuote(String argument) {
+    System.out.println("shellQuote " + argument);
+
+    if (!NEEDS_QUOTING_PATTERN.matcher(argument).find()) {
       return argument;
     }
-    String argumentStr = (String) argument;
-    if (!NEEDS_QUOTING_PATTERN.matcher(argumentStr).find()) {
-      return argumentStr;
-    }
-    return "'" + argumentStr.replace("'", "'\\''") + "'";
+    System.out.println("escaping " + argument);
+    return "'" + argument.replace("'", "'\\''") + "'";
   }
 
-  public static String shellUnquote(String argument) {
-    if (argument == null) {
-      return null;
-    }
-
-    if (!argument.startsWith("'") && !argument.endsWith("'")) {
-      return argument;
-    }
-
-    return argument.substring(1, argument.length() - 1).replace("'\\''", "'");
-
-  }
+//  public static String shellUnquote(String argument) {
+//    System.out.println("shellUnquote " + argument);
+//    if (argument == null) {
+//      return null;
+//    }
+//
+//    if (!argument.startsWith("'") && !argument.endsWith("'")) {
+//      return argument;
+//    }
+//    String res = argument.substring(1, argument.length() - 1).replace("'\\''", "'");
+//    System.out.println("unescaping " + argument);
+//    System.out.println(res);
+//    return res;
+//
+//  }
   
 }

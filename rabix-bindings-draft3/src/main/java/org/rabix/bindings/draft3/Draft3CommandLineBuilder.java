@@ -52,11 +52,8 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     }
     
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) draft3Job.getApp();
-    List<String> commandLineParts = Lists.transform(buildCommandLineParts(draft3Job, workingDir, filePathMapper), new Function<Object, String>() {
-      public String apply(Object obj) {
-        return obj.toString();
-      }
-    });
+    List<CommandLine.Part> commandLineParts = Lists.transform(buildCommandLineParts(draft3Job, workingDir, filePathMapper), (obj ->
+        new CommandLine.Part(obj.toString())));
 
     String stdin = null;
     try {
