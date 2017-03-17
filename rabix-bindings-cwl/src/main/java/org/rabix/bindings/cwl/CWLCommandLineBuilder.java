@@ -103,6 +103,10 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   private boolean getShellQuote(Object input) {
     return CWLBeanHelper.getValue(SHELL_QUOTE_KEY, input, true);
   }
+
+  private boolean isShellQuote(CWLJob job, Object input) {
+    return !job.isShellCommandEscapeEnabled() || getShellQuote(input);
+  }
   
   /**
    * Build command line arguments
@@ -318,7 +322,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(prefixedValues).build();
     }
 
-    boolean shellQuote = getShellQuote(inputBinding);
+    boolean shellQuote = isShellQuote(job, inputBinding);
 
     if (prefix == null) {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(value.toString(), shellQuote)).build();
