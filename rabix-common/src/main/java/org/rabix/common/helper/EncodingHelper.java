@@ -25,12 +25,9 @@ public class EncodingHelper {
   }
   
   public static String shellQuote(String argument) {
-    System.out.println("shellQuote " + argument);
-
     if (!NEEDS_QUOTING_PATTERN.matcher(argument).find()) {
       return argument;
     }
-    System.out.println("escaping " + argument);
     return "'" + argument.replace("'", "'\\''") + "'";
   }
 

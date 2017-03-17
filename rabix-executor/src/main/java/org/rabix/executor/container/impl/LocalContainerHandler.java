@@ -1,10 +1,6 @@
 package org.rabix.executor.container.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -106,24 +102,10 @@ public class LocalContainerHandler implements ContainerHandler {
 
       processBuilder.directory(workingDir);
 
-      String stdIn = commandLine.getStandardIn();
-      String stdOut = commandLine.getStandardOut();
-      String stdErr = commandLine.getStandardError();
-      if(!StringUtils.isEmpty(stdIn)) {
-        VerboseLogger.log("stdIn: " + stdIn);
-        processBuilder.redirectInput(new File(stdIn));
-      }
+      processBuilder.redirectInput(redirect(workingDir, commandLine.getStandardIn(), false));
+      processBuilder.redirectOutput(redirect(workingDir, commandLine.getStandardOut(), true));
+      processBuilder.redirectError(redirect(workingDir, commandLine.getStandardError(), true));
 
-      if(!StringUtils.isEmpty(stdOut)) {
-        VerboseLogger.log("stdOut: " + stdOut);
-        processBuilder.redirectOutput(new File(stdOut));
-      }
-
-      if(!StringUtils.isEmpty(stdErr)) {
-        VerboseLogger.log("stdErr: " + stdErr);
-        processBuilder.redirectError(new File(stdErr));
-      }
-      
       VerboseLogger.log(String.format("Running command line: %s", commandLineString));
       processFuture = executorService.submit(new Callable<Integer>() {
         @Override
@@ -138,6 +120,20 @@ public class LocalContainerHandler implements ContainerHandler {
       logger.error("Failed to start application", e);
       throw new ContainerException("Failed to start application", e);
     }
+  }
+
+  private ProcessBuilder.Redirect redirect(File workingDir, String path, boolean write) {
+    if (StringUtils.isEmpty(path)) {
+      return ProcessBuilder.Redirect.PIPE;
+    }
+    File res = new File(path);
+    if (!res.isAbsolute()) {
+      res = new File(workingDir, path);
+    }
+    if (write) {
+      return ProcessBuilder.Redirect.to(res);
+    }
+    return ProcessBuilder.Redirect.from(res);
   }
   
 //  private String normalizeCommandLine(String commandLine) {
@@ -193,9 +189,15 @@ public class LocalContainerHandler implements ContainerHandler {
 
   @Override
   public synchronized void dumpContainerLogs(File errorFile) throws ContainerException {
+
     try {
       if (!errorFile.exists()) {
         errorFile.createNewFile();
+      }
+      if (process == null) {
+        try (Writer outputStream = new FileWriter(errorFile)) {
+          outputStream.write("Process not initiated");
+        }
       }
       try (InputStream inputStream = process.getErrorStream(); OutputStream outputStream = new FileOutputStream(errorFile)) {
         IOUtils.copy(inputStream, outputStream);
