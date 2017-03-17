@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
@@ -99,6 +100,13 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
           }
           return;
+        }
+        else {
+          try {
+            Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
+            jobService.handleJobCompleted(completedJob);
+          } catch (BindingException e) {
+          }
         }
       }
     }
