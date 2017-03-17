@@ -15,20 +15,22 @@ public class CommandLine {
   private final String standardIn;
   private final String standardOut;
   private final String standardError;
+
+  private final boolean runInShell;
   
-  public CommandLine(List<Part> parts, String standardIn, String standardOut, String standardError) {
+  public CommandLine(List<Part> parts, String standardIn, String standardOut, String standardError, boolean runInShell) {
     this.parts = parts;
     this.standardIn = standardIn;
     this.standardOut = standardOut;
     this.standardError = standardError;
+    this.runInShell = runInShell;
   }
 
   public String build() {
     StringBuilder builder = new StringBuilder();
    
     for (Part part : parts) {
-      String value = part.isQuote() ? EncodingHelper.shellQuote(part.getValue()): part.getValue();
-      builder.append(value).append(PART_SEPARATOR);
+      builder.append(part.toString()).append(PART_SEPARATOR);
     }
     if (!StringUtils.isEmpty(standardIn)) {
       builder.append(PART_SEPARATOR).append("<").append(PART_SEPARATOR).append(standardIn);
@@ -62,6 +64,10 @@ public class CommandLine {
     return standardError;
   }
 
+  public boolean isRunInShell() {
+    return runInShell;
+  }
+
   @Override
   public String toString() {
     return "CommandLine [parts=" + parts + ", standardIn=" + standardIn + ", standardOut=" + standardOut + ", standardError=" + standardError + "]";
@@ -86,6 +92,10 @@ public class CommandLine {
 
     public boolean isQuote() {
       return quote;
+    }
+
+    public String toString() {
+      return quote ? EncodingHelper.shellQuote(value): value;
     }
   }
   

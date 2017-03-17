@@ -61,7 +61,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
       throw new BindingException("Failed to extract standard outputs.", e);
     }
 
-    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null);
+    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null, true);
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }

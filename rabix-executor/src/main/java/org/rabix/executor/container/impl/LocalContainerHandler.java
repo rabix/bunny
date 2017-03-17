@@ -95,16 +95,18 @@ public class LocalContainerHandler implements ContainerHandler {
         }
       }
 
-      VerboseLogger.log(String.join(" ", commandLine.getParts()));
-
-      List<String> parts = commandLine.getParts();
-      processBuilder.command(parts);
-
       processBuilder.directory(workingDir);
 
-      processBuilder.redirectInput(redirect(workingDir, commandLine.getStandardIn(), false));
-      processBuilder.redirectOutput(redirect(workingDir, commandLine.getStandardOut(), true));
-      processBuilder.redirectError(redirect(workingDir, commandLine.getStandardError(), true));
+      if (!commandLine.isRunInShell()) {
+        List<String> parts = commandLine.getParts();
+        processBuilder.command(parts);
+
+        processBuilder.redirectInput(redirect(workingDir, commandLine.getStandardIn(), false));
+        processBuilder.redirectOutput(redirect(workingDir, commandLine.getStandardOut(), true));
+        processBuilder.redirectError(redirect(workingDir, commandLine.getStandardError(), true));
+      } else {
+        processBuilder.command("/bin/sh", "-c", commandLineString);
+      }
 
       VerboseLogger.log(String.format("Running command line: %s", commandLineString));
       processFuture = executorService.submit(new Callable<Integer>() {

@@ -77,7 +77,10 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     } catch (CWLExpressionException e) {
       throw new BindingException("Failed to extract standard error.", e);
     }
-    CommandLine commandLine = new CommandLine(buildCommandLineParts(cwlJob, workingDir, filePathMapper), stdin, stdout, stderr);
+
+    boolean runInShell = cwlJob.isShellCommandEscapeEnabled();
+
+    CommandLine commandLine = new CommandLine(buildCommandLineParts(cwlJob, workingDir, filePathMapper), stdin, stdout, stderr, runInShell);
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }
