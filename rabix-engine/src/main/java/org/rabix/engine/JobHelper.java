@@ -236,12 +236,4 @@ public class JobHelper {
     return Job.cloneWithOutputs(job, outputs);
   }
 
-  private void appendDebug(StringBuilder buffer, Object... mesages) {
-    if (logger.isDebugEnabled()) {
-      for (Object m: mesages) {
-        buffer.append(m);
-      }
-    }
-  }
-  
 }

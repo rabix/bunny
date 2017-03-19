@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolTranslator;
+import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.bean.CWLDataLink;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLStep;
@@ -106,7 +107,7 @@ public class CWLTranslator implements ProtocolTranslator {
     ScatterMethod scatterMethod = job.getScatterMethod() != null? ScatterMethod.valueOf(job.getScatterMethod()) : ScatterMethod.dotproduct;
     if (!job.getApp().isWorkflow()) {
       Map<String, Object> commonDefaults = (Map<String, Object>) CWLValueTranslator.translateToCommon(job.getInputs());
-      return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults);
+      return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults, ProtocolType.CWL);
     }
 
     CWLWorkflow workflow = (CWLWorkflow) job.getApp();
@@ -148,7 +149,7 @@ public class CWLTranslator implements ProtocolTranslator {
       links.add(new DAGLink(sourceLinkPort, destinationLinkPort, dataLink.getLinkMerge(), position));
     }
     Map<String, Object> commonDefaults = (Map<String, Object>) CWLValueTranslator.translateToCommon(job.getInputs());
-    return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults);
+    return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults, ProtocolType.CWL);
   }
   
   private void processPorts(DAGNode dagNode) {
