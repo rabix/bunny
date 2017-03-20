@@ -146,7 +146,7 @@ public class JobHelper {
     Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, preprocesedInputs, null, contextRecord.getConfig(), null, visiblePorts);
     try {
       if (processVariables) {
-        Bindings bindings = BindingsFactory.create(encodedApp);
+        Bindings bindings = BindingsFactory.create(node.getProtocolType());
         
         for (VariableRecord inputVariable : inputVariables) {
           Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
