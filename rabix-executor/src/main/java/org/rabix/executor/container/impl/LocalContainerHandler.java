@@ -1,10 +1,6 @@
 package org.rabix.executor.container.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.CommandLine;
@@ -75,13 +72,6 @@ public class LocalContainerHandler implements ContainerHandler {
 
       commandLineString = commandLine.build();
 
-      bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
-        @Override
-        public String map(String path, Map<String, Object> config) throws FileMappingException {
-          return path;
-        }
-      }).getParts();
-
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -104,23 +94,21 @@ public class LocalContainerHandler implements ContainerHandler {
           env.put(envVariableEntry.getKey(), envVariableEntry.getValue());
         }
       }
-      
 
-      if (commandLineString.startsWith("/bin/bash -c")) {
-        commandLineString = normalizeCommandLine(commandLineString.replace("/bin/bash -c", ""));
-        processBuilder.command("/bin/bash", "-c", commandLineString);
-      } else if (commandLineString.startsWith("/bin/sh -c")) {
-        commandLineString = normalizeCommandLine(commandLineString.replace("/bin/sh -c", ""));
-        processBuilder.command("/bin/sh", "-c", commandLineString);
-      } else if (commandLineString.contains("<") || commandLineString.contains(">")) {
-        processBuilder.command("/bin/bash", "-c", commandLineString);
-      } else {
-         List<String> parts = commandLine.getParts().stream().map(EncodingHelper::shellUnquote).collect(Collectors.toList());
-        processBuilder.command(parts);
-      }
       processBuilder.directory(workingDir);
-      
-      VerboseLogger.log(String.format("Running command line: %s", commandLine));
+
+      if (!commandLine.isRunInShell()) {
+        List<String> parts = commandLine.getParts();
+        processBuilder.command(parts);
+
+        processBuilder.redirectInput(redirect(workingDir, commandLine.getStandardIn(), false));
+        processBuilder.redirectOutput(redirect(workingDir, commandLine.getStandardOut(), true));
+        processBuilder.redirectError(redirect(workingDir, commandLine.getStandardError(), true));
+      } else {
+        processBuilder.command("/bin/sh", "-c", commandLineString);
+      }
+
+      VerboseLogger.log(String.format("Running command line: %s", commandLineString));
       processFuture = executorService.submit(new Callable<Integer>() {
         @Override
         public Integer call() throws Exception {
@@ -135,17 +123,31 @@ public class LocalContainerHandler implements ContainerHandler {
       throw new ContainerException("Failed to start application", e);
     }
   }
-  
-  private String normalizeCommandLine(String commandLine) {
-    commandLine = commandLine.trim();
-    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
-      commandLine = commandLine.substring(1, commandLine.length() - 1);
+
+  private ProcessBuilder.Redirect redirect(File workingDir, String path, boolean write) {
+    if (StringUtils.isEmpty(path)) {
+      return ProcessBuilder.Redirect.PIPE;
     }
-    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
-      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    File res = new File(path);
+    if (!res.isAbsolute()) {
+      res = new File(workingDir, path);
     }
-    return commandLine;
+    if (write) {
+      return ProcessBuilder.Redirect.to(res);
+    }
+    return ProcessBuilder.Redirect.from(res);
   }
+  
+//  private String normalizeCommandLine(String commandLine) {
+//    commandLine = commandLine.trim();
+//    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
+//      commandLine = commandLine.substring(1, commandLine.length() - 1);
+//    }
+//    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
+//      commandLine = commandLine.substring(1, commandLine.length() - 1);
+//    }
+//    return commandLine;
+//  }
 
   @SuppressWarnings("unchecked")
   private <T extends Requirement> T getRequirement(List<Requirement> requirements, Class<T> clazz) {
@@ -189,9 +191,15 @@ public class LocalContainerHandler implements ContainerHandler {
 
   @Override
   public synchronized void dumpContainerLogs(File errorFile) throws ContainerException {
+
     try {
       if (!errorFile.exists()) {
         errorFile.createNewFile();
+      }
+      if (process == null) {
+        try (Writer outputStream = new FileWriter(errorFile)) {
+          outputStream.write("Process not initiated");
+        }
       }
       try (InputStream inputStream = process.getErrorStream(); OutputStream outputStream = new FileOutputStream(errorFile)) {
         IOUtils.copy(inputStream, outputStream);

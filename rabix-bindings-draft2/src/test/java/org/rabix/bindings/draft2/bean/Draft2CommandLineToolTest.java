@@ -25,14 +25,14 @@ public class Draft2CommandLineToolTest {
 
     Draft2Job draft2Job = BeanSerializer.deserialize(inputJson, Draft2Job.class);
 
-    List<Object> expectedList = new LinkedList<Object>();
+    List<String> expectedList = new LinkedList<String>();
     expectedList.add("bwa");
     expectedList.add("mem");
     expectedList.add("rabix/tests/test-files/chr20.fa");
     expectedList.add("-XXX");
     expectedList.add("-YYY rabix/tests/test-files/example_human_Illumina.pe_1.fastq -YYY rabix/tests/test-files/example_human_Illumina.pe_2.fastq");
 
-    List<?> resultList;
+    List<String> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(draft2Job.getApp()));
       Job job = new Job(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "id", encodedApp, null, null, draft2Job.getInputs(), null, null, null, null);

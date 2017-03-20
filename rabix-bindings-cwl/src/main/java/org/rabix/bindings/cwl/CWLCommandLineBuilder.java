@@ -48,12 +48,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) cwlJob.getApp();
 
-    List<String> commandLineParts = Lists.transform(buildCommandLineParts(cwlJob, workingDir, filePathMapper), new Function<Object, String>() {
-      public String apply(Object obj) {
-        return obj.toString();
-      }
-    });
-    
     String stdin = null;
     try {
       stdin = commandLineTool.getStdin(cwlJob);
@@ -83,7 +77,10 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     } catch (CWLExpressionException e) {
       throw new BindingException("Failed to extract standard error.", e);
     }
-    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, stderr);
+
+    boolean runInShell = cwlJob.isShellCommandEscapeEnabled();
+
+    CommandLine commandLine = new CommandLine(buildCommandLineParts(cwlJob, workingDir, filePathMapper), stdin, stdout, stderr, runInShell);
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }
@@ -106,23 +103,27 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   private boolean getShellQuote(Object input) {
     return CWLBeanHelper.getValue(SHELL_QUOTE_KEY, input, true);
   }
+
+  private boolean isShellQuote(CWLJob job, Object input) {
+    return !job.isShellCommandEscapeEnabled() || getShellQuote(input);
+  }
   
   /**
    * Build command line arguments
    */
   @SuppressWarnings("rawtypes")
-  public List<Object> buildCommandLineParts(CWLJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
+  public List<CommandLine.Part> buildCommandLineParts(CWLJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     logger.debug("Building command line parts...");
 
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     List<CWLInputPort> inputPorts = commandLineTool.getInputs();
-    List<Object> result = new LinkedList<>();
+    List<CommandLine.Part> result = new ArrayList<>();
 
     try {
       List<Object> baseCmds = commandLineTool.getBaseCmd(job);
-      result.addAll(baseCmds);
+      result.addAll(Lists.transform(baseCmds, (obj -> new CommandLine.Part(obj.toString(), true))));
 
-      List<CWLCommandLinePart> commandLineParts = new LinkedList<>();
+      List<CWLCommandLinePart> commandLineParts = new ArrayList<>();
 
       if (commandLineTool.hasArguments()) {
         for (int i = 0; i < commandLineTool.getArguments().size(); i++) {
@@ -164,7 +165,11 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       for (CWLCommandLinePart part : commandLineParts) {
         List<Object> flattenedObjects = part.flatten();
         for (Object obj : flattenedObjects) {
-          result.add(obj);
+          if (obj instanceof CommandLine.Part) {
+            result.add((CommandLine.Part) obj);
+          } else {
+            result.add(new CommandLine.Part(obj.toString(), true));
+          }
         }
       }
     } catch (CWLExpressionException e) {
@@ -216,8 +221,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     String prefix = CWLBindingHelper.getPrefix(inputBinding);
     String itemSeparator = CWLBindingHelper.getItemSeparator(inputBinding);
     String keyValue = inputPort != null ? inputPort.getId() : "";
-
-    boolean shellQuote = getShellQuote(inputBinding);
     
     Object valueFrom = CWLBindingHelper.getValueFrom(inputBinding);
     if (valueFrom != null) {
@@ -319,17 +322,15 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(prefixedValues).build();
     }
 
-    if (shellQuote) {
-      value = EncodingHelper.shellQuote(value);
-    }
+    boolean shellQuote = isShellQuote(job, inputBinding);
 
     if (prefix == null) {
-      return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(value).build();
+      return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(value.toString(), shellQuote)).build();
     }
     if (CWLBindingHelper.DEFAULT_SEPARATOR.equals(separator)) {
-      return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(value).build();
+      return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(new CommandLine.Part(value.toString(), shellQuote)).build();
     }
-    return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix + separator + value).build();
+    return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(prefix + separator + value, shellQuote)).build();
   }
 
 }
