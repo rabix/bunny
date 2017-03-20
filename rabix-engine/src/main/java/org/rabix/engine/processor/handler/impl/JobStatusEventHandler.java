@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -311,7 +312,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       
       Application app = appDB.get(node.getAppHash());
-      Bindings bindings = BindingsFactory.create(node.getProtocolType());
+      
+      Bindings bindings = null;
+      if (node.getProtocolType() != null) {
+        bindings = BindingsFactory.create(node.getProtocolType());
+      } else {
+        String encodedApp = URIHelper.createDataURI(appDB.get(node.getAppHash()).serialize());
+        bindings = BindingsFactory.create(encodedApp);
+      }
       
       List<VariableRecord> inputVariables = variableRecordService.find(job.getId(), LinkPortType.INPUT, job.getRootId());
       Map<String, Object> preprocesedInputs = new HashMap<>();
