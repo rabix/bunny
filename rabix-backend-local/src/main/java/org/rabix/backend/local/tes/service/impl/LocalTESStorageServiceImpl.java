@@ -125,7 +125,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
     return (Map<String, Object>) FileValueHelper.updateFileValues(result, (FileValue fileValue) -> {
 
       String path = fileValue.getPath();
-      String outputPrefix = containerPath("working_dir").toString();
+      String outputPrefix = containerPath().toString();
       if (path.startsWith(outputPrefix)) {
         path = path.substring(outputPrefix.length() + 1);
       }
