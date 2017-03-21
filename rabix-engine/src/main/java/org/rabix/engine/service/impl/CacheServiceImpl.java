@@ -1,6 +1,5 @@
 package org.rabix.engine.service.impl;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,7 +22,7 @@ import com.google.inject.Inject;
 
 public class CacheServiceImpl implements CacheService {
 
-  private ConcurrentMap<String, Map<UUID, Map<String, Cache>>> caches = new ConcurrentHashMap<String, Map<UUID, Map<String, Cache>>>();
+  private ConcurrentMap<String, Map<String, Cache>> caches = new ConcurrentHashMap<String, Map<String, Cache>>();
   
   private JobRecordRepository jobRecordRepository;
   private LinkRecordRepository linkRecordRepository;
@@ -43,29 +42,12 @@ public class CacheServiceImpl implements CacheService {
   public Cache getCache(UUID rootId, String entity) {
     String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
     
-    Map<UUID, Map<String, Cache>> cachesByRoot = caches.get(index);
-    if (cachesByRoot == null) {
-      cachesByRoot = new HashMap<>();
-      caches.put(index, cachesByRoot);
+    Map<String, Cache> cache = caches.get(index);
+    if (cache == null) {
+      cache = generateCache();
+      caches.put(index, cache);
     }
-    Map<String, Cache> cachesForRoot = cachesByRoot.get(rootId);
-    if (cachesForRoot == null) {
-      cachesForRoot = generateCache();
-      cachesByRoot.put(rootId, cachesForRoot);
-    }
-    return cachesForRoot.get(entity);
-  }
-  
-  public void remove(UUID rootId) {
-    if (rootId == null) {
-      return;
-    }
-    String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
-    Map<UUID, Map<String, Cache>> cachesByRoot = caches.get(index);
-    if (cachesByRoot == null) {
-      return;
-    }
-    cachesByRoot.remove(rootId);
+    return cache.get(entity);
   }
   
   public void flush(UUID rootId) {
@@ -73,15 +55,11 @@ public class CacheServiceImpl implements CacheService {
       return;
     }
     String index = Long.toString(EventProcessorDispatcher.dispatch(rootId, getNumberOfEventProcessors()));
-    Map<UUID, Map<String, Cache>> cachesByRoot = caches.get(index);
-    if (cachesByRoot == null) {
+    Map<String, Cache> cache = caches.get(index);
+    if (cache == null) {
       return;
     }
-    Map<String, Cache> cachesForRoot = cachesByRoot.get(rootId);
-    if (cachesForRoot == null) {
-      return;
-    }
-    for (Entry<String, Cache> cacheEntry : cachesForRoot.entrySet()) {
+    for (Entry<String, Cache> cacheEntry : cache.entrySet()) {
       cacheEntry.getValue().flush();
     }
   }

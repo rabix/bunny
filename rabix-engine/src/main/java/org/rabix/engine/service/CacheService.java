@@ -8,8 +8,6 @@ public interface CacheService {
 
   Cache getCache(UUID rootId, String entity);
   
-  void remove(UUID rootId);
-  
   void flush(UUID rootId);
   
 }

@@ -41,7 +41,7 @@ public class MockExecutorServiceImpl implements ExecutorService {
   
   private Map<String, Job> cachedJobs = new HashMap<>(); 
   
-  private java.util.concurrent.ExecutorService threadPool = Executors.newFixedThreadPool(10);
+  private java.util.concurrent.ExecutorService threadPool = Executors.newFixedThreadPool(300);
   
   @Inject
   public MockExecutorServiceImpl(Configuration configuration) {
@@ -114,6 +114,7 @@ public class MockExecutorServiceImpl implements ExecutorService {
 
   @Override
   public void start(Job job, UUID rootId) {
+    logger.info("Received Job {}", job.getName());
     threadPool.submit(new Runnable() {
       @Override
       public void run() {
