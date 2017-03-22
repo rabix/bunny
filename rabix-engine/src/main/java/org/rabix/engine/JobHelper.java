@@ -146,7 +146,12 @@ public class JobHelper {
     Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, preprocesedInputs, null, contextRecord.getConfig(), null, visiblePorts);
     try {
       if (processVariables) {
-        Bindings bindings = BindingsFactory.create(encodedApp);
+        Bindings bindings = null;
+        if (node.getProtocolType() != null) {
+          bindings = BindingsFactory.create(node.getProtocolType());
+        } else {
+          bindings = BindingsFactory.create(encodedApp);
+        }
         
         for (VariableRecord inputVariable : inputVariables) {
           Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
@@ -236,12 +241,4 @@ public class JobHelper {
     return Job.cloneWithOutputs(job, outputs);
   }
 
-  private void appendDebug(StringBuilder buffer, Object... mesages) {
-    if (logger.isDebugEnabled()) {
-      for (Object m: mesages) {
-        buffer.append(m);
-      }
-    }
-  }
-  
 }

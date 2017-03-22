@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Application.ApplicationDeserializer;
 import org.rabix.bindings.model.Application.ApplicationSerializer;
@@ -55,13 +56,17 @@ public class DAGNode {
   @JsonProperty("defaults")
   protected Map<String, Object> defaults;
   
+  @JsonProperty("protocolType")
+  protected ProtocolType protocolType;
+  
   @JsonCreator
   public DAGNode(@JsonProperty("id") String id,
                  @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts,
                  @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts,
                  @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
                  @JsonProperty("app") Application app,
-                 @JsonProperty("defaults") Map<String, Object> defaults) {
+                 @JsonProperty("defaults") Map<String, Object> defaults,
+                 @JsonProperty("protocolType") ProtocolType protocolType) {
     this.id = id;
     this.app = app;
     this.inputPorts = inputPorts;
@@ -69,6 +74,7 @@ public class DAGNode {
     this.scatterMethod = scatterMethod;
     this.defaults = defaults;
     this.appHash = null;
+    this.protocolType = protocolType;
   }
 
   public String getId() {
@@ -103,6 +109,10 @@ public class DAGNode {
     return scatterMethod;
   }
   
+  public ProtocolType getProtocolType() {
+    return protocolType;
+  }
+
   public LinkMerge getLinkMerge(String portId, LinkPortType linkPortType) {
     switch (linkPortType) {
     case INPUT:

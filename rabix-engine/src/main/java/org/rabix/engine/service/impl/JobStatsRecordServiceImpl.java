@@ -1,14 +1,12 @@
 package org.rabix.engine.service.impl;
 
-import com.google.inject.Inject;
-import org.rabix.engine.model.ContextRecord;
+import java.util.UUID;
+
 import org.rabix.engine.model.JobStatsRecord;
-import org.rabix.engine.repository.ContextRecordRepository;
 import org.rabix.engine.repository.JobStatsRecordRepository;
-import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobStatsRecordService;
 
-import java.util.UUID;
+import com.google.inject.Inject;
 
 public class JobStatsRecordServiceImpl implements JobStatsRecordService {
 
