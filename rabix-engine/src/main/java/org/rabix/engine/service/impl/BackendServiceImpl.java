@@ -1,13 +1,13 @@
 package org.rabix.engine.service.impl;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.BackendRepository.BackendStatus;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.service.BackendService;
@@ -16,6 +16,7 @@ import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.Backend.BackendStatus;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.BackendConfiguration;
@@ -57,7 +58,7 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            backendRepository.insert(backend.getId(), backend, new Timestamp(System.currentTimeMillis()), BackendStatus.ACTIVE);
+            backendRepository.insert(backend.getId(), backend, new Timestamp(System.currentTimeMillis()));
             startBackend(populated);
             logger.info("Backend {} registered.", populated.getId());
             return backend;
@@ -85,7 +86,7 @@ public class BackendServiceImpl implements BackendService {
     if (backend.getId() == null) {
       backend.setId(generateUniqueBackendId());
     }
-    
+    backend.setStatus(BackendStatus.ACTIVE);
     switch (backend.getType()) {
       case RABBIT_MQ:
         BackendRabbitMQ backendRabbitMQ = (BackendRabbitMQ) backend;
@@ -119,6 +120,14 @@ public class BackendServiceImpl implements BackendService {
       throw new BackendServiceException("Unknown backend type " + backend.getType());
     }
     return backend;
+  }
+
+  @Override
+  public void startInactiveBackend(UUID id) throws BackendServiceException {
+    backendRepository.updateHeartbeatInfo(id, Timestamp.from(Instant.now()));
+    backendRepository.updateStatus(id, BackendStatus.ACTIVE);
+    Backend backend = backendRepository.get(id);
+    this.startBackend(backend);
   }
   
   @SuppressWarnings("unchecked")
