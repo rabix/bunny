@@ -498,23 +498,14 @@ public class CWLProcessor implements ProtocolProcessor {
   }
 
   private Map<String, Object> getInputSecondaryFiles(CWLJob job, Map<String, Object> inputs, File workingDir) throws BindingException {
-    CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
-    List<CWLInputPort> inputPorts = commandLineTool.getInputs();
+    CWLJobApp jobApp = job.getApp();
 
     final Map<String, Object> result = new HashMap<>();
     for (Map.Entry<String, Object> input: inputs.entrySet()) {
       String key = input.getKey();
       Object value = input.getValue();
-      int i = 0;
       try {
-        CWLInputPort inputPort = null;
-        for (CWLInputPort ip: inputPorts) {
-          String id = ip.getId();
-          if (Objects.equals(id, key)) {
-              inputPort = ip;
-              break;
-          }
-        }
+        CWLInputPort inputPort = jobApp.getInput(key);
         List<?> secondaryFiles = getSecondaryFiles(job, null, inputs, CWLFileValueHelper.getLocation(value), inputPort.getSecondaryFiles(), workingDir);
         if (secondaryFiles != null) {
           CWLFileValueHelper.setSecondaryFiles(secondaryFiles, value);
@@ -523,7 +514,6 @@ public class CWLProcessor implements ProtocolProcessor {
       } catch (Exception e) {
         throw new BindingException("Failed to extract secondary files.", e);
       }
-      i++;
     }
     return result;
   }
