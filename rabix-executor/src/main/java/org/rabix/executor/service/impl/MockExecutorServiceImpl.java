@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
@@ -53,8 +52,6 @@ public class MockExecutorServiceImpl implements ExecutorService {
   private EngineStub<?, ?, ?> engineStub;
   
   private Map<String, MutableJob> cachedJobs = new HashMap<>(); 
-  
-  private java.util.concurrent.ExecutorService threadPool = Executors.newFixedThreadPool(300);
   
   @Inject
   public MockExecutorServiceImpl(Configuration configuration) {
@@ -128,19 +125,14 @@ public class MockExecutorServiceImpl implements ExecutorService {
   @Override
   public void start(Job job, UUID rootId) {
     logger.info("Received Job {}", job.getName());
-    threadPool.submit(new Runnable() {
-      @Override
-      public void run() {
-        MutableJob cachedJob = cachedJobs.get(job.getName());
-        cachedJob.status = JobStatus.COMPLETED;
-        cachedJob.id = job.getId();
-        cachedJob.rootId = job.getRootId();
-        cachedJob.name = job.getName();
-        
-        engineStub.send(cachedJob.createJob());
-        logger.info("Cached Job {} sent.", job.getName());
-      }
-    });
+    MutableJob cachedJob = cachedJobs.get(job.getName());
+    cachedJob.status = JobStatus.COMPLETED;
+    cachedJob.id = job.getId();
+    cachedJob.rootId = job.getRootId();
+    cachedJob.name = job.getName();
+
+    engineStub.send(cachedJob.createJob());
+    logger.info("Cached Job {} sent.", job.getName());
   }
 
   @Override
