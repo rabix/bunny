@@ -68,12 +68,12 @@ public class CWLProcessor implements ProtocolProcessor {
     try {
       Map<String, Object> inputs = cwlJob.getInputs();
 
-      inputs = getInputFileData(cwlJob, null, inputs, workingDir);
       inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
       inputs = portProcessorHelper.setPathsToInputs(inputs);
       inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
+      inputs = getInputSecondaryFiles(cwlJob, inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       
       @SuppressWarnings("unchecked")
@@ -497,7 +497,7 @@ public class CWLProcessor implements ProtocolProcessor {
     }
   }
 
-  private Map<String, Object> getInputFileData(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> inputs, File workingDir) throws BindingException {
+  private Map<String, Object> getInputSecondaryFiles(CWLJob job, Map<String, Object> inputs, File workingDir) throws BindingException {
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
     List<CWLInputPort> inputPorts = commandLineTool.getInputs();
 
@@ -515,7 +515,7 @@ public class CWLProcessor implements ProtocolProcessor {
               break;
           }
         }
-        List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, inputs, CWLFileValueHelper.getLocation(value), inputPort.getSecondaryFiles(), workingDir);
+        List<?> secondaryFiles = getSecondaryFiles(job, null, inputs, CWLFileValueHelper.getLocation(value), inputPort.getSecondaryFiles(), workingDir);
         if (secondaryFiles != null) {
           CWLFileValueHelper.setSecondaryFiles(secondaryFiles, value);
         }
