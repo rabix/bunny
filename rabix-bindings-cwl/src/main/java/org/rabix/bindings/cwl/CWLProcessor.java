@@ -2,24 +2,13 @@ package org.rabix.bindings.cwl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
-import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
-import org.rabix.bindings.cwl.bean.CWLExpressionTool;
-import org.rabix.bindings.cwl.bean.CWLJob;
-import org.rabix.bindings.cwl.bean.CWLJobApp;
-import org.rabix.bindings.cwl.bean.CWLOutputPort;
-import org.rabix.bindings.cwl.bean.CWLRuntime;
+import org.rabix.bindings.cwl.bean.*;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.expression.javascript.CWLExpressionJavascriptResolver;
@@ -78,7 +67,8 @@ public class CWLProcessor implements ProtocolProcessor {
     CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
       Map<String, Object> inputs = cwlJob.getInputs();
-      
+
+      inputs = getInputFileData(cwlJob, null, inputs, workingDir);
       inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
       inputs = portProcessorHelper.setPathsToInputs(inputs);
       inputs = portProcessorHelper.setFileProperties(inputs);
@@ -480,6 +470,9 @@ public class CWLProcessor implements ProtocolProcessor {
             CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
           }
         }
+        else {
+          throw new IOException(String.format("secondary file not found: %s", secondaryFile));
+        }
       } else if (expr instanceof Map) {
         secondaryFileMap = (Map<String, Object>) expr;
         postprocessCreatedResults(secondaryFileMap, hashAlgorithm, workingDir);
@@ -502,6 +495,37 @@ public class CWLProcessor implements ProtocolProcessor {
     } catch (CWLExpressionException e) {
       throw new BindingException(e);
     }
+  }
+
+  private Map<String, Object> getInputFileData(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> inputs, File workingDir) throws BindingException {
+    CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
+    List<CWLInputPort> inputPorts = commandLineTool.getInputs();
+
+    final Map<String, Object> result = new HashMap<>();
+    for (Map.Entry<String, Object> input: inputs.entrySet()) {
+      String key = input.getKey();
+      Object value = input.getValue();
+      int i = 0;
+      try {
+        CWLInputPort inputPort = null;
+        for (CWLInputPort ip: inputPorts) {
+          String id = ip.getId();
+          if (Objects.equals(id, key)) {
+              inputPort = ip;
+              break;
+          }
+        }
+        List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, inputs, CWLFileValueHelper.getLocation(value), inputPort.getSecondaryFiles(), workingDir);
+        if (secondaryFiles != null) {
+          CWLFileValueHelper.setSecondaryFiles(secondaryFiles, value);
+        }
+        result.put(input.getKey(), input.getValue());
+      } catch (Exception e) {
+        throw new BindingException("Failed to extract secondary files.", e);
+      }
+      i++;
+    }
+    return result;
   }
 
 }
