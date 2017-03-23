@@ -1,8 +1,10 @@
 package org.rabix.bindings.cwl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolTranslator;
@@ -106,7 +108,7 @@ public class CWLTranslator implements ProtocolTranslator {
     
     ScatterMethod scatterMethod = job.getScatterMethod() != null? ScatterMethod.valueOf(job.getScatterMethod()) : ScatterMethod.dotproduct;
     if (!job.getApp().isWorkflow()) {
-      Map<String, Object> commonDefaults = (Map<String, Object>) CWLValueTranslator.translateToCommon(job.getInputs());
+      Map<String, Object> commonDefaults = (Map<String, Object>) CWLValueTranslator.translateToCommon(extractDefaults(job.getInputs()));
       return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults, ProtocolType.CWL);
     }
 
@@ -148,8 +150,23 @@ public class CWLTranslator implements ProtocolTranslator {
       int position = dataLink.getPosition() != null ? dataLink.getPosition() : 1;
       links.add(new DAGLink(sourceLinkPort, destinationLinkPort, dataLink.getLinkMerge(), position));
     }
-    Map<String, Object> commonDefaults = (Map<String, Object>) CWLValueTranslator.translateToCommon(job.getInputs());
+    Map<String, Object> commonDefaults = (Map<String, Object>) CWLValueTranslator.translateToCommon(extractDefaults(job.getInputs()));
     return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults, ProtocolType.CWL);
+  }
+  
+  private Map<String, Object> extractDefaults(Map<String, Object> inputs) {
+    Map<String, Object> defaults = new HashMap<>();
+    
+    for (Entry<String, Object> entry : inputs.entrySet()) {
+      if (entry.getValue() != null) {
+        if (entry.getValue() instanceof CWLStepInputs) {
+          defaults.put(entry.getKey(), ((CWLStepInputs)entry.getValue()).getDefaultValue());
+        } else {
+          defaults.put(entry.getKey(), entry.getValue());
+        }
+      }
+    }
+    return defaults;
   }
   
   private void processPorts(DAGNode dagNode) {
