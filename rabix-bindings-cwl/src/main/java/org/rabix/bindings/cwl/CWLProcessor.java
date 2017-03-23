@@ -470,9 +470,6 @@ public class CWLProcessor implements ProtocolProcessor {
             CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
           }
         }
-        else {
-          throw new IOException(String.format("secondary file not found: %s", secondaryFile));
-        }
       } else if (expr instanceof Map) {
         secondaryFileMap = (Map<String, Object>) expr;
         postprocessCreatedResults(secondaryFileMap, hashAlgorithm, workingDir);
