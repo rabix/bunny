@@ -15,6 +15,8 @@ public interface BackendService {
   
   void stopBackend(Backend backend) throws BackendServiceException;
   
+  void startInactiveBackend(UUID id) throws BackendServiceException;
+  
   void updateHeartbeatInfo(HeartbeatInfo info) throws BackendServiceException;
 
   void updateHeartbeatInfo(UUID id, Timestamp info) throws BackendServiceException;

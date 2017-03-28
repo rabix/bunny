@@ -2,22 +2,29 @@ package org.rabix.transport.backend.impl;
 
 import java.util.UUID;
 
+import org.rabix.common.json.BeanPropertyView;
 import org.rabix.transport.backend.Backend;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 
 public class BackendActiveMQ extends Backend {
 
   @JsonProperty("broker")
+  @JsonView(BeanPropertyView.Partial.class)
   private String broker;
   @JsonProperty("toBackendQueue")
+  @JsonView(BeanPropertyView.Partial.class)
   private String toBackendQueue;
   @JsonProperty("toBackendControlQueue")
+  @JsonView(BeanPropertyView.Partial.class)
   private String toBackendControlQueue;
   @JsonProperty("fromBackendQueue")
+  @JsonView(BeanPropertyView.Partial.class)
   private String fromBackendQueue;
   @JsonProperty("fromBackendHeartbeatQueue")
+  @JsonView(BeanPropertyView.Partial.class)
   private String fromBackendHeartbeatQueue;
   
   public BackendActiveMQ(@JsonProperty("id") UUID id, @JsonProperty("broker") String broker, @JsonProperty("toBackendQueue") String toBackendQueue, @JsonProperty("toBackendControlQueue") String toBackendControlQueue, @JsonProperty("fromBackendQueue") String fromBackendQueue, @JsonProperty("fromBackendHeartbeatQueue") String fromBackendHeartbeatQueue) {

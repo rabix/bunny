@@ -6,13 +6,13 @@ import java.util.List;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.BackendRepository.BackendStatus;
 import org.rabix.engine.repository.EventRepository;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BootstrapService;
 import org.rabix.engine.service.BootstrapServiceException;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.Backend.BackendStatus;
 
 import com.google.inject.Inject;
 

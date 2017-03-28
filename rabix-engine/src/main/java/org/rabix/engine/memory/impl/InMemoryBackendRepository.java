@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.rabix.engine.repository.BackendRepository;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.Backend.BackendStatus;
 
 import com.google.inject.Inject;
 
@@ -21,8 +23,8 @@ public class InMemoryBackendRepository implements BackendRepository{
   }
 
   @Override
-  public synchronized void insert(UUID id, Backend backend, Timestamp heartbeatInfo, BackendStatus status) {
-    backendRepository.put(id, new BackendEntity(backend, heartbeatInfo, status));
+  public synchronized void insert(UUID id, Backend backend, Timestamp heartbeatInfo) {
+    backendRepository.put(id, new BackendEntity(backend, heartbeatInfo));
   }
 
   @Override
@@ -39,7 +41,7 @@ public class InMemoryBackendRepository implements BackendRepository{
   public synchronized List<Backend> getByStatus(BackendStatus status) {
     List<Backend> backends = new ArrayList<Backend>();
     for(BackendEntity backend: backendRepository.values()) {
-      if(backend.getBackendStatus().equals(status)) {
+      if(backend.getBackend().getStatus().equals(status)) {
         backends.add(backend.getBackend());
       }
     }
@@ -53,7 +55,7 @@ public class InMemoryBackendRepository implements BackendRepository{
 
   @Override
   public synchronized void updateStatus(UUID id, BackendStatus status) {
-    backendRepository.get(id).setBackendStatus(status);
+    backendRepository.get(id).getBackend().setStatus(status);
   }
 
   @Override
