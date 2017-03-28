@@ -255,10 +255,14 @@ class MockBackend(Backend):
         for path, dirs, files in os.walk(cache_path):
             if 'job.json' not in files:
                 continue
-            name = path[len(cache_path)+1:].replace('/', '.').replace('.meta', '').replace('..', '.')
+            rel_path, name = path[len(cache_path) + 1:], None
+            chunks = rel_path.split('/')
+            name = '.'.join(chunks[:-1]) + chunks[-1][:-5]
+            #name = path[len(cache_path)+1:].replace('/', '.').replace('.meta', '').replace('..', '.')
+            print(name)
             try:
                 with open(os.path.join(path, 'job.json')) as fp:
-                    self.cache[name] = json.load(fp)
+                    self.cache[name] = json.load(fp).get('outputs')
                     if not self.cache[name]:
                         log.debug('Empty outputs for', name)
             except Exception as e:

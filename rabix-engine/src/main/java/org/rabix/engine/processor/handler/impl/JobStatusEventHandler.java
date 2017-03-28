@@ -134,6 +134,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           // FIXME: is this really safe to ignore?
           logger.info("Failed to create job", e1);
         }
+        if(job.isRoot()){
+          jobService.handleJobContainerReady(job);
+        }
       }
         else {
           Job containerJob = null;
