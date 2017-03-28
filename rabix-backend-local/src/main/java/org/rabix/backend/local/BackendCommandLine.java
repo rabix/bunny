@@ -61,6 +61,7 @@ import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.service.impl.BackendServiceImpl;
 import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
+import org.rabix.engine.service.impl.JobReceiverImpl;
 import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
 import org.rabix.engine.service.impl.JobServiceImpl;
 import org.rabix.engine.service.impl.SchedulerServiceImpl;
@@ -96,6 +97,7 @@ import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.mechanism.TransportPluginException;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +106,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
@@ -258,6 +261,7 @@ public class BackendCommandLine {
               bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
               bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
               bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
+              bind(new TypeLiteral<ReceiveCallback<Job>>(){}).to(JobReceiverImpl.class).in(Scopes.SINGLETON);
               
               if (isTesEnabled) {
                 bind(TESHttpClient.class).in(Scopes.SINGLETON);
