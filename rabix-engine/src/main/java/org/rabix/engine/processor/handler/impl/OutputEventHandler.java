@@ -76,7 +76,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     jobRecordService.update(sourceJob);
     
     if (sourceJob.isCompleted()) {
-      Job completedJob=null;
       if(sourceJob.getOutputCounter(sourceVariable.getPortId()) != null) {
         if ((sourceJob.isContainer() || sourceJob.isScatterWrapper()) &&
             sourceJob.getParentId() != null && sourceJob.getParentId().equals(sourceJob.getRootId())) {
@@ -93,25 +92,29 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
             Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
             outputs.put(outputVariable.getPortId(), value);
           }
-          completedJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
-          jobService.handleJobRootPartiallyCompleted(completedJob, event.getProducedByNode());
+          Job rootJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
+          jobService.handleJobRootPartiallyCompleted(rootJob, event.getProducedByNode());
 
-          if(sourceJob.isContainer()) {
+          if(sourceJob.isRoot() && sourceJob.isContainer()) {
             // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
             eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
+            jobService.handleJobCompleted(rootJob);
           }
           return;
         }
         else {
           try {
-            completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
+            Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
+            jobService.handleJobCompleted(completedJob);
           } catch (BindingException e) {
           }
         }
       }
-      jobService.handleJobCompleted(completedJob);
     }
     
+    if (sourceJob.isRoot()) {
+      jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.getProducedByNode());
+    }
     
     Object value = null;
     
