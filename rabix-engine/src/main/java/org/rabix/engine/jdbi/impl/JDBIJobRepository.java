@@ -49,6 +49,10 @@ public interface JDBIJobRepository extends JobRepository {
   void update(@BindJob Job job);
   
   @Override
+  @SqlUpdate("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app,config=:config::jsonb,modified_at='now' where name=:name and root_id=:root_id")
+  void updateByName(@BindJob Job job);
+  
+  @Override
   @SqlBatch("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app,config=:config::jsonb,modified_at='now' where id=:id")
   void update(@BindJob Iterator<Job> jobs);
 

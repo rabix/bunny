@@ -135,7 +135,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           logger.info("Failed to create job", e1);
         }
         if(job.isRoot()){
-          jobService.handleJobContainerReady(job);
+          jobService.handleJobContainerReady(job); // TODO rename method ASAP
         }
       }
         else {
@@ -159,8 +159,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
-      jobRecord.setState(JobState.COMPLETED);
-      jobRecordService.update(jobRecord);
       if (jobStatsRecord != null) {
         jobStatsRecord.increaseCompleted();
         jobStatsRecordService.update(jobStatsRecord);

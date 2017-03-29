@@ -14,6 +14,8 @@ public interface JobRepository {
   
   void update(Job job);
   
+  void updateByName(Job job);
+  
   void update(Iterator<Job> jobs);
   
   void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> whereStatuses);

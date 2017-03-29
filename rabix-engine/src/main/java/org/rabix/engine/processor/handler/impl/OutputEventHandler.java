@@ -77,8 +77,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     
     if (sourceJob.isCompleted()) {
       if(sourceJob.getOutputCounter(sourceVariable.getPortId()) != null) {
-        if ((sourceJob.isContainer() || sourceJob.isScatterWrapper()) &&
-            sourceJob.getParentId() != null && sourceJob.getParentId().equals(sourceJob.getRootId())) {
+        if ((sourceJob.isContainer() || sourceJob.isScatterWrapper()) && sourceJob.getParentId() != null && sourceJob.getParentId().equals(sourceJob.getRootId())) {
           JobStatsRecord jobStatsRecord = jobStatsRecordService.findOrCreate(sourceJob.getRootId());
           jobStatsRecord.increaseCompleted();
           jobStatsRecord.increaseRunning();
