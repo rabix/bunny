@@ -42,7 +42,7 @@
         "null",
         "string"
       ],
-      "description": "Specify output filename",
+      "description": "Specify output filename"
     }
   },
   "outputs": {

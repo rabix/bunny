@@ -24,7 +24,6 @@
   "inputs": {
     "output_filename": {
       "description": "Optional output_filename string",
-      "id": ,
       "type": [
         "null",
         "string"
