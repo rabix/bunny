@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +74,8 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
   private ErrorCallback errorCallback;
   
+  private final ExecutorService threadPool = Executors.newCachedThreadPool();
+  
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback, ReceiveCallback<Job> jobReceiver) {
     this.jobService = jobService;
@@ -127,10 +130,17 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
           return null;
         }
       });
-      for (SchedulerMessage message : messages.get()) {
-        getBackendStub(message.getBackendId()).send(message.getPayload());
-        logger.debug("Message sent to {}.", message.getBackendId());
-      }
+      Set<SchedulerMessage> messagesToSend = new HashSet<>();
+      messagesToSend.addAll(messages.get());
+      threadPool.submit(new Runnable() {
+        @Override
+        public void run() {
+          for (SchedulerMessage message : messagesToSend) {
+            getBackendStub(message.getBackendId()).send(message.getPayload());
+            logger.debug("Message sent to {}.", message.getBackendId());
+          }
+        }
+      });
       messages.set(Collections.<SchedulerMessage>emptySet());
     } catch (Exception e) {
       logger.error("Failed to schedule Jobs", e);
