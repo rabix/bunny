@@ -168,7 +168,7 @@ public class JobServiceImpl implements JobService {
           default:
             break;
           }
-          jobRepository.updateByName(job);
+          jobRepository.update(job);
           eventProcessor.persist(statusEvent);
           eventWrapper.set(statusEvent);
           isSuccessful.set(true);
