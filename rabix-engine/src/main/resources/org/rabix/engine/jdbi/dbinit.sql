@@ -80,8 +80,8 @@ CREATE TYPE port_type AS ENUM (
 CREATE TABLE application (
     hash text NOT NULL,
     app text,
-    created_at timestamp NOT NULL DEFAULT 'now',
-    modified_at timestamp NOT NULL DEFAULT 'now'
+    created_at timestamp NOT NULL DEFAULT now(),
+    modified_at timestamp NOT NULL DEFAULT now()
 );
 --rollback DROP TABLE application;
 
@@ -101,8 +101,8 @@ CREATE TABLE context_record (
     id uuid NOT NULL,
     status context_record_status NOT NULL,
     config jsonb,
-    created_at timestamp NOT NULL DEFAULT 'now',
-    modified_at timestamp NOT NULL DEFAULT 'now'
+    created_at timestamp NOT NULL DEFAULT now(),
+    modified_at timestamp NOT NULL DEFAULT now()
 );
 --rollback DROP TABLE context_record;
 
@@ -110,8 +110,8 @@ CREATE TABLE context_record (
 CREATE TABLE dag_node (
     id uuid NOT NULL,
     dag jsonb,
-    created_at timestamp NOT NULL DEFAULT 'now',
-    modified_at timestamp NOT NULL DEFAULT 'now'
+    created_at timestamp NOT NULL DEFAULT now(),
+    modified_at timestamp NOT NULL DEFAULT now()
 );
 --rollback DROP TABLE dag_node;
 
@@ -121,8 +121,8 @@ CREATE TABLE event (
     type persistent_event_type,
     status event_status NOT NULL,
     event jsonb,
-    created_at timestamp NOT NULL DEFAULT 'now',
-    modified_at timestamp NOT NULL DEFAULT 'now'
+    created_at timestamp NOT NULL DEFAULT now(),
+    modified_at timestamp NOT NULL DEFAULT now()
 );
 --rollback DROP TABLE event;
 
@@ -142,8 +142,8 @@ CREATE TABLE job (
     backend_id uuid,
     app text,
     config jsonb,
-    created_at timestamp NOT NULL DEFAULT 'now',
-    modified_at timestamp NOT NULL DEFAULT 'now',
+    created_at timestamp NOT NULL DEFAULT now(),
+    modified_at timestamp NOT NULL DEFAULT now(),
     CONSTRAINT job_backend_status_check CHECK (((backend_id IS NOT NULL) OR (status <> 'RUNNING'::job_status) OR (parent_id IS NULL)))
 );
 --rollback DROP TABLE job;
@@ -165,8 +165,8 @@ CREATE TABLE job_record (
     global_outputs_count integer NOT NULL,
     scatter_strategy jsonb,
     dag_hash text,
-    created_at timestamp NOT NULL DEFAULT 'now',
-    modified_at timestamp NOT NULL DEFAULT 'now'
+    created_at timestamp NOT NULL DEFAULT now(),
+    modified_at timestamp NOT NULL DEFAULT now()
 );
 --rollback DROP TABLE job_record;
 
@@ -180,8 +180,8 @@ CREATE TABLE link_record (
     destination_job_port_id text NOT NULL,
     destination_type port_type NOT NULL,
     "position" integer NOT NULL,
-    created_at timestamp NOT NULL DEFAULT 'now',
-    modified_at timestamp NOT NULL DEFAULT 'now'
+    created_at timestamp NOT NULL DEFAULT now(),
+    modified_at timestamp NOT NULL DEFAULT now()
 );
 --rollback DROP TABLE link_record;
 
@@ -198,8 +198,8 @@ CREATE TABLE variable_record (
     context_id uuid,
     is_default boolean NOT NULL,
     transform jsonb,
-    created_at timestamp NOT NULL DEFAULT 'now',
-    modified_at timestamp NOT NULL DEFAULT 'now'
+    created_at timestamp NOT NULL DEFAULT now(),
+    modified_at timestamp NOT NULL DEFAULT now()
 );
 --rollback DROP TABLE variable_record;
 
