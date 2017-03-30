@@ -30,7 +30,6 @@ public class DAGNodeDB {
   /**
    * Gets node from the repository 
    */
-  
   public DAGNode get(String id, UUID rootId, String dagHash) {
     DAGNode res = dagCache.get(id, rootId, dagHash);
     if(res == null) {
