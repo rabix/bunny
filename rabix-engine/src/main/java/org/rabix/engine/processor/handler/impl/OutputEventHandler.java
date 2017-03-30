@@ -97,11 +97,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           if(sourceJob.isContainer()) {
             eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
             }
-          else {
-            if (!sourceJob.isScattered()) {
-              jobService.handleJobCompleted(rootJob);
-            }
-          }
           return;
         }
         else {
