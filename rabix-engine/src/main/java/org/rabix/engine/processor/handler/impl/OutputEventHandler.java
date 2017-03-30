@@ -94,12 +94,14 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           Job rootJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
           jobService.handleJobRootPartiallyCompleted(rootJob, event.getProducedByNode());
 
-          if(sourceJob.isRoot() && sourceJob.isContainer()) {
-            // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
+          if(sourceJob.isContainer()) {
             eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
-
-          }      
-          jobService.handleJobCompleted(rootJob);
+            }
+          else {
+            if (!sourceJob.isScattered()) {
+              jobService.handleJobCompleted(rootJob);
+            }
+          }
           return;
         }
         else {

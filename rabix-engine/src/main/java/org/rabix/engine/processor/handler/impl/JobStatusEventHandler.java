@@ -153,9 +153,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     case RUNNING:
       jobRecord.setState(JobState.RUNNING);
       jobRecordService.update(jobRecord);
-      if (jobStatsRecord != null) {
-        jobStatsRecord.increaseRunning();
-        jobStatsRecordService.update(jobStatsRecord);
+      if (jobStatsRecord != null && !jobRecord.isScattered()) {
+      jobStatsRecord.increaseRunning();
+      jobStatsRecordService.update(jobStatsRecord);
       }
       break;
     case COMPLETED:
