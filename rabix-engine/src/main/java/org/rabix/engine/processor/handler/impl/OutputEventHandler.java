@@ -85,19 +85,12 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
 
         if (sourceJob.isRoot()) {
-          Map<String, Object> outputs = new HashMap<>();
-          List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
-          for (VariableRecord outputVariable : outputVariables) {
-            Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
-            outputs.put(outputVariable.getPortId(), value);
-          }
           Job rootJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
           jobService.handleJobRootPartiallyCompleted(rootJob, event.getProducedByNode());
 
           if (sourceJob.isContainer()) {
-            eventProcessor.send(
-                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
-            jobService.handleJobCompleted(rootJob);
+            eventProcessor.addToQueue(
+                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), event.getProducedByNode()));
           }
           return;
         }
