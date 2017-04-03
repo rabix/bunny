@@ -19,6 +19,7 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
+import org.rabix.engine.repository.BackendRepository;
 import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
@@ -59,6 +60,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
   private final JobService jobService;
   private final BackendService backendService;
+  private final BackendRepository backendRepository;
 
   private final TransactionHelper transactionHelper;
   private final StoreCleanupService storeCleanupService;
@@ -68,13 +70,16 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
   private final AtomicReference<Set<SchedulerMessage>> messages = new AtomicReference<Set<SchedulerMessage>>(Collections.<SchedulerMessage>emptySet());
   
   @Inject
-  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback) {
+  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService,
+      TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback,
+      BackendRepository backendRepository) {
     this.jobService = jobService;
     this.backendService = backendService;
     this.schedulerCallback = schedulerCallback;
     this.transactionHelper = repositoriesFactory;
     this.storeCleanupService = storeCleanupService;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
+    this.backendRepository = backendRepository;
   }
 
   @Override
@@ -165,6 +170,16 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       backendStub.start(new HeartbeatCallback() {
         @Override
         public void save(HeartbeatInfo info) throws Exception {
+          List<Backend> inactiveBackends = backendRepository.getByStatus(BackendRepository.BackendStatus.INACTIVE);
+
+          for (Backend backend : inactiveBackends) {
+            if (backend.getId().equals(info.getId())) {
+              backendRepository.updateStatus(backend.getId(), BackendRepository.BackendStatus.ACTIVE);
+              backendService.startBackend(backend);
+              break;
+            }
+          }
+
           backendService.updateHeartbeatInfo(info.getId(), new Timestamp(info.getTimestamp()));
         }
       }, new ReceiveCallback<Job>() {
