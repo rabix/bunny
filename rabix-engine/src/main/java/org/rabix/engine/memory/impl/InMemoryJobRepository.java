@@ -44,11 +44,6 @@ public class InMemoryJobRepository implements JobRepository {
     rootJobs.get(job.getId()).setJob(job);
   }
   
-  @Override
-  public void updateByName(Job job) {
-    // TODO Auto-generated method stub
-    
-  }
 
   @Override
   public synchronized void updateBackendId(UUID jobId, UUID backendId) {
@@ -188,6 +183,11 @@ public class InMemoryJobRepository implements JobRepository {
   @Override
   public void deleteByRootIds(Set<UUID> rootIds) {
     // TODO Auto-generated method stub
+  }
+
+  @Override
+  public void updateShort(Job job) {
+   this.update(job);
   }
 
 }
