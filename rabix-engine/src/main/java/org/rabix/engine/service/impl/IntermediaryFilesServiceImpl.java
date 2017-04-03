@@ -76,9 +76,14 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   @Override
   public void decrementFiles(UUID rootId, Set<String> checkFiles) {
     Map<String, Integer> filesForRootId = files.get(rootId);
-    for(String path: checkFiles) {
-      logger.debug("Decrementing file with path={}", path);
-      filesForRootId.put(path, filesForRootId.get(path) - 1);
+    for (String path : checkFiles) {
+      if (filesForRootId.get(path) != null) {
+        logger.debug("Decrementing file with path={}", path);
+        filesForRootId.put(path, filesForRootId.get(path) - 1);
+      }
+      else{
+        logger.error("Tried to decrement missing intermediary files");
+      }
     }
   }
   
