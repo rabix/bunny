@@ -171,7 +171,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
         decrementFiles(job.getRootId(), inputs);
         handleUnusedFiles(job);
       }
-      dumpFiles();
     }
   }
   

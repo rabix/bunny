@@ -381,13 +381,19 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobContainerReady(Job containerJob) {
     logger.info("Container job {} rootId: {} id ready.", containerJob.getName(), containerJob.getRootId());
-    if (deleteIntermediaryFiles) {
-      intermediaryFilesService.handleContainerReady(containerJob, keepInputFiles);
-    }
     try {
       engineStatusCallback.onJobContainerReady(containerJob);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    }    
+    if (deleteIntermediaryFiles) {
+      Runnable r = new Runnable() {
+        public void run() {
+          intermediaryFilesService.handleContainerReady(containerJob, keepInputFiles);
+        }
+      };
+      ExecutorService executor = Executors.newCachedThreadPool();
+      executor.submit(r);
     }
   }
 
@@ -472,13 +478,19 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobCompleted(Job job){
     logger.info("Job {} rootId: {} is completed.", job.getName(), job.getRootId());
-    if (deleteIntermediaryFiles) {
-      intermediaryFilesService.handleJobCompleted(job);
-    }
     try{
       engineStatusCallback.onJobCompleted(job);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
+    }
+    if (deleteIntermediaryFiles) {
+      Runnable r = new Runnable() {
+        public void run() {
+          intermediaryFilesService.handleJobCompleted(job);
+        }
+      };
+      ExecutorService executor = Executors.newCachedThreadPool();
+      executor.submit(r);
     }
   }
 }
