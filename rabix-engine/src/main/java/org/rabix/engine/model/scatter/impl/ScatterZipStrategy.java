@@ -1,5 +1,6 @@
 package org.rabix.engine.model.scatter.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,16 +38,25 @@ public class ScatterZipStrategy implements ScatterStrategy {
   @JsonProperty("scatterMethod")
   private ScatterMethod scatterMethod;
   
+  @JsonProperty("checkPossibleHanging")
+  private Boolean checkPossibleHanging;
+  
+  @JsonProperty("skip")
+  private Boolean skip;
+  
   @JsonCreator
   public ScatterZipStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
       @JsonProperty("values") Map<String, LinkedList<Object>> values,
       @JsonProperty("indexes") Map<String, LinkedList<Boolean>> indexes,
-      @JsonProperty("scatterMethod") ScatterMethod scatterMethod) {
+      @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
+      @JsonProperty("checkPossibleHanging") Boolean checkPossibleHanging, @JsonProperty("skip") Boolean skip) {
     super();
     this.combinations = combinations;
     this.values = values;
     this.indexes = indexes;
     this.scatterMethod = scatterMethod;
+    this.checkPossibleHanging = checkPossibleHanging;
+    this.skip = skip;
   }
 
   public ScatterZipStrategy(DAGNode dagNode) {
@@ -55,6 +65,8 @@ public class ScatterZipStrategy implements ScatterStrategy {
     combinations = new LinkedList<>();
     
     this.scatterMethod = dagNode.getScatterMethod();
+    this.checkPossibleHanging = false;
+    this.skip = false;
     initialize(dagNode);
   }
   
@@ -201,5 +213,36 @@ public class ScatterZipStrategy implements ScatterStrategy {
     }
     return result;
   }
+
+  @Override
+  public boolean isHanging() {
+    for (String port : values.keySet()) {
+      if (values.get(port) == null || (values.get(port) instanceof List<?> && ((List<?>)values.get(port)).isEmpty())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public Object populateOutputsForHanging() {
+    skip = true;
+    return new ArrayList<>();
+  }
+
+  @Override
+  public void setCheckPossibleHanging() {
+    this.checkPossibleHanging = true;
+  }
   
+  @Override
+  public boolean getCheckPossibleHanging() {
+    return checkPossibleHanging;
+  }
+
+  @Override
+  public boolean skip() {
+    return skip;
+  }
+
 }

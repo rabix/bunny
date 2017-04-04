@@ -119,7 +119,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       jobRecord.setState(JobState.READY);
       jobRecordService.update(jobRecord);
       
-      ready(jobRecord, event);
+      boolean continueWithReady = ready(jobRecord, event);
+      if (!continueWithReady) {
+        break;
+      }
       
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
         Job job = null;
@@ -134,21 +137,19 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           // FIXME: is this really safe to ignore?
           logger.info("Failed to create job", e1);
         }
-        if(job.isRoot()){
+        if (job.isRoot()) {
           jobService.handleJobContainerReady(job);
         }
-      }
-        else {
-          Job containerJob = null;
-          try {
-            containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService,
-                dagNodeDB, appDB, false);
-          } catch (BindingException e) {
-            throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
-          }
-          jobService.handleJobContainerReady(containerJob);
-
+      } else {
+        Job containerJob = null;
+        try {
+          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, false);
+        } catch (BindingException e) {
+          throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
         }
+        jobService.handleJobContainerReady(containerJob);
+
+      }
       break;
     case RUNNING:
       jobRecord.setState(JobState.RUNNING);
@@ -159,8 +160,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
-      jobRecord.setState(JobState.COMPLETED);
-      jobRecordService.update(jobRecord);
       if (jobStatsRecord != null) {
         jobStatsRecord.increaseCompleted();
         jobStatsRecordService.update(jobStatsRecord);
@@ -177,7 +176,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, event.getResult());
           jobService.handleJobRootCompleted(rootJob);
-          deleteRecords(rootJob.getId());
         } catch (Exception e) {
           throw new EventHandlerException("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
         }
@@ -233,14 +231,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
   }
   
-  private void deleteRecords(UUID rootId) {
-    contextRecordService.delete(rootId);
-  }
-  
   /**
    * Job is ready
    */
-  public void ready(JobRecord job, Event event) throws EventHandlerException {
+  public boolean ready(JobRecord job, Event event) throws EventHandlerException {
     job.setState(JobState.READY);
     
     UUID rootId = event.getContextId();
@@ -259,7 +253,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       
       for (String port : job.getScatterPorts()) {
         VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, rootId);
-        scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
+        boolean continueScatter = scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
+        if (!continueScatter) {
+          return false;
+        }
       }
     } else if (job.isContainer()) {
       job.setState(JobState.RUNNING);
@@ -294,6 +291,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       }
     }
+    return true;
   }
   
   private void handleTransform(JobRecord job, DAGNode node) throws EventHandlerException {

@@ -1,5 +1,6 @@
 package org.rabix.engine.model.scatter.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,18 +40,28 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   @JsonProperty("scatterMethod")
   private ScatterMethod scatterMethod;
   
+  @JsonProperty("checkPossibleHanging")
+  private Boolean checkPossibleHanging;
+  
+  @JsonProperty("skip")
+  private Boolean skip;
+  
   @JsonCreator
   public ScatterCartesianStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
       @JsonProperty("values") Map<String, LinkedList<Object>> values,
       @JsonProperty("positions") Map<String, LinkedList<Integer>> positions,
       @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
-      @JsonProperty("sizePerPort") Map<String, Integer> sizePerPort) {
+      @JsonProperty("sizePerPort") Map<String, Integer> sizePerPort,
+      @JsonProperty("checkPossibleHanging") Boolean checkPossibleHanging,
+      @JsonProperty("skip") Boolean skip) {
     super();
     this.combinations = combinations;
     this.values = values;
     this.positions = positions;
     this.sizePerPort = sizePerPort;
     this.scatterMethod = scatterMethod;
+    this.checkPossibleHanging = checkPossibleHanging;
+    this.skip = skip;
   }
 
   public ScatterCartesianStrategy(DAGNode dagNode) {
@@ -59,6 +70,8 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     this.combinations = new LinkedList<>();
     this.scatterMethod = dagNode.getScatterMethod();
     this.sizePerPort = new HashMap<>();
+    this.checkPossibleHanging = false;
+    this.skip = false;
     initialize(dagNode);
   }
 
@@ -263,6 +276,41 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   @Override
   public boolean isBlocking() {
     return ScatterMethod.isBlocking(scatterMethod);
+  }
+
+  @Override
+  public boolean isHanging() {
+    for (String port : values.keySet()) {
+      if (values.get(port) == null || (values.get(port) instanceof List<?> && ((List<?>)values.get(port)).isEmpty())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public Object populateOutputsForHanging() {
+    skip = true;
+    if (scatterMethod.equals(ScatterMethod.flat_crossproduct)) {
+      return new ArrayList<>();  
+    }
+    // it's nested_crossproduct
+    return new ArrayList<>();
+  }
+
+  @Override
+  public void setCheckPossibleHanging() {
+    this.checkPossibleHanging = true;
+  }
+
+  @Override
+  public boolean getCheckPossibleHanging() {
+    return checkPossibleHanging;
+  }
+
+  @Override
+  public boolean skip() {
+    return skip;
   }
 
 }

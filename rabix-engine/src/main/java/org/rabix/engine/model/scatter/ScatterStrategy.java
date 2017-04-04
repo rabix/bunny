@@ -29,4 +29,14 @@ public interface ScatterStrategy {
   
   LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId);
   
+  void setCheckPossibleHanging();
+  
+  boolean getCheckPossibleHanging();
+  
+  boolean isHanging();
+  
+  Object populateOutputsForHanging();
+  
+  boolean skip();
+  
 }
