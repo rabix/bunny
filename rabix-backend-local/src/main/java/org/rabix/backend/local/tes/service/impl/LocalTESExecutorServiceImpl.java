@@ -13,6 +13,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.mina.util.ConcurrentHashSet;
+import org.glassfish.jersey.internal.inject.Custom;
 import org.rabix.backend.local.tes.client.TESHTTPClientException;
 import org.rabix.backend.local.tes.client.TESHttpClient;
 import org.rabix.backend.local.tes.model.TESDockerExecutor;
@@ -35,8 +36,10 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.FileValue.FileType;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
+import org.rabix.bindings.model.requirement.CustomRequirement;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
+import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.executor.engine.EngineStub;
@@ -286,7 +289,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         ));
 
         // TODO why are these outputs?
-        if (!bindings.isSelfExecutable(job)) {
+//        if (!bindings.isSelfExecutable(job)) {
 //          outputs.add(new TESTaskParameter(
 //            "command.sh",
 //            null,
@@ -303,7 +306,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 //            FileType.File.name(),
 //            false
 //          ));
-        }
+//         }
 
         // Initialization command
 
@@ -327,7 +330,6 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         List<Requirement> combinedRequirements = new ArrayList<>();
         combinedRequirements.addAll(bindings.getHints(job));
         combinedRequirements.addAll(bindings.getRequirements(job));
-
         DockerContainerRequirement dockerContainerRequirement = getRequirement(combinedRequirements, DockerContainerRequirement.class);
         String imageId;
         if (dockerContainerRequirement == null) {
@@ -388,10 +390,16 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           storage.containerPath("working_dir", "standard_out.log").toString(),
           storage.containerPath("working_dir", "standard_error.log").toString()
         ));
-        
+
+        ResourceRequirement jobResourceRequirement = bindings.getResourceRequirement(job);
+
+        Integer cpus = (jobResourceRequirement.getCpuMin() != null) ? jobResourceRequirement.getCpuMin().intValue() : null;
+        Double disk = (jobResourceRequirement.getDiskSpaceMinMB() != null) ? jobResourceRequirement.getDiskSpaceMinMB().doubleValue() / 1000.0 : null;
+        Double ram = (jobResourceRequirement.getMemMinMB() != null) ? jobResourceRequirement.getMemMinMB().doubleValue() / 1000.0 : null;
+
         volumes.add(new TESVolume(
           "working_dir",
-          1,
+          disk,
           null,
           storage.containerPath("working_dir").toString(),
           false
@@ -399,16 +407,16 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         volumes.add(new TESVolume(
           "inputs",
-          1,
+          disk,
           null,
           storage.containerPath("inputs").toString(),
           true
         ));
 
         TESResources resources = new TESResources(
-          null,
+          cpus,
           false,
-          null,
+          ram,
           volumes,
           null
         );
@@ -416,7 +424,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         TESTask task = new TESTask(
           job.getName(),
           DEFAULT_PROJECT,
-          null,
+          job.getRootId().toString(),
           inputs,
           outputs,
           resources,
