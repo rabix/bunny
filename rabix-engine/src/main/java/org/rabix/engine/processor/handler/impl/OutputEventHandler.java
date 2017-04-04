@@ -86,9 +86,9 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
         if (sourceJob.isRoot()) {
           Job rootJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
-          if(sourceJob.getOutputCounter(sourceVariable.getPortId()).counter==0)
+          if(!event.isFromScatter() || (event.getNumberOfScattered()==((List) sourceVariable.getValue()).size()))
             jobService.handleJobRootPartiallyCompleted(rootJob, event.getProducedByNode());
-
+//
           if (sourceJob.isContainer()) {
             eventProcessor.send(
                 new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), event.getProducedByNode()));
@@ -104,8 +104,8 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
       }
     }
-    
-    if (sourceJob.isRoot() && sourceJob.getOutputCounter(sourceVariable.getPortId()).counter==0){
+
+    if(sourceJob.isRoot() && (!event.isFromScatter() || (event.getNumberOfScattered()==((List) sourceVariable.getValue()).size()))){
         jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.getProducedByNode());
     }
     
