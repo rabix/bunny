@@ -2,6 +2,7 @@ package org.rabix.engine.repository;
 
 import java.sql.Timestamp;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,6 +14,8 @@ public interface JobRepository {
   void insert(Job job, UUID groupId, String producedByNode);
   
   void update(Job job);
+
+  void updateShort(Job job);
   
   void update(Iterator<Job> jobs);
   

@@ -5,16 +5,12 @@ import java.util.List;
 import java.util.UUID;
 
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.Backend.BackendStatus;
 
 public interface BackendRepository {
 
-  public static enum BackendStatus {
-    ACTIVE,
-    INACTIVE
-  }
-  
-  void insert(UUID id, Backend backend, Timestamp heartbeatInfo, BackendStatus status);
-  
+  void insert(UUID id, Backend backend, Timestamp heartbeatInfo);
+
   void update(UUID id, Backend configuration);
   
   Backend get(UUID id);
@@ -31,13 +27,11 @@ public interface BackendRepository {
     
     Backend backend;
     Timestamp heartbeatInfo;
-    BackendStatus backendStatus;
-    
-    public BackendEntity(Backend backend, Timestamp heartbeatInfo, BackendStatus backendStatus) {
+
+    public BackendEntity(Backend backend, Timestamp heartbeatInfo) {
       super();
       this.backend = backend;
       this.heartbeatInfo = heartbeatInfo;
-      this.backendStatus = backendStatus;
     }
 
     public Backend getBackend() {
@@ -55,21 +49,12 @@ public interface BackendRepository {
     public void setHeartbeatInfo(Timestamp heartbeatInfo) {
       this.heartbeatInfo = heartbeatInfo;
     }
-    
-    public BackendStatus getBackendStatus() {
-      return backendStatus;
-    }
-    
-    public void setBackendStatus(BackendStatus backendStatus) {
-      this.backendStatus = backendStatus;
-    }
 
     @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
       result = prime * result + ((backend == null) ? 0 : backend.hashCode());
-      result = prime * result + ((backendStatus == null) ? 0 : backendStatus.hashCode());
       result = prime * result + ((heartbeatInfo == null) ? 0 : heartbeatInfo.hashCode());
       return result;
     }
@@ -88,8 +73,6 @@ public interface BackendRepository {
           return false;
       } else if (!backend.equals(other.backend))
         return false;
-      if (backendStatus != other.backendStatus)
-        return false;
       if (heartbeatInfo == null) {
         if (other.heartbeatInfo != null)
           return false;
@@ -100,7 +83,7 @@ public interface BackendRepository {
 
     @Override
     public String toString() {
-      return "BackendEntity [backend=" + backend + ", timestamp=" + heartbeatInfo + ", backendStatus=" + backendStatus + "]";
+      return "BackendEntity [backend=" + backend + ", timestamp=" + heartbeatInfo + "]";
     }
   }
 

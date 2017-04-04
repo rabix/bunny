@@ -2,17 +2,21 @@ package org.rabix.transport.backend.impl;
 
 import java.util.UUID;
 
+import org.rabix.common.json.BeanPropertyView;
 import org.rabix.transport.backend.Backend;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 
 public class BackendRabbitMQ extends Backend {
 
   @JsonProperty("engine_configuration")
+  @JsonView(BeanPropertyView.Partial.class)
   private EngineConfiguration engineConfiguration;
   @JsonProperty("backend_configuration")
+  @JsonView(BeanPropertyView.Partial.class)
   private BackendConfiguration backendConfiguration;
   
 
@@ -30,7 +34,6 @@ public class BackendRabbitMQ extends Backend {
     this.engineConfiguration = engineConfiguration;
     this.backendConfiguration = backendConfiguration;
   }
-  
 
   public EngineConfiguration getEngineConfiguration() {
     return engineConfiguration;

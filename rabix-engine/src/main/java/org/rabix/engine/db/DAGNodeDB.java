@@ -6,6 +6,8 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.lru.dag.DAGCache;
 import org.rabix.engine.repository.DAGRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -14,8 +16,10 @@ import com.google.inject.Inject;
  */
 public class DAGNodeDB {
 
-  private DAGRepository dagRepository;
+  private final static Logger logger = LoggerFactory.getLogger(DAGNodeDB.class);
+  
   private DAGCache dagCache;
+  private DAGRepository dagRepository;
 
   @Inject
   public DAGNodeDB(DAGRepository dagRepository, DAGCache dagCache) {
@@ -26,11 +30,11 @@ public class DAGNodeDB {
   /**
    * Gets node from the repository 
    */
-  
   public DAGNode get(String id, UUID rootId, String dagHash) {
     DAGNode res = dagCache.get(id, rootId, dagHash);
     if(res == null) {
       res = dagRepository.get(id, rootId);
+      logger.info("Get DAGNode {} from repository", id);
       dagCache.put(dagRepository.get(InternalSchemaHelper.ROOT_NAME, rootId), rootId);
     }
     return res;
