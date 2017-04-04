@@ -232,8 +232,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         // TODO this has the effect of ensuring the working directory is created
         //      but the interface isn't great. Need to think about a better interface.
-        storage.stagingPath(job.getId().toString(), "working_dir", "TODO");
-        storage.stagingPath(job.getId().toString(), "inputs", "TODO");
+        storage.stagingPath(job.getRootId().toString(), job.getId().toString(), "working_dir", "TODO");
+        storage.stagingPath(job.getRootId().toString(), job.getId().toString(), "inputs", "TODO");
 
         // Prepare CWL input file into TES-compatible files
         job = storage.transformInputFiles(job);
@@ -254,7 +254,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         // Write job.json file
         Bindings bindings = BindingsFactory.create(job);
         FileUtils.writeStringToFile(
-          storage.stagingPath(job.getId().toString(), "inputs", "job.json").toFile(),
+          storage.stagingPath(job.getRootId().toString(), job.getId().toString(), "inputs", "job.json").toFile(),
           JSONHelper.writeObject(job)
         );
 
@@ -271,7 +271,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         inputs.add(new TESTaskParameter(
           "job.json",
           null,
-          storage.stagingPath(job.getId().toString(), "inputs", "job.json").toUri().toString(),
+          storage.stagingPath(job.getRootId().toString(), job.getId().toString(), "inputs", "job.json").toUri().toString(),
           storage.containerPath("inputs", "job.json").toString(),
           FileType.File.name(),
           false
@@ -282,34 +282,33 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         outputs.add(new TESTaskParameter(
           "working_dir",
           null,
-          storage.outputPath(job.getId().toString(), "working_dir").toUri().toString(),
+          storage.outputPath(job.getRootId().toString(), job.getId().toString(), "working_dir").toUri().toString(),
           storage.containerPath("working_dir").toString(),
           FileType.Directory.name(),
           false
         ));
 
-        // TODO why are these outputs?
-//        if (!bindings.isSelfExecutable(job)) {
-//          outputs.add(new TESTaskParameter(
-//            "command.sh",
-//            null,
-//            storage.outputPath(job.getId(), "command.sh").toUri().toString(),
-//            storage.containerPath("command.sh").toString(),
-//            FileType.File.name(),
-//            false
-//          ));
-//          outputs.add(new TESTaskParameter(
-//            "environment.sh",
-//            null,
-//            storage.outputPath(job.getId(), "environment.sh").toUri().toString(),
-//            storage.containerPath("environment.sh").toString(),
-//            FileType.File.name(),
-//            false
-//          ));
-//         }
+        //TODO why are these outputs?
+        /*if (!bindings.isSelfExecutable(job)) {
+          outputs.add(new TESTaskParameter(
+            "command.sh",
+            null,
+            storage.outputPath(job.getId(), "command.sh").toUri().toString(),
+            storage.containerPath("command.sh").toString(),
+            FileType.File.name(),
+            false
+          ));
+          outputs.add(new TESTaskParameter(
+            "environment.sh",
+            null,
+            storage.outputPath(job.getId(), "environment.sh").toUri().toString(),
+            storage.containerPath("environment.sh").toString(),
+            FileType.File.name(),
+            false
+          ));
+         }*/
 
         // Initialization command
-
         initCommand.add("/usr/share/rabix-tes-command-line/rabix");
         initCommand.add("-j");
         initCommand.add(storage.containerPath("inputs", "job.json").toString());
@@ -391,11 +390,15 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           storage.containerPath("working_dir", "standard_error.log").toString()
         ));
 
+        Integer cpus = null;
+        Double disk = null;
+        Double ram = null;
         ResourceRequirement jobResourceRequirement = bindings.getResourceRequirement(job);
-
-        Integer cpus = (jobResourceRequirement.getCpuMin() != null) ? jobResourceRequirement.getCpuMin().intValue() : null;
-        Double disk = (jobResourceRequirement.getDiskSpaceMinMB() != null) ? jobResourceRequirement.getDiskSpaceMinMB().doubleValue() / 1000.0 : null;
-        Double ram = (jobResourceRequirement.getMemMinMB() != null) ? jobResourceRequirement.getMemMinMB().doubleValue() / 1000.0 : null;
+        if (jobResourceRequirement != null) {
+          cpus = (jobResourceRequirement.getCpuMin() != null) ? jobResourceRequirement.getCpuMin().intValue() : null;
+          disk = (jobResourceRequirement.getDiskSpaceMinMB() != null) ? jobResourceRequirement.getDiskSpaceMinMB().doubleValue() / 1000.0 : null;
+          ram = (jobResourceRequirement.getMemMinMB() != null) ? jobResourceRequirement.getMemMinMB().doubleValue() / 1000.0 : null;
+        }
 
         volumes.add(new TESVolume(
           "working_dir",
