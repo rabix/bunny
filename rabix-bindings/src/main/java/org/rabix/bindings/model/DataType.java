@@ -10,7 +10,7 @@ import java.util.*;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataType {
   public enum Type {
-    UNION, ARRAY, RECORD, FILE(null, "File"), DIRECTORY, ENUM(null, "enum"), MAP(null, "map"), ANY, NULL(null, "null"),
+    UNION, ARRAY, RECORD, ENUM, MAP, FILE(null, "File"), DIRECTORY(null, "Directory"), ANY(null, "any"), NULL(null, "null"),
     BOOLEAN(new Class<?>[] {Boolean.class}, "boolean"), STRING(new Class<?>[] {String.class}, "string"),
     INT(new Class<?>[] {Integer.class, Long.class}, "int"), FLOAT(new Class<?>[] {Float.class, Double.class}, "float");
 
@@ -165,6 +165,10 @@ public class DataType {
   public boolean isEnum() {
     return isType(Type.ENUM);
   }
+  @JsonIgnore
+  public boolean isMap() {
+    return isType(Type.MAP);
+  }
 
   public boolean isType(Type t) {
     if (type == t)
@@ -246,6 +250,17 @@ public class DataType {
   }
 
   public Object toAvro() {
+    Object avro = createAvro();
+    if (nullable != null && nullable) {
+      List<Object> ret = new ArrayList<>();
+      ret.add("null");
+      ret.add(avro);
+      return ret;
+    }
+    return avro;
+  }
+
+  private Object createAvro() {
     if (isArray()) {
       Map<String, Object> ret = new HashMap<>();
       ret.put("type", "array");
@@ -277,13 +292,21 @@ public class DataType {
       return ret;
     }
 
-    if (nullable != null && nullable) {
-      List<Object> ret = new ArrayList<>();
-      ret.add("null");
-      ret.add(type.avroType);
+    if (isEnum()) {
+      Map<String, Object> ret = new HashMap<>();
+      ret.put("type", "enum");
+      ret.put("symbols", symbols);
       return ret;
     }
 
+    if (isMap()) {
+      Map<String, Object> ret = new HashMap<>();
+      ret.put("type", "map");
+      ret.put("values", subtype.toAvro());
+      return ret;
+    }
+
+    // Primitive types
     return type.avroType;
   }
 

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolTranslator;
+import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.draft2.bean.Draft2DataLink;
 import org.rabix.bindings.draft2.bean.Draft2Job;
 import org.rabix.bindings.draft2.bean.Draft2Step;
@@ -90,7 +91,7 @@ public class Draft2Translator implements ProtocolTranslator {
     if (!job.getApp().isWorkflow()) {
       @SuppressWarnings("unchecked")
       Map<String, Object> commonDefaults = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(job.getInputs());
-      return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults);
+      return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults, ProtocolType.DRAFT2);
     }
 
     Draft2Workflow workflow = (Draft2Workflow) job.getApp();
@@ -134,7 +135,7 @@ public class Draft2Translator implements ProtocolTranslator {
     }
     @SuppressWarnings("unchecked")
     Map<String, Object> commonDefaults = (Map<String, Object>) Draft2ValueTranslator.translateToCommon(job.getInputs());
-    return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults);
+    return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults, ProtocolType.DRAFT2);
   }
   
   private void processPorts(DAGNode dagNode) {

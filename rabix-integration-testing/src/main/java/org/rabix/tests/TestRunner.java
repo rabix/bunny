@@ -37,27 +37,23 @@ public class TestRunner {
   private static String[] drafts = { "draft-sb", "draft-2", "draft-3", "cwl" };
   private static final Logger logger = LoggerFactory.getLogger(TestRunner.class);
 
-  public static void main(String[] commandLineArguments) throws IOException {
-    try {
-      PropertiesConfiguration configuration = getConfig();
-      setupIntegrationCommandPrefix(configuration);
-      extractBuildFile();
-      copyTestsInWorkingDir();
+  public static void main(String[] commandLineArguments) throws Exception {
+    PropertiesConfiguration configuration = getConfig();
+    setupIntegrationCommandPrefix(configuration);
+    extractBuildFile();
+    copyTestsInWorkingDir();
 
-      for (String draft : drafts) {
-        draftName = draft;
-        startIntegrationTests(draftName);
+    for (String draft : drafts) {
+      draftName = draft;
+      startIntegrationTests(draftName);
 
-        if (draftName.equals("cwl")) {
-          startConformanceTests(draftName);
-        }
+      if (draftName.equals("cwl")) {
+        startConformanceTests(draftName);
       }
-    } catch (RabixTestException e) {
-      logger.error("Error occuerred:", e);
     }
   }
 
-  private static void startConformanceTests(String draftName) throws RabixTestException {
+  private static void startConformanceTests(String draftName) throws Exception {
     logger.info("Conformance tests started:  " + draftName);
     PropertiesConfiguration configuration = getConfig();
     cwlTestWorkingdir = getStringFromConfig(configuration, draftName);
@@ -135,9 +131,9 @@ public class TestRunner {
           File integrationTempResultFile = new File(integrationTempResultPath);
 
           String resultText = readFile(integrationTempResultFile.getAbsolutePath(), Charset.defaultCharset());
-          Map<String, Object> actualResult = JSONHelper.readMap(JSONHelper.transformToJSON(resultText));
           logger.info("\nGenerated result file:");
           logger.info(resultText);
+          Map<String, Object> actualResult = JSONHelper.readMap(JSONHelper.transformToJSON(resultText));
           testPassed = validateTestCase(currentTestDetails, actualResult);
           logger.info("Test result: ");
           if (testPassed) {
@@ -325,11 +321,6 @@ public class TestRunner {
       Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
           .directory(new File(directory)).start();
 
-      BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String line = null;
-      while ((line = br.readLine()) != null)
-        logger.info(line);
-
       int exitCode = process.waitFor();
 
       if (0 != exitCode) {
@@ -345,43 +336,23 @@ public class TestRunner {
     }
   }
 
-  public static void executeConformanceSuite(final String cmdline, final String directory) throws RabixTestException {
-    try {
-      File errorLog = new File(directory + "errorConf.log");
-      ProcessBuilder processBuilder = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
-          .directory(new File(directory)).redirectError(errorLog).redirectOutput(Redirect.PIPE);
+  public static void executeConformanceSuite(final String cmdline, final String directory) throws Exception {
+    ProcessBuilder processBuilder = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
+          .directory(new File(directory));
 
       Map<String, String> env = processBuilder.environment();
       env.put("LC_ALL", "C");
       env.put("buildFileDirPath", buildFileDirPath);
 
       Process process = processBuilder.start();
-      BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-      String line = null;
-      while ((line = br.readLine()) != null)
-        logger.info(line);
 
       int exitCode = process.waitFor();
 
-      FileReader fileReader = new FileReader(errorLog);
-      BufferedReader bufferedReader = new BufferedReader(fileReader);
-      line = null;
-
-      while ((line = bufferedReader.readLine()) != null) {
-        System.out.println(line);
-      }
-
-      bufferedReader.close();
-
       if (0 != exitCode) {
-        throw new RabixTestException("Error while executing command: Non zero exit code " + exitCode);
+        logger.error("Error while executing command: Non zero exit code " + exitCode);
+        System.exit(exitCode);
       }
 
-    } catch (Exception e) {
-      logger.error("Error while executing command. ", e);
-      throw new RabixTestException("Error while executing command: " + e.getMessage());
-    }
   }
 
   /**

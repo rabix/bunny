@@ -201,5 +201,5 @@ public class ScatterZipStrategy implements ScatterStrategy {
     }
     return result;
   }
-
+  
 }

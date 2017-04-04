@@ -28,12 +28,10 @@ import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -42,8 +40,6 @@ import com.google.inject.Inject;
  */
 public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
-  private final static Logger logger = LoggerFactory.getLogger(OutputEventHandler.class);
-  
   private JobRecordService jobRecordService;
   private LinkRecordService linkService;
   private VariableRecordService variableService;
@@ -102,8 +98,16 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           if(sourceJob.isRoot() && sourceJob.isContainer()) {
             // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
             eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
+            jobService.handleJobCompleted(rootJob);
           }
           return;
+        }
+        else {
+          try {
+            Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
+            jobService.handleJobCompleted(completedJob);
+          } catch (BindingException e) {
+          }
         }
       }
     }

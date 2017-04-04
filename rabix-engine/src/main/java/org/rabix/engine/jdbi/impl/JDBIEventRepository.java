@@ -27,7 +27,7 @@ public interface JDBIEventRepository extends EventRepository {
   void insert(@Bind("id") UUID id, @Bind("type") PersistentEventType type, @BindJson("event") Event event, @Bind("status") EventStatus status);
   
   @Override
-  @SqlUpdate("update event set status=:status::event_status where id=:id and type=:type::persistent_event_type")
+  @SqlUpdate("update event set status=:status::event_status,modified_at='now' where id=:id and type=:type::persistent_event_type")
   void update(@Bind("id") UUID id, @Bind("type") PersistentEventType type, @Bind("status") EventStatus status);
   
   @Override

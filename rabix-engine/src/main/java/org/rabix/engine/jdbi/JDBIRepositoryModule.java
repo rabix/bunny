@@ -35,6 +35,7 @@ public class JDBIRepositoryModule extends AbstractModule {
     
     source.setDataSourceName("Data Source");
     source.setServerName(configuration.getString("postgres.server"));
+    source.setSsl(configuration.getBoolean("postgres.ssl", false));
     source.setPortNumber(configuration.getInt("postgres.port"));
     source.setDatabaseName(configuration.getString("postgres.database"));
     source.setUser(configuration.getString("postgres.user"));

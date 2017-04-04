@@ -1,5 +1,6 @@
 package org.rabix.engine.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +16,7 @@ import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class JobRecord implements Cachable {
+public class JobRecord extends TimestampedModel implements Cachable {
 
   public static class JobIdRootIdPair {
     final public String id;
@@ -53,9 +54,15 @@ public class JobRecord implements Cachable {
   private ScatterStrategy scatterStrategy;
   
   public JobRecord() {
+    super(LocalDateTime.now(), LocalDateTime.now());
   }
   
   public JobRecord(UUID rootId, String id, UUID uniqueId, UUID parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking, String dagCache) {
+    this(rootId, id, uniqueId, parentId, state, isContainer, isScattered, master, blocking, dagCache, LocalDateTime.now(), LocalDateTime.now());
+  }
+
+  public JobRecord(UUID rootId, String id, UUID uniqueId, UUID parentId, JobState state, Boolean isContainer, Boolean isScattered, Boolean master, Boolean blocking, String dagCache, LocalDateTime createdAt, LocalDateTime modifiedAt) {
+    super(createdAt, modifiedAt);
     this.id = id;
     this.externalId = uniqueId;
     this.rootId = rootId;
@@ -462,7 +469,7 @@ public class JobRecord implements Cachable {
 
   @Override
   public String toString() {
-    return "JobRecord [id=" + id + ", externalId=" + externalId + ", rootId=" + rootId + ", master=" + master + ", state=" + state + ", inputCounters=" + inputCounters + ", outputCounters=" + outputCounters + ", isScattered=" + isScattered + ", isContainer=" + isContainer + ", isScatterWrapper=" + isScatterWrapper + ", numberOfGlobalInputs=" + numberOfGlobalInputs + ", numberOfGlobalOutputs=" + numberOfGlobalOutputs + ", scatterStrategy=" + scatterStrategy + ", dagCache=" + dagHash + "]";
+    return "JobRecord [id=" + id + ", externalId=" + externalId + ", rootId=" + rootId + ", master=" + master + ", state=" + state + ", inputCounters=" + inputCounters + ", outputCounters=" + outputCounters + ", isScattered=" + isScattered + ", isContainer=" + isContainer + ", isScatterWrapper=" + isScatterWrapper + ", numberOfGlobalInputs=" + numberOfGlobalInputs + ", numberOfGlobalOutputs=" + numberOfGlobalOutputs + ", scatterStrategy=" + scatterStrategy + ", dagCache=" + dagHash + ", createdAt=" + getCreatedAt() + ", modifiedAt="+ getModifiedAt() +"]";
   }
 
 }

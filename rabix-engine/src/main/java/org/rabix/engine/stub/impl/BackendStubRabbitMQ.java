@@ -45,13 +45,8 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
 
   @Override
   public void stop() {
-    try {
       transportPlugin.deleteQueue(this.sendToBackendQueue.getQueueName());
       transportPlugin.deleteQueue(this.sendToBackendControlQueue.getQueueName());
-      transportPlugin.deleteExchange(backend.getBackendConfiguration().getExchange());
-    } catch (TransportPluginException e) {
-      // do nothing
-    }
   }
 
 }

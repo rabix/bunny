@@ -1,5 +1,6 @@
 package org.rabix.engine.model;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.rabix.bindings.model.LinkMerge;
@@ -7,7 +8,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CacheKey;
 
-public class VariableRecord implements Cachable {
+public class VariableRecord extends TimestampedModel implements Cachable {
 
   public final static String CACHE_NAME = "VARIABLE_RECORD";
   
@@ -28,6 +29,11 @@ public class VariableRecord implements Cachable {
   private Object transform;
 
   public VariableRecord(UUID rootId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge) {
+    this(rootId, jobId, portId, type, value, linkMerge, LocalDateTime.now(), LocalDateTime.now());
+  }
+
+  public VariableRecord(UUID rootId, String jobId, String portId, LinkPortType type, Object value, LinkMerge linkMerge, LocalDateTime createdAt, LocalDateTime modifiedAt) {
+    super(createdAt, modifiedAt);
     this.jobId = jobId;
     this.portId = portId;
     this.type = type;

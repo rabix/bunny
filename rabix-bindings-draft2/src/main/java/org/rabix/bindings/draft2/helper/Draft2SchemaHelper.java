@@ -503,7 +503,7 @@ public class Draft2SchemaHelper extends Draft2BeanHelper {
           return new DataType(DataType.Type.ANY);
         list.add((String) o);
       }
-      return new DataType(DataType.Type.ENUM, list);
+      return new DataType(DataType.Type.ENUM, list, !isRequired(schema));
     }
 
     // RECORD

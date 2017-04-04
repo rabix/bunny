@@ -1,5 +1,7 @@
 package org.rabix.engine.service.impl;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -25,7 +27,7 @@ public class StoreCleanupServiceImpl implements StoreCleanupService {
   private final static Logger logger = LoggerFactory.getLogger(StoreCleanupServiceImpl.class);
   
   private final static long DEFAULT_SLEEP = TimeUnit.SECONDS.toMillis(4);
-
+  
   private final long sleepPeriod;
   private final TransactionHelper transactionService;
   
@@ -52,7 +54,8 @@ public class StoreCleanupServiceImpl implements StoreCleanupService {
             transactionService.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws Exception {
-                Set<Job> completedRootJobs = jobRepository.getRootsByStatus(JobStatus.COMPLETED);
+                Timestamp olderThanTime = Timestamp.valueOf(LocalDateTime.now().minusDays(1L));
+                Set<Job> completedRootJobs = jobRepository.getRootJobsForDeletion(JobStatus.COMPLETED, olderThanTime);
                 
                 Set<UUID> rootIds = new HashSet<>();
                 for (Job rootJob : completedRootJobs) {
