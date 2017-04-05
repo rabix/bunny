@@ -152,7 +152,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     }
 
     try {
-      result = storage.transformOutputFiles(result, job.getRootId().toString(), job.getId().toString());
+      result = storage.transformOutputFiles(result, job.getRootId().toString(), job.getName());
     } catch (BindingException e) {
       logger.error("Failed to process output files", e);
       throw new RuntimeException("Failed to process output files", e);
@@ -232,8 +232,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         // TODO this has the effect of ensuring the working directory is created
         //      but the interface isn't great. Need to think about a better interface.
-        storage.stagingPath(job.getRootId().toString(), job.getId().toString(), "working_dir", "TODO");
-        storage.stagingPath(job.getRootId().toString(), job.getId().toString(), "inputs", "TODO");
+        storage.stagingPath(job.getRootId().toString(), job.getName(), "working_dir", "TODO");
+        storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "TODO");
 
         // Prepare CWL input file into TES-compatible files
         job = storage.transformInputFiles(job);
@@ -254,7 +254,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         // Write job.json file
         Bindings bindings = BindingsFactory.create(job);
         FileUtils.writeStringToFile(
-          storage.stagingPath(job.getRootId().toString(), job.getId().toString(), "inputs", "job.json").toFile(),
+          storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toFile(),
           JSONHelper.writeObject(job)
         );
 
@@ -271,7 +271,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         inputs.add(new TESTaskParameter(
           "job.json",
           null,
-          storage.stagingPath(job.getRootId().toString(), job.getId().toString(), "inputs", "job.json").toUri().toString(),
+          storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toUri().toString(),
           storage.containerPath("inputs", "job.json").toString(),
           FileType.File.name(),
           false
@@ -282,7 +282,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         outputs.add(new TESTaskParameter(
           "working_dir",
           null,
-          storage.outputPath(job.getRootId().toString(), job.getId().toString(), "working_dir").toUri().toString(),
+          storage.outputPath(job.getRootId().toString(), job.getName(), "working_dir").toUri().toString(),
           storage.containerPath("working_dir").toString(),
           FileType.Directory.name(),
           false
@@ -468,7 +468,6 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   
   @Override
   public void stop(List<UUID> ids, UUID contextId) {
-    // TODO TES/Funnel has cancel job now
     throw new NotImplementedException("This method is not implemented");
   }
 
