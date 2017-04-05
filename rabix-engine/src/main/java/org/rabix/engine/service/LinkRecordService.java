@@ -16,6 +16,10 @@ public interface LinkRecordService {
   
   List<LinkRecord> findBySource(String jobId, String portId, UUID rootId);
   
+  int findBySourceCount(String jobId, String portId, UUID rootId);
+  
+  List<LinkRecord> findBySource(String jobId, UUID rootId);
+  
   List<LinkRecord> findBySourceAndDestinationType(String jobId, String portId, LinkPortType varType, UUID rootId);
   
 }

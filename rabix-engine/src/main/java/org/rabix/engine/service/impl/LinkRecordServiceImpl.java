@@ -89,6 +89,11 @@ public class LinkRecordServiceImpl implements LinkRecordService {
     return new ArrayList<>(result);
   }
   
+  public int findBySourceCount(String jobId, String portId, UUID rootId) {
+    return linkRecordRepository.getBySourceCount(jobId, portId, rootId);
+  }
+  
+  
   public List<LinkRecord> findBySourceAndDestinationType(String jobId, String portId, LinkPortType varType, UUID rootId) {
     Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
     List<LinkRecord> fromCache = Lists.transform(
@@ -105,6 +110,25 @@ public class LinkRecordServiceImpl implements LinkRecordService {
     result.addAll(fromCache);
     result.addAll(fromDB);
     return new ArrayList<>(result);
+  }
+
+  @Override
+  public List<LinkRecord> findBySource(String jobId, UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
+    List<LinkRecord> fromCache = Lists.transform(
+        cache.get(new LinkRecordCacheKey(rootId, jobId, null, null, null, null, null)),
+        new Function<Cachable, LinkRecord>() {
+          @Override
+          public LinkRecord apply(Cachable input) {
+            return (LinkRecord) input;
+          }
+        });
+    ;
+    List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, rootId);
+    Set<LinkRecord> result = new HashSet<>();
+    result.addAll(fromCache);
+    result.addAll(fromDB);
+    return fromDB;
   }
 
 }
