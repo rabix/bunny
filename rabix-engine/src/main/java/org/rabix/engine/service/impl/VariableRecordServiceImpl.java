@@ -91,7 +91,7 @@ public class VariableRecordServiceImpl implements VariableRecordService {
 
   @SuppressWarnings("unchecked")
   public void addValue(VariableRecord variableRecord, Object value, Integer position, boolean wrap) {
-    variableRecord.setNumberOfTimesUpdated(variableRecord.getNumberOfTimesUpdated());
+    variableRecord.setNumberOfTimesUpdated(variableRecord.getNumberOfTimesUpdated()+1);
 
     if (variableRecord.isDefault()) {
       variableRecord.setValue(null);
