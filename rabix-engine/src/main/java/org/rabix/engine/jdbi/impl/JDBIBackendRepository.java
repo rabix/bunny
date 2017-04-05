@@ -56,6 +56,7 @@ public interface JDBIBackendRepository extends BackendRepository {
       Backend b = BeanSerializer.deserialize(r.getString("configuration"), Backend.class);
       b.setId(r.getObject("id", UUID.class));
       b.setName(r.getString("name"));
+      b.setStatus(BackendStatus.valueOf(r.getString("status")));
       return b;
     }
   }

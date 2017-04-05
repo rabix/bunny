@@ -242,9 +242,6 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
           try {
             if (initChannel) {
               final Channel channel = connection.createChannel();
-
-              channel.queueDeclare(queueName, durable, false, false, null);
-              channel.queueBind(queueName, queue.getExchange(), queue.getRoutingKey());
               consumer = new QueueingConsumer(channel) {
                 @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                   String message = new String(body, "UTF-8");
@@ -265,9 +262,9 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
             logger.error("Failed to deserialize message payload", e);
             errorCallback.handleError(e);
           } catch (Exception e) {
-            logger.error("Failed to receive a message from " + queue, e);
             while (!isStopped) {
               try {
+                logger.error("Failed to receive a message from " + queue, e);
                 Thread.sleep(RETRY_TIMEOUT * 1000);
               } catch (InterruptedException e1) {
                 // Ignore

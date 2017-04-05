@@ -1,8 +1,5 @@
 package org.rabix.engine.stub;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlMessage;
 import org.rabix.engine.service.JobService;
@@ -31,8 +28,8 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
   protected Q receiveFromBackendHeartbeatQueue;
 
   protected boolean enableControlMesages;
+  protected boolean cleanup;
   
-  private ExecutorService executorService = Executors.newFixedThreadPool(2);
   
   public static interface HeartbeatCallback {
     void save(HeartbeatInfo info) throws Exception;
@@ -62,7 +59,10 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
   }
   
   public void stop() {
-    executorService.shutdownNow();
+    if(cleanup){
+      transportPlugin.stopReceiver(receiveFromBackendHeartbeatQueue);
+      transportPlugin.stopReceiver(receiveFromBackendQueue);
+    }
   }
 
   public void send(Job job) {
@@ -82,5 +82,4 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
       transportPlugin.send(sendToBackendControlQueue, controlMessage);
     }
   }
-
 }

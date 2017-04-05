@@ -31,6 +31,7 @@ import org.rabix.engine.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStub.HeartbeatCallback;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.Backend.BackendStatus;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
@@ -60,7 +61,6 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
   private final JobService jobService;
   private final BackendService backendService;
-  private final BackendRepository backendRepository;
 
   private final TransactionHelper transactionHelper;
   private final StoreCleanupService storeCleanupService;
@@ -79,7 +79,6 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
     this.transactionHelper = repositoriesFactory;
     this.storeCleanupService = storeCleanupService;
     this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
-    this.backendRepository = backendRepository;
   }
 
   @Override
@@ -170,17 +169,13 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       backendStub.start(new HeartbeatCallback() {
         @Override
         public void save(HeartbeatInfo info) throws Exception {
-          List<Backend> inactiveBackends = backendRepository.getByStatus(BackendRepository.BackendStatus.INACTIVE);
-
-          for (Backend backend : inactiveBackends) {
-            if (backend.getId().equals(info.getId())) {
-              backendRepository.updateStatus(backend.getId(), BackendRepository.BackendStatus.ACTIVE);
-              backendService.startBackend(backend);
-              break;
-            }
+          if (backendStub.getBackend().getStatus()==BackendStatus.INACTIVE) {
+            Backend backend = backendStub.getBackend();
+            backendStubs.add(backendService.startBackend(backend));
+            backendStub.getBackend().setStatus(BackendStatus.ACTIVE);
+            logger.debug("Awakening backend: "+backend.getId());
           }
-
-          backendService.updateHeartbeatInfo(info.getId(), new Timestamp(info.getTimestamp()));
+          backendService.updateHeartbeatInfo(backendStub.getBackend().getId(), new Timestamp(info.getTimestamp()));
         }
       }, new ReceiveCallback<Job>() {
         @Override
@@ -202,7 +197,8 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       dispatcherLock.unlock();
     }
   }
-
+  
+  
   public void freeBackend(Job rootJob) {
     try {
       dispatcherLock.lock();
@@ -271,6 +267,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
                 if (heartbeatInfo == null || currentTime - heartbeatInfo > heartbeatPeriod) {
                   backendStub.stop();
+                  backend.setStatus(BackendStatus.INACTIVE);
                   backendIterator.remove();
                   logger.info("Removing Backend {}", backendStub.getBackend().getId());
 

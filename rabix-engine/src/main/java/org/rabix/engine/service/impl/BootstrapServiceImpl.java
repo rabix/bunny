@@ -1,6 +1,5 @@
 package org.rabix.engine.service.impl;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import org.rabix.engine.event.Event;
@@ -11,8 +10,12 @@ import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BootstrapService;
 import org.rabix.engine.service.BootstrapServiceException;
+import org.rabix.engine.service.SchedulerService;
+import org.rabix.engine.stub.BackendStub;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -25,14 +28,17 @@ public class BootstrapServiceImpl implements BootstrapService {
   private TransactionHelper transactionHelper;
   
   private EventProcessor eventProcessor;
+  private SchedulerService scheduler;
+  private final static Logger logger = LoggerFactory.getLogger(BootstrapServiceImpl.class);
   
   @Inject
-  public BootstrapServiceImpl(TransactionHelper transactionHelper, EventRepository eventRepository, EventProcessor eventProcessor, BackendService backendService, BackendRepository backendRepository) {
+  public BootstrapServiceImpl(SchedulerService scheduler, TransactionHelper transactionHelper, EventRepository eventRepository, EventProcessor eventProcessor, BackendService backendService, BackendRepository backendRepository) {
     this.backendService = backendService;
     this.backendRepository = backendRepository;
     this.eventProcessor = eventProcessor;
     this.eventRepository = eventRepository;
     this.transactionHelper = transactionHelper;
+    this.scheduler = scheduler;
   }
   
   public void replay() throws BootstrapServiceException {
@@ -43,8 +49,9 @@ public class BootstrapServiceImpl implements BootstrapService {
           List<Backend> activeBackends = backendRepository.getByStatus(BackendStatus.ACTIVE);
           
           for (Backend backend : activeBackends) {
-            backendRepository.updateHeartbeatInfo(backend.getId(), new Timestamp(System.currentTimeMillis()));
-            backendService.startBackend(backend);
+            BackendStub<?, ?, ?> startBackend = backendService.startBackend(backend);
+            scheduler.addBackendStub(startBackend);
+            logger.debug("Awakening backend: " + backend.getId());
           }
           
           List<Event> events = eventRepository.findUnprocessed();

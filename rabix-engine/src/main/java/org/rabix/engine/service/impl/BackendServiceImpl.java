@@ -1,6 +1,7 @@
 package org.rabix.engine.service.impl;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,8 +58,9 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            backendRepository.insert(backend.getId(), backend, new Timestamp(System.currentTimeMillis()));
-            startBackend(populated);
+            backendRepository.insert(backend.getId(), backend, Timestamp.from(Instant.now()));
+            BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
+            scheduler.addBackendStub(backendStub);
             logger.info("Backend {} registered.", populated.getId());
             return backend;
           } catch (BackendServiceException e) {
@@ -71,14 +73,14 @@ public class BackendServiceImpl implements BackendService {
     }
   }
   
-  public void startBackend(Backend backend) throws BackendServiceException {
-    BackendStub<?, ?, ?> backendStub;
+  public BackendStub<?, ?, ?> startBackend(Backend backend) throws BackendServiceException {
     try {
-      backendStub = backendStubFactory.create(backend);
+      backendRepository.updateStatus(backend.getId(), BackendStatus.ACTIVE);
+      updateHeartbeatInfo(backend.getId(), Timestamp.from(Instant.now()));
+      return backendStubFactory.create(backend);
     } catch (TransportPluginException e) {
       throw new BackendServiceException(e);
     }
-    scheduler.addBackendStub(backendStub);
   }
   
   private <T extends Backend> T populate(T backend) throws BackendServiceException {
