@@ -152,7 +152,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     }
 
     try {
-      result = storage.transformOutputFiles(result, job.getId().toString());
+      result = storage.transformOutputFiles(result, job.getRootId().toString(), job.getId().toString());
     } catch (BindingException e) {
       logger.error("Failed to process output files", e);
       throw new RuntimeException("Failed to process output files", e);
