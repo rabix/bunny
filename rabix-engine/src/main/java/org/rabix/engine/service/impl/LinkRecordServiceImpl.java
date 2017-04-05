@@ -90,7 +90,18 @@ public class LinkRecordServiceImpl implements LinkRecordService {
   }
   
   public int findBySourceCount(String jobId, String portId, UUID rootId) {
-    return linkRecordRepository.getBySourceCount(jobId, portId, rootId);
+    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
+    List<LinkRecord> fromCache = Lists.transform(
+        cache.get(new LinkRecordCacheKey(rootId, jobId, portId, null, null, null, null)),
+        new Function<Cachable, LinkRecord>() {
+          @Override
+          public LinkRecord apply(Cachable input) {
+            return (LinkRecord) input;
+          }
+        });
+    ;
+    int countFromDB = linkRecordRepository.getBySourceCount(jobId, portId, rootId);
+    return fromCache.size() > countFromDB ? fromCache.size() : countFromDB;
   }
   
   

@@ -418,7 +418,7 @@ ALTER TABLE ONLY job_stats
 --changeset bunny:1487849040814-67 dbms:postgresql
 CREATE TABLE intermediary_files (
     root_id   uuid  NOT NULL,
-    job_name  text NOT NULL,
-    usage     integer NOT NULL
+    filename  text NOT NULL,
+    count     integer NOT NULL
 );
 --rollback DROP TABLE intermediary_files

@@ -14,6 +14,7 @@ import org.rabix.engine.jdbi.impl.JDBIIntermediaryFilesRepository.IntermediaryFi
 import org.rabix.engine.repository.IntermediaryFilesRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
+import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.Binder;
 import org.skife.jdbi.v2.sqlobject.BinderFactory;
 import org.skife.jdbi.v2.sqlobject.BindingAnnotation;
@@ -27,20 +28,20 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 public interface JDBIIntermediaryFilesRepository extends IntermediaryFilesRepository {
   
   @SqlUpdate("insert into intermediary_files (root_id,filename,count) values (:root_id,:filename,:count)")
-  void insert(UUID root_id, String filename, Integer count);
+  void insert(@Bind("root_id") UUID root_id, @Bind("filename") String filename, @Bind("count") Integer count);
   
   @SqlUpdate("update intermediary_files set count=:count where root_id=:root_id and filename=:filename")
-  void update(UUID root_id, String filename, Integer count);
+  void update(@Bind("root_id") UUID root_id, @Bind("filename") String filename, @Bind("count") Integer count);
   
   @SqlUpdate("delete from intermediary_files where root_id=:root_id and filename=:filename")
-  void delete(UUID root_id, String filename);
+  void delete(@Bind("root_id") UUID root_id, @Bind("filename") String filename);
   
   @SqlUpdate("delete from intermediary_files where root_id=:root_id")
-  void delete(UUID rootId);
+  void delete(@Bind("root_id") UUID root_id);
   
   @Override
   @SqlQuery("select * from intermediary_files where root_id=:root_id")
-  List<IntermediaryFileEntity> get(UUID root_id);
+  List<IntermediaryFileEntity> get(@Bind("root_id") UUID root_id);
 
   @BindingAnnotation(BindIntermediaryFileEntity.IntermediaryFileEntityBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
