@@ -32,10 +32,25 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
   private ExecutorService receiverThreadPool = Executors.newCachedThreadPool();
 
   private boolean durable;
-  
+
   public TransportPluginRabbitMQ(Configuration configuration) throws TransportPluginException {
     this.configuration = configuration;
-    initConnection();
+
+    while (true) {
+      try {
+        initConnection();
+        logger.info("TransportPluginRabbitMQ created");
+        break;
+      } catch (TransportPluginException e1) {
+        logger.info("RabbitMQ connect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
+      }
+
+      try {
+        Thread.sleep(RETRY_TIMEOUT*1000);
+      } catch (InterruptedException e1) {
+        // Ignore
+      }
+    }
   }
 
   public void initConnection() throws TransportPluginException {
