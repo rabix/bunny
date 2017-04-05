@@ -38,6 +38,11 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
     try {
       transportPlugin.initializeExchange(backend.getBackendConfiguration().getExchange(), backend.getBackendConfiguration().getExchangeType());
       transportPlugin.initializeExchange(backend.getEngineConfiguration().getExchange(), backend.getEngineConfiguration().getExchangeType());
+      transportPlugin.initQueue(sendToBackendQueue);
+      transportPlugin.initQueue(receiveFromBackendQueue);
+      transportPlugin.initQueue(receiveFromBackendHeartbeatQueue);
+      if(enableControlMesages)
+        transportPlugin.initQueue(sendToBackendControlQueue);
     } catch (TransportPluginException e) {
       // do nothing
     }
@@ -45,8 +50,7 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
 
   @Override
   public void stop() {
-      transportPlugin.deleteQueue(this.sendToBackendQueue.getQueueName());
-      transportPlugin.deleteQueue(this.sendToBackendControlQueue.getQueueName());
+    
   }
 
 }

@@ -80,7 +80,23 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
       }
     }
   }
-
+  public void initQueue(TransportQueueRabbitMQ queue) throws TransportPluginException{
+    Channel channel = null;
+    try {
+      channel = connection.createChannel();
+      channel.queueDeclare(queue.getQueueName(), durable, false, false, null);
+      channel.queueBind(queue.getQueueName(), queue.getExchange(), queue.getRoutingKey());
+    } catch (Exception e) {
+      throw new TransportPluginException("Failed to bind RabbitMQ queue " + queue, e);
+    } finally {
+      if (channel != null) {
+        try {
+          channel.close();
+        } catch (Exception ignore) {
+        }
+      }
+    }
+  }
   /**
    * {@link TransportPluginRabbitMQ} extension for Exchange initialization
    */
