@@ -40,11 +40,11 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   @JsonProperty("scatterMethod")
   private ScatterMethod scatterMethod;
   
-  @JsonProperty("checkPossibleHanging")
-  private Boolean checkPossibleHanging;
+  @JsonProperty("emptyListDetected")
+  private Boolean emptyListDetected;
   
-  @JsonProperty("skip")
-  private Boolean skip;
+  @JsonProperty("skipScatter")
+  private Boolean skipScatter;
   
   @JsonCreator
   public ScatterCartesianStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
@@ -52,16 +52,16 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
       @JsonProperty("positions") Map<String, LinkedList<Integer>> positions,
       @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
       @JsonProperty("sizePerPort") Map<String, Integer> sizePerPort,
-      @JsonProperty("checkPossibleHanging") Boolean checkPossibleHanging,
-      @JsonProperty("skip") Boolean skip) {
+      @JsonProperty("emptyListDetected") Boolean emptyListDetected,
+      @JsonProperty("skipScatter") Boolean skipScatter) {
     super();
     this.combinations = combinations;
     this.values = values;
     this.positions = positions;
     this.sizePerPort = sizePerPort;
     this.scatterMethod = scatterMethod;
-    this.checkPossibleHanging = checkPossibleHanging;
-    this.skip = skip;
+    this.emptyListDetected = emptyListDetected;
+    this.skipScatter = skipScatter;
   }
 
   public ScatterCartesianStrategy(DAGNode dagNode) {
@@ -70,8 +70,8 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     this.combinations = new LinkedList<>();
     this.scatterMethod = dagNode.getScatterMethod();
     this.sizePerPort = new HashMap<>();
-    this.checkPossibleHanging = false;
-    this.skip = false;
+    this.emptyListDetected = false;
+    this.skipScatter = false;
     initialize(dagNode);
   }
 
@@ -289,28 +289,31 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public Object populateOutputsForHanging() {
-    skip = true;
+  public Object generateOutputsForEmptyList() {
     if (scatterMethod.equals(ScatterMethod.flat_crossproduct)) {
       return new ArrayList<>();  
     }
-    // it's nested_crossproduct
-    return new ArrayList<>();
+    return new ArrayList<>(); // TODO implement outputs for nested_crossproduct
   }
 
   @Override
-  public void setCheckPossibleHanging() {
-    this.checkPossibleHanging = true;
+  public void setEmptyListDetected() {
+    this.emptyListDetected = true;
   }
 
   @Override
-  public boolean getCheckPossibleHanging() {
-    return checkPossibleHanging;
+  public boolean isEmptyListDetected() {
+    return emptyListDetected;
   }
 
   @Override
-  public boolean skip() {
-    return skip;
+  public void skipScatter(boolean skipScatter) {
+    this.skipScatter = skipScatter;
+  }
+
+  @Override
+  public boolean skipScatter() {
+    return skipScatter;
   }
 
 }

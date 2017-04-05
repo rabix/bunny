@@ -38,25 +38,25 @@ public class ScatterZipStrategy implements ScatterStrategy {
   @JsonProperty("scatterMethod")
   private ScatterMethod scatterMethod;
   
-  @JsonProperty("checkPossibleHanging")
-  private Boolean checkPossibleHanging;
+  @JsonProperty("emptyListDetected")
+  private Boolean emptyListDetected;
   
-  @JsonProperty("skip")
-  private Boolean skip;
+  @JsonProperty("skipScatter")
+  private Boolean skipScatter;
   
   @JsonCreator
   public ScatterZipStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
       @JsonProperty("values") Map<String, LinkedList<Object>> values,
       @JsonProperty("indexes") Map<String, LinkedList<Boolean>> indexes,
       @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
-      @JsonProperty("checkPossibleHanging") Boolean checkPossibleHanging, @JsonProperty("skip") Boolean skip) {
+      @JsonProperty("emptyListDetected") Boolean emptyListDetected, @JsonProperty("skipScatter") Boolean skipScatter) {
     super();
     this.combinations = combinations;
     this.values = values;
     this.indexes = indexes;
     this.scatterMethod = scatterMethod;
-    this.checkPossibleHanging = checkPossibleHanging;
-    this.skip = skip;
+    this.emptyListDetected = emptyListDetected;
+    this.skipScatter = skipScatter;
   }
 
   public ScatterZipStrategy(DAGNode dagNode) {
@@ -65,8 +65,8 @@ public class ScatterZipStrategy implements ScatterStrategy {
     combinations = new LinkedList<>();
     
     this.scatterMethod = dagNode.getScatterMethod();
-    this.checkPossibleHanging = false;
-    this.skip = false;
+    this.emptyListDetected = false;
+    this.skipScatter = false;
     initialize(dagNode);
   }
   
@@ -225,24 +225,28 @@ public class ScatterZipStrategy implements ScatterStrategy {
   }
 
   @Override
-  public Object populateOutputsForHanging() {
-    skip = true;
+  public Object generateOutputsForEmptyList() {
     return new ArrayList<>();
   }
 
   @Override
-  public void setCheckPossibleHanging() {
-    this.checkPossibleHanging = true;
+  public void setEmptyListDetected() {
+    this.emptyListDetected = true;
   }
   
   @Override
-  public boolean getCheckPossibleHanging() {
-    return checkPossibleHanging;
+  public boolean isEmptyListDetected() {
+    return emptyListDetected;
   }
 
   @Override
-  public boolean skip() {
-    return skip;
+  public boolean skipScatter() {
+    return skipScatter;
+  }
+
+  @Override
+  public void skipScatter(boolean skip) {
+    this.skipScatter = skip;
   }
 
 }

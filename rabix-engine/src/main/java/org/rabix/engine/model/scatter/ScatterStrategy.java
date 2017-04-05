@@ -29,14 +29,16 @@ public interface ScatterStrategy {
   
   LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId);
   
-  void setCheckPossibleHanging();
+  void setEmptyListDetected();
   
-  boolean getCheckPossibleHanging();
+  boolean isEmptyListDetected();
   
   boolean isHanging();
   
-  Object populateOutputsForHanging();
+  Object generateOutputsForEmptyList();
   
-  boolean skip();
+  void skipScatter(boolean skip);
+  
+  boolean skipScatter();
   
 }

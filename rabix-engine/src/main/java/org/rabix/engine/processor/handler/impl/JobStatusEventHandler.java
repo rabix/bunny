@@ -116,11 +116,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     
     switch (event.getState()) {
     case READY:
-      jobRecord.setState(JobState.READY);
-      jobRecordService.update(jobRecord);
-      
-      boolean continueWithReady = ready(jobRecord, event);
-      if (!continueWithReady) {
+      ready(jobRecord, event);
+      if (!jobRecord.getState().equals(JobState.READY)) {
         break;
       }
       
@@ -234,7 +231,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   /**
    * Job is ready
    */
-  public boolean ready(JobRecord job, Event event) throws EventHandlerException {
+  public void ready(JobRecord job, Event event) throws EventHandlerException {
     job.setState(JobState.READY);
     
     UUID rootId = event.getContextId();
@@ -253,9 +250,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       
       for (String port : job.getScatterPorts()) {
         VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, rootId);
-        boolean continueScatter = scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
-        if (!continueScatter) {
-          return false;
+        scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
+        if (job.getScatterStrategy().skipScatter()) {
+          return;
         }
       }
     } else if (job.isContainer()) {
@@ -291,7 +288,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       }
     }
-    return true;
   }
   
   private void handleTransform(JobRecord job, DAGNode node) throws EventHandlerException {

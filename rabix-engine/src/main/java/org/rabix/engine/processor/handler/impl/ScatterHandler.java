@@ -16,7 +16,6 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
-import org.rabix.engine.event.Event.EventType;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.model.JobRecord;
@@ -60,14 +59,20 @@ public class ScatterHandler {
   /**
    * Scatters port
    * @throws BindingException 
+   * @returns Scatter
    */
   @SuppressWarnings("unchecked")
-  public boolean scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
+  public void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
+    ScatterStrategy scatterStrategy = job.getScatterStrategy();
+    if (scatterStrategy != null && scatterStrategy.skipScatter()) {
+      return;
+    }
+    
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId(), job.getDagHash());
-
     if (job.getScatterStrategy() == null) {
       try {
-        job.setScatterStrategy(scatterStrategyFactory.create(node));
+        scatterStrategy = scatterStrategyFactory.create(node);
+        job.setScatterStrategy(scatterStrategy);
       } catch (BindingException e) {
         throw new EventHandlerException(e);
       }
@@ -76,12 +81,12 @@ public class ScatterHandler {
     if (isLookAhead) {
       int numberOfScattered = getNumberOfScattered(job, numberOfScatteredFromEvent);
       createScatteredJobs(job, event, portId, value, node, numberOfScattered, position);
-      return true;
+      return;
     }
 
     if (value == null) {
       createScatteredJobs(job, event, portId, value, node, 1, position);
-      return true;
+      return;
     }
     
     List<Object> values = null;
@@ -102,35 +107,29 @@ public class ScatterHandler {
       values = (List<Object>) value;
     }
     
-    ScatterStrategy scatterStrategy = job.getScatterStrategy();
-    if (scatterStrategy.skip()) {
-      return false;
-    }
     if (values.size() == 0) {
-      scatterStrategy.setCheckPossibleHanging();
+      scatterStrategy.setEmptyListDetected();
     } else {
       for (int i = 0; i < values.size(); i++) {
         createScatteredJobs(job, event, portId, values.get(i), node, values.size(), usePositionFromEvent ? position : i + 1);
       }
     }
-    if (scatterStrategy.getCheckPossibleHanging()) {
-      if (scatterStrategy.isHanging()) {
-        // set values and send event
-        Object output = scatterStrategy.populateOutputsForHanging();
-        List<VariableRecord> outputVariableRecords = variableRecordService.find(job.getId(), LinkPortType.OUTPUT, job.getRootId());
+    if (scatterStrategy.isEmptyListDetected() && scatterStrategy.isHanging()) {
+      Object output = scatterStrategy.generateOutputsForEmptyList();
+      scatterStrategy.skipScatter(true);
 
-        Map<String, Object> outputs = new HashMap<>();
-        for (VariableRecord outputVariableRecord : outputVariableRecords) {
-          outputVariableRecord.setValue(output);
-          variableRecordService.update(outputVariableRecord);
-          outputs.put(outputVariableRecord.getPortId(), output);
-        }
-        jobRecordService.update(job);
-        eventProcessor.send(new JobStatusEvent(job.getId(), JobState.COMPLETED, job.getRootId(), outputs, event.getEventGroupId(), event.getProducedByNode()));
-        return false;
+      List<VariableRecord> outputVariableRecords = variableRecordService.find(job.getId(), LinkPortType.OUTPUT, job.getRootId());
+
+      Map<String, Object> outputs = new HashMap<>();
+      for (VariableRecord outputVariableRecord : outputVariableRecords) {
+        outputVariableRecord.setValue(output);
+        variableRecordService.update(outputVariableRecord);
+        outputs.put(outputVariableRecord.getPortId(), output);
       }
+      jobRecordService.update(job);
+      eventProcessor.send(new JobStatusEvent(job.getId(), JobState.COMPLETED, job.getRootId(), outputs, event.getEventGroupId(), event.getProducedByNode()));
+      return;
     }
-    return true;
   }
   
   public JobRecord createJobRecord(String id, UUID parentId, DAGNode node, boolean isScattered, UUID contextId, String dagCache) {
