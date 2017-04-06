@@ -73,11 +73,11 @@ public class BackendServiceImpl implements BackendService {
     }
   }
   
-  public BackendStub<?, ?, ?> startBackend(Backend backend) throws BackendServiceException {
+  public void startBackend(Backend backend) throws BackendServiceException {
     try {
       backendRepository.updateStatus(backend.getId(), BackendStatus.ACTIVE);
       updateHeartbeatInfo(backend.getId(), Timestamp.from(Instant.now()));
-      return backendStubFactory.create(backend);
+      scheduler.addBackendStub(backendStubFactory.create(backend));
     } catch (TransportPluginException e) {
       throw new BackendServiceException(e);
     }
@@ -156,6 +156,11 @@ public class BackendServiceImpl implements BackendService {
   @Override
   public void stopBackend(Backend backend) throws BackendServiceException {
     backendRepository.updateStatus(backend.getId(), BackendStatus.INACTIVE);
+  }
+
+  @Override
+  public List<Backend> getAllBackends() {
+    return backendRepository.getAll();
   }
   
 }

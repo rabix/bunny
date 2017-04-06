@@ -36,6 +36,10 @@ public interface JDBIBackendRepository extends BackendRepository {
   Backend get(@Bind("id") UUID id);
   
   @Override
+  @SqlQuery("select * from backend")
+  List<Backend> getAll();
+  
+  @Override
   @SqlQuery("select * from backend where status=:status::backend_status")
   List<Backend> getByStatus(@Bind("status") BackendStatus status);
   

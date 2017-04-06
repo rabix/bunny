@@ -10,8 +10,6 @@ import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BootstrapService;
 import org.rabix.engine.service.BootstrapServiceException;
-import org.rabix.engine.service.SchedulerService;
-import org.rabix.engine.stub.BackendStub;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
 import org.slf4j.Logger;
@@ -28,17 +26,15 @@ public class BootstrapServiceImpl implements BootstrapService {
   private TransactionHelper transactionHelper;
   
   private EventProcessor eventProcessor;
-  private SchedulerService scheduler;
   private final static Logger logger = LoggerFactory.getLogger(BootstrapServiceImpl.class);
   
   @Inject
-  public BootstrapServiceImpl(SchedulerService scheduler, TransactionHelper transactionHelper, EventRepository eventRepository, EventProcessor eventProcessor, BackendService backendService, BackendRepository backendRepository) {
+  public BootstrapServiceImpl(TransactionHelper transactionHelper, EventRepository eventRepository, EventProcessor eventProcessor, BackendService backendService, BackendRepository backendRepository) {
     this.backendService = backendService;
     this.backendRepository = backendRepository;
     this.eventProcessor = eventProcessor;
     this.eventRepository = eventRepository;
     this.transactionHelper = transactionHelper;
-    this.scheduler = scheduler;
   }
   
   public void replay() throws BootstrapServiceException {
@@ -49,8 +45,7 @@ public class BootstrapServiceImpl implements BootstrapService {
           List<Backend> activeBackends = backendRepository.getByStatus(BackendStatus.ACTIVE);
           
           for (Backend backend : activeBackends) {
-            BackendStub<?, ?, ?> startBackend = backendService.startBackend(backend);
-            scheduler.addBackendStub(startBackend);
+            backendService.startBackend(backend);
             logger.debug("Awakening backend: " + backend.getId());
           }
           

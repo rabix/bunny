@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.rabix.engine.repository.BackendRepository;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
@@ -60,6 +62,11 @@ public class InMemoryBackendRepository implements BackendRepository{
   @Override
   public synchronized Timestamp getHeartbeatInfo(UUID id) {
     return backendRepository.get(id).getHeartbeatInfo();
+  }
+
+  @Override
+  public List<Backend> getAll() {
+    return backendRepository.values().stream().map(b -> b.getBackend()).collect(Collectors.toList());
   }
   
 }

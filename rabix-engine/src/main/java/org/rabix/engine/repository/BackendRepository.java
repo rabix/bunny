@@ -17,6 +17,8 @@ public interface BackendRepository {
   
   List<Backend> getByStatus(BackendStatus status);
   
+  List<Backend> getAll();
+  
   void updateHeartbeatInfo(UUID id, Timestamp heartbeatInfo);
   
   void updateStatus(UUID id, BackendStatus status);

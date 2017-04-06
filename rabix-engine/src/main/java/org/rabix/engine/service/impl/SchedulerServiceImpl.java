@@ -169,11 +169,13 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       backendStub.start(new HeartbeatCallback() {
         @Override
         public void save(HeartbeatInfo info) throws Exception {
-          if (backendStub.getBackend().getStatus()==BackendStatus.INACTIVE) {
+          if (backendStub.getBackend().getStatus() == BackendStatus.INACTIVE) {
             Backend backend = backendStub.getBackend();
-            backendStubs.add(backendService.startBackend(backend));
+            info.setId(backend.getId());
+            backendService.updateHeartbeatInfo(info);
+            backendStubs.add(backendStub);
             backendStub.getBackend().setStatus(BackendStatus.ACTIVE);
-            logger.debug("Awakening backend: "+backend.getId());
+            logger.debug("Awakening backend: " + backend.getId());
           }
           backendService.updateHeartbeatInfo(backendStub.getBackend().getId(), new Timestamp(info.getTimestamp()));
         }
