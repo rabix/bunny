@@ -1,7 +1,7 @@
 package org.rabix.engine.service.impl;
 
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,15 +10,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.common.logging.VerboseLogger;
 import org.rabix.engine.model.LinkRecord;
+import org.rabix.engine.repository.IntermediaryFilesRepository;
+import org.rabix.engine.repository.IntermediaryFilesRepository.IntermediaryFileEntity;
 import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.LinkRecordService;
@@ -30,43 +30,47 @@ import com.google.inject.Inject;
 public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
 
   private final static Logger logger = LoggerFactory.getLogger(IntermediaryFilesServiceImpl.class);
-  
-  private Map<UUID, Map<String, Integer>> files = new ConcurrentHashMap<UUID, Map<String, Integer>>();
 
+  private IntermediaryFilesRepository intermediaryFilesRepository;
   private LinkRecordService linkRecordService;
   private IntermediaryFilesHandler fileHandler;
   
   @Inject
-  protected IntermediaryFilesServiceImpl(LinkRecordService linkRecordService, IntermediaryFilesHandler handler) {
+  protected IntermediaryFilesServiceImpl(LinkRecordService linkRecordService, IntermediaryFilesHandler handler, IntermediaryFilesRepository intermediaryFilesRepository) {
     this.linkRecordService = linkRecordService;
     this.fileHandler = handler;
+    this.intermediaryFilesRepository = intermediaryFilesRepository;
   }
 
   @Override
   public void addOrIncrement(UUID rootId, FileValue file, Integer usage) {
     Set<String> paths = new HashSet<String>();
     extractPathsFromFileValue(paths, file);
-    Map<String, Integer> filesForRootId = files.get(rootId) != null ? files.get(rootId): new HashMap<String, Integer>();
+    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
+    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
     for(String path: paths) {
       if(filesForRootId.containsKey(path)) {
         logger.debug("Increment file usage counter: " + path + ": " + ((Integer) filesForRootId.get(path) + usage));
         filesForRootId.put(path, filesForRootId.get(path) + usage);
+        intermediaryFilesRepository.update(rootId, path, filesForRootId.get(path) + usage);
       }
       else {
         logger.debug("Adding file usage counter: " + path + ": " + usage);
         filesForRootId.put(path, usage);
+        intermediaryFilesRepository.insert(rootId, path, usage);
       }
     }
-    files.put(rootId, filesForRootId);
   }
   
   protected Set<String> getUnusedFiles(UUID rootId) {
-    Map<String, Integer> filesForRootId = files.get(rootId) != null ? files.get(rootId): Collections.<String, Integer>emptyMap();
+    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
+    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
     Set<String> unusedFiles = new HashSet<String>();
     for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
       Entry<String, Integer> entry = it.next();
       if(entry.getValue() == 0) {
         unusedFiles.add(entry.getKey());
+        intermediaryFilesRepository.delete(rootId, entry.getKey());
         it.remove();
       }
     }
@@ -75,16 +79,20 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
 
   @Override
   public void decrementFiles(UUID rootId, Set<String> checkFiles) {
-    Map<String, Integer> filesForRootId = files.get(rootId);
+    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
+    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
     for(String path: checkFiles) {
       logger.debug("Decrementing file with path={}", path);
-      filesForRootId.put(path, filesForRootId.get(path) - 1);
+      Integer count = filesForRootId.get(path) - 1;
+      filesForRootId.put(path, count);
+      intermediaryFilesRepository.update(rootId, path, count);
     }
   }
   
   @Override
   public void jobFailed(UUID rootId, Set<String> rootInputs) {
-    Map<String, Integer> filesForRootId = files.get(rootId);
+    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
+    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
     for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
       Entry<String, Integer> fileEntry = it.next();
       if(!rootInputs.contains(fileEntry.getKey())) {
@@ -98,19 +106,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   public void handleUnusedFiles(Job job){
     fileHandler.handleUnusedFiles(job, getUnusedFiles(job.getRootId()));
   }
-  
-  @Override
-  public void dumpFiles() {
-    VerboseLogger.log("Intermediary files table");
-    for(Iterator<Map.Entry<UUID, Map<String, Integer>>> it = files.entrySet().iterator(); it.hasNext();) {
-      Entry<UUID, Map<String, Integer>> tableEntry = it.next();
-      VerboseLogger.log("RootId: " + tableEntry.getKey());
-      for(Iterator<Map.Entry<String, Integer>> itt = tableEntry.getValue().entrySet().iterator(); itt.hasNext();) {
-        Entry<String, Integer> fileEntry = itt.next();
-        VerboseLogger.log(fileEntry.getKey() + ": " + fileEntry.getValue());
-      }
-    }
-  }
 
   @Override
   public void handleContainerReady(Job containerJob, boolean keepInputFiles) {
@@ -121,7 +116,7 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     for(Map.Entry<String, Object> entry : containerJob.getInputs().entrySet()) {
       List<FileValue> files = FileValueHelper.getFilesFromValue(entry.getValue());
       if(!files.isEmpty()) {
-        Integer count = linkRecordService.findBySource(containerJob.getName(), entry.getKey(), containerJob.getRootId()).size();
+        Integer count = linkRecordService.findBySourceCount(containerJob.getName(), entry.getKey(), containerJob.getRootId());
         for(FileValue file: files) {
           if(count > 0) {
             addOrIncrement(containerJob.getRootId(), file, count + increment);
@@ -130,15 +125,26 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
       }
     }
   }
+  
+  public List<LinkRecord> linksForSourcePort(String inputName, List<LinkRecord> links) {
+    List<LinkRecord> result = new ArrayList<>();
+    for(LinkRecord link: links) {
+      if(link.getSourceJobPort().equals(inputName)) {
+        result.add(link);
+      }
+    }
+    return result;
+  }
 
   @Override
   public void handleJobCompleted(Job job) {
     if(!job.isRoot()) {
+      List<LinkRecord> allLinks = linkRecordService.findBySource(job.getName(), job.getRootId());
       boolean isScattered = false;
       for (Map.Entry<String, Object> entry : job.getOutputs().entrySet()) {
         List<FileValue> files = FileValueHelper.getFilesFromValue(entry.getValue());
         if (!files.isEmpty()) {
-          List<LinkRecord> links = linkRecordService.findBySource(job.getName(), entry.getKey(), job.getRootId());
+          List<LinkRecord> links = linksForSourcePort(entry.getKey(), allLinks);
           Integer count = links.size();
           for (LinkRecord link : links) {
             if(link.getDestinationJobId().equals(InternalSchemaHelper.getJobIdFromScatteredId(job.getName())) && InternalSchemaHelper.getScatteredNumber(job.getName()) != null) {
@@ -166,7 +172,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
         decrementFiles(job.getRootId(), inputs);
         handleUnusedFiles(job);
       }
-      dumpFiles();
     }
   }
   
@@ -184,6 +189,14 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     }
     jobFailed(job.getRootId(), rootInputs);
     handleUnusedFiles(job);
+  }
+  
+  private Map<String, Integer> convertToMap(List<IntermediaryFileEntity> filesForRootId) {
+    Map<String, Integer> result = new HashMap<>();
+    for(IntermediaryFileEntity f: filesForRootId) {
+      result.put(f.getFilename(), f.getCount());
+    }
+    return result;
   }
   
   @Override

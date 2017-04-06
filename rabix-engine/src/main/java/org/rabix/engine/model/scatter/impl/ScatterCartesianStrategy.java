@@ -1,5 +1,6 @@
 package org.rabix.engine.model.scatter.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,18 +40,28 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   @JsonProperty("scatterMethod")
   private ScatterMethod scatterMethod;
   
+  @JsonProperty("emptyListDetected")
+  private Boolean emptyListDetected;
+  
+  @JsonProperty("skipScatter")
+  private Boolean skipScatter;
+  
   @JsonCreator
   public ScatterCartesianStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
       @JsonProperty("values") Map<String, LinkedList<Object>> values,
       @JsonProperty("positions") Map<String, LinkedList<Integer>> positions,
       @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
-      @JsonProperty("sizePerPort") Map<String, Integer> sizePerPort) {
+      @JsonProperty("sizePerPort") Map<String, Integer> sizePerPort,
+      @JsonProperty("emptyListDetected") Boolean emptyListDetected,
+      @JsonProperty("skipScatter") Boolean skipScatter) {
     super();
     this.combinations = combinations;
     this.values = values;
     this.positions = positions;
     this.sizePerPort = sizePerPort;
     this.scatterMethod = scatterMethod;
+    this.emptyListDetected = emptyListDetected;
+    this.skipScatter = skipScatter;
   }
 
   public ScatterCartesianStrategy(DAGNode dagNode) {
@@ -59,6 +70,8 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     this.combinations = new LinkedList<>();
     this.scatterMethod = dagNode.getScatterMethod();
     this.sizePerPort = new HashMap<>();
+    this.emptyListDetected = false;
+    this.skipScatter = false;
     initialize(dagNode);
   }
 
@@ -263,6 +276,44 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   @Override
   public boolean isBlocking() {
     return ScatterMethod.isBlocking(scatterMethod);
+  }
+
+  @Override
+  public boolean isHanging() {
+    for (String port : values.keySet()) {
+      if (values.get(port) == null || (values.get(port) instanceof List<?> && ((List<?>)values.get(port)).isEmpty())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public Object generateOutputsForEmptyList() {
+    if (scatterMethod.equals(ScatterMethod.flat_crossproduct)) {
+      return new ArrayList<>();  
+    }
+    return new ArrayList<>(); // TODO implement outputs for nested_crossproduct
+  }
+
+  @Override
+  public void setEmptyListDetected() {
+    this.emptyListDetected = true;
+  }
+
+  @Override
+  public boolean isEmptyListDetected() {
+    return emptyListDetected;
+  }
+
+  @Override
+  public void skipScatter(boolean skipScatter) {
+    this.skipScatter = skipScatter;
+  }
+
+  @Override
+  public boolean skipScatter() {
+    return skipScatter;
   }
 
 }

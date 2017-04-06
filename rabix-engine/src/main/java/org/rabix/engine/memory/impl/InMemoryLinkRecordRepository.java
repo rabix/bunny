@@ -68,6 +68,8 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
     return result;
   }
 
+  
+  
   @Override
   public synchronized List<LinkRecord> getBySourceJobId(String sourceJobId, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
@@ -103,6 +105,24 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   
   private synchronized void insertLinkRecord(LinkRecord linkRecord) {
     getLinkRecords(linkRecord.getRootId()).add(linkRecord);
+  }
+  
+
+  @Override
+  public List<LinkRecord> getBySource(String sourceJobId, UUID rootId) {
+    List<LinkRecord> result = new ArrayList<>();
+    List<LinkRecord> links = getLinkRecords(rootId);
+    for(LinkRecord link: links) {
+      if(link.getSourceJobId().equals(sourceJobId)) {
+        result.add(link);
+      }
+    }
+    return new ArrayList<>(result);
+  }
+  
+  @Override
+  public int getBySourceCount(String sourceJobId, String sourceJobPortId, UUID rootId) {
+    return getBySource(sourceJobId, sourceJobPortId, rootId).size();
   }
   
   private synchronized void updateLinkRecord(LinkRecord linkRecord) {

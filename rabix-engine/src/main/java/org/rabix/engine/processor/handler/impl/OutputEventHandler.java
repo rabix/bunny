@@ -66,6 +66,9 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   
   public void handle(final OutputUpdateEvent event) throws EventHandlerException {
     JobRecord sourceJob = jobRecordService.find(event.getJobId(), event.getContextId());
+    if (sourceJob.getState().equals(JobState.COMPLETED)) {
+      return;
+    }
     if (event.isFromScatter()) {
       jobRecordService.resetOutputPortCounter(sourceJob, event.getNumberOfScattered(), event.getPortId());
     }

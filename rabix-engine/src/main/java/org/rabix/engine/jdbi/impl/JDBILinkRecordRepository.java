@@ -59,9 +59,16 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and context_id=:context_id")
   public abstract List<LinkRecord> getBySource(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("context_id") UUID rootId);
   
+  @SqlQuery("select * from link_record where source_job_id=:source_job_id and context_id=:context_id")
+  public abstract List<LinkRecord> getBySource(@Bind("source_job_id") String sourceJobId, @Bind("context_id") UUID rootId);
+  
   @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and context_id=:context_id")
   public abstract List<LinkRecord> getBySourceJobId(@Bind("source_job_id") String sourceJobId, @Bind("context_id") UUID rootId);
+  
+  @Override
+  @SqlQuery("select count(*) from link_record where source_job_id=:source_job_id and context_id=:context_id")
+  public abstract int getBySourceCount(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("context_id") UUID rootId);
   
   @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_type=:source_type::port_type and context_id=:context_id")
