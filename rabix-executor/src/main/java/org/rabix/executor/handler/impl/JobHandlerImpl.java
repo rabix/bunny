@@ -357,7 +357,14 @@ public class JobHandlerImpl implements JobHandler {
   }
   
   public void removeContainer() {
-    containerHandler.removeContainer();
+    try {
+      if(isSuccessful()) {
+        containerHandler.removeContainer();
+      }
+    } catch (ExecutorException e) {
+      logger.debug("Failed to remove container");
+    }
+    
   }
 
   private void uploadOutputFiles(final Job job, final Bindings bindings) throws BindingException, UploadServiceException {
@@ -394,7 +401,9 @@ public class JobHandlerImpl implements JobHandler {
     }
     try {
       containerHandler.stop();
-      containerHandler.removeContainer();
+      if(isSuccessful()) {
+        containerHandler.removeContainer();
+      }
     } catch (ContainerException e) {
       throw new ExecutorException("Failed to stop execution.", e);
     }
