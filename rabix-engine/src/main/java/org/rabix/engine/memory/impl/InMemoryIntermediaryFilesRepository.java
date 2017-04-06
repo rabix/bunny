@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -72,6 +73,13 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
       intermediaryFilesRepository.get(rootId);
     }
     return Collections.emptyList();
+  }
+
+  @Override
+  public void deleteByRootIds(Set<UUID> rootIds) {
+    for(UUID rootId: rootIds) {
+      intermediaryFilesRepository.remove(rootId);
+    }
   }
 
 }

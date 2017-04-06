@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.engine.jdbi.impl.JDBIIntermediaryFilesRepository.IntermediaryFileEntityMapper;
@@ -22,6 +23,7 @@ import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import org.skife.jdbi.v2.unstable.BindIn;
 
 
 @RegisterMapper(IntermediaryFileEntityMapper.class)
@@ -40,9 +42,13 @@ public interface JDBIIntermediaryFilesRepository extends IntermediaryFilesReposi
   void delete(@Bind("root_id") UUID root_id);
   
   @Override
+  @SqlUpdate("delete from intermediary_files where root_id in (<ids>)")
+  void deleteByRootIds(@BindIn("ids") Set<UUID> rootIds);
+  
+  @Override
   @SqlQuery("select * from intermediary_files where root_id=:root_id")
   List<IntermediaryFileEntity> get(@Bind("root_id") UUID root_id);
-
+  
   @BindingAnnotation(BindIntermediaryFileEntity.IntermediaryFileEntityBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })

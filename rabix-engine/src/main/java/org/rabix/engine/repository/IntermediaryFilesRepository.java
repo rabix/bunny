@@ -1,6 +1,7 @@
 package org.rabix.engine.repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface IntermediaryFilesRepository {
@@ -12,6 +13,8 @@ public interface IntermediaryFilesRepository {
   void delete(UUID rootId, String filename);
   
   void delete(UUID rootId);
+  
+  void deleteByRootIds(Set<UUID> rootIds);
   
   List<IntermediaryFileEntity> get(UUID rootId);
   
