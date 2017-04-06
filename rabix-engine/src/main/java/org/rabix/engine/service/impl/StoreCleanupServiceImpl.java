@@ -40,7 +40,7 @@ public class StoreCleanupServiceImpl implements StoreCleanupService {
 
   @Inject
   public StoreCleanupServiceImpl(JobRepository jobRepository, JobRecordRepository jobRecordRepository, IntermediaryFilesRepository intermediaryFilesRepository, TransactionHelper transactionService, Configuration configuration) {
-    this.sleepPeriod = configuration.getLong("db.delete_period", DEFAULT_SLEEP);
+    this.sleepPeriod = configuration.getLong("cleaner.db.period", DEFAULT_SLEEP);
     this.jobRepository = jobRepository;
     this.jobRecordRepository = jobRecordRepository;
     this.transactionService = transactionService;
@@ -65,7 +65,7 @@ public class StoreCleanupServiceImpl implements StoreCleanupService {
                 }
                 jobRepository.deleteByRootIds(rootIds);
                 intermediaryFilesRepository.deleteByRootIds(rootIds);
-                
+
                 int deleted = jobRecordRepository.deleteByStatus(JobState.COMPLETED);
                 logger.debug("Deleted {} completed Jobs", deleted);
                 return null;
