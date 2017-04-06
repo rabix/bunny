@@ -1,5 +1,6 @@
 package org.rabix.backend.local.tes.service.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -42,6 +43,7 @@ import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.VerboseLogger;
+import org.rabix.executor.ExecutorException;
 import org.rabix.executor.engine.EngineStub;
 import org.rabix.executor.engine.EngineStubLocal;
 import org.rabix.executor.service.ExecutorService;
@@ -221,6 +223,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     @Override
     public TESJob call() throws Exception {
       try {
+        Bindings bindings = BindingsFactory.create(job);
+        job = bindings.preprocess(job, storage.stagingPath(job.getRootId().toString(), job.getName()).toFile(), null);
 
         List<TESTaskParameter> inputs = new ArrayList<>();
         List<TESTaskParameter> outputs = new ArrayList<>();
@@ -248,11 +252,23 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
             (fileValue instanceof DirectoryValue) ? FileType.Directory.name() : FileType.File.name(),
             false
           ));
+          List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();
+          if (secondaryFiles != null) {
+            for (FileValue f : secondaryFiles) {
+              inputs.add(new TESTaskParameter(
+                      f.getName(),
+                      null,
+                      f.getLocation(),
+                      f.getPath(),
+                      (f instanceof DirectoryValue) ? FileType.Directory.name() : FileType.File.name(),
+                      false
+              ));
+            }
+          }
           return fileValue;
         });
 
         // Write job.json file
-        Bindings bindings = BindingsFactory.create(job);
         FileUtils.writeStringToFile(
           storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toFile(),
           JSONHelper.writeObject(job)
