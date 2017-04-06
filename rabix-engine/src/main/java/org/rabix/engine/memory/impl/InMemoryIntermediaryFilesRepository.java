@@ -70,7 +70,7 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
   @Override
   public List<IntermediaryFileEntity> get(UUID rootId) {
     if(intermediaryFilesRepository.containsKey(rootId)) {
-      intermediaryFilesRepository.get(rootId);
+      return intermediaryFilesRepository.get(rootId);
     }
     return Collections.emptyList();
   }
