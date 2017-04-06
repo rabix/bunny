@@ -117,7 +117,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     switch (event.getState()) {
     case READY:
       ready(jobRecord, event);
-      if (!jobRecord.getState().equals(JobState.READY)) {
+      if (jobRecord.getState().equals(JobState.COMPLETED)) {
         break;
       }
       
