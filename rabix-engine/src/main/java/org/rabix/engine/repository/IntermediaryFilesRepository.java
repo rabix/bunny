@@ -53,7 +53,6 @@ public interface IntermediaryFilesRepository {
     public String toString() {
       return "IntermediaryFileEntity [filename=" + filename + ", count=" + count + "]";
     }
-    
   }
   
 }

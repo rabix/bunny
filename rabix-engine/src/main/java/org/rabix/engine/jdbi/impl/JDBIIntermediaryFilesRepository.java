@@ -22,11 +22,13 @@ import org.skife.jdbi.v2.sqlobject.BindingAnnotation;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.skife.jdbi.v2.unstable.BindIn;
 
 
 @RegisterMapper(IntermediaryFileEntityMapper.class)
+@UseStringTemplate3StatementLocator
 public interface JDBIIntermediaryFilesRepository extends IntermediaryFilesRepository {
   
   @SqlUpdate("insert into intermediary_files (root_id,filename,count) values (:root_id,:filename,:count)")

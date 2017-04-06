@@ -106,19 +106,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   public void handleUnusedFiles(Job job){
     fileHandler.handleUnusedFiles(job, getUnusedFiles(job.getRootId()));
   }
-  
-  @Override
-  public void dumpFiles() {
-//    VerboseLogger.log("Intermediary files table");
-//    for(Iterator<Map.Entry<UUID, Map<String, Integer>>> it = files.entrySet().iterator(); it.hasNext();) {
-//      Entry<UUID, Map<String, Integer>> tableEntry = it.next();
-//      VerboseLogger.log("RootId: " + tableEntry.getKey());
-//      for(Iterator<Map.Entry<String, Integer>> itt = tableEntry.getValue().entrySet().iterator(); itt.hasNext();) {
-//        Entry<String, Integer> fileEntry = itt.next();
-//        VerboseLogger.log(fileEntry.getKey() + ": " + fileEntry.getValue());
-//      }
-//    }
-  }
 
   @Override
   public void handleContainerReady(Job containerJob, boolean keepInputFiles) {
@@ -185,7 +172,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
         decrementFiles(job.getRootId(), inputs);
         handleUnusedFiles(job);
       }
-      dumpFiles();
     }
   }
   

@@ -49,11 +49,11 @@ public class EngineModule extends AbstractModule {
   protected void configure() {
     // install(config);
     Configuration configuration = this.config.provideConfig();
-    String persistence = configuration.getString("bunny.persistence", "LOCAL");
+    String persistence = configuration.getString("bunny.store", "IN_MEMORY");
     if (persistence.equals("POSTGRES")) {
       install(new JDBIRepositoryModule());
       bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
-    } else if(persistence.equals("LOCAL")) {
+    } else if(persistence.equals("IN_MEMORY")) {
       install(new InMemoryRepositoryModule());
       bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     }
