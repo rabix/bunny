@@ -332,7 +332,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       }
       
       // TODO fix
-      if ((source.equals(scatter) || destination.equals(scatter)) && (dataLink.getScattered() == null || !dataLink.getScattered())) {
+      if ((destination.equals(scatter)) && (dataLink.getScattered() == null || !dataLink.getScattered())) {
         dataLink.setScattered(port.getScatter());
       }
     }
