@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
@@ -44,27 +45,27 @@ public interface JDBIJobRepository extends JobRepository {
   void insert(@BindJob Job job, @Bind("group_id") UUID groupId, @Bind("produced_by_node") String producedByNode);
 
   @Override
-  @SqlUpdate("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app,config=:config::jsonb where id=:id")
+  @SqlUpdate("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app,config=:config::jsonb,modified_at='now' where id=:id")
   void update(@BindJob Job job);
   
   @Override
-  @SqlBatch("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app,config=:config::jsonb where id=:id")
+  @SqlBatch("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs::jsonb, outputs=:outputs::jsonb, resources=:resources::jsonb,app=:app,config=:config::jsonb,modified_at='now' where id=:id")
   void update(@BindJob Iterator<Job> jobs);
 
   @Override
-  @SqlUpdate("update job set backend_id=:backend_id where id=:id")
+  @SqlUpdate("update job set backend_id=:backend_id,modified_at='now' where id=:id")
   void updateBackendId(@Bind("id") UUID jobId, @Bind("backend_id") UUID backendId);
   
   @Override
-  @SqlBatch("update job set backend_id=:backend_id where id=:id")
+  @SqlBatch("update job set backend_id=:backend_id,modified_at='now' where id=:id")
   void updateBackendIds(@BindJobEntityBackendId Iterator<JobEntity> entities);
 
   @Override
-  @SqlUpdate("update job set status=:status::job_status where status::text in (<statuses>) and root_id=:root_id")
+  @SqlUpdate("update job set status=:status::job_status,modified_at='now' where status::text in (<statuses>) and root_id=:root_id")
   void updateStatus(@Bind("root_id") UUID rootId, @Bind("status") JobStatus status, @BindIn("statuses") Set<JobStatus> whereStatuses);
   
   @Override
-  @SqlUpdate("update job set backend_id=null, status='READY'::job_status where backend_id=:backend_id and status in ('READY'::job_status,'RUNNING'::job_status)")
+  @SqlUpdate("update job set backend_id=null, status='READY'::job_status,modified_at='now' where backend_id=:backend_id and status in ('READY'::job_status,'RUNNING'::job_status)")
   void dealocateJobs(@Bind("backend_id") UUID backendId);
 
   @Override
@@ -72,8 +73,8 @@ public interface JDBIJobRepository extends JobRepository {
   Job get(@Bind("id") UUID id);
   
   @Override
-  @SqlQuery("select * from job where id=root_id and status=:status::job_status")
-  Set<Job> getRootsByStatus(@Bind("status") JobStatus status);
+  @SqlQuery("select * from job where id=root_id and status=:status::job_status and modified_at \\< :time")
+  Set<Job> getRootJobsForDeletion(@Bind("status") JobStatus status, @Bind("time") Timestamp olderThanTime);
   
   @Override
   @SqlQuery("select status from job where id=:id")

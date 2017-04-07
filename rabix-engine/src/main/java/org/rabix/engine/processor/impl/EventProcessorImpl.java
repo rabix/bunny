@@ -13,6 +13,7 @@ import org.rabix.bindings.model.Job;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.Event.EventStatus;
 import org.rabix.engine.event.Event.EventType;
+import org.rabix.engine.event.Event.PersistentEventType;
 import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
@@ -92,9 +93,10 @@ public class EventProcessorImpl implements EventProcessor {
                 handle(eventReference.get());
                 cacheService.flush(eventReference.get().getContextId());
                 
-                Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(eventReference.get().getEventGroupId());
-                jobService.handleJobsReady(readyJobs, eventReference.get().getContextId(), eventReference.get().getProducedByNode());
- 
+                if (checkForReadyJobs(eventReference.get())) {
+                  Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(eventReference.get().getEventGroupId());
+                  jobService.handleJobsReady(readyJobs, eventReference.get().getContextId(), eventReference.get().getProducedByNode());  
+                }
 //                eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.PROCESSED);
                 eventRepository.delete(eventReference.get().getEventGroupId());
                 return null;
@@ -112,6 +114,21 @@ public class EventProcessorImpl implements EventProcessor {
         }
       }
     });
+  }
+  
+  private boolean checkForReadyJobs(Event event) {
+    switch (event.getType()) {
+    case INIT:
+      return true;
+    case JOB_STATUS_UPDATE:
+      if (PersistentEventType.JOB_STATUS_UPDATE_COMPLETED.equals(event.getPersistentType())) {
+        return true;
+      }
+      return false;
+    default:
+      break;
+    }
+    return false;
   }
   
   private void handle(Event event) throws TransactionException {

@@ -45,11 +45,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
     
     SBCommandLineTool commandLineTool = (SBCommandLineTool) sbJob.getApp();
-    List<String> commandLineParts = Lists.transform(buildCommandLineParts(sbJob, workingDir, filePathMapper), new Function<Object, String>() {
-      public String apply(Object obj) {
-        return obj.toString();
-      }
-    });
+    List<CommandLine.Part> commandLineParts = Lists.transform(buildCommandLineParts(sbJob, workingDir, filePathMapper), (obj -> new CommandLine.Part(obj.toString())));
 
     String stdin = null;
     try {
@@ -65,7 +61,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
       throw new BindingException("Failed to extract standard outputs.", e);
     }
 
-    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null);
+    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null, true);
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }

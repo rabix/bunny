@@ -121,7 +121,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
   }
 
   @SuppressWarnings("unchecked")
-  public Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobID) throws BindingException {
+  public Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobRootID, String jobID) throws BindingException {
     return (Map<String, Object>) FileValueHelper.updateFileValues(result, (FileValue fileValue) -> {
 
       String path = fileValue.getPath();
@@ -129,7 +129,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
       if (path.startsWith(outputPrefix)) {
         path = path.substring(outputPrefix.length() + 1);
       }
-      String location = Paths.get(storageBase, jobID, path).toUri().toString();
+      String location = Paths.get(storageBase, jobRootID, jobID, path).toUri().toString();
       fileValue.setLocation(location);
       fileValue.setPath(location);
       return fileValue;

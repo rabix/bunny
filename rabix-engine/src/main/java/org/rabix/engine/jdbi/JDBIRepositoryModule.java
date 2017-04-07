@@ -7,6 +7,7 @@ import org.rabix.engine.repository.BackendRepository;
 import org.rabix.engine.repository.ContextRecordRepository;
 import org.rabix.engine.repository.DAGRepository;
 import org.rabix.engine.repository.EventRepository;
+import org.rabix.engine.repository.IntermediaryFilesRepository;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.LinkRecordRepository;
@@ -35,6 +36,7 @@ public class JDBIRepositoryModule extends AbstractModule {
     
     source.setDataSourceName("Data Source");
     source.setServerName(configuration.getString("postgres.server"));
+    source.setSsl(configuration.getBoolean("postgres.ssl", false));
     source.setPortNumber(configuration.getInt("postgres.port"));
     source.setDatabaseName(configuration.getString("postgres.database"));
     source.setUser(configuration.getString("postgres.user"));
@@ -100,5 +102,10 @@ public class JDBIRepositoryModule extends AbstractModule {
   @Provides
   public JobStatsRecordRepository provideJobStatsRecordRepository(JDBIRepositoryRegistry repositoryRegistry) {
     return repositoryRegistry.jobStatsRecordRepository();
+  }
+  
+  @Provides
+  public IntermediaryFilesRepository provideIntermediaryFilesRepository(JDBIRepositoryRegistry repositoryRegistry) {
+    return repositoryRegistry.intermediaryFilesRepository();
   }
 }

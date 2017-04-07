@@ -18,7 +18,7 @@ public class AppDB {
   private AppCache appCache;
   
   @Inject
-  public AppDB (AppRepository appRepository, AppCache appCache) {
+  public AppDB(AppRepository appRepository, AppCache appCache) {
     this.appRepository = appRepository;
     this.appCache = appCache;
   }

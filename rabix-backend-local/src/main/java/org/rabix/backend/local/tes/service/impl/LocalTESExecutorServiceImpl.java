@@ -1,5 +1,6 @@
 package org.rabix.backend.local.tes.service.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -13,6 +14,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.mina.util.ConcurrentHashSet;
+import org.glassfish.jersey.internal.inject.Custom;
 import org.rabix.backend.local.tes.client.TESHTTPClientException;
 import org.rabix.backend.local.tes.client.TESHttpClient;
 import org.rabix.backend.local.tes.model.TESDockerExecutor;
@@ -35,10 +37,13 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.FileValue.FileType;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
+import org.rabix.bindings.model.requirement.CustomRequirement;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
+import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.VerboseLogger;
+import org.rabix.executor.ExecutorException;
 import org.rabix.executor.engine.EngineStub;
 import org.rabix.executor.engine.EngineStubLocal;
 import org.rabix.executor.service.ExecutorService;
@@ -149,7 +154,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     }
 
     try {
-      result = storage.transformOutputFiles(result, job.getId().toString());
+      result = storage.transformOutputFiles(result, job.getRootId().toString(), job.getName());
     } catch (BindingException e) {
       logger.error("Failed to process output files", e);
       throw new RuntimeException("Failed to process output files", e);
@@ -218,6 +223,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     @Override
     public TESJob call() throws Exception {
       try {
+        Bindings bindings = BindingsFactory.create(job);
+        job = bindings.preprocess(job, storage.stagingPath(job.getRootId().toString(), job.getName()).toFile(), null);
 
         List<TESTaskParameter> inputs = new ArrayList<>();
         List<TESTaskParameter> outputs = new ArrayList<>();
@@ -229,8 +236,8 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         // TODO this has the effect of ensuring the working directory is created
         //      but the interface isn't great. Need to think about a better interface.
-        storage.stagingPath(job.getId().toString(), "working_dir", "TODO");
-        storage.stagingPath(job.getId().toString(), "inputs", "TODO");
+        storage.stagingPath(job.getRootId().toString(), job.getName(), "working_dir", "TODO");
+        storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "TODO");
 
         // Prepare CWL input file into TES-compatible files
         job = storage.transformInputFiles(job);
@@ -245,13 +252,25 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
             (fileValue instanceof DirectoryValue) ? FileType.Directory.name() : FileType.File.name(),
             false
           ));
+          List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();
+          if (secondaryFiles != null) {
+            for (FileValue f : secondaryFiles) {
+              inputs.add(new TESTaskParameter(
+                      f.getName(),
+                      null,
+                      f.getLocation(),
+                      f.getPath(),
+                      (f instanceof DirectoryValue) ? FileType.Directory.name() : FileType.File.name(),
+                      false
+              ));
+            }
+          }
           return fileValue;
         });
 
         // Write job.json file
-        Bindings bindings = BindingsFactory.create(job);
         FileUtils.writeStringToFile(
-          storage.stagingPath(job.getId().toString(), "inputs", "job.json").toFile(),
+          storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toFile(),
           JSONHelper.writeObject(job)
         );
 
@@ -268,7 +287,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         inputs.add(new TESTaskParameter(
           "job.json",
           null,
-          storage.stagingPath(job.getId().toString(), "inputs", "job.json").toUri().toString(),
+          storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toUri().toString(),
           storage.containerPath("inputs", "job.json").toString(),
           FileType.File.name(),
           false
@@ -279,34 +298,33 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         outputs.add(new TESTaskParameter(
           "working_dir",
           null,
-          storage.outputPath(job.getId().toString(), "working_dir").toUri().toString(),
+          storage.outputPath(job.getRootId().toString(), job.getName(), "working_dir").toUri().toString(),
           storage.containerPath("working_dir").toString(),
           FileType.Directory.name(),
           false
         ));
 
-        // TODO why are these outputs?
-        if (!bindings.isSelfExecutable(job)) {
-//          outputs.add(new TESTaskParameter(
-//            "command.sh",
-//            null,
-//            storage.outputPath(job.getId(), "command.sh").toUri().toString(),
-//            storage.containerPath("command.sh").toString(),
-//            FileType.File.name(),
-//            false
-//          ));
-//          outputs.add(new TESTaskParameter(
-//            "environment.sh",
-//            null,
-//            storage.outputPath(job.getId(), "environment.sh").toUri().toString(),
-//            storage.containerPath("environment.sh").toString(),
-//            FileType.File.name(),
-//            false
-//          ));
-        }
+        //TODO why are these outputs?
+        /*if (!bindings.isSelfExecutable(job)) {
+          outputs.add(new TESTaskParameter(
+            "command.sh",
+            null,
+            storage.outputPath(job.getId(), "command.sh").toUri().toString(),
+            storage.containerPath("command.sh").toString(),
+            FileType.File.name(),
+            false
+          ));
+          outputs.add(new TESTaskParameter(
+            "environment.sh",
+            null,
+            storage.outputPath(job.getId(), "environment.sh").toUri().toString(),
+            storage.containerPath("environment.sh").toString(),
+            FileType.File.name(),
+            false
+          ));
+         }*/
 
         // Initialization command
-
         initCommand.add("/usr/share/rabix-tes-command-line/rabix");
         initCommand.add("-j");
         initCommand.add(storage.containerPath("inputs", "job.json").toString());
@@ -327,7 +345,6 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         List<Requirement> combinedRequirements = new ArrayList<>();
         combinedRequirements.addAll(bindings.getHints(job));
         combinedRequirements.addAll(bindings.getRequirements(job));
-
         DockerContainerRequirement dockerContainerRequirement = getRequirement(combinedRequirements, DockerContainerRequirement.class);
         String imageId;
         if (dockerContainerRequirement == null) {
@@ -388,10 +405,20 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
           storage.containerPath("working_dir", "standard_out.log").toString(),
           storage.containerPath("working_dir", "standard_error.log").toString()
         ));
-        
+
+        Integer cpus = null;
+        Double disk = null;
+        Double ram = null;
+        ResourceRequirement jobResourceRequirement = bindings.getResourceRequirement(job);
+        if (jobResourceRequirement != null) {
+          cpus = (jobResourceRequirement.getCpuMin() != null) ? jobResourceRequirement.getCpuMin().intValue() : null;
+          disk = (jobResourceRequirement.getDiskSpaceMinMB() != null) ? jobResourceRequirement.getDiskSpaceMinMB().doubleValue() / 1000.0 : null;
+          ram = (jobResourceRequirement.getMemMinMB() != null) ? jobResourceRequirement.getMemMinMB().doubleValue() / 1000.0 : null;
+        }
+
         volumes.add(new TESVolume(
           "working_dir",
-          1,
+          disk,
           null,
           storage.containerPath("working_dir").toString(),
           false
@@ -399,16 +426,16 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
 
         volumes.add(new TESVolume(
           "inputs",
-          1,
+          disk,
           null,
           storage.containerPath("inputs").toString(),
           true
         ));
 
         TESResources resources = new TESResources(
-          null,
+          cpus,
           false,
-          null,
+          ram,
           volumes,
           null
         );
@@ -416,7 +443,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
         TESTask task = new TESTask(
           job.getName(),
           DEFAULT_PROJECT,
-          null,
+          job.getRootId().toString(),
           inputs,
           outputs,
           resources,
@@ -457,7 +484,6 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   
   @Override
   public void stop(List<UUID> ids, UUID contextId) {
-    // TODO TES/Funnel has cancel job now
     throw new NotImplementedException("This method is not implemented");
   }
 

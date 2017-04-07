@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolTranslator;
+import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.DAGValidationHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.Job;
@@ -89,7 +90,7 @@ public class SBTranslator implements ProtocolTranslator {
     if (!job.getApp().isWorkflow()) {
       @SuppressWarnings("unchecked")
       Map<String, Object> commonDefaults = (Map<String, Object>) SBValueTranslator.translateToCommon(job.getInputs());
-      return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults);
+      return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults, ProtocolType.SB);
     }
 
     SBWorkflow workflow = (SBWorkflow) job.getApp();
@@ -133,7 +134,7 @@ public class SBTranslator implements ProtocolTranslator {
     }
     @SuppressWarnings("unchecked")
     Map<String, Object> commonDefaults = (Map<String, Object>) SBValueTranslator.translateToCommon(job.getInputs());
-    return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults);
+    return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults, ProtocolType.SB);
   }
   
   private void processPorts(DAGNode dagNode) {

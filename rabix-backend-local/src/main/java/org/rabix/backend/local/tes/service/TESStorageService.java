@@ -16,7 +16,7 @@ public interface TESStorageService {
   }
 
   Job transformInputFiles(Job job) throws BindingException;
-  Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobID) throws BindingException;
+  Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobRootID, String jobID) throws BindingException;
   Path outputPath(String... args);
   Path stagingPath(String... args);
   Path containerPath(String... args);

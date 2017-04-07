@@ -5,6 +5,7 @@ import org.rabix.engine.jdbi.impl.JDBIBackendRepository;
 import org.rabix.engine.jdbi.impl.JDBIContextRecordRepository;
 import org.rabix.engine.jdbi.impl.JDBIDAGRepository;
 import org.rabix.engine.jdbi.impl.JDBIEventRepository;
+import org.rabix.engine.jdbi.impl.JDBIIntermediaryFilesRepository;
 import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository;
 import org.rabix.engine.jdbi.impl.JDBIJobRepository;
 import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository;
@@ -46,6 +47,9 @@ public abstract class JDBIRepositoryRegistry extends TransactionHelper {
 
   @CreateSqlObject
   public abstract JDBIEventRepository eventRepository();
+  
+  @CreateSqlObject
+  public abstract JDBIIntermediaryFilesRepository intermediaryFilesRepository();
   
   @Transaction(TransactionIsolationLevel.READ_UNCOMMITTED)
   public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws Exception {

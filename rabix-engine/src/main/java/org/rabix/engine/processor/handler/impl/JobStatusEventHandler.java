@@ -1,12 +1,18 @@
 package org.rabix.engine.processor.handler.impl;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.Bindings;
+import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.helper.URIHelper;
+import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.LinkMerge;
@@ -15,6 +21,7 @@ import org.rabix.bindings.model.dag.DAGLink;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
+import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.logging.DebugAppender;
 import org.rabix.engine.JobHelper;
@@ -36,7 +43,12 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.service.*;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobStatsRecordService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.validator.JobStateValidationException;
 import org.rabix.engine.validator.JobStateValidator;
@@ -62,14 +74,13 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   
   private final JobRepository jobRepository;
   private final JobService jobService;
-  private final CacheService cacheService;
 
   @Inject
   public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobRecordService jobRecordService,
       final LinkRecordService linkRecordService, final VariableRecordService variableRecordService,
       final ContextRecordService contextRecordService, final EventProcessor eventProcessor,
-      final ScatterHandler scatterHelper, final JobRepository jobRepository, final CacheService cacheService,
-      final JobService jobService, final JobStatsRecordService jobStatsRecordService) {
+      final ScatterHandler scatterHelper, final JobRepository jobRepository, final JobService jobService,
+      final JobStatsRecordService jobStatsRecordService) {
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
@@ -80,8 +91,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.variableRecordService = variableRecordService;
     this.appDB = appDB;
     this.jobService = jobService;
-    
-    this.cacheService = cacheService;
+
     this.jobRepository = jobRepository;
   }
 
@@ -106,10 +116,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     
     switch (event.getState()) {
     case READY:
-      jobRecord.setState(JobState.READY);
-      jobRecordService.update(jobRecord);
-      
       ready(jobRecord, event);
+      if (jobRecord.getState().equals(JobState.COMPLETED)) {
+        break;
+      }
       
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
         Job job = null;
@@ -124,18 +134,19 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           // FIXME: is this really safe to ignore?
           logger.info("Failed to create job", e1);
         }
-      }
-        else {
-          Job containerJob = null;
-          try {
-            containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService,
-                dagNodeDB, appDB, false);
-          } catch (BindingException e) {
-            throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
-          }
-          jobService.handleJobContainerReady(containerJob);
-
+        if (job.isRoot()) {
+          jobService.handleJobContainerReady(job);
         }
+      } else {
+        Job containerJob = null;
+        try {
+          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, false);
+        } catch (BindingException e) {
+          throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
+        }
+        jobService.handleJobContainerReady(containerJob);
+
+      }
       break;
     case RUNNING:
       jobRecord.setState(JobState.RUNNING);
@@ -146,8 +157,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
-      jobRecord.setState(JobState.READY);
-      jobRecordService.update(jobRecord);
       if (jobStatsRecord != null) {
         jobStatsRecord.increaseCompleted();
         jobStatsRecordService.update(jobStatsRecord);
@@ -164,18 +173,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
           Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, event.getResult());
           jobService.handleJobRootCompleted(rootJob);
-          deleteRecords(rootJob.getId());
-          cacheService.remove(jobRecord.getRootId());
         } catch (Exception e) {
           throw new EventHandlerException("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
         }
       } else {
-        try {
-          Job completedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
-          jobService.handleJobCompleted(completedJob);
-        } catch (BindingException e) {
-          logger.error("Failed to create completed Job " + jobRecord.getId(), e);
-        }
         for (PortCounter portCounter : jobRecord.getOutputCounters()) {
           Object output = event.getResult().get(portCounter.getPort());
           eventProcessor.addToQueue(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId(), event.getProducedByNode()));
@@ -208,7 +209,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           jobService.handleJobRootFailed(rootJob);
           
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.FAILED));
-          cacheService.remove(jobRecord.getRootId());
         } catch (Exception e) {
           throw new EventHandlerException("Failed to call onRootFailed callback for Job " + jobRecord.getRootId(), e);
         }
@@ -226,10 +226,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     default:
       break;
     }
-  }
-  
-  private void deleteRecords(UUID rootId) {
-    contextRecordService.delete(rootId);
   }
   
   /**
@@ -255,18 +251,17 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       for (String port : job.getScatterPorts()) {
         VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, rootId);
         scatterHelper.scatterPort(job, event, port, variableRecordService.getValue(variable), 1, null, false, false);
+        if (job.getScatterStrategy().skipScatter()) {
+          return;
+        }
       }
     } else if (job.isContainer()) {
       job.setState(JobState.RUNNING);
 
-      DAGContainer containerNode;
-      if (job.isScattered()) {
-        containerNode = (DAGContainer) node;
-      } else {
-        containerNode = (DAGContainer) node;
-      }
+      DAGContainer containerNode = (DAGContainer) node;
       rollOutContainer(job, containerNode, rootId);
-
+      handleTransform(job, containerNode);
+      
       List<LinkRecord> containerLinks = linkRecordService.findBySourceAndSourceType(job.getId(), LinkPortType.INPUT, rootId);
       if (containerLinks.isEmpty()) {
         Set<String> immediateReadyNodeIds = findImmediateReadyNodes(containerNode);
@@ -292,6 +287,56 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           eventProcessor.send(updateEvent);
         }
       }
+    }
+  }
+  
+  private void handleTransform(JobRecord job, DAGNode node) throws EventHandlerException {
+    try {
+      boolean hasTransform = false;
+      for (DAGLinkPort p : node.getInputPorts()) {
+        if (p.getTransform() != null) {
+          hasTransform = true;
+          break;
+        }
+      }
+      if (!hasTransform) {
+        return;
+      }
+      
+      Application app = appDB.get(node.getAppHash());
+      
+      Bindings bindings = null;
+      if (node.getProtocolType() != null) {
+        bindings = BindingsFactory.create(node.getProtocolType());
+      } else {
+        String encodedApp = URIHelper.createDataURI(appDB.get(node.getAppHash()).serialize());
+        bindings = BindingsFactory.create(encodedApp);
+      }
+      
+      List<VariableRecord> inputVariables = variableRecordService.find(job.getId(), LinkPortType.INPUT, job.getRootId());
+      Map<String, Object> preprocesedInputs = new HashMap<>();
+      for (VariableRecord inputVariable : inputVariables) {
+        Object value = variableRecordService.getValue(inputVariable);
+        preprocesedInputs.put(inputVariable.getPortId(), value);
+      }
+      
+      for (VariableRecord inputVariable : inputVariables) {
+        Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
+        for (DAGLinkPort p : node.getInputPorts()) {
+          if (p.getId() == inputVariable.getPortId()) {
+            if (p.getTransform() != null) {
+              Object transform = p.getTransform();
+              if (transform != null) {
+                value = bindings.transformInputs(value, new Job(app.serialize(), preprocesedInputs), transform);
+                inputVariable.setValue(value);
+                variableRecordService.update(inputVariable);
+              }
+            }
+          }
+        }
+      }
+    } catch (BindingException e) {
+      throw new EventHandlerException("Failed to set evaluate transform", e);
     }
   }
   

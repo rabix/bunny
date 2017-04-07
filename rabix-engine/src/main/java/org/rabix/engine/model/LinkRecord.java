@@ -1,12 +1,13 @@
 package org.rabix.engine.model;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.cache.Cachable;
 import org.rabix.engine.cache.CacheKey;
 
-public class LinkRecord implements Cachable {
+public class LinkRecord extends TimestampedModel implements Cachable {
 
   public final static String CACHE_NAME = "LINK_RECORD";
   
@@ -23,6 +24,11 @@ public class LinkRecord implements Cachable {
   private Integer position;
   
   public LinkRecord(UUID rootId, String sourceJobId, String sourceJobPort, LinkPortType sourceVarType, String destinationJobId, String destinationJobPort, LinkPortType destinationVarType, Integer position) {
+    this(rootId, sourceJobId, sourceJobPort, sourceVarType, destinationJobId, destinationJobPort, destinationVarType, position, LocalDateTime.now(), LocalDateTime.now());
+  }
+
+  public LinkRecord(UUID rootId, String sourceJobId, String sourceJobPort, LinkPortType sourceVarType, String destinationJobId, String destinationJobPort, LinkPortType destinationVarType, Integer position, LocalDateTime createdAt, LocalDateTime modifiedAt) {
+    super(createdAt, modifiedAt);
     this.position = position;
     this.rootId = rootId;
     this.sourceJobId = sourceJobId;

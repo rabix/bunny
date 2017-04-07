@@ -1,5 +1,6 @@
 package org.rabix.engine.memory.impl;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -173,7 +174,7 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public Set<Job> getRootsByStatus(JobStatus status) {
+  public Set<Job> getRootJobsForDeletion(JobStatus status, Timestamp time) {
     // TODO Auto-generated method stub
     return null;
   }

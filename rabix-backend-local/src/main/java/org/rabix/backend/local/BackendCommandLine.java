@@ -46,7 +46,7 @@ import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
-import org.rabix.engine.EngineModuleLocal;
+import org.rabix.engine.EngineModule;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
@@ -60,8 +60,8 @@ import org.rabix.engine.service.JobServiceException;
 import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.service.impl.BackendServiceImpl;
-import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
 import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
+import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
 import org.rabix.engine.service.impl.JobServiceImpl;
 import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
@@ -235,7 +235,7 @@ public class BackendCommandLine {
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
           new SimpleFTPModule(),
-          new EngineModuleLocal(),
+          new EngineModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {

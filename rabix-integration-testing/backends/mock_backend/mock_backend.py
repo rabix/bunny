@@ -105,13 +105,7 @@ class Backend(object):
 
     def connect(self):
         payload = {
-            'type': 'RABBIT_MQ',
-            'engine_configuration': {
-                'exchange': config['rabbitmq_engine_exchange'],
-                'exchange_type': 'direct',
-                'receive_routing_key': config['rabbitmq_receive_routing_key'],
-                'heartbeat_routing_key': config['rabbitmq_heartbeat_routing_key'],
-            }
+            'type': 'RABBIT_MQ'
         }
         r = requests.post(self.url + '/v0/engine/backends', json=payload)
         log.debug('Backend registration response %s: %s', r.status_code, r.content)
@@ -123,8 +117,8 @@ class Backend(object):
 
         params = pika.ConnectionParameters(
             host=self.mq_host,
-            credentials=self.mq_credentials,
-            virtual_host=config['rabbitmq_vhost'] if not self.dev else None,
+            #credentials=self.mq_credentials,
+            #virtual_host=config['rabbitmq_vhost'] if not self.dev else None,
             heartbeat_interval=30
         )
 
@@ -136,13 +130,13 @@ class Backend(object):
         try:
             self.channel.queue_bind(exchange=be_cfg['exchange'],
                                     queue='jobs',
-                                    routing_key=be_cfg['receive_routing_key'] + '_' + self.backend_id)
+                                    routing_key=be_cfg['receive_routing_key'])
         except Exception as e:
             log.exception('exception caught: ' + str(e) + ', exchange not found')
 
         self.channel.queue_bind(exchange=be_cfg['exchange'],
                                 queue='control',
-                                routing_key=be_cfg['receive_control_routing_key'] + '_' + self.backend_id)
+                                routing_key=be_cfg['receive_control_routing_key'])
 
         log.debug('!!!!!!!!!!!!!!! starting consume')
         self.channel.basic_consume(self.callback_jobs, queue='jobs')
@@ -156,7 +150,7 @@ class Backend(object):
         hb = {'id': self.backend_info['id'], 'timestamp': int(round(time.time() * 1000))}
         log.debug('... bunny heartbeat')
         self.channel.basic_publish(exchange=eng_cfg['exchange'],
-                                   routing_key=eng_cfg['heartbeat_routing_key'] + '_' + self.backend_id,
+                                   routing_key=eng_cfg['heartbeat_routing_key'],
                                    body=json.dumps(hb))
 
     def send_job(self, job):
@@ -261,10 +255,14 @@ class MockBackend(Backend):
         for path, dirs, files in os.walk(cache_path):
             if 'job.json' not in files:
                 continue
-            name = path[len(cache_path)+1:].replace('/', '.').replace('.meta', '').replace('..', '.')
+            rel_path, name = path[len(cache_path) + 1:], None
+            chunks = rel_path.split('/')
+            name = '.'.join(chunks[:-1]) + chunks[-1][:-5]
+            #name = path[len(cache_path)+1:].replace('/', '.').replace('.meta', '').replace('..', '.')
+            print(name)
             try:
                 with open(os.path.join(path, 'job.json')) as fp:
-                    self.cache[name] = json.load(fp)
+                    self.cache[name] = json.load(fp).get('outputs')
                     if not self.cache[name]:
                         log.debug('Empty outputs for', name)
             except Exception as e:
