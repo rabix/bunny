@@ -10,6 +10,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
@@ -98,6 +99,11 @@ public class CacheServiceImpl implements CacheService {
       if (!cachedAppHash.equals(appHash)) {
         return null;
       }
+      
+      if (!cachedJob.getStatus().equals(JobStatus.COMPLETED)) {
+        return null;
+      }
+      
       File workingDir = storageConfig.getWorkingDir(job);
       File destinationCacheDir = new File(workingDir.getParentFile(), cacheDir.getName());
       destinationCacheDir.mkdirs();

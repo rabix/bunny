@@ -142,4 +142,23 @@ public class LinkRecordServiceImpl implements LinkRecordService {
     return fromDB;
   }
 
+  @Override
+  public List<LinkRecord> findBySourceAndSourceType(String jobId, String portId, LinkPortType varType, UUID rootId) {
+    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
+    List<LinkRecord> fromCache = Lists.transform(
+        cache.get(new LinkRecordCacheKey(rootId, jobId, portId, varType, null, null, varType)),
+        new Function<Cachable, LinkRecord>() {
+          @Override
+          public LinkRecord apply(Cachable input) {
+            return (LinkRecord) input;
+          }
+        });
+    ;
+    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, portId, varType, rootId);
+    Set<LinkRecord> result = new HashSet<>();
+    result.addAll(fromCache);
+    result.addAll(fromDB);
+    return new ArrayList<>(result);
+  }
+
 }

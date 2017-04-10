@@ -323,7 +323,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       for (VariableRecord inputVariable : inputVariables) {
         Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
         for (DAGLinkPort p : node.getInputPorts()) {
-          if (p.getId() == inputVariable.getPortId()) {
+          if (p.getId().equals(inputVariable.getPortId())) {
             if (p.getTransform() != null) {
               Object transform = p.getTransform();
               if (transform != null) {

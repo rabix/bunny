@@ -34,10 +34,6 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
 
   @Override
   public synchronized void updateBatch(Iterator<LinkRecord> records) {
-    while(records.hasNext()) {
-      LinkRecord record = records.next();
-      updateLinkRecord(record);
-    }
   }
 
   @Override
@@ -53,7 +49,6 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
 
   @Override 
   public synchronized int update(LinkRecord linkRecord) {
-    updateLinkRecord(linkRecord);
     return 1;
   }
 
@@ -125,24 +120,6 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
     return getBySource(sourceJobId, sourceJobPortId, rootId).size();
   }
   
-  private synchronized void updateLinkRecord(LinkRecord linkRecord) {
-//    List<LinkRecord> links = linkRecordRepository.get(linkRecord.getRootId());
-//    for (Iterator<LinkRecord> iterator = links.iterator(); iterator.hasNext();) {
-//      LinkRecord link = iterator.next();
-//      if(link.getRootId().equals(linkRecord.getRootId()) && 
-//          link.getSourceJobId().equals(linkRecord.getSourceJobId()) && 
-//          link.getSourceJobPort().equals(linkRecord.getSourceJobPort()) &&
-//          link.getSourceVarType().equals(linkRecord.getSourceVarType()) &&
-//          link.getDestinationJobId().equals(linkRecord.getDestinationJobId()) &&
-//          link.getDestinationJobPort().equals(linkRecord.getDestinationJobPort()) &&
-//          link.getDestinationVarType().equals(linkRecord.getDestinationVarType())) {
-//        iterator.remove();
-//        break;
-//      }
-//    }
-//    links.add(linkRecord);
-  }
-  
   private List<LinkRecord> getLinkRecords(UUID contextId) {
     List<LinkRecord> linkList = linkRecordRepository.get(contextId);
     if (linkList == null) {
@@ -150,6 +127,17 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
       linkRecordRepository.put(contextId, linkList);
     }
     return linkList;
+  }
+
+  @Override
+  public List<LinkRecord> getBySourceAndSourceType(String jobId, String portId, LinkPortType varType, UUID rootId) {
+    List<LinkRecord> result = new ArrayList<>();
+    for (LinkRecord lr : getLinkRecords(rootId)) {
+      if (lr.getSourceJobId().equals(jobId) && lr.getSourceJobPort().equals(portId) && lr.getSourceVarType().equals(varType)) {
+        result.add(lr);
+      }
+    }
+    return result;
   }
   
 }
