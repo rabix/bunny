@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,21 +15,21 @@ import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLInputPort;
 import org.rabix.bindings.cwl.bean.CWLJob;
+import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.helper.CWLBeanHelper;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
+import org.rabix.bindings.cwl.helper.CWLRuntimeHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
-import org.rabix.common.helper.EncodingHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
@@ -43,6 +42,10 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   @Override
   public CommandLine buildCommandLineObject(Job job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
+    
+    CWLRuntime remapedRuntime = CWLRuntimeHelper.remapTmpAndOutDir(cwlJob.getRuntime(), filePathMapper, job.getConfig());
+    cwlJob.setRuntime(remapedRuntime);
+    
     if (cwlJob.getApp().isExpressionTool()) {
       return null;
     }
@@ -197,6 +200,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     return result;
   }
   
+  @SuppressWarnings("rawtypes")
   private boolean hasInputBinding(CWLInputPort port){
     Object schema = port.getSchema();
       return ((schema instanceof Map<?,?>) && ((Map) schema).containsKey("inputBinding"));

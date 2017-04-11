@@ -16,18 +16,19 @@ import org.rabix.bindings.ProtocolCommandLineBuilder;
 import org.rabix.bindings.draft3.bean.Draft3CommandLineTool;
 import org.rabix.bindings.draft3.bean.Draft3InputPort;
 import org.rabix.bindings.draft3.bean.Draft3Job;
+import org.rabix.bindings.draft3.bean.Draft3Runtime;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
 import org.rabix.bindings.draft3.helper.Draft3BindingHelper;
 import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
 import org.rabix.bindings.draft3.helper.Draft3JobHelper;
+import org.rabix.bindings.draft3.helper.Draft3RuntimeHelper;
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.escape.Escaper;
@@ -50,6 +51,9 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     if (draft3Job.getApp().isExpressionTool()) {
       return null;
     }
+    
+    Draft3Runtime remapedRuntime = Draft3RuntimeHelper.remapTmpAndOutDir(draft3Job.getRuntime(), filePathMapper, job.getConfig());
+    draft3Job.setRuntime(remapedRuntime);
     
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) draft3Job.getApp();
     List<CommandLine.Part> commandLineParts = Lists.transform(buildCommandLineParts(draft3Job, workingDir, filePathMapper), (obj ->
