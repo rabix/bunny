@@ -27,7 +27,7 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
     this.receiveFromBackendHeartbeatQueue = new TransportQueueRabbitMQ(engineConfiguration.getExchange(), engineConfiguration.getExchangeType(), engineConfiguration.getHeartbeatRoutingKey());
 
     this.enableControlMesages = configuration.getBoolean("bunny.enable_backend_control_messages", false);
-    this.cleanup = configuration.getBoolean("bunny.cleanup_queues", false);
+    this.cleanup = configuration.getBoolean("cleaner.remove_queues", false);
     initialize();
   }
 
