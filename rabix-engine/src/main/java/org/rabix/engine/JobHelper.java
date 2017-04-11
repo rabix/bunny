@@ -160,7 +160,7 @@ public class JobHelper {
             continue;
           }
           for (DAGLinkPort p : node.getInputPorts()) {
-            if (p.getId().equals(inputVariable.getPortId())) {
+            if (p.getId() == inputVariable.getPortId()) {
               if (p.getTransform() != null) {
                 Object transform = p.getTransform();
                 if (transform != null) {

@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.engine.repository.IntermediaryFilesRepository;
 import org.rabix.engine.repository.JobRecordRepository;
 import org.rabix.engine.repository.JobRepository;
 import org.rabix.engine.repository.TransactionHelper;
@@ -34,17 +33,16 @@ public class StoreCleanupServiceImpl implements StoreCleanupService {
   
   private final JobRepository jobRepository;
   private final JobRecordRepository jobRecordRepository;
-  private final IntermediaryFilesRepository intermediaryFilesRepository;
 
   private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @Inject
-  public StoreCleanupServiceImpl(JobRepository jobRepository, JobRecordRepository jobRecordRepository, IntermediaryFilesRepository intermediaryFilesRepository, TransactionHelper transactionService, Configuration configuration) {
-    this.sleepPeriod = configuration.getLong("cleaner.db.period", DEFAULT_SLEEP);
+  public StoreCleanupServiceImpl(JobRepository jobRepository, JobRecordRepository jobRecordRepository,
+      TransactionHelper transactionService, Configuration configuration) {
+    this.sleepPeriod = configuration.getLong("db.delete_period", DEFAULT_SLEEP);
     this.jobRepository = jobRepository;
     this.jobRecordRepository = jobRecordRepository;
     this.transactionService = transactionService;
-    this.intermediaryFilesRepository = intermediaryFilesRepository;
   }
 
   public void start() {
@@ -64,8 +62,7 @@ public class StoreCleanupServiceImpl implements StoreCleanupService {
                   rootIds.add(rootJob.getRootId());
                 }
                 jobRepository.deleteByRootIds(rootIds);
-                intermediaryFilesRepository.deleteByRootIds(rootIds);
-
+                
                 int deleted = jobRecordRepository.deleteByStatus(JobState.COMPLETED);
                 logger.debug("Deleted {} completed Jobs", deleted);
                 return null;

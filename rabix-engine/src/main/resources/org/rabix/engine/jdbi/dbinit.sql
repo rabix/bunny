@@ -414,11 +414,3 @@ ALTER TABLE ONLY job_stats
 ALTER TABLE ONLY job_stats
     ADD CONSTRAINT job_stats_id_fkey FOREIGN KEY (root_id) REFERENCES job(id) ON DELETE CASCADE;
 --rollback ALTER TABLE ONLY job_stats DROP CONSTRAINT job_stats_id_fkey;
-
---changeset bunny:1487849040814-67 dbms:postgresql
-CREATE TABLE intermediary_files (
-    root_id   uuid  NOT NULL,
-    filename  text NOT NULL,
-    count     integer NOT NULL
-);
---rollback DROP TABLE intermediary_files

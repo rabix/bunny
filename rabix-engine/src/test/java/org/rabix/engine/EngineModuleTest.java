@@ -20,7 +20,6 @@ import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
-import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.ResourceHelper;
 import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.impl.InitEvent;
@@ -58,8 +57,7 @@ public class EngineModuleTest {
 
   @BeforeMethod(enabled=false)
   public void setUp() {
-    ConfigModule configModule = new ConfigModule(null, null);
-    injector = Guice.createInjector(new DummyConfigModule(), new EngineModule(configModule));
+    injector = Guice.createInjector(new DummyConfigModule(), new EngineModule());
     ep = injector.getInstance(EventProcessor.class);
 
     hf = injector.getInstance(HandlerFactory.class);

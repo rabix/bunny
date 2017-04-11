@@ -195,7 +195,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
         String source = sources.get(position);
         source = Draft2ToCWLConverter.convertSource(source);
         source = CWLSchemaHelper.normalizeId(source);
-        CWLDataLink dataLink = new CWLDataLink(source, destination, linkMerge, position + 1, true);
+        CWLDataLink dataLink = new CWLDataLink(source, destination, linkMerge, position + 1);
         workflow.addDataLink(dataLink);
       }
     }
@@ -216,7 +216,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
           source = Draft2ToCWLConverter.convertSource(source);
           
           source = CWLSchemaHelper.normalizeId(source);
-          CWLDataLink dataLink = new CWLDataLink(source, destination, linkMerge, position + 1, false);
+          CWLDataLink dataLink = new CWLDataLink(source, destination, linkMerge, position + 1);
           dataLinks.add(dataLink);
         }
       }
@@ -316,7 +316,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    * Process data links
    */
   private void processDataLinks(List<CWLDataLink> dataLinks, ApplicationPort port, CWLJob job, boolean strip) {
-    for (CWLDataLink dataLink : dataLinks) {    
+    for (CWLDataLink dataLink : dataLinks) {
       String source = dataLink.getSource();
       String destination = dataLink.getDestination();
       
@@ -332,7 +332,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       }
       
       // TODO fix
-      if (destination.equals(scatter) && (dataLink.getScattered() == null || !dataLink.getScattered())) {
+      if ((source.equals(scatter) || destination.equals(scatter)) && (dataLink.getScattered() == null || !dataLink.getScattered())) {
         dataLink.setScattered(port.getScatter());
       }
     }

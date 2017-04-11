@@ -73,7 +73,7 @@ public class CacheServiceImpl implements CacheService {
   }
   
   private int getNumberOfEventProcessors() {
-    return configuration.getInt("engine.event_processor.count", Runtime.getRuntime().availableProcessors());
+    return configuration.getInt("bunny.event_processor.count", Runtime.getRuntime().availableProcessors());
   }
   
 }

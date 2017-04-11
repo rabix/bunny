@@ -7,8 +7,8 @@ import com.google.inject.Inject;
 
 public class FileConfiguration {
   
-  public static final String CALCULATE_FILE_CHECKSUM = "executor.calculate_file_checksum";
-  public static final String CHECKSUM_ALGORITHM = "executor.checksum_algorithm";
+  public static final String CALCULATE_FILE_CHECKSUM = "rabix.calculate_file_checksum";
+  public static final String CHECKSUM_ALGORITHM = "rabix.checksum_algorithm";
 
   private final Configuration configuration;
 

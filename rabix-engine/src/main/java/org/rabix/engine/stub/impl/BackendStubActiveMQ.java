@@ -20,7 +20,7 @@ public class BackendStubActiveMQ extends BackendStub<TransportQueueActiveMQ, Bac
     this.receiveFromBackendQueue = new TransportQueueActiveMQ(backend.getFromBackendQueue());
     this.receiveFromBackendHeartbeatQueue = new TransportQueueActiveMQ(backend.getFromBackendHeartbeatQueue());
     
-    this.enableControlMesages = configuration.getBoolean("engine.enable_backend_control_messages", false);
+    this.enableControlMesages = configuration.getBoolean("bunny.enable_backend_control_messages", false);
   }
 
 }

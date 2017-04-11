@@ -2,9 +2,9 @@ package org.rabix.engine;
 
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.jdbi.JDBIRepositoryModule;
-import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.lru.dag.DAGCache;
+import org.rabix.engine.memory.InMemoryRepositoryModule;
+import org.rabix.engine.memory.InMemoryRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.processor.handler.impl.ContextStatusEventHandler;
@@ -33,17 +33,17 @@ import org.rabix.engine.service.impl.JobStatsRecordServiceImpl;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 
-public class EngineModule extends AbstractModule {
+public class EngineModuleLocal extends AbstractModule {
 
   @Override
   protected void configure() {
-    install(new JDBIRepositoryModule());
+    install(new InMemoryRepositoryModule());
+    bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
     
     bind(DAGCache.class).in(Scopes.SINGLETON);
     bind(DAGNodeDB.class).in(Scopes.SINGLETON);
     bind(AppDB.class).in(Scopes.SINGLETON);
-    bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
     bind(JobRecordService.class).to(JobRecordServiceImpl.class).in(Scopes.SINGLETON);
     bind(VariableRecordService.class).to(VariableRecordServiceImpl.class).in(Scopes.SINGLETON);
     bind(LinkRecordService.class).to(LinkRecordServiceImpl.class).in(Scopes.SINGLETON);

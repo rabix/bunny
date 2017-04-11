@@ -153,7 +153,6 @@ public class JobHandlerImpl implements JobHandler {
       
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
-      cacheService.cache(cachedJob);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -358,14 +357,7 @@ public class JobHandlerImpl implements JobHandler {
   }
   
   public void removeContainer() {
-    try {
-      if(isSuccessful()) {
-        containerHandler.removeContainer();
-      }
-    } catch (ExecutorException e) {
-      logger.debug("Failed to remove container");
-    }
-    
+    containerHandler.removeContainer();
   }
 
   private void uploadOutputFiles(final Job job, final Bindings bindings) throws BindingException, UploadServiceException {
@@ -402,9 +394,7 @@ public class JobHandlerImpl implements JobHandler {
     }
     try {
       containerHandler.stop();
-      if(isSuccessful()) {
-        containerHandler.removeContainer();
-      }
+      containerHandler.removeContainer();
     } catch (ContainerException e) {
       throw new ExecutorException("Failed to stop execution.", e);
     }

@@ -18,11 +18,11 @@ public class DockerConfigation {
   }
   
   public boolean isDockerSupported() {
-    return configuration.getBoolean("docker.enabled", false);
+    return configuration.getBoolean("backend.docker.enabled", false);
   }
   
   public boolean removeContainers() {
-    return configuration.getBoolean("docker.remove_containers", false);
+    return configuration.getBoolean("backend.docker.remove_containers", false);
   }
   
 }

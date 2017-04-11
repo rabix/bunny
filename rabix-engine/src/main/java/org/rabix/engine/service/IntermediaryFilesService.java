@@ -16,6 +16,8 @@ public interface IntermediaryFilesService {
 
   void handleUnusedFiles(Job job);
 
+  void dumpFiles();
+
   void handleContainerReady(Job containerJob, boolean keepInputFiles);
 
   void handleJobCompleted(Job job);

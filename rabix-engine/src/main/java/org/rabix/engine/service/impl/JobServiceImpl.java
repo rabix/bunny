@@ -100,11 +100,11 @@ public class JobServiceImpl implements JobService {
     this.engineStatusCallback = statusCallback;
     this.intermediaryFilesService = intermediaryFilesService;
     
-    deleteFilesUponExecution = configuration.getBoolean("engine.delete_files_upon_execution", false);
-    deleteIntermediaryFiles = configuration.getBoolean("engine.delete_intermediary_files", false);
-    keepInputFiles = configuration.getBoolean("engine.keep_input_files", true);
-    isLocalBackend = configuration.getBoolean("backend.local", false);
-    setResources = configuration.getBoolean("engine.set_resources", false);
+    deleteFilesUponExecution = configuration.getBoolean("rabix.delete_files_upon_execution", false);
+    deleteIntermediaryFiles = configuration.getBoolean("rabix.delete_intermediary_files", false);
+    keepInputFiles = configuration.getBoolean("rabix.keep_input_files", true);
+    isLocalBackend = configuration.getBoolean("local.backend", false);
+    setResources = configuration.getBoolean("bunny.set_resources", false);
     eventProcessor.start();
   }
   

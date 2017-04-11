@@ -24,26 +24,18 @@ public class CWLDataLink {
   
   @JsonProperty("linkMerge")
   private LinkMerge linkMerge;
-  
-  @JsonProperty("outputSource")
-  private boolean isOutputSource;
 
   @JsonCreator
   public CWLDataLink(@JsonProperty("source") String source, @JsonProperty("destination") String destination, @JsonProperty("linkMerge") LinkMerge linkMerge,
-      @JsonProperty("position") Integer position, @JsonProperty("outputSource") boolean isOutputSource) {
+      @JsonProperty("position") Integer position) {
     this.source = source;
     this.destination = destination;
     this.source = source;
     this.destination = destination;
     this.position = position;
     this.linkMerge = linkMerge;
-    this.isOutputSource = isOutputSource;
   }
 
-  public boolean isOutputSource() {
-    return isOutputSource;
-  }
-  
   public String getSource() {
     return source;
   }

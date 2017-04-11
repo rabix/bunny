@@ -17,10 +17,9 @@ public class InMemoryRepositoryRegistry extends TransactionHelper {
   InMemoryJobRepository memoryJobRepository;
   InMemoryLinkRecordRepository memoryLinkRecordRepository;
   InMemoryVariableRecordRepository memoryVariableRecordRepository;
-  InMemoryIntermediaryFilesRepository memoryIntermediaryFilesRepository;
   
   @Inject
-  public InMemoryRepositoryRegistry(InMemoryAppRepository memoryAppRepository, InMemoryBackendRepository memoryBackendRepository, InMemoryContextRecordRepository memoryContextRecordRepository, InMemoryDAGRepository memoryDAGRepository, InMemoryEventRepository memoryEventRepository, InMemoryJobRecordRepository memoryJobRecordRepository, InMemoryJobRepository memoryJobRepository, InMemoryLinkRecordRepository memoryLinkRecordRepository, InMemoryVariableRecordRepository memoryVariableRecordRepository, InMemoryJobStatsRecordRepository memoryJobStatsRecordRepository, InMemoryIntermediaryFilesRepository memoryIntermediaryFilesRepository) {
+  public InMemoryRepositoryRegistry(InMemoryAppRepository memoryAppRepository, InMemoryBackendRepository memoryBackendRepository, InMemoryContextRecordRepository memoryContextRecordRepository, InMemoryDAGRepository memoryDAGRepository, InMemoryEventRepository memoryEventRepository, InMemoryJobRecordRepository memoryJobRecordRepository, InMemoryJobRepository memoryJobRepository, InMemoryLinkRecordRepository memoryLinkRecordRepository, InMemoryVariableRecordRepository memoryVariableRecordRepository, InMemoryJobStatsRecordRepository memoryJobStatsRecordRepository) {
     this.memoryAppRepository = memoryAppRepository;
     this.memoryBackendRepository = memoryBackendRepository;
     this.memoryContextRecordRepository = memoryContextRecordRepository;
@@ -31,7 +30,6 @@ public class InMemoryRepositoryRegistry extends TransactionHelper {
     this.memoryLinkRecordRepository = memoryLinkRecordRepository;
     this.memoryVariableRecordRepository = memoryVariableRecordRepository;
     this.memoryJobStatsRecordRepository = memoryJobStatsRecordRepository;
-    this.memoryIntermediaryFilesRepository = memoryIntermediaryFilesRepository;
   }
   
   public InMemoryAppRepository applicationRepository() {
@@ -72,10 +70,6 @@ public class InMemoryRepositoryRegistry extends TransactionHelper {
 
   public InMemoryEventRepository eventRepository() {
     return memoryEventRepository;
-  }
-  
-  public InMemoryIntermediaryFilesRepository intermediaryFilesRepository() {
-    return memoryIntermediaryFilesRepository;
   }
   
   public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws Exception {

@@ -32,10 +32,25 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
   private ExecutorService receiverThreadPool = Executors.newCachedThreadPool();
 
   private boolean durable;
-  
+
   public TransportPluginRabbitMQ(Configuration configuration) throws TransportPluginException {
     this.configuration = configuration;
-    initConnection();
+
+    while (true) {
+      try {
+        initConnection();
+        logger.info("TransportPluginRabbitMQ created");
+        break;
+      } catch (TransportPluginException e1) {
+        logger.info("RabbitMQ connect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
+      }
+
+      try {
+        Thread.sleep(RETRY_TIMEOUT*1000);
+      } catch (InterruptedException e1) {
+        // Ignore
+      }
+    }
   }
 
   public void initConnection() throws TransportPluginException {
@@ -80,7 +95,23 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
       }
     }
   }
-
+  public void initQueue(TransportQueueRabbitMQ queue) throws TransportPluginException{
+    Channel channel = null;
+    try {
+      channel = connection.createChannel();
+      channel.queueDeclare(queue.getQueueName(), durable, false, false, null);
+      channel.queueBind(queue.getQueueName(), queue.getExchange(), queue.getRoutingKey());
+    } catch (Exception e) {
+      throw new TransportPluginException("Failed to bind RabbitMQ queue " + queue, e);
+    } finally {
+      if (channel != null) {
+        try {
+          channel.close();
+        } catch (Exception ignore) {
+        }
+      }
+    }
+  }
   /**
    * {@link TransportPluginRabbitMQ} extension for Exchange initialization
    */
@@ -211,9 +242,6 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
           try {
             if (initChannel) {
               final Channel channel = connection.createChannel();
-
-              channel.queueDeclare(queueName, durable, false, false, null);
-              channel.queueBind(queueName, queue.getExchange(), queue.getRoutingKey());
               consumer = new QueueingConsumer(channel) {
                 @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                   String message = new String(body, "UTF-8");
@@ -234,9 +262,9 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
             logger.error("Failed to deserialize message payload", e);
             errorCallback.handleError(e);
           } catch (Exception e) {
-            logger.error("Failed to receive a message from " + queue, e);
             while (!isStopped) {
               try {
+                logger.error("Failed to receive a message from " + queue, e);
                 Thread.sleep(RETRY_TIMEOUT * 1000);
               } catch (InterruptedException e1) {
                 // Ignore

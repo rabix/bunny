@@ -75,6 +75,7 @@ public class IntermediaryFilesHelper {
         intermediaryFilesService.decrementFiles(job.getRootId(), inputs);
         intermediaryFilesService.handleUnusedFiles(job);
       }
+      intermediaryFilesService.dumpFiles();
     }
   }
   

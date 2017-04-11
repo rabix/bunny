@@ -57,7 +57,7 @@ public class ExecutorModule extends AbstractModule {
   @Provides
   @Singleton
   public ExecutorService provideExecutorService(Injector injector, Configuration configuration) {
-    boolean mockBackendEnabled = configuration.getBoolean("backend.mock.enabled", false);
+    boolean mockBackendEnabled = configuration.getBoolean("mock_backend.enabled", false);
     if (mockBackendEnabled) {
       return injector.getInstance(MockExecutorServiceImpl.class);
     } else {
