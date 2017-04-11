@@ -62,6 +62,8 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
   private final JobService jobService;
   private final BackendService backendService;
 
+  private final boolean backendLocal;
+
   private final TransactionHelper transactionHelper;
   private final StoreCleanupService storeCleanupService;
   
@@ -78,7 +80,9 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
     this.schedulerCallback = schedulerCallback;
     this.transactionHelper = repositoriesFactory;
     this.storeCleanupService = storeCleanupService;
-    this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
+    this.heartbeatPeriod = configuration.getLong("cleaner.backend.period", DEFAULT_HEARTBEAT_PERIOD);
+    this.backendLocal = configuration.getBoolean("backend.local");
+
   }
 
   @Override
@@ -267,7 +271,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
                 Long heartbeatInfo = backendService.getHeartbeatInfo(backend.getId());
 
-                if (heartbeatInfo == null || currentTime - heartbeatInfo > heartbeatPeriod) {
+                if ((heartbeatInfo == null || currentTime - heartbeatInfo > heartbeatPeriod) && !backendLocal) {
                   backendStub.stop();
                   backend.setStatus(BackendStatus.INACTIVE);
                   backendIterator.remove();

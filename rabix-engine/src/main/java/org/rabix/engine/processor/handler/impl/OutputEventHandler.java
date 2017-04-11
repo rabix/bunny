@@ -134,54 +134,52 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
       }
       
-      List<LinkRecord> links = linkService.findBySource(sourceVariable.getJobId(), sourceVariable.getPortId(), event.getContextId());
+      List<LinkRecord> links = linkService.findBySourceAndSourceType(sourceVariable.getJobId(), sourceVariable.getPortId(), LinkPortType.OUTPUT, event.getContextId());
       for (LinkRecord link : links) {
         if (!isValueFromScatterStrategy) {
           value = null; // reset
         }
-        List<VariableRecord> destinationVariables = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), event.getContextId());
+        VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), link.getDestinationVarType(), event.getContextId());
 
         JobRecord destinationJob = null;
         boolean isDestinationPortScatterable = false;
-        for (VariableRecord destinationVariable : destinationVariables) {
-          switch (destinationVariable.getType()) {
-          case INPUT:
-            destinationJob = jobRecordService.find(destinationVariable.getJobId(), destinationVariable.getRootId());
-            isDestinationPortScatterable = destinationJob.isScatterPort(destinationVariable.getPortId());
-            if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
-              value = value != null ? value : event.getValue();
-              int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-              Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+        switch (destinationVariable.getType()) {
+        case INPUT:
+          destinationJob = jobRecordService.find(destinationVariable.getJobId(), destinationVariable.getRootId());
+          isDestinationPortScatterable = destinationJob.isScatterPort(destinationVariable.getPortId());
+          if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
+            value = value != null ? value : event.getValue();
+            int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
+            Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+            eventProcessor.send(updateInputEvent);
+          } else {
+            if (sourceJob.isOutputPortReady(event.getPortId())) {
+              value = value != null ? value : variableService.getValue(sourceVariable);
+              Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
               eventProcessor.send(updateInputEvent);
-            } else {
-              if (sourceJob.isOutputPortReady(event.getPortId())) {
-                value = value != null ? value : variableService.getValue(sourceVariable);
-                Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
-                eventProcessor.send(updateInputEvent);
-              }
             }
-            break;
-          case OUTPUT:
-            destinationJob = jobRecordService.find(destinationVariable.getJobId(), destinationVariable.getRootId());
-            if (destinationJob.getOutputPortIncoming(event.getPortId()) > 1) {
-              if (sourceJob.isOutputPortReady(event.getPortId())) {
-                value = value != null? value : variableService.getValue(sourceVariable);
-                Event updateInputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
-                eventProcessor.send(updateInputEvent);
-              }
-            } else {
-              value = value != null? value : event.getValue();
-              if (isValueFromScatterStrategy) {
-                Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, false, 1, 1, event.getEventGroupId(), event.getProducedByNode());
-                eventProcessor.send(updateOutputEvent);
-              } else {
-                int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-                Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
-                eventProcessor.send(updateOutputEvent);
-              }
-            }
-            break;
           }
+          break;
+        case OUTPUT:
+          destinationJob = jobRecordService.find(destinationVariable.getJobId(), destinationVariable.getRootId());
+          if (destinationJob.getOutputPortIncoming(event.getPortId()) > 1) {
+            if (sourceJob.isOutputPortReady(event.getPortId())) {
+              value = value != null ? value : variableService.getValue(sourceVariable);
+              Event updateInputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+              eventProcessor.send(updateInputEvent);
+            }
+          } else {
+            value = value != null ? value : event.getValue();
+            if (isValueFromScatterStrategy) {
+              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, false, 1, 1, event.getEventGroupId(), event.getProducedByNode());
+              eventProcessor.send(updateOutputEvent);
+            } else {
+              int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
+              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+              eventProcessor.send(updateOutputEvent);
+            }
+          }
+          break;
         }
       }
       return;

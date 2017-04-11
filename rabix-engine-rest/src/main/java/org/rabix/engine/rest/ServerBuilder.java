@@ -71,9 +71,9 @@ public class ServerBuilder {
 
   public Server build() {
     ServiceLocator locator = BootstrapUtils.newServiceLocator();
-
+    ConfigModule configModule = new ConfigModule(configDir, null);
     Injector injector = BootstrapUtils.newInjector(locator,
-        Arrays.asList(new ServletModule(), new ConfigModule(configDir, null), new EngineModule(), new AbstractModule() {
+        Arrays.asList(new ServletModule(), new EngineModule(configModule), new AbstractModule() {
           @Override
           protected void configure() {
             bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);

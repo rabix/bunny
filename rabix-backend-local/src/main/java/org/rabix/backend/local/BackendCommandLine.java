@@ -46,7 +46,7 @@ import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
-import org.rabix.engine.EngineModuleLocal;
+import org.rabix.engine.EngineModule;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
@@ -168,7 +168,7 @@ public class BackendCommandLine {
       }
 
       Map<String, Object> configOverrides = new HashMap<>();
-      configOverrides.put("backend.cleaner.heartbeatPeriodMills", 5000L);
+      configOverrides.put("cleaner.backend.period", 5000L);
       String executionDirPath = commandLine.getOptionValue("basedir");
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
@@ -188,7 +188,7 @@ public class BackendCommandLine {
         configOverrides.put("backend.execution.directory", workingDir);
       }
       if (commandLine.hasOption("no-container")) {
-        configOverrides.put("backend.docker.enabled", false);
+        configOverrides.put("docker.enabled", false);
       }
       if (commandLine.hasOption("cache-dir")) {
         String cacheDir = commandLine.getOptionValue("cache-dir");
@@ -197,7 +197,7 @@ public class BackendCommandLine {
           VerboseLogger.log(String.format("Cache directory %s does not exist.", cacheDirFile.getCanonicalPath()));
           printUsageAndExit(posixOptions);
         }
-        configOverrides.put("cache.is_enabled", true);
+        configOverrides.put("cache.enabled", true);
         configOverrides.put("cache.directory", cacheDirFile.getCanonicalPath());
       }
 
@@ -233,7 +233,7 @@ public class BackendCommandLine {
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
           new SimpleFTPModule(),
-          new EngineModuleLocal(),
+          new EngineModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {

@@ -52,6 +52,10 @@ public abstract class LinkRecordRepository implements CachableRepository {
   
   public abstract int update(LinkRecord linkRecord);
   
+  public abstract List<LinkRecord> getBySource(String sourceJobId, UUID rootId);
+  
+  public abstract int getBySourceCount(String sourceJobId, String sourceJobPortId, UUID rootId);
+  
   public abstract List<LinkRecord> getBySource(String sourceJobId, String sourceJobPortId, UUID rootId);
   
   public abstract List<LinkRecord> getBySourceJobId(String sourceJobId, UUID rootId);
@@ -59,5 +63,8 @@ public abstract class LinkRecordRepository implements CachableRepository {
   public abstract List<LinkRecord> getBySourceAndSourceType(String sourceJobId, LinkPortType sourceType, UUID rootId);
   
   public abstract List<LinkRecord> getBySourceAndDestinationType(String sourceJobId, String sourceJobPortId, LinkPortType destinationType, UUID rootId);
+
+  public abstract List<LinkRecord> getBySourceAndSourceType(String jobId, String portId, LinkPortType varType, UUID rootId);
+
   
 }
