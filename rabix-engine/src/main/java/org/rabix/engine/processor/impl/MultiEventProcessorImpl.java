@@ -26,7 +26,7 @@ public class MultiEventProcessorImpl implements EventProcessor {
   
   @Inject
   public MultiEventProcessorImpl(Provider<EventProcessorImpl> singleEventProcessorProvider, Configuration configuration) {
-    this.eventProcessorCount = configuration.getInt("bunny.event_processor.count", Runtime.getRuntime().availableProcessors());
+    this.eventProcessorCount = configuration.getInt("engine.event_processor.count", Runtime.getRuntime().availableProcessors());
     this.eventProcessors = new ConcurrentHashMap<>(eventProcessorCount);
     for (int i = 0; i < eventProcessorCount; i++) {
       this.eventProcessors.put(i, singleEventProcessorProvider.get());
