@@ -30,11 +30,15 @@ public class CWLRuntimeHelper {
   }
   
   public static CWLRuntime remapTmpAndOutDir(CWLRuntime runtime, FilePathMapper filePathMapper, Map<String, Object> config) throws BindingException {
-    String outdir;
-    String tmpdir;
+    String outdir = null;
+    String tmpdir = null;
     try {
-      outdir = filePathMapper.map(runtime.getOutdir(), config);
-      tmpdir = filePathMapper.map(runtime.getTmpdir(), config);
+      if(runtime.getOutdir() != null) {
+        outdir = filePathMapper.map(runtime.getOutdir(), config);
+      }
+      if(runtime.getTmpdir() != null) {
+        tmpdir = filePathMapper.map(runtime.getTmpdir(), config);
+      }
     } catch (FileMappingException e) {
       throw new BindingException(e);
     }
