@@ -25,7 +25,7 @@ public class DAGCache extends LRUCache<String, DAGNode> {
   
   @Inject
   public DAGCache(Configuration configuration) {
-    super(CACHE_NAME, configuration.getInteger("dagcache.size", DEFAULT_CACHE_SIZE));
+    super(CACHE_NAME, configuration.getInteger("cache.dag.size", DEFAULT_CACHE_SIZE));
     logger.debug("{} initialized with size={}", CACHE_NAME, getCacheSize());
   }
   

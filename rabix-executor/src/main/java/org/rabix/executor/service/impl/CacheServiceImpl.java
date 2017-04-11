@@ -42,7 +42,7 @@ public class CacheServiceImpl implements CacheService {
 
   @Override
   public boolean isCacheEnabled() {
-    return configuration.getBoolean("cache.is_enabled", false);
+    return configuration.getBoolean("cache.enabled", false);
   }
   
   @Override

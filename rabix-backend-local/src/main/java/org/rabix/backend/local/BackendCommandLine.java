@@ -170,7 +170,7 @@ public class BackendCommandLine {
       }
 
       Map<String, Object> configOverrides = new HashMap<>();
-      configOverrides.put("backend.cleaner.heartbeatPeriodMills", 5000L);
+      configOverrides.put("cleaner.backend.period", 5000L);
       String executionDirPath = commandLine.getOptionValue("basedir");
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
@@ -190,7 +190,7 @@ public class BackendCommandLine {
         configOverrides.put("backend.execution.directory", workingDir);
       }
       if (commandLine.hasOption("no-container")) {
-        configOverrides.put("backend.docker.enabled", false);
+        configOverrides.put("docker.enabled", false);
       }
       if (commandLine.hasOption("cache-dir")) {
         String cacheDir = commandLine.getOptionValue("cache-dir");
@@ -199,7 +199,7 @@ public class BackendCommandLine {
           VerboseLogger.log(String.format("Cache directory %s does not exist.", cacheDirFile.getCanonicalPath()));
           printUsageAndExit(posixOptions);
         }
-        configOverrides.put("cache.is_enabled", true);
+        configOverrides.put("cache.enabled", true);
         configOverrides.put("cache.directory", cacheDirFile.getCanonicalPath());
       }
 
