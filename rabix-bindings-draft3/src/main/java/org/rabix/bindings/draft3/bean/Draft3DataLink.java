@@ -24,18 +24,27 @@ public class Draft3DataLink {
   
   @JsonProperty("linkMerge")
   private LinkMerge linkMerge;
+  
+  @JsonProperty("outputSource")
+  private boolean isOutputSource;
 
   @JsonCreator
-  public Draft3DataLink(@JsonProperty("source") String source, @JsonProperty("destination") String destination, @JsonProperty("linkMerge") LinkMerge linkMerge,
-      @JsonProperty("position") Integer position) {
+  public Draft3DataLink(@JsonProperty("source") String source, @JsonProperty("destination") String destination,
+      @JsonProperty("linkMerge") LinkMerge linkMerge, @JsonProperty("position") Integer position,
+      @JsonProperty("outputSource") Boolean isOutputSource) {
     this.source = source;
     this.destination = destination;
     this.source = source;
     this.destination = destination;
     this.position = position;
+    this.isOutputSource = isOutputSource;
     this.linkMerge = linkMerge;
   }
 
+  public boolean isOutputSource() {
+    return isOutputSource;
+  }
+  
   public String getSource() {
     return source;
   }

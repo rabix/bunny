@@ -317,7 +317,6 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    */
   private void processDataLinks(List<CWLDataLink> dataLinks, ApplicationPort port, CWLJob job, boolean strip) {
     for (CWLDataLink dataLink : dataLinks) {    
-      String source = dataLink.getSource();
       String destination = dataLink.getDestination();
       
       String scatter = null;

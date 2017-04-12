@@ -1,11 +1,13 @@
 package org.rabix.bindings.cwl.bean;
 
 import org.rabix.bindings.model.LinkMerge;
+import org.rabix.common.json.BeanPropertyView;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CWLDataLink {
@@ -26,6 +28,7 @@ public class CWLDataLink {
   private LinkMerge linkMerge;
   
   @JsonProperty("outputSource")
+  @JsonView(BeanPropertyView.Full.class)
   private boolean isOutputSource;
 
   @JsonCreator
