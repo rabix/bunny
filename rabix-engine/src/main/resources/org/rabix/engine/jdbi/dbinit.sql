@@ -27,7 +27,8 @@ CREATE TYPE context_record_status AS ENUM (
 --changeset bunny:1487849040814-4 dbms:postgresql
 CREATE TYPE event_status AS ENUM (
     'PROCESSED',
-    'UNPROCESSED'
+    'UNPROCESSED',
+    'FAILED'
 );
 --rollback DROP TYPE event_status;
 
