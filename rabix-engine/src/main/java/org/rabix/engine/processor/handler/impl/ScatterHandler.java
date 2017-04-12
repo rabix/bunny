@@ -127,7 +127,7 @@ public class ScatterHandler {
         outputs.put(outputVariableRecord.getPortId(), output);
       }
       jobRecordService.update(job);
-      eventProcessor.send(new JobStatusEvent(job.getId(), JobState.COMPLETED, job.getRootId(), outputs, event.getEventGroupId(), event.getProducedByNode()));
+      eventProcessor.send(new JobStatusEvent(job.getId(), job.getRootId(), JobState.COMPLETED,  outputs, event.getEventGroupId(), event.getProducedByNode()));
       return;
     }
   }
