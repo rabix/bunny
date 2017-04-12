@@ -90,14 +90,15 @@ public class EventProcessorImpl implements EventProcessor {
             transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
               public Void call() throws TransactionException {
-                handle(eventReference.get());
+                if (!handle(eventReference.get())) {
+                  return null;
+                }
                 cacheService.flush(eventReference.get().getContextId());
                 
                 if (checkForReadyJobs(eventReference.get())) {
                   Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(eventReference.get().getEventGroupId());
                   jobService.handleJobsReady(readyJobs, eventReference.get().getContextId(), eventReference.get().getProducedByNode());  
                 }
-//                eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.PROCESSED);
                 eventRepository.delete(eventReference.get().getEventGroupId());
                 return null;
               }
@@ -105,10 +106,10 @@ public class EventProcessorImpl implements EventProcessor {
           } catch (Exception e) {
             logger.error("EventProcessor failed to process event {}.", eventReference.get(), e);
             try {
+              eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.FAILED);
               invalidateContext(eventReference.get().getContextId());
-            } catch (EventHandlerException ehe) {
+            } catch (Exception ehe) {
               logger.error("Failed to invalidate Context {}.", eventReference.get().getContextId(), ehe);
-              stop();
             }
           }
         }
@@ -131,13 +132,13 @@ public class EventProcessorImpl implements EventProcessor {
     return false;
   }
   
-  private void handle(Event event) throws TransactionException {
+  private boolean handle(Event event) throws TransactionException {
     while (event != null) {
       try {
         ContextRecord context = contextRecordService.find(event.getContextId());
         if (context != null && (context.getStatus().equals(ContextStatus.FAILED) || context.getStatus().equals(ContextStatus.ABORTED))) {
           logger.info("Skip event {}. Context {} has been invalidated.", event, context.getId());
-          return;
+          return false;
         }
         handlerFactory.get(event.getType()).handle(event);
       } catch (EventHandlerException e) {
@@ -145,6 +146,7 @@ public class EventProcessorImpl implements EventProcessor {
       }
       event = events.poll();
     }
+    return true;
   }
   
   /**

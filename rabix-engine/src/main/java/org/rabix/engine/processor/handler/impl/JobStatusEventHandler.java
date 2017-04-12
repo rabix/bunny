@@ -217,7 +217,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
           jobService.handleJobFailed(failedJob);
           
-          eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobState.FAILED, null, event.getEventGroupId(), event.getProducedByNode()));
+          eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobState.FAILED, event.getEventGroupId(), event.getProducedByNode()));
         } catch (Exception e) {
           throw new EventHandlerException("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
         }
@@ -271,7 +271,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             ready(childJobRecord, event);  
           }
           else {
-            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), rootId, JobState.READY, null, event.getEventGroupId(), event.getProducedByNode());
+            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), rootId, JobState.READY, event.getEventGroupId(), event.getProducedByNode());
             eventProcessor.send(jobStatusEvent);
           }
         }
