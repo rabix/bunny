@@ -147,7 +147,7 @@ public class JobServiceImpl implements JobService {
               return null;
             }
             JobStateValidator.checkState(jobRecord, JobState.FAILED);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, null, job.getId(), job.getName());
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, job.getMessage(), job.getId(), job.getName());
             break;
           case ABORTED:
             if (JobState.ABORTED.equals(jobRecord.getState())) {
@@ -156,7 +156,7 @@ public class JobServiceImpl implements JobService {
             JobStateValidator.checkState(jobRecord, JobState.ABORTED);
             Job rootJob = jobRepository.get(jobRecord.getRootId());
             handleJobRootAborted(rootJob);
-            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobState.ABORTED, null, rootJob.getId(), rootJob.getName());
+            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobState.ABORTED, rootJob.getId(), rootJob.getName());
             break;
           case COMPLETED:
             if (JobState.COMPLETED.equals(jobRecord.getState())) {

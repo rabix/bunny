@@ -422,3 +422,7 @@ CREATE TABLE intermediary_files (
     count     integer NOT NULL
 );
 --rollback DROP TABLE intermediary_files
+
+--changeset bunny:1487849040814-68 dbms:postgresql
+ALTER TABLE event ADD COLUMN message text;
+--rollback ALTER TABLE event drop column message;
