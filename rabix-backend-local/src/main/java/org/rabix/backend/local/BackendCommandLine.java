@@ -47,12 +47,14 @@ import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
 import org.rabix.engine.EngineModule;
+import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
+import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobService;
@@ -409,7 +411,8 @@ public class BackendCommandLine {
       final JobService jobService = injector.getInstance(JobService.class);
       final BackendService backendService = injector.getInstance(BackendService.class);
       final ExecutorService executorService = injector.getInstance(ExecutorService.class);
-
+      final ContextRecordService contextRecordService = injector.getInstance(ContextRecordService.class);
+      
       BackendLocal backendLocal = new BackendLocal();
       backendLocal = backendService.create(backendLocal);
       executorService.initialize(backendLocal);
@@ -438,17 +441,18 @@ public class BackendCommandLine {
         @Override
         @SuppressWarnings("unchecked")
         public void run() {
-          Job rootJob = jobService.get(job.getId());
-
-          while (!Job.isFinished(rootJob)) {
+          ContextRecord contextRecord = contextRecordService.find(job.getId());
+          
+          while (contextRecord == null || contextRecord.getStatus().equals(ContextRecord.ContextStatus.RUNNING)) {
             try {
               Thread.sleep(1000);
-              rootJob = jobService.get(job.getId());
+              contextRecord = contextRecordService.find(job.getId());
             } catch (InterruptedException e) {
               logger.error("Failed to wait for root Job to finish", e);
               throw new RuntimeException(e);
             }
           }
+          Job rootJob = jobService.get(job.getId());
           if (rootJob.getStatus().equals(JobStatus.COMPLETED)) {
             try {
               try {
