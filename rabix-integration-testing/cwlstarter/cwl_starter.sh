@@ -1,5 +1,5 @@
 #!/bin/bash
-virtualenv -p $(which python) env/testenv
+virtualenv -p $(which python3) env/testenv
 source env/testenv/bin/activate
 pip install -U pip setuptools wheel
 pip install pyopenssl ndg-httpsclient pyasn1
