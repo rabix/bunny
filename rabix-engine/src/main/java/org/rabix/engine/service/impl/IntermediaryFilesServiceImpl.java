@@ -82,10 +82,15 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
     Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
     for(String path: checkFiles) {
-      logger.debug("Decrementing file with path={}", path);
-      Integer count = filesForRootId.get(path) - 1;
-      filesForRootId.put(path, count);
-      intermediaryFilesRepository.update(rootId, path, count);
+      if(filesForRootId.containsKey(path)) {
+        logger.debug("Decrementing file with path={}", path);
+        Integer count = filesForRootId.get(path) - 1;
+        filesForRootId.put(path, count);
+        intermediaryFilesRepository.update(rootId, path, count);
+      }
+      else {
+        logger.debug("File with path={} not detected", path);
+      }
     }
   }
   
