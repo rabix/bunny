@@ -1,9 +1,14 @@
 package org.rabix.bindings.cwl.helper;
 
+import java.util.Map;
+
+import org.rabix.bindings.BindingException;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLResourceRequirement;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Resources;
 
 
@@ -22,6 +27,22 @@ public class CWLRuntimeHelper {
       runtime = new CWLRuntime(null, null, null, null, null, null);
     }
     return runtime;
+  }
+  
+  public static CWLRuntime remapTmpAndOutDir(CWLRuntime runtime, FilePathMapper filePathMapper, Map<String, Object> config) throws BindingException {
+    String outdir = null;
+    String tmpdir = null;
+    try {
+      if(runtime.getOutdir() != null) {
+        outdir = filePathMapper.map(runtime.getOutdir(), config);
+      }
+      if(runtime.getTmpdir() != null) {
+        tmpdir = filePathMapper.map(runtime.getTmpdir(), config);
+      }
+    } catch (FileMappingException e) {
+      throw new BindingException(e);
+    }
+    return new CWLRuntime(runtime.getCores(), runtime.getRam(), outdir, tmpdir, runtime.getOutdirSize(), runtime.getTmpdirSize());
   }
   
   public static CWLRuntime setOutdir(CWLRuntime runtime, String outdir) {
