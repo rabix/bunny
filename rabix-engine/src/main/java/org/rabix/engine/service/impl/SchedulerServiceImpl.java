@@ -77,7 +77,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
     this.transactionHelper = repositoriesFactory;
     this.storeCleanupService = storeCleanupService;
     this.heartbeatPeriod = configuration.getLong("cleaner.backend.period", DEFAULT_HEARTBEAT_PERIOD);
-    this.backendLocal = configuration.getBoolean("backend.local");
+    this.backendLocal = configuration.getBoolean("backend.local", false);
 
   }
 
