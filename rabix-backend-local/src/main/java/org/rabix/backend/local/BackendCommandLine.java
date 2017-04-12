@@ -68,7 +68,6 @@ import org.rabix.engine.service.impl.JobServiceImpl;
 import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
-import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.executor.config.StorageConfiguration;
@@ -97,7 +96,6 @@ import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
 import org.rabix.transport.backend.impl.BackendLocal;
-import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -416,15 +414,7 @@ public class BackendCommandLine {
       BackendLocal backendLocal = new BackendLocal();
       backendLocal = backendService.create(backendLocal);
       executorService.initialize(backendLocal);
-      BackendStub<?, ?, ?> backendStub;
-      try {
-        backendStub = injector.getInstance(BackendStubFactory.class).create(backendLocal);
-        schedulerService.addBackendStub(backendStub);
-        schedulerService.start();
-      } catch (TransportPluginException e2) {
-        // TODO Auto-generated catch block
-        e2.printStackTrace();
-      }
+      schedulerService.start();
       Object commonInputs = null;
       try {
         commonInputs = bindings.translateToCommon(inputs);
