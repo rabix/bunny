@@ -320,44 +320,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobFailed(final Job failedJob){
     logger.warn("Job {}, rootId: {} failed: {}", failedJob.getName(), failedJob.getRootId(), failedJob.getMessage());
-    if (isLocalBackend) {
-      synchronized (stoppingRootIds) {
-        if (stoppingRootIds.contains(failedJob.getRootId())) {
-          return;
-        }
-        stoppingRootIds.add(failedJob.getRootId());
 
-        try {
-          stop(failedJob.getRootId());
-        } catch (JobServiceException e) {
-          logger.error("Failed to stop Root job " + failedJob.getRootId(), e);
-        }
-        executorService.submit(new Runnable() {
-          @Override
-          public void run() {
-            while (true) {
-              try {
-                boolean exit = true;
-                for (Job job : jobRepository.getByRootId(failedJob.getRootId())) {
-                  if (!job.isRoot() && !isFinished(job.getStatus())) {
-                    exit = false;
-                    break;
-                  }
-                }
-                if (exit) {
-                  handleJobRootFailed(failedJob);
-                  break;
-                }
-                Thread.sleep(TimeUnit.SECONDS.toMillis(2));
-              } catch (Exception e) {
-                logger.error("Failed to stop root Job " + failedJob.getRootId(), e);
-                break;
-              }
-            }
-          }
-        });
-      }
-    }
     if (deleteIntermediaryFiles) {
       intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()), keepInputFiles);
     }
@@ -368,16 +331,6 @@ public class JobServiceImpl implements JobService {
     }
   }
 
-  private boolean isFinished(JobStatus jobStatus) {
-    switch (jobStatus) {
-      case COMPLETED:
-      case FAILED:
-      case ABORTED:
-        return true;
-      default:
-        return false;
-    }
-  }
   @Override
   public void handleJobContainerReady(Job containerJob) {
     logger.info("Container job {} rootId: {} id ready.", containerJob.getName(), containerJob.getRootId());
