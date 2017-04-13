@@ -56,8 +56,6 @@ public class LocalContainerHandler implements ContainerHandler {
 
   @Override
   public synchronized void start() throws ContainerException {
-
-
     try {
       VerboseLogger.log(String.format("Local execution (no container) has started"));
       
@@ -97,7 +95,8 @@ public class LocalContainerHandler implements ContainerHandler {
 
       processBuilder.directory(workingDir);
 
-      if (!commandLine.isRunInShell()) {
+      boolean runInShell = commandLineString.startsWith("/bin/bash") || commandLineString.startsWith("/bin/sh");
+      if (runInShell || !commandLine.isRunInShell()) {
         List<String> parts = commandLine.getParts();
         processBuilder.command(parts);
 
@@ -123,6 +122,8 @@ public class LocalContainerHandler implements ContainerHandler {
       throw new ContainerException("Failed to start application", e);
     }
   }
+  
+  
 
   private ProcessBuilder.Redirect redirect(File workingDir, String path, boolean write) {
     if (StringUtils.isEmpty(path)) {
@@ -138,17 +139,6 @@ public class LocalContainerHandler implements ContainerHandler {
     return ProcessBuilder.Redirect.from(res);
   }
   
-//  private String normalizeCommandLine(String commandLine) {
-//    commandLine = commandLine.trim();
-//    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
-//      commandLine = commandLine.substring(1, commandLine.length() - 1);
-//    }
-//    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
-//      commandLine = commandLine.substring(1, commandLine.length() - 1);
-//    }
-//    return commandLine;
-//  }
-
   @SuppressWarnings("unchecked")
   private <T extends Requirement> T getRequirement(List<Requirement> requirements, Class<T> clazz) {
     for (Requirement requirement : requirements) {
