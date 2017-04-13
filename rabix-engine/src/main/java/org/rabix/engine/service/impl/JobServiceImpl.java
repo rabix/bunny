@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -15,9 +14,7 @@ import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.dag.DAGNode;
-import org.rabix.common.SystemEnvironmentHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.db.AppDB;
@@ -259,7 +256,7 @@ public class JobServiceImpl implements JobService {
   
   @Override
   public Set<Job> getReady(EventProcessor eventProcessor, UUID rootId) throws JobServiceException {
-    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, rootId);
+    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, rootId, setResources);
   }
   
   @Override
@@ -294,22 +291,6 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode){
-    if (setResources) {
-      for (Job job : jobs) {
-        long numberOfCores;
-        long memory;
-        if (job.getConfig() != null) {
-          numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : SystemEnvironmentHelper.getNumberOfCores();
-          memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
-        } else {
-          numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
-          memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
-        }
-        Resources resources = new Resources(numberOfCores, memory, null, true, null, null, null, null);
-        job = Job.cloneWithResources(job, resources);
-        jobRepository.update(job);
-      }
-    }
     try {
       engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
     } catch (EngineStatusCallbackException e) {

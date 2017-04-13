@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -75,12 +76,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final JobRepository jobRepository;
   private final JobService jobService;
 
+  private final boolean setResources;
+
   @Inject
   public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobRecordService jobRecordService,
       final LinkRecordService linkRecordService, final VariableRecordService variableRecordService,
       final ContextRecordService contextRecordService, final EventProcessor eventProcessor,
       final ScatterHandler scatterHelper, final JobRepository jobRepository, final JobService jobService,
-      final JobStatsRecordService jobStatsRecordService) {
+      final JobStatsRecordService jobStatsRecordService, final Configuration configuration) {
     this.dagNodeDB = dagNodeDB;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
@@ -93,6 +96,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.jobService = jobService;
 
     this.jobRepository = jobRepository;
+    this.setResources = configuration.getBoolean("engine.set_resources", false);
   }
 
   @Override
@@ -124,7 +128,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
         Job job = null;
         try {
-          job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
+          job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, setResources);
           if (!job.getName().equals(InternalSchemaHelper.ROOT_NAME)) {
             jobRepository.insert(job, event.getEventGroupId(), event.getProducedByNode());
           } else {
@@ -145,7 +149,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
         }
         jobService.handleJobContainerReady(containerJob);
-
       }
       break;
     case RUNNING:

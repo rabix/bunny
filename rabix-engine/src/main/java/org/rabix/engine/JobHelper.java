@@ -14,10 +14,12 @@ import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
+import org.rabix.common.SystemEnvironmentHelper;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.logging.DebugAppender;
@@ -82,14 +84,14 @@ public class JobHelper {
     return null;
   }
   
-  public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, UUID rootId) {
+  public static Set<Job> createReadyJobs(JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, UUID rootId, boolean setResources) {
     Set<Job> jobs = new HashSet<>();
     List<JobRecord> jobRecords = jobRecordService.findReady(rootId);
 
     if (!jobRecords.isEmpty()) {
       for (JobRecord job : jobRecords) {
         try {
-          jobs.add(createReadyJob(job, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB));
+          jobs.add(createReadyJob(job, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, setResources));
         } catch (BindingException e) {
           logger.debug("Failed to create job", e);
         }
@@ -99,8 +101,22 @@ public class JobHelper {
     return jobs;
   }
   
-  public static Job createReadyJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB) throws BindingException {
-    return createJob(job, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, true);
+  public static Job createReadyJob(JobRecord jobRecord, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB, boolean setResources) throws BindingException {
+    Job job = createJob(jobRecord, status, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, true);
+    if (setResources) {
+      long numberOfCores;
+      long memory;
+      if (job.getConfig() != null) {
+        numberOfCores = job.getConfig().get("allocatedResources.cpu") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.cpu")) : SystemEnvironmentHelper.getNumberOfCores();
+        memory = job.getConfig().get("allocatedResources.mem") != null ? Long.parseLong((String) job.getConfig().get("allocatedResources.mem")) : SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+      } else {
+        numberOfCores = SystemEnvironmentHelper.getNumberOfCores();
+        memory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
+      }
+      Resources resources = new Resources(numberOfCores, memory, null, true, null, null, null, null);
+      return Job.cloneWithResources(job, resources);
+    }
+    return job;
   }
   
   public static Job createCompletedJob(JobRecord job, JobStatus status, JobRecordService jobRecordService, VariableRecordService variableRecordService, LinkRecordService linkRecordService, ContextRecordService contextRecordService, DAGNodeDB dagNodeDB, AppDB appDB) throws BindingException {
