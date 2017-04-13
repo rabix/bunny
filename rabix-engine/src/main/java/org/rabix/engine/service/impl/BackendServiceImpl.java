@@ -1,13 +1,13 @@
 package org.rabix.engine.service.impl;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.BackendRepository.BackendStatus;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.service.BackendService;
@@ -16,6 +16,7 @@ import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.Backend.BackendStatus;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.BackendConfiguration;
@@ -57,8 +58,9 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            backendRepository.insert(backend.getId(), backend, new Timestamp(System.currentTimeMillis()), BackendStatus.ACTIVE);
-            startBackend(populated);
+            backendRepository.insert(backend.getId(), backend, Timestamp.from(Instant.now()));
+            BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
+            scheduler.addBackendStub(backendStub);
             logger.info("Backend {} registered.", populated.getId());
             return backend;
           } catch (BackendServiceException e) {
@@ -72,20 +74,20 @@ public class BackendServiceImpl implements BackendService {
   }
   
   public void startBackend(Backend backend) throws BackendServiceException {
-    BackendStub<?, ?, ?> backendStub;
     try {
-      backendStub = backendStubFactory.create(backend);
+      backendRepository.updateStatus(backend.getId(), BackendStatus.ACTIVE);
+      updateHeartbeatInfo(backend.getId(), Timestamp.from(Instant.now()));
+      scheduler.addBackendStub(backendStubFactory.create(backend));
     } catch (TransportPluginException e) {
       throw new BackendServiceException(e);
     }
-    scheduler.addBackendStub(backendStub);
   }
   
   private <T extends Backend> T populate(T backend) throws BackendServiceException {
     if (backend.getId() == null) {
       backend.setId(generateUniqueBackendId());
     }
-    
+    backend.setStatus(BackendStatus.ACTIVE);
     switch (backend.getType()) {
       case RABBIT_MQ:
         BackendRabbitMQ backendRabbitMQ = (BackendRabbitMQ) backend;
@@ -154,6 +156,11 @@ public class BackendServiceImpl implements BackendService {
   @Override
   public void stopBackend(Backend backend) throws BackendServiceException {
     backendRepository.updateStatus(backend.getId(), BackendStatus.INACTIVE);
+  }
+
+  @Override
+  public List<Backend> getAllBackends() {
+    return backendRepository.getAll();
   }
   
 }

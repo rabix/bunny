@@ -26,8 +26,8 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
     this.receiveFromBackendQueue = new TransportQueueRabbitMQ(engineConfiguration.getExchange(), engineConfiguration.getExchangeType(), engineConfiguration.getReceiveRoutingKey());
     this.receiveFromBackendHeartbeatQueue = new TransportQueueRabbitMQ(engineConfiguration.getExchange(), engineConfiguration.getExchangeType(), engineConfiguration.getHeartbeatRoutingKey());
 
-    this.enableControlMesages = configuration.getBoolean("bunny.enable_backend_control_messages", false);
-    
+    this.cleanup = configuration.getBoolean("cleaner.remove_queues", false);
+    this.enableControlMesages = configuration.getBoolean("engine.enable_backend_control_messages", false);
     initialize();
   }
 
@@ -38,6 +38,11 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
     try {
       transportPlugin.initializeExchange(backend.getBackendConfiguration().getExchange(), backend.getBackendConfiguration().getExchangeType());
       transportPlugin.initializeExchange(backend.getEngineConfiguration().getExchange(), backend.getEngineConfiguration().getExchangeType());
+      transportPlugin.initQueue(sendToBackendQueue);
+      transportPlugin.initQueue(receiveFromBackendQueue);
+      transportPlugin.initQueue(receiveFromBackendHeartbeatQueue);
+      if(enableControlMesages)
+        transportPlugin.initQueue(sendToBackendControlQueue);
     } catch (TransportPluginException e) {
       // do nothing
     }
@@ -45,8 +50,14 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
 
   @Override
   public void stop() {
-      transportPlugin.deleteQueue(this.sendToBackendQueue.getQueueName());
-      transportPlugin.deleteQueue(this.sendToBackendControlQueue.getQueueName());
+    super.stop();
+    if(this.cleanup){
+      transportPlugin.deleteQueue(sendToBackendQueue.getQueueName());
+      transportPlugin.deleteQueue(receiveFromBackendHeartbeatQueue.getQueueName());
+      transportPlugin.deleteQueue(receiveFromBackendQueue.getQueueName());
+      if(enableControlMesages)
+        transportPlugin.deleteQueue(sendToBackendControlQueue.getQueueName());
+    }
   }
 
 }

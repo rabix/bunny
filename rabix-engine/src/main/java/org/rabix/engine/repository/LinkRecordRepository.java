@@ -64,5 +64,7 @@ public abstract class LinkRecordRepository implements CachableRepository {
   
   public abstract List<LinkRecord> getBySourceAndDestinationType(String sourceJobId, String sourceJobPortId, LinkPortType destinationType, UUID rootId);
 
+  public abstract List<LinkRecord> getBySourceAndSourceType(String jobId, String portId, LinkPortType varType, UUID rootId);
+
   
 }

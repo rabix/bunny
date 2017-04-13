@@ -19,6 +19,7 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
+import org.rabix.engine.repository.BackendRepository;
 import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
@@ -30,6 +31,7 @@ import org.rabix.engine.service.SchedulerService.SchedulerCallback;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStub.HeartbeatCallback;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.Backend.BackendStatus;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
@@ -59,8 +61,8 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
   private final JobService jobService;
   private final BackendService backendService;
-  
-  private final boolean backendLocal; 
+
+  private final boolean backendLocal;
 
   private final TransactionHelper transactionHelper;
   private final StoreCleanupService storeCleanupService;
@@ -70,15 +72,17 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
   private final AtomicReference<Set<SchedulerMessage>> messages = new AtomicReference<Set<SchedulerMessage>>(Collections.<SchedulerMessage>emptySet());
   
   @Inject
-  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService, TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback) {
+  public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService,
+      TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback,
+      BackendRepository backendRepository) {
     this.jobService = jobService;
     this.backendService = backendService;
     this.schedulerCallback = schedulerCallback;
     this.transactionHelper = repositoriesFactory;
     this.storeCleanupService = storeCleanupService;
-    this.heartbeatPeriod = configuration.getLong("backend.cleaner.heartbeatPeriodMills", DEFAULT_HEARTBEAT_PERIOD);
-    this.backendLocal = configuration.getBoolean("local.backend");
-    
+    this.heartbeatPeriod = configuration.getLong("cleaner.backend.period", DEFAULT_HEARTBEAT_PERIOD);
+    this.backendLocal = configuration.getBoolean("backend.local", false);
+
   }
 
   @Override
@@ -169,7 +173,15 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       backendStub.start(new HeartbeatCallback() {
         @Override
         public void save(HeartbeatInfo info) throws Exception {
-          backendService.updateHeartbeatInfo(info.getId(), new Timestamp(info.getTimestamp()));
+          if (backendStub.getBackend().getStatus() == BackendStatus.INACTIVE) {
+            Backend backend = backendStub.getBackend();
+            info.setId(backend.getId());
+            backendService.updateHeartbeatInfo(info);
+            backendStubs.add(backendStub);
+            backendStub.getBackend().setStatus(BackendStatus.ACTIVE);
+            logger.debug("Awakening backend: " + backend.getId());
+          }
+          backendService.updateHeartbeatInfo(backendStub.getBackend().getId(), new Timestamp(info.getTimestamp()));
         }
       }, new ReceiveCallback<Job>() {
         @Override
@@ -191,7 +203,8 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
       dispatcherLock.unlock();
     }
   }
-
+  
+  
   public void freeBackend(Job rootJob) {
     try {
       dispatcherLock.lock();
@@ -260,6 +273,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
                 if ((heartbeatInfo == null || currentTime - heartbeatInfo > heartbeatPeriod) && !backendLocal) {
                   backendStub.stop();
+                  backend.setStatus(BackendStatus.INACTIVE);
                   backendIterator.remove();
                   logger.info("Removing Backend {}", backendStub.getBackend().getId());
 

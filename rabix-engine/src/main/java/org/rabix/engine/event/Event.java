@@ -45,7 +45,8 @@ public interface Event {
 
   public enum EventStatus {
     PROCESSED,
-    UNPROCESSED
+    UNPROCESSED,
+    FAILED
   }
   
   /**

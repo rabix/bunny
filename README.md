@@ -17,7 +17,7 @@ Once the download has been completed, unpack the downloaded archive.
 The following command will automatically download and unpack the archive in the newly created `rabix` directory:
 
 ```sh
-wget https://github.com/rabix/bunny/releases/download/v1.0.0-rc3/rabix-1.0.0-rc3.tar.gz && tar -xvf rabix-1.0.0-rc3.tar.gz
+wget https://github.com/rabix/bunny/releases/download/v1.0.0-rc4/rabix-1.0.0-rc4.tar.gz && tar -xvf rabix-1.0.0-rc4.tar.gz
 ```
 
 

@@ -153,6 +153,7 @@ public class JobHandlerImpl implements JobHandler {
       
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
+      cacheService.cache(cachedJob);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));

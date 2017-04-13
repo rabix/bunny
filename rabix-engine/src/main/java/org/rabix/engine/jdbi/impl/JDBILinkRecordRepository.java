@@ -78,6 +78,10 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and destination_type=:destination_type::port_type and context_id=:context_id")
   public abstract List<LinkRecord> getBySourceAndDestinationType(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("destination_type") LinkPortType destinationType, @Bind("context_id") UUID rootId);
   
+  @Override
+  @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and source_type=:source_type::port_type and context_id=:context_id")
+  public abstract List<LinkRecord> getBySourceAndSourceType(@Bind("source_job_id") String jobId, @Bind("source_job_port_id") String portId, @Bind("source_type") LinkPortType varType, @Bind("context_id") UUID rootId);
+  
   @BindingAnnotation(BindLinkRecord.LinkBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })

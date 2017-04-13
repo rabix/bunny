@@ -23,6 +23,7 @@ public class CWLCommandLineToolTest {
     String inputJson = ResourceHelper.readResource(this.getClass(), "1st-tool.cwl");
 
     CWLJob cwlJob = BeanSerializer.deserialize(inputJson, CWLJob.class);
+    cwlJob.setRuntime(new CWLRuntime(null, null, "/path/to/outdir", "/path/to/tmpdir", null, null));
 
     List<Object> expectedList = new LinkedList<Object>();
     expectedList.add("echo");

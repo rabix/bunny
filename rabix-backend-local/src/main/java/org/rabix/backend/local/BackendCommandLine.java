@@ -47,12 +47,14 @@ import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
 import org.rabix.engine.EngineModule;
+import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
+import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobService;
@@ -66,7 +68,6 @@ import org.rabix.engine.service.impl.JobServiceImpl;
 import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
-import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.executor.config.StorageConfiguration;
@@ -95,7 +96,6 @@ import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
 import org.rabix.transport.backend.impl.BackendLocal;
-import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +170,7 @@ public class BackendCommandLine {
       }
 
       Map<String, Object> configOverrides = new HashMap<>();
-      configOverrides.put("backend.cleaner.heartbeatPeriodMills", 5000L);
+      configOverrides.put("cleaner.backend.period", 5000L);
       String executionDirPath = commandLine.getOptionValue("basedir");
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
@@ -190,7 +190,7 @@ public class BackendCommandLine {
         configOverrides.put("backend.execution.directory", workingDir);
       }
       if (commandLine.hasOption("no-container")) {
-        configOverrides.put("backend.docker.enabled", false);
+        configOverrides.put("docker.enabled", false);
       }
       if (commandLine.hasOption("cache-dir")) {
         String cacheDir = commandLine.getOptionValue("cache-dir");
@@ -199,7 +199,7 @@ public class BackendCommandLine {
           VerboseLogger.log(String.format("Cache directory %s does not exist.", cacheDirFile.getCanonicalPath()));
           printUsageAndExit(posixOptions);
         }
-        configOverrides.put("cache.is_enabled", true);
+        configOverrides.put("cache.enabled", true);
         configOverrides.put("cache.directory", cacheDirFile.getCanonicalPath());
       }
 
@@ -409,19 +409,12 @@ public class BackendCommandLine {
       final JobService jobService = injector.getInstance(JobService.class);
       final BackendService backendService = injector.getInstance(BackendService.class);
       final ExecutorService executorService = injector.getInstance(ExecutorService.class);
-
+      final ContextRecordService contextRecordService = injector.getInstance(ContextRecordService.class);
+      
       BackendLocal backendLocal = new BackendLocal();
       backendLocal = backendService.create(backendLocal);
       executorService.initialize(backendLocal);
-      BackendStub<?, ?, ?> backendStub;
-      try {
-        backendStub = injector.getInstance(BackendStubFactory.class).create(backendLocal);
-        schedulerService.addBackendStub(backendStub);
-        schedulerService.start();
-      } catch (TransportPluginException e2) {
-        // TODO Auto-generated catch block
-        e2.printStackTrace();
-      }
+      schedulerService.start();
       Object commonInputs = null;
       try {
         commonInputs = bindings.translateToCommon(inputs);
@@ -438,17 +431,18 @@ public class BackendCommandLine {
         @Override
         @SuppressWarnings("unchecked")
         public void run() {
-          Job rootJob = jobService.get(job.getId());
-
-          while (!Job.isFinished(rootJob)) {
+          ContextRecord contextRecord = contextRecordService.find(job.getId());
+          
+          while (contextRecord == null || contextRecord.getStatus().equals(ContextRecord.ContextStatus.RUNNING)) {
             try {
               Thread.sleep(1000);
-              rootJob = jobService.get(job.getId());
+              contextRecord = contextRecordService.find(job.getId());
             } catch (InterruptedException e) {
               logger.error("Failed to wait for root Job to finish", e);
               throw new RuntimeException(e);
             }
           }
+          Job rootJob = jobService.get(job.getId());
           if (rootJob.getStatus().equals(JobStatus.COMPLETED)) {
             try {
               try {
@@ -571,7 +565,7 @@ public class BackendCommandLine {
   }
   
   private static void printVersionAndExit(Options posixOptions) {
-    System.out.println("Rabix 1.0.0-RC3");
+    System.out.println("Rabix 1.0.0-RC4");
     System.exit(0);
   }
 
