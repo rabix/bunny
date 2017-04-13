@@ -12,7 +12,7 @@ public class TESResources {
   @JsonProperty("preemptible")
   private boolean preemptible;
   @JsonProperty("minimumRamGb")
-  private Integer minimumRamGb;
+  private Double minimumRamGb;
   @JsonProperty("volumes")
   private List<TESVolume> volumes;
   @JsonProperty("zones")
@@ -20,7 +20,7 @@ public class TESResources {
 
   @JsonCreator
   public TESResources(@JsonProperty("minimumCpuCores") Integer minimumCpuCores,
-      @JsonProperty("preemptible") boolean preemptible, @JsonProperty("minimumRamGb") Integer minimumRamGb,
+      @JsonProperty("preemptible") boolean preemptible, @JsonProperty("minimumRamGb") Double minimumRamGb,
       @JsonProperty("volumes") List<TESVolume> volumes, @JsonProperty("zones") String zones) {
     this.minimumCpuCores = minimumCpuCores;
     this.preemptible = preemptible;
@@ -45,11 +45,11 @@ public class TESResources {
     this.preemptible = preemptible;
   }
 
-  public Integer getMinimumRamGb() {
+  public Double getMinimumRamGb() {
     return minimumRamGb;
   }
 
-  public void setMinimumRamGb(Integer minimumRamGb) {
+  public void setMinimumRamGb(Double minimumRamGb) {
     this.minimumRamGb = minimumRamGb;
   }
 
