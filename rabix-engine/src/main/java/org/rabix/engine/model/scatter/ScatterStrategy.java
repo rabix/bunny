@@ -4,7 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import org.rabix.bindings.BindingException;
 import org.rabix.engine.service.VariableRecordService;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -17,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface ScatterStrategy {
 
-  void enable(String port, Object value, Integer position, Integer sizePerPort);
+  void enable(String port, Object value, Integer position, Integer sizePerPort) throws ScatterStrategyException;
 
   void commit(List<RowMapping> mappings);
   
@@ -25,7 +24,7 @@ public interface ScatterStrategy {
   
   boolean isBlocking();
   
-  List<RowMapping> enabled() throws BindingException;
+  List<RowMapping> enabled() throws ScatterStrategyException;
   
   LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId);
   

@@ -20,6 +20,7 @@ import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.model.scatter.PortMapping;
 import org.rabix.engine.model.scatter.RowMapping;
 import org.rabix.engine.model.scatter.ScatterStrategy;
+import org.rabix.engine.model.scatter.ScatterStrategyException;
 import org.rabix.engine.service.VariableRecordService;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -89,7 +90,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public synchronized void enable(String port, Object value, Integer position, Integer sizePerPort) {
+  public synchronized void enable(String port, Object value, Integer position, Integer sizePerPort) throws ScatterStrategyException {
     LinkedList<Integer> positionList = positions.get(port);
     positionList = expand(positionList, position);
     positionList.set(position - 1, position);
@@ -198,38 +199,43 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public synchronized List<RowMapping> enabled() throws BindingException {
+  public synchronized List<RowMapping> enabled() throws ScatterStrategyException {
     List<RowMapping> result = new LinkedList<>();
     LinkedList<LinkedList<Integer>> mapping = new LinkedList<>();
     for (Entry<String, LinkedList<Integer>> positionEntry : positions.entrySet()) {
       mapping.add(positionEntry.getValue());
     }
-    LinkedList<LinkedList<Integer>> newMapping = cartesianProduct(mapping);
-
-    for (int i = 0; i < newMapping.size(); i++) {
-      LinkedList<Integer> indexes = newMapping.get(i);
-      if (!hasNull(indexes)) {
-        Combination combination = getCombination(indexes);
-        if (combination == null) {
-          combination = new Combination(combinations.size() + 1, false, indexes);
-          combinations.add(combination);
-        }
-        if (!combination.enabled) {
-          List<PortMapping> portMappings = new LinkedList<>();
-
-          int positionIndex = 1;
-          for (Entry<String, LinkedList<Object>> valueEntry : values.entrySet()) {
-            String port = valueEntry.getKey();
-            int position = combination.indexes.get(positionIndex - 1);
-            Object value = valueEntry.getValue().get(position - 1);
-            portMappings.add(new PortMapping(port, value));
-            positionIndex++;
+    LinkedList<LinkedList<Integer>> newMapping;
+    try {
+      newMapping = cartesianProduct(mapping);
+      
+      for (int i = 0; i < newMapping.size(); i++) {
+        LinkedList<Integer> indexes = newMapping.get(i);
+        if (!hasNull(indexes)) {
+          Combination combination = getCombination(indexes);
+          if (combination == null) {
+            combination = new Combination(combinations.size() + 1, false, indexes);
+            combinations.add(combination);
           }
-          result.add(new RowMapping(combination.position, portMappings));
+          if (!combination.enabled) {
+            List<PortMapping> portMappings = new LinkedList<>();
+
+            int positionIndex = 1;
+            for (Entry<String, LinkedList<Object>> valueEntry : values.entrySet()) {
+              String port = valueEntry.getKey();
+              int position = combination.indexes.get(positionIndex - 1);
+              Object value = valueEntry.getValue().get(position - 1);
+              portMappings.add(new PortMapping(port, value));
+              positionIndex++;
+            }
+            result.add(new RowMapping(combination.position, portMappings));
+          }
         }
       }
+      return result;
+    } catch (BindingException e) {
+      throw new ScatterStrategyException(e);
     }
-    return result;
   }
 
   private boolean hasNull(LinkedList<Integer> list) {
