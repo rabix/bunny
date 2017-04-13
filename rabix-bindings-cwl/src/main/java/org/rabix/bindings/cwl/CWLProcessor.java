@@ -73,7 +73,7 @@ public class CWLProcessor implements ProtocolProcessor {
       inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-      inputs = getInputSecondaryFiles(cwlJob, inputs, workingDir);
+      // inputs = getInputSecondaryFiles(cwlJob, inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       
       @SuppressWarnings("unchecked")

@@ -19,6 +19,7 @@ import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.model.scatter.PortMapping;
 import org.rabix.engine.model.scatter.RowMapping;
 import org.rabix.engine.model.scatter.ScatterStrategy;
+import org.rabix.engine.model.scatter.ScatterStrategyException;
 import org.rabix.engine.service.VariableRecordService;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -79,7 +80,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
     }
   }
   
-  public void enable(String port, Object value, Integer position, Integer sizePerPort) {
+  public void enable(String port, Object value, Integer position, Integer sizePerPort) throws ScatterStrategyException {
     Preconditions.checkNotNull(port);
     Preconditions.checkNotNull(position);
     
