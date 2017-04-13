@@ -18,9 +18,14 @@
 				<exclude>**/pom.xml</exclude>
 				<exclude>**/src/**</exclude>
 				<exclude>**/data/**</exclude>
+                <exclude>**/bin/**</exclude>
 				<exclude>**/conf/**</exclude>
 				<exclude>**/lib/**</exclude>
 				<exclude>**/.*/**</exclude>
+                <exclude>**/.settings/**</exclude>
+                <exclude>**/.classpath</exclude>
+                <exclude>**/.gitignore</exclude>
+                <exclude>**/.project</exclude>
 				<exclude>**/pom.xml.versionsBackup</exclude>
 				<exclude>**/${project.build.directory}/**</exclude>
 			</excludes>
