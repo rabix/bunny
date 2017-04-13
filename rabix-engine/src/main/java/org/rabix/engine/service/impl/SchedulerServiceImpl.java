@@ -77,7 +77,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
   
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService,
-      TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback,
+      TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback, ReceiveCallback<Job> jobReceiver,
       BackendRepository backendRepository) {
     this.jobService = jobService;
     this.backendService = backendService;
