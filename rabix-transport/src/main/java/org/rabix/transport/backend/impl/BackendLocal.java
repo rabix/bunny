@@ -1,9 +1,11 @@
 package org.rabix.transport.backend.impl;
 
+import org.rabix.common.json.BeanPropertyView;
 import org.rabix.transport.backend.Backend;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 
 public class BackendLocal extends Backend {
 
@@ -13,12 +15,16 @@ public class BackendLocal extends Backend {
   public final static String RECEIVE_FROM_BACKEND_HEARTBEAT_QUEUE = "fromBackendHeartbeatQueue";
   
   @JsonProperty("to_backend_queue")
+  @JsonView(BeanPropertyView.Partial.class)
   private String toBackendQueue;
   @JsonProperty("to_backend_control_queue")
+  @JsonView(BeanPropertyView.Partial.class)
   private String toBackendControlQueue;
   @JsonProperty("from_backend_queue")
+  @JsonView(BeanPropertyView.Partial.class)
   private String fromBackendQueue;
   @JsonProperty("from_backend_heartbeat_queue")
+  @JsonView(BeanPropertyView.Partial.class)
   private String fromBackendHeartbeatQueue;
   
   public BackendLocal() {

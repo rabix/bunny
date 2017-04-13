@@ -41,7 +41,10 @@ public class JobFitterImpl implements JobFitter {
       return true;
     }
     ResourceRequirement resourceRequirement = bindings.getResourceRequirement(job);
-
+    if(resourceRequirement == null){
+      return true;
+    }
+    
     boolean cpuFits = true;
     Long cpu = resourceRequirement.getCpuMin();
     if (cpu != null && cpu > availableCores) {

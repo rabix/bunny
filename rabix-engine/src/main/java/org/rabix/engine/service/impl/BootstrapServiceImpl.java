@@ -1,18 +1,19 @@
 package org.rabix.engine.service.impl;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.BackendRepository.BackendStatus;
 import org.rabix.engine.repository.EventRepository;
 import org.rabix.engine.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BootstrapService;
 import org.rabix.engine.service.BootstrapServiceException;
 import org.rabix.transport.backend.Backend;
+import org.rabix.transport.backend.Backend.BackendStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -25,6 +26,7 @@ public class BootstrapServiceImpl implements BootstrapService {
   private TransactionHelper transactionHelper;
   
   private EventProcessor eventProcessor;
+  private final static Logger logger = LoggerFactory.getLogger(BootstrapServiceImpl.class);
   
   @Inject
   public BootstrapServiceImpl(TransactionHelper transactionHelper, EventRepository eventRepository, EventProcessor eventProcessor, BackendService backendService, BackendRepository backendRepository) {
@@ -43,8 +45,8 @@ public class BootstrapServiceImpl implements BootstrapService {
           List<Backend> activeBackends = backendRepository.getByStatus(BackendStatus.ACTIVE);
           
           for (Backend backend : activeBackends) {
-            backendRepository.updateHeartbeatInfo(backend.getId(), new Timestamp(System.currentTimeMillis()));
             backendService.startBackend(backend);
+            logger.debug("Awakening backend: " + backend.getId());
           }
           
           List<Event> events = eventRepository.findUnprocessed();
