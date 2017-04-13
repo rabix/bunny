@@ -89,19 +89,13 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
 
         if (sourceJob.isRoot()) {
-          Map<String, Object> outputs = new HashMap<>();
-          List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
-          for (VariableRecord outputVariable : outputVariables) {
-            Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
-            outputs.put(outputVariable.getPortId(), value);
-          }
           Job rootJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
-          jobService.handleJobRootPartiallyCompleted(rootJob, event.getProducedByNode());
-
-          if(sourceJob.isRoot() && sourceJob.isContainer()) {
-            // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
-            eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId(), event.getProducedByNode()));
-            jobService.handleJobCompleted(rootJob);
+          if (!event.isFromScatter() || (event.getNumberOfScattered() == sourceVariable.getNumberOfTimesUpdated())) {
+            jobService.handleJobRootPartiallyCompleted(rootJob, event.isFromScatter() ? InternalSchemaHelper.getJobIdFromScatteredId(event.getProducedByNode()) : event.getProducedByNode());
+          }
+          if (sourceJob.isContainer()) {
+            eventProcessor.send(
+                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), event.getProducedByNode()));
           }
           return;
         }
@@ -114,9 +108,9 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
       }
     }
-    
-    if (sourceJob.isRoot()) {
-      jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.getProducedByNode());
+
+    if(sourceJob.isRoot() && (!event.isFromScatter() || (event.getNumberOfScattered()==sourceVariable.getNumberOfTimesUpdated()))){
+        jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.isFromScatter() ? InternalSchemaHelper.getJobIdFromScatteredId(event.getProducedByNode()) : event.getProducedByNode());
     }
     
     Object value = null;
