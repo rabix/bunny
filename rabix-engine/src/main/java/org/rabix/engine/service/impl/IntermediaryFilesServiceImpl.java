@@ -43,41 +43,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   }
 
   @Override
-  public void addOrIncrement(UUID rootId, FileValue file, Integer usage) {
-    Set<String> paths = new HashSet<String>();
-    extractPathsFromFileValue(paths, file);
-    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
-    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
-    for(String path: paths) {
-      if(filesForRootId.containsKey(path)) {
-        logger.debug("Increment file usage counter: " + path + ": " + ((Integer) filesForRootId.get(path) + usage));
-        filesForRootId.put(path, filesForRootId.get(path) + usage);
-        intermediaryFilesRepository.update(rootId, path, filesForRootId.get(path) + usage);
-      }
-      else {
-        logger.debug("Adding file usage counter: " + path + ": " + usage);
-        filesForRootId.put(path, usage);
-        intermediaryFilesRepository.insert(rootId, path, usage);
-      }
-    }
-  }
-  
-  protected Set<String> getUnusedFiles(UUID rootId) {
-    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
-    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
-    Set<String> unusedFiles = new HashSet<String>();
-    for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
-      Entry<String, Integer> entry = it.next();
-      if(entry.getValue() == 0) {
-        unusedFiles.add(entry.getKey());
-        intermediaryFilesRepository.delete(rootId, entry.getKey());
-        it.remove();
-      }
-    }
-    return unusedFiles;
-  }
-
-  @Override
   public void decrementFiles(UUID rootId, Set<String> checkFiles) {
     List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
     Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
@@ -90,19 +55,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
       }
       else {
         logger.debug("File with path={} not detected", path);
-      }
-    }
-  }
-  
-  @Override
-  public void jobFailed(UUID rootId, Set<String> rootInputs) {
-    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
-    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
-    for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
-      Entry<String, Integer> fileEntry = it.next();
-      if(!rootInputs.contains(fileEntry.getKey())) {
-        logger.debug("Removing onJobFailed: " + fileEntry.getKey());
-        filesForRootId.put(fileEntry.getKey(), 0);
       }
     }
   }
@@ -179,7 +131,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
       }
     }
   }
-  
 
   @Override
   public void handleJobFailed(Job job, Job rootJob, boolean keepInputFiles) {
@@ -194,6 +145,19 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     }
     jobFailed(job.getRootId(), rootInputs);
     handleUnusedFiles(job);
+  }
+  
+  @Override
+  public void jobFailed(UUID rootId, Set<String> rootInputs) {
+    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
+    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
+    for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
+      Entry<String, Integer> fileEntry = it.next();
+      if(!rootInputs.contains(fileEntry.getKey())) {
+        logger.debug("Removing onJobFailed: " + fileEntry.getKey());
+        filesForRootId.put(fileEntry.getKey(), 0);
+      }
+    }
   }
   
   private Map<String, Integer> convertToMap(List<IntermediaryFileEntity> filesForRootId) {
@@ -211,4 +175,40 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
       extractPathsFromFileValue(paths, f);
     }
   }
+  
+  @Override
+  public void addOrIncrement(UUID rootId, FileValue file, Integer usage) {
+    Set<String> paths = new HashSet<String>();
+    extractPathsFromFileValue(paths, file);
+    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
+    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
+    for(String path: paths) {
+      if(filesForRootId.containsKey(path)) {
+        logger.debug("Increment file usage counter: " + path + ": " + ((Integer) filesForRootId.get(path) + usage));
+        filesForRootId.put(path, filesForRootId.get(path) + usage);
+        intermediaryFilesRepository.update(rootId, path, filesForRootId.get(path) + usage);
+      }
+      else {
+        logger.debug("Adding file usage counter: " + path + ": " + usage);
+        filesForRootId.put(path, usage);
+        intermediaryFilesRepository.insert(rootId, path, usage);
+      }
+    }
+  }
+  
+  protected Set<String> getUnusedFiles(UUID rootId) {
+    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
+    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
+    Set<String> unusedFiles = new HashSet<String>();
+    for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
+      Entry<String, Integer> entry = it.next();
+      if(entry.getValue() == 0) {
+        unusedFiles.add(entry.getKey());
+        intermediaryFilesRepository.delete(rootId, entry.getKey());
+        it.remove();
+      }
+    }
+    return unusedFiles;
+  }
+  
 }
