@@ -91,6 +91,7 @@ public class EventProcessorImpl implements EventProcessor {
               @Override
               public Void call() throws TransactionException {
                 if (!handle(eventReference.get())) {
+                  eventRepository.delete(eventReference.get().getEventGroupId());
                   return null;
                 }
                 cacheService.flush(eventReference.get().getContextId());
