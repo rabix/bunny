@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +35,7 @@ import org.rabix.transport.backend.Backend.BackendStatus;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
+import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,10 +70,6 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
   private final SchedulerCallback schedulerCallback;
   
   private final AtomicReference<Set<SchedulerMessage>> messages = new AtomicReference<Set<SchedulerMessage>>(Collections.<SchedulerMessage>emptySet());
-
-  private ReceiveCallback<Job> jobReceiver;
-
-  private ErrorCallback errorCallback;
   
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService,
@@ -87,13 +83,6 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
     this.heartbeatPeriod = configuration.getLong("cleaner.backend.period", DEFAULT_HEARTBEAT_PERIOD);
     this.backendLocal = configuration.getBoolean("backend.local", false);
 
-    this.jobReceiver = jobReceiver;
-    this.errorCallback = new ErrorCallback() {
-      @Override
-      public void handleError(Exception error) {
-        logger.error("Failed to receive message.", error);
-      }
-    };
   }
 
   @Override
@@ -194,7 +183,21 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
           }
           backendService.updateHeartbeatInfo(backendStub.getBackend().getId(), new Timestamp(info.getTimestamp()));
         }
-      }, this.jobReceiver, this.errorCallback);
+      }, new ReceiveCallback<Job>() {
+        @Override
+        public void handleReceive(Job job) throws TransportPluginException {
+          try {
+            jobService.update(job);
+          } catch (Exception e) {
+            throw new TransportPluginException("Failed to update Job", e);
+          }
+        }
+      }, new ErrorCallback() {
+        @Override
+        public void handleError(Exception error) {
+          logger.error("Failed to receive message.", error);
+        }
+      });
       this.backendStubs.add(backendStub);
     } finally {
       dispatcherLock.unlock();
