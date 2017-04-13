@@ -39,22 +39,24 @@ public class CWLInputPort extends ApplicationPort {
   protected Object format;
   @JsonProperty("streamable")
   protected Boolean streamable;
-  
   @JsonProperty("sbg:stageInput")
   protected final String stageInput;
   @JsonProperty("inputBinding")
   protected final Object inputBinding;
+  @JsonProperty("secondaryFiles")
+  protected Object secondaryFiles;
 
   @JsonCreator
   public CWLInputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema, 
       @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("streamable") Boolean streamable, @JsonProperty("format") Object format,
       @JsonProperty("scatter") Boolean scatter, @JsonProperty("sbg:stageInput") String stageInput, @JsonProperty("linkMerge") String linkMerge,
-                      @JsonProperty("description") String description) {
+                      @JsonProperty("description") String description, @JsonProperty("secondaryFiles") Object secondaryFiles) {
     super(id, defaultValue, schema, scatter, linkMerge, description);
     this.format = format;
     this.streamable = streamable;
     this.stageInput = stageInput;
     this.inputBinding = inputBinding;
+    this.secondaryFiles = secondaryFiles;
   }
 
   @Override
@@ -65,6 +67,10 @@ public class CWLInputPort extends ApplicationPort {
   
   public Object getInputBinding() {
     return inputBinding;
+  }
+
+  public Object getSecondaryFiles() {
+    return secondaryFiles;
   }
 
   public String getStageInput() {
