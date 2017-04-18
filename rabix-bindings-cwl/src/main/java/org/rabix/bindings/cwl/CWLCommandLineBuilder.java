@@ -200,7 +200,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     return result;
   }
   
-  @SuppressWarnings("rawtypes")
   private boolean hasInputBinding(CWLInputPort port){
     return CWLSchemaHelper.getInputBinding(port.getSchema()) != null;
   }
