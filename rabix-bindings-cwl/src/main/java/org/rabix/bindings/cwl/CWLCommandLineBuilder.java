@@ -202,8 +202,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   
   @SuppressWarnings("rawtypes")
   private boolean hasInputBinding(CWLInputPort port){
-    Object schema = port.getSchema();
-      return ((schema instanceof Map<?,?>) && ((Map) schema).containsKey("inputBinding"));
+    return CWLSchemaHelper.getInputBinding(port.getSchema()) != null;
   }
 
   @SuppressWarnings("unchecked")
