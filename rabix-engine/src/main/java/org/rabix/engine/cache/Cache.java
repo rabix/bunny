@@ -58,6 +58,10 @@ public class Cache {
     cache.clear();
   }
   
+  public synchronized void clear() {
+    cache.clear();
+  }
+  
   public synchronized void put(Cachable cachable, Action action) {
     if (cachable == null) {
       return;
