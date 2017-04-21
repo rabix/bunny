@@ -10,4 +10,6 @@ public interface CacheService {
   
   void flush(UUID rootId);
   
+  void clear(UUID rootId);
+  
 }

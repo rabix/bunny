@@ -107,6 +107,7 @@ public class EventProcessorImpl implements EventProcessor {
           } catch (Exception e) {
             logger.error("EventProcessor failed to process event {}.", eventReference.get(), e);
             try {
+              cacheService.clear(eventReference.get().getContextId());
               eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.FAILED);
               invalidateContext(eventReference.get().getContextId());
             } catch (Exception ehe) {
