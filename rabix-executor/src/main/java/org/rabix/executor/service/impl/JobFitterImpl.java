@@ -79,13 +79,14 @@ public class JobFitterImpl implements JobFitter {
       return;
     }
     
-    ResourceRequirement resourceRequirement = bindings.getResourceRequirement(job);
-
     runningProcesses--;
-    availableCores += resourceRequirement.getCpuMin() != null ? resourceRequirement.getCpuMin() : 0;
-    availableMemory += resourceRequirement.getMemMinMB() != null ? resourceRequirement.getMemMinMB() : 0;
-
+    
+    ResourceRequirement resourceRequirement = bindings.getResourceRequirement(job);
+    if (resourceRequirement != null) {
+      availableCores += resourceRequirement.getCpuMin() != null ? resourceRequirement.getCpuMin() : 0;
+      availableMemory += resourceRequirement.getMemMinMB() != null ? resourceRequirement.getMemMinMB() : 0;
+    }
     logger.info("Job {} freed reqsources. Number of running processes {}.", job.getId(), runningProcesses);
   }
-  
+
 }
