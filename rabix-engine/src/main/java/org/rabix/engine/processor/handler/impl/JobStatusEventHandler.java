@@ -40,6 +40,7 @@ import org.rabix.engine.model.JobRecord.PortCounter;
 import org.rabix.engine.model.JobStatsRecord;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.model.VariableRecord;
+import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
@@ -121,10 +122,15 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     switch (event.getState()) {
     case READY:
       ready(jobRecord, event);
-      if (jobRecord.getState().equals(JobState.COMPLETED)) {
+      if (jobRecord.getState().equals(JobState.RUNNING) || jobRecord.getState().equals(JobState.COMPLETED)) {
         break;
       }
-      
+      if (jobRecord.isScatterWrapper()) {
+        ScatterStrategy scatterStrategy = jobRecord.getScatterStrategy();
+        if (scatterStrategy != null && scatterStrategy.skipScatter()) {
+          break;
+        }
+      }
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
         Job job = null;
         try {
