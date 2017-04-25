@@ -114,4 +114,8 @@ public class CWLPortProcessor {
     }
     return value;
   }
+  
+  public CWLJob getJob() {
+    return job;
+  }
 }

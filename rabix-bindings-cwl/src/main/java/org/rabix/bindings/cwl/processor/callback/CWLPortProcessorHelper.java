@@ -10,6 +10,7 @@ import org.rabix.bindings.cwl.processor.CWLPortProcessorException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.transformer.FileTransformer;
+import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class CWLPortProcessorHelper {
 
@@ -96,6 +97,15 @@ public class CWLPortProcessorHelper {
       throws CWLPortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new CWLStageInputProcessorCallback(workingDir));
+    } catch (CWLPortProcessorException e) {
+      throw new CWLPortProcessorException("Failed to stage inputs.", e);
+    }
+  }
+  
+  public Map<String, Object> setInputSecondaryFiles(Map<String, Object> inputs, File workingDir, HashAlgorithm hashAlgorithm)
+      throws CWLPortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new CWLInputSecondaryFilesProcessor(portProcessor.getJob(), hashAlgorithm, workingDir));
     } catch (CWLPortProcessorException e) {
       throw new CWLPortProcessorException("Failed to stage inputs.", e);
     }

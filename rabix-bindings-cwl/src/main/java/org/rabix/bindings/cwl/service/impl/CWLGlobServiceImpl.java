@@ -20,14 +20,10 @@ import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.service.CWLGlobException;
 import org.rabix.bindings.cwl.service.CWLGlobService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 public class CWLGlobServiceImpl implements CWLGlobService {
-
-  private final Logger logger = LoggerFactory.getLogger(CWLGlobServiceImpl.class);
 
   /**
    * Find all files that match GLOB inside the working directory 
