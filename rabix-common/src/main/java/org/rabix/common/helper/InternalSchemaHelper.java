@@ -48,6 +48,11 @@ public class InternalSchemaHelper {
     }
     return id.substring(0, id.lastIndexOf(SEPARATOR));
   }
+  
+  public static int getJobNestingDepth(String id) {
+    String[] idParts = id.split("\\" + SEPARATOR);
+    return idParts.length;
+  }
 
   public static String normalizeId(String id) {
     if (id == null) {
