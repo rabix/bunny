@@ -64,6 +64,8 @@ public class ScatterHandler {
    */
   @SuppressWarnings("unchecked")
   public void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
+    job.setScatterWrapper(true);
+    
     ScatterStrategy scatterStrategy = job.getScatterStrategy();
     if (scatterStrategy != null && scatterStrategy.skipScatter()) {
       return;
@@ -215,7 +217,6 @@ public class ScatterHandler {
       }
 
       job.setState(JobState.RUNNING);
-      job.setScatterWrapper(true);
       
       newScatteredNumber = getNumberOfScattered(job, numberOfScattered);
       

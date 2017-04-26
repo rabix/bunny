@@ -220,10 +220,10 @@ public class JobRecordServiceImpl implements JobRecordService {
         if (pc.globalCounter < value) {
           pc.globalCounter = value;
 
-          if (pc.counter == 0) {
-            continue;
-          }
           if (pc.counter != value) {
+            if (pc.counter == 0) {
+              continue;
+            }
             if (oldValue != 0) {
               pc.counter = pc.globalCounter - (oldValue - pc.counter);
             } else {
