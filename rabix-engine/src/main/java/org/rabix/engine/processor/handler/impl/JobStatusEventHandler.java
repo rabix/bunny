@@ -122,14 +122,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     switch (event.getState()) {
     case READY:
       ready(jobRecord, event);
-      if (jobRecord.getState().equals(JobState.RUNNING) || jobRecord.getState().equals(JobState.COMPLETED)) {
+      if (jobRecord.getState().equals(JobState.COMPLETED)) {
         break;
       }
-      if (jobRecord.isScatterWrapper()) {
-        ScatterStrategy scatterStrategy = jobRecord.getScatterStrategy();
-        if (scatterStrategy != null && scatterStrategy.skipScatter()) {
-          break;
-        }
+      if (jobRecord.getScatterStrategy() != null && jobRecord.getScatterStrategy().skipScatter()) {
+        break;
       }
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
         Job job = null;
