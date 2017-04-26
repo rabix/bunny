@@ -41,6 +41,8 @@ public interface JobRecordService {
   
   void resetInputPortCounters(JobRecord jobRecord, int value);
   
+  void resetInputPortCounter(JobRecord jobRecord, int value, String port);
+  
   void resetOutputPortCounter(JobRecord jobRecord, int value, String port);
   
   void resetOutputPortCounters(JobRecord jobRecord, int value);
