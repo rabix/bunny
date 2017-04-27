@@ -209,6 +209,32 @@ public class JobRecordServiceImpl implements JobRecordService {
     }
   }
   
+  public void resetInputPortCounter(JobRecord jobRecord, int value, String port) {
+    logger.debug("Reset input port counter {} for {} to {}", port, jobRecord.getId(), value);
+    for (PortCounter pc : jobRecord.getInputCounters()) {
+      if (pc.port.equals(port)) {
+        if (pc.globalCounter == value) {
+          return;
+        }
+        int oldValue = pc.globalCounter;
+        if (pc.globalCounter < value) {
+          pc.globalCounter = value;
+
+          if (pc.counter != value) {
+            if (pc.counter == 0) {
+              continue;
+            }
+            if (oldValue != 0) {
+              pc.counter = pc.globalCounter - (oldValue - pc.counter);
+            } else {
+              pc.counter = pc.globalCounter;
+            }
+          }
+        }
+      }
+    }
+  }
+  
   public void resetOutputPortCounter(JobRecord jobRecord, int value, String port) {
     logger.debug("Reset output port counter {} for {} to {}", port, jobRecord.getId(), value);
     for (PortCounter pc : jobRecord.getOutputCounters()) {

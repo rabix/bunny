@@ -2,13 +2,24 @@ package org.rabix.bindings.cwl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
-import org.rabix.bindings.cwl.bean.*;
+import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
+import org.rabix.bindings.cwl.bean.CWLExpressionTool;
+import org.rabix.bindings.cwl.bean.CWLJob;
+import org.rabix.bindings.cwl.bean.CWLJobApp;
+import org.rabix.bindings.cwl.bean.CWLOutputPort;
+import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.expression.javascript.CWLExpressionJavascriptResolver;
@@ -73,7 +84,7 @@ public class CWLProcessor implements ProtocolProcessor {
       inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-      // inputs = getInputSecondaryFiles(cwlJob, inputs, workingDir);
+//      inputs = portProcessorHelper.setInputSecondaryFiles(inputs, workingDir, null);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       
       @SuppressWarnings("unchecked")
@@ -158,7 +169,7 @@ public class CWLProcessor implements ProtocolProcessor {
     return result;
   }
   
-  private void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, File workingDir) throws IOException {
+  public static void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, File workingDir) throws IOException {
     if (value == null) {
       return;
     }
@@ -428,7 +439,7 @@ public class CWLProcessor implements ProtocolProcessor {
    * Gets secondary files (absolute paths)
    */
   @SuppressWarnings("unchecked")
-  private List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object secondaryFilesObj, File workingDir) throws CWLExpressionException, IOException {
+  public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String filePath, Object secondaryFilesObj, File workingDir) throws CWLExpressionException, IOException {
     if (secondaryFilesObj == null) {
       return null;
     }
@@ -446,7 +457,7 @@ public class CWLProcessor implements ProtocolProcessor {
         String secondaryFilePath;
         String suffix = (String) expr;
         if((suffix).startsWith("^") || suffix.startsWith(".")) {
-          secondaryFilePath = fileName.toString();
+          secondaryFilePath = filePath.toString();
           while (suffix.startsWith("^")) {
             int extensionIndex = secondaryFilePath.lastIndexOf(".");
             if (extensionIndex != -1) {
@@ -492,27 +503,6 @@ public class CWLProcessor implements ProtocolProcessor {
     } catch (CWLExpressionException e) {
       throw new BindingException(e);
     }
-  }
-
-  private Map<String, Object> getInputSecondaryFiles(CWLJob job, Map<String, Object> inputs, File workingDir) throws BindingException {
-    CWLJobApp jobApp = job.getApp();
-
-    final Map<String, Object> result = new HashMap<>();
-    for (Map.Entry<String, Object> input: inputs.entrySet()) {
-      String key = input.getKey();
-      Object value = input.getValue();
-      try {
-        CWLInputPort inputPort = jobApp.getInput(key);
-        List<?> secondaryFiles = getSecondaryFiles(job, null, inputs, CWLFileValueHelper.getLocation(value), inputPort.getSecondaryFiles(), workingDir);
-        if (secondaryFiles != null) {
-          CWLFileValueHelper.setSecondaryFiles(secondaryFiles, value);
-        }
-        result.put(input.getKey(), input.getValue());
-      } catch (Exception e) {
-        throw new BindingException("Failed to extract secondary files.", e);
-      }
-    }
-    return result;
   }
 
 }

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.rabix</groupId>
 	<artifactId>rabix</artifactId>
-	<version>1.0.0-rc4</version>
+	<version>1.0.0-rc5</version>
 	<packaging>pom</packaging>
 	<name>Rabix</name>
 	<modules>
