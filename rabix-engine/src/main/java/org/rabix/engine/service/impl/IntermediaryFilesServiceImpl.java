@@ -103,7 +103,7 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
           List<LinkRecord> links = linksForSourcePort(entry.getKey(), allLinks);
           Integer count = links.size();
           for (LinkRecord link : links) {
-            if(link.getDestinationJobId().equals(InternalSchemaHelper.getJobIdFromScatteredId(job.getName())) && (InternalSchemaHelper.getJobNestingDepth(job.getName()) < InternalSchemaHelper.getJobNestingDepth(link.getDestinationJobId()))) {
+            if(link.getDestinationJobId().equals(InternalSchemaHelper.getJobIdFromScatteredId(job.getName())) && (InternalSchemaHelper.getJobNestingDepth(job.getName()) > InternalSchemaHelper.getJobNestingDepth(link.getDestinationJobId()))) {
               isScatteredOrContainer = true;
             }
             if(!link.getDestinationJobId().equals(InternalSchemaHelper.ROOT_NAME) && link.getDestinationVarType().equals(LinkPortType.OUTPUT)) {
