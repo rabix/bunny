@@ -9,10 +9,14 @@ import org.rabix.transport.mechanism.impl.local.TransportQueueLocal;
 
 public class EngineStubLocal extends EngineStub<TransportQueueLocal, BackendLocal, TransportPluginLocal> {
 
+  public final static Long LOCAL_HEARTBEAT_TIME_MILLS = 1000L;
+  
   public EngineStubLocal(BackendLocal backendLocal, ExecutorService executorService, Configuration configuration) throws TransportPluginException {
     this.backend = backendLocal;
     this.executorService = executorService;
     this.transportPlugin = new TransportPluginLocal(configuration);
+    
+    this.heartbeatTimeMills = LOCAL_HEARTBEAT_TIME_MILLS;
     
     this.sendToBackendQueue = new TransportQueueLocal(BackendLocal.SEND_TO_BACKEND_QUEUE);
     this.sendToBackendControlQueue = new TransportQueueLocal(BackendLocal.SEND_TO_BACKEND_CONTROL_QUEUE);

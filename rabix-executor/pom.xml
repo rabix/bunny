@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.rabix</groupId>
 		<artifactId>rabix</artifactId>
-		<version>1.0.0-rc3</version>
+		<version>1.0.0-rc5</version>
 	</parent>
 	<artifactId>rabix-executor</artifactId>
 	<name>rabix-executor</name>
@@ -44,19 +44,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<docker-client.version>3.5.12</docker-client.version>
 	</properties>
-	
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.rabix</groupId>

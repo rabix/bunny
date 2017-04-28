@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolTranslator;
+import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.draft3.bean.Draft3DataLink;
 import org.rabix.bindings.draft3.bean.Draft3Job;
 import org.rabix.bindings.draft3.bean.Draft3Step;
@@ -106,7 +107,7 @@ public class Draft3Translator implements ProtocolTranslator {
     if (!job.getApp().isWorkflow()) {
       @SuppressWarnings("unchecked")
       Map<String, Object> commonDefaults = (Map<String, Object>) Draft3ValueTranslator.translateToCommon(job.getInputs());
-      return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults);
+      return new DAGNode(job.getId(), inputPorts, outputPorts, scatterMethod, job.getApp(), commonDefaults, ProtocolType.DRAFT3);
     }
 
     Draft3Workflow workflow = (Draft3Workflow) job.getApp();
@@ -142,14 +143,14 @@ public class Draft3Translator implements ProtocolTranslator {
       boolean isSourceFromWorkflow = !dataLink.getSource().contains(InternalSchemaHelper.SLASH_SEPARATOR);
 
       DAGLinkPort sourceLinkPort = new DAGLinkPort(sourcePortId, sourceNodeId, isSourceFromWorkflow ? LinkPortType.INPUT : LinkPortType.OUTPUT, LinkMerge.merge_nested, false, null, null);
-      DAGLinkPort destinationLinkPort = new DAGLinkPort(destinationPortId, destinationNodeId, LinkPortType.INPUT, dataLink.getLinkMerge(), dataLink.getScattered() != null ? dataLink.getScattered() : false, null, null);
+      DAGLinkPort destinationLinkPort = new DAGLinkPort(destinationPortId, destinationNodeId, dataLink.isOutputSource()? LinkPortType.OUTPUT : LinkPortType.INPUT, dataLink.getLinkMerge(), dataLink.getScattered() != null ? dataLink.getScattered() : false, null, null);
 
       int position = dataLink.getPosition() != null ? dataLink.getPosition() : 1;
       links.add(new DAGLink(sourceLinkPort, destinationLinkPort, dataLink.getLinkMerge(), position));
     }
     @SuppressWarnings("unchecked")
     Map<String, Object> commonDefaults = (Map<String, Object>) Draft3ValueTranslator.translateToCommon(job.getInputs());
-    return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults);
+    return new DAGContainer(job.getId(), inputPorts, outputPorts, job.getApp(), scatterMethod, links, children, commonDefaults, ProtocolType.DRAFT3);
   }
   
   private void processPorts(DAGNode dagNode) {

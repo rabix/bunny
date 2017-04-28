@@ -2,6 +2,7 @@ package org.rabix.bindings.cwl.processor;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.cwl.CWLValueTranslator;
@@ -30,7 +31,7 @@ public class CWLFilePathMapProcessorCallbackTest {
 
     String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(cwlJob.getApp()));
     Map<String, Object> inputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(cwlJob.getInputs());
-    Job job = new Job("id", "id", "id", "id", encodedApp, null, null, inputs, null, null, null, null);
+    Job job = new Job(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "id", encodedApp, null, null, inputs, null, null, null, null);
     try {
       job = FileValueHelper.mapInputFilePaths(job, new FilePathMapper() {
         @Override

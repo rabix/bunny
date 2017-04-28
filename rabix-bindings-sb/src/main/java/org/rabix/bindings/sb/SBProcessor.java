@@ -270,8 +270,6 @@ public class SBProcessor implements ProtocolProcessor {
         case 1:
           result = ((List<?>) result).get(0);
           break;
-        default:
-          throw new BindingException("Invalid file format " + result);
         }
       }
     }
@@ -341,7 +339,6 @@ public class SBProcessor implements ProtocolProcessor {
           SBFileValueHelper.setContents(fileData);
         }
       } catch (Exception e) {
-        logger.error("Failed to extract outputs", e);
         throw new SBGlobException("Failed to extract outputs.", e);
       }
     }

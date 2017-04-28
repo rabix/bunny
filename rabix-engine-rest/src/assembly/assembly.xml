@@ -2,11 +2,12 @@
 	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
-	<id>id2</id>
+	<id>release</id>
 	<formats>
 		<format>tar.gz</format>
 	</formats>
-	<includeBaseDirectory>false</includeBaseDirectory>
+	<includeBaseDirectory>true</includeBaseDirectory>
+	<baseDirectory>${project.name}-${project.version}</baseDirectory>
 	<fileSets>
 		<fileSet>
 			<directory>${project.basedir}</directory>
@@ -17,9 +18,14 @@
 				<exclude>**/pom.xml</exclude>
 				<exclude>**/src/**</exclude>
 				<exclude>**/data/**</exclude>
+                <exclude>**/bin/**</exclude>
 				<exclude>**/conf/**</exclude>
 				<exclude>**/lib/**</exclude>
 				<exclude>**/.*/**</exclude>
+                <exclude>**/.settings/**</exclude>
+                <exclude>**/.classpath</exclude>
+                <exclude>**/.gitignore</exclude>
+                <exclude>**/.project</exclude>
 				<exclude>**/pom.xml.versionsBackup</exclude>
 				<exclude>**/${project.build.directory}/**</exclude>
 			</excludes>
@@ -29,7 +35,6 @@
 			<outputDirectory>/</outputDirectory>
 			<includes>
 				<include>rabix-engine</include>
-				<include>rabix-engine-daemon</include>
 			</includes>
 		</fileSet>
 	</fileSets>

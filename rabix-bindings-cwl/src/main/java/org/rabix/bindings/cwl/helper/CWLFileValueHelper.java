@@ -5,12 +5,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
@@ -246,6 +248,23 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       setLocation(getPath(value), value);
     }
     
+    if(path != null) {
+      File file = new File(path);
+      if(name == null) {
+        name = file.getName();
+      }
+      if(dirname == null) {
+        File parent = file.getParentFile();
+        dirname = parent != null ? parent.getPath(): null;
+      }
+      if(nameroot == null) {
+        nameroot = getBasename(file.getName());
+      }
+      if(nameext == null) {
+        nameext = getNameext(file.getName());
+      }
+    }
+    
     Map<String, Object> properties = new HashMap<>();
     properties.put(CWLBindingHelper.KEY_SBG_METADATA, CWLFileValueHelper.getMetadata(value));
 
@@ -311,5 +330,21 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       return location == null && path == null;
     }
     return false;
+  }
+  
+  private static String getBasename(String filename) {
+    String[] parts = StringUtils.split(filename, ".");
+    if(parts.length > 2) {
+      return String.join(".", Arrays.copyOfRange(parts, 0, parts.length-1));
+    }
+    return parts[0];
+  }
+  
+  private static String getNameext(String filename) {
+    String[] parts = StringUtils.split(filename, ".");
+    if(parts.length < 2) {
+      return null;
+    }
+    return parts[parts.length-1];
   }
 }

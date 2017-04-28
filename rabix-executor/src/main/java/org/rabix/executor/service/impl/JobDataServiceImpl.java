@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +32,7 @@ public class JobDataServiceImpl implements JobDataService {
 
   private final static Logger logger = LoggerFactory.getLogger(JobDataServiceImpl.class);
 
-  private final Map<String, Map<String, JobData>> jobDataMap = new HashMap<>();
+  private final Map<UUID, Map<UUID, JobData>> jobDataMap = new HashMap<>();
 
   private Provider<StopCommand> stopCommandProvider;
   private Provider<StartCommand> startCommandProvider;
@@ -63,7 +64,7 @@ public class JobDataServiceImpl implements JobDataService {
   }
   
   @Override
-  public JobData find(String id, String contextId) {
+  public JobData find(UUID id, UUID contextId) {
     Preconditions.checkNotNull(id);
     synchronized (jobDataMap) {
       return getJobDataMap(contextId).get(id);
@@ -77,7 +78,7 @@ public class JobDataServiceImpl implements JobDataService {
     synchronized (jobDataMap) {
       List<JobDataStatus> statusList = Arrays.asList(statuses);
       List<JobData> jobDataByStatus = new ArrayList<>();
-      for (Entry<String, Map<String, JobData>> entry : jobDataMap.entrySet()) {
+      for (Entry<UUID, Map<UUID, JobData>> entry : jobDataMap.entrySet()) {
         for (JobData jobData : entry.getValue().values()) {
           if (statusList.contains(jobData.getStatus())) {
             jobDataByStatus.add(jobData);
@@ -106,12 +107,12 @@ public class JobDataServiceImpl implements JobDataService {
     }
   }
   
-  private Map<String, JobData> getJobDataMap(String contextId) {
+  private Map<UUID, JobData> getJobDataMap(UUID rootId) {
     synchronized (jobDataMap) {
-      Map<String, JobData> jobList = jobDataMap.get(contextId);
+      Map<UUID, JobData> jobList = jobDataMap.get(rootId);
       if (jobList == null) {
         jobList = new HashMap<>();
-        jobDataMap.put(contextId, jobList);
+        jobDataMap.put(rootId, jobList);
       }
       return jobList;
     }
@@ -137,7 +138,7 @@ public class JobDataServiceImpl implements JobDataService {
               continue;
             }
             save(JobData.cloneWithStatus(jobData, JobDataStatus.READY));
-
+            
             jobHandlerCommandDispatcher.dispatch(jobData, startCommandProvider.get(), engineStub);
             jobHandlerCommandDispatcher.dispatch(jobData, statusCommandProvider.get(), engineStub);
           } catch (BindingException e) {

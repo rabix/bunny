@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.rabix</groupId>
 		<artifactId>rabix</artifactId>
-		<version>1.0.0-rc3</version>
+		<version>1.0.0-rc5</version>
 	</parent>
 	<artifactId>rabix-engine</artifactId>
 	<name>rabix-engine</name>
@@ -53,6 +53,11 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.rabix</groupId>
+			<artifactId>rabix-transport</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-cli</groupId>
 			<artifactId>commons-cli</artifactId>
 			<version>${commons-cli.version}</version>
@@ -75,6 +80,26 @@
 			<version>2.6.8</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>org.jdbi</groupId>
+			<artifactId>jdbi</artifactId>
+			<version>2.77</version>
+		</dependency>
+		<dependency>
+                <groupId>org.antlr</groupId>
+                <artifactId>stringtemplate</artifactId>
+                <version>3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.4.1212.jre7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+			<version>3.5.3</version>
+		</dependency>
+			
 	</dependencies>
 </project>

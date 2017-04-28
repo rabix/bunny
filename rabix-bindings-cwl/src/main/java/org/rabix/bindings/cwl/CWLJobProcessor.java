@@ -26,16 +26,12 @@ import org.rabix.bindings.model.LinkMerge;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.json.processor.BeanProcessor;
 import org.rabix.common.json.processor.BeanProcessorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link BeanProcessor} used for Job processing. It populates some additional fields.
  */
 public class CWLJobProcessor implements BeanProcessor<CWLJob> {
 
-  private final static Logger logger = LoggerFactory.getLogger(CWLJobProcessor.class);
-  
   public static final String DOT_SEPARATOR = ".";
   public static final String SLASH_SEPARATOR = "/";
   
@@ -43,8 +39,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
     try {
       return process(null, job);
     } catch (CWLException e) {
-      logger.error("Failed to process Job.", e);
-      throw new BeanProcessorException(e);
+      throw new BeanProcessorException("Failed to process CWLv1 Job.", e);
     }
   }
   
@@ -200,7 +195,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
         String source = sources.get(position);
         source = Draft2ToCWLConverter.convertSource(source);
         source = CWLSchemaHelper.normalizeId(source);
-        CWLDataLink dataLink = new CWLDataLink(source, destination, linkMerge, position + 1);
+        CWLDataLink dataLink = new CWLDataLink(source, destination, linkMerge, position + 1, true);
         workflow.addDataLink(dataLink);
       }
     }
@@ -221,7 +216,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
           source = Draft2ToCWLConverter.convertSource(source);
           
           source = CWLSchemaHelper.normalizeId(source);
-          CWLDataLink dataLink = new CWLDataLink(source, destination, linkMerge, position + 1);
+          CWLDataLink dataLink = new CWLDataLink(source, destination, linkMerge, position + 1, false);
           dataLinks.add(dataLink);
         }
       }
@@ -321,8 +316,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    * Process data links
    */
   private void processDataLinks(List<CWLDataLink> dataLinks, ApplicationPort port, CWLJob job, boolean strip) {
-    for (CWLDataLink dataLink : dataLinks) {
-      String source = dataLink.getSource();
+    for (CWLDataLink dataLink : dataLinks) {    
       String destination = dataLink.getDestination();
       
       String scatter = null;
@@ -337,7 +331,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
       }
       
       // TODO fix
-      if ((source.equals(scatter) || destination.equals(scatter)) && (dataLink.getScattered() == null || !dataLink.getScattered())) {
+      if (destination.equals(scatter) && (dataLink.getScattered() == null || !dataLink.getScattered())) {
         dataLink.setScattered(port.getScatter());
       }
     }

@@ -3,6 +3,7 @@ package org.rabix.bindings.cwl.bean;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
@@ -22,6 +23,7 @@ public class CWLCommandLineToolTest {
     String inputJson = ResourceHelper.readResource(this.getClass(), "1st-tool.cwl");
 
     CWLJob cwlJob = BeanSerializer.deserialize(inputJson, CWLJob.class);
+    cwlJob.setRuntime(new CWLRuntime(null, null, "/path/to/outdir", "/path/to/tmpdir", null, null));
 
     List<Object> expectedList = new LinkedList<Object>();
     expectedList.add("echo");
@@ -30,7 +32,7 @@ public class CWLCommandLineToolTest {
     List<?> resultList;
     try {
       String encodedApp = URIHelper.createDataURI(BeanSerializer.serializeFull(cwlJob.getApp()));
-      Job job = new Job("id", "id", "id", "id", encodedApp, null, null, cwlJob.getInputs(), null, null, null, null);
+      Job job = new Job(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "id", encodedApp, null, null, cwlJob.getInputs(), null, null, null, null);
       Bindings bindings = new CWLBindings();
       resultList = bindings.buildCommandLineObject(job, null, null).getParts();
       Assert.assertNotNull(resultList);

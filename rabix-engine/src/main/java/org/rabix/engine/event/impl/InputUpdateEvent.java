@@ -1,29 +1,41 @@
 package org.rabix.engine.event.impl;
 
+import java.util.UUID;
+
 import org.rabix.engine.event.Event;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This event is used to update one input (per port) for the specific Job. It triggers the algorithm cycle.
  */
 public class InputUpdateEvent implements Event {
 
+  @JsonProperty("jobId")
   private final String jobId;
-  private final String contextId;
-  
+  @JsonProperty("contextId")
+  private final UUID contextId;
+  @JsonProperty("portId")
   private final String portId;
+  @JsonProperty("value")
   private final Object value;
-
+  @JsonProperty("position")
   private final Integer position;
+  @JsonProperty("numberOfScattered")
   private final Integer numberOfScattered;      // number of scattered nodes
+  @JsonProperty("isLookAhead")
   private final boolean isLookAhead;            // it's a look ahead event
+  @JsonProperty("eventGroupId")
+  private final UUID eventGroupId;
+  @JsonProperty("producedByNode")
+  private final String producedByNode;
   
-  private final String eventGroupId;
-  
-  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position, String eventGroupId) {
-    this(contextId, jobId, portId, value, false, null, position, eventGroupId);
+  public InputUpdateEvent(UUID contextId, String jobId, String portId, Object value, Integer position, UUID eventGroupId, String producedByNode) {
+    this(contextId, jobId, portId, value, false, null, position, eventGroupId, producedByNode);
   }
 
-  public InputUpdateEvent(String contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, String eventGroupId) {
+  public InputUpdateEvent(UUID contextId, String jobId, String portId, Object value, boolean isLookAhead, Integer scatteredNodes, Integer position, UUID eventGroupId, String producedByNode) {
     this.jobId = jobId;
     this.portId = portId;
     this.value = value;
@@ -32,6 +44,23 @@ public class InputUpdateEvent implements Event {
     this.numberOfScattered = scatteredNodes;
     this.position = position;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
+  }
+
+  @JsonCreator
+  public InputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") UUID contextId,
+      @JsonProperty("portId") String portId, @JsonProperty("value") Object value,
+      @JsonProperty("position") Integer position, @JsonProperty("numberOfScattered") Integer numberOfScattered,
+      @JsonProperty("isLookAhead") boolean isLookAhead, @JsonProperty("eventGroupId") UUID eventGroupId, @JsonProperty("producedByNode") String producedByNode) {
+    this.jobId = jobId;
+    this.contextId = contextId;
+    this.portId = portId;
+    this.value = value;
+    this.position = position;
+    this.numberOfScattered = numberOfScattered;
+    this.isLookAhead = isLookAhead;
+    this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
   }
 
   public String getJobId() {
@@ -55,12 +84,17 @@ public class InputUpdateEvent implements Event {
   }
 
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
   }
   
   @Override
-  public String getContextId() {
+  public String getProducedByNode() {
+    return producedByNode;
+  }
+  
+  @Override
+  public UUID getContextId() {
     return contextId;
   }
   
@@ -128,6 +162,11 @@ public class InputUpdateEvent implements Event {
   @Override
   public String toString() {
     return "InputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", portId=" + portId + ", value=" + value + ", numberOfScattered=" + numberOfScattered + ", isLookAhead=" + isLookAhead + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    return null;
   }
 
 }

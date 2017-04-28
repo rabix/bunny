@@ -20,14 +20,10 @@ import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import org.rabix.bindings.cwl.service.CWLGlobException;
 import org.rabix.bindings.cwl.service.CWLGlobService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 public class CWLGlobServiceImpl implements CWLGlobService {
-
-  private final Logger logger = LoggerFactory.getLogger(CWLGlobServiceImpl.class);
 
   /**
    * Find all files that match GLOB inside the working directory 
@@ -40,7 +36,6 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     try {
       glob = CWLExpressionResolver.resolve(glob, job, null);
     } catch (CWLExpressionException e) {
-      logger.error("Failed to evaluate glob " + glob, e);
       throw new CWLGlobException("Failed to evaluate glob " + glob, e);
     }
     if (glob == null) {
@@ -55,10 +50,12 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     
     final Set<File> files = new LinkedHashSet<>();
     for (String singleGlob : globs) {
-      if (singleGlob.equals(".")) { // TODO fix this
-        singleGlob = workingDir.getName();
+      if (singleGlob.equals(".")) {
+        files.add(workingDir);
+        continue;
       }
       final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + singleGlob);
+      final Path startDir = workingDir.toPath();
       try {
         Files.walkFileTree(workingDir.toPath(), new SimpleFileVisitor<Path>() {
           @Override
@@ -70,7 +67,8 @@ public class CWLGlobServiceImpl implements CWLGlobService {
           }
           @Override
           public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            if (matcher.matches(dir.getFileName())) {
+            if (matcher.matches(dir.getFileName()) &&
+                !startDir.equals(dir)) {
               files.add(dir.toFile());
             }
             return super.preVisitDirectory(dir, attrs);
@@ -81,7 +79,6 @@ public class CWLGlobServiceImpl implements CWLGlobService {
           }
         });
       } catch (IOException e) {
-        logger.error("Failed to traverse through working directory", e);
         throw new CWLGlobException("Failed to traverse through working directory", e);
       }
     }

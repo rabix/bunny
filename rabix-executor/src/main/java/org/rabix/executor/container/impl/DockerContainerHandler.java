@@ -211,10 +211,10 @@ public class DockerContainerHandler implements ContainerHandler {
       }
 
       if (commandLine.startsWith("/bin/bash -c")) {
-        commandLine = commandLine.replace("/bin/bash -c", "");
+        commandLine = normalizeCommandLine(commandLine.replace("/bin/bash -c", ""));
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/bash", "-c", commandLine);
       } else if (commandLine.startsWith("/bin/sh -c")) {
-        commandLine = commandLine.replace("/bin/sh -c", "");
+        commandLine = normalizeCommandLine(commandLine.replace("/bin/sh -c", ""));
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
       } else {
         builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
@@ -257,6 +257,17 @@ public class DockerContainerHandler implements ContainerHandler {
       logger.error("Failed to start container.", e);
       throw new ContainerException("Failed to start container.", e);
     }
+  }
+  
+  private String normalizeCommandLine(String commandLine) {
+    commandLine = commandLine.trim();
+    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
+      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    }
+    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
+      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    }
+    return commandLine;
   }
   
   private Set<String> normalizeVolumes(Job job, Set<String> volumes) throws BindingException {
@@ -466,7 +477,7 @@ public class DockerContainerHandler implements ContainerHandler {
     public final static long MINUTE = 60 * SECOND;
     public final static long METHOD_TIMEOUT = 10 * MINUTE; // maximize time (it's mostly because of big Docker images)
     public final static long DEFAULT_DOCKER_CLIENT_TIMEOUT = 1000 * SECOND;
-    public final static long SLEEP_TIME = 1 * SECOND;
+    public final static long SLEEP_TIME = 30 * SECOND;
     
     public static final String DOCKER_HOST_ENVVAR = "DOCKER_HOST";
     public static final String DOCKER_HOST_CONFIG = "docker.host";

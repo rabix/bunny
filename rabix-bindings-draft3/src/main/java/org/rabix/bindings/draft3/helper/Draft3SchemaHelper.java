@@ -183,13 +183,14 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
     if (schema == null) {
       return false;
     }
-    if (type.equals(schema)) {
+    if (type.equals(schema) || (type + OPTIONAL_SHORTENED).equals(schema)) {
       return true;
     }
     if (schema instanceof Map<?, ?>) {
       Map<String, Object> schemaMap = (Map<String, Object>) schema;
       if (schemaMap.containsKey(KEY_SCHEMA_TYPE)) {
-        return type.equals(schemaMap.get(KEY_SCHEMA_TYPE));
+        return type.equals(schemaMap.get(KEY_SCHEMA_TYPE)) ||
+            (type + OPTIONAL_SHORTENED).equals(schemaMap.get(KEY_SCHEMA_TYPE));
       }
     }
     if (schema instanceof List<?>) {
@@ -600,7 +601,7 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
           return new DataType(DataType.Type.ANY);
         list.add((String) o);
       }
-      return new DataType(DataType.Type.ENUM, list);
+      return new DataType(DataType.Type.ENUM, list, !isRequired(schema));
     }
 
     // RECORD

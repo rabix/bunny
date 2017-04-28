@@ -33,7 +33,7 @@ public class BindingsFactory {
         try {
           bindings.add((Bindings) clazz.newInstance());
         } catch (Exception e) {
-          logger.debug("Failed to find class " + clazz);
+          logger.warn("Failed to instantiate class " + clazz, e);
         }
       } catch (Exception e) {
         // ignore

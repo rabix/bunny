@@ -1,8 +1,13 @@
 package org.rabix.bindings.draft3.helper;
+import java.util.Map;
+
+import org.rabix.bindings.BindingException;
 import org.rabix.bindings.draft3.bean.Draft3Job;
 import org.rabix.bindings.draft3.bean.Draft3Runtime;
 import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ResourceRequirement;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
+import org.rabix.bindings.mapper.FileMappingException;
+import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Resources;
 
 public class Draft3RuntimeHelper {
@@ -29,6 +34,22 @@ public class Draft3RuntimeHelper {
   public static Draft3Runtime setTmpdir(Draft3Runtime runtime, String tmpdir) {
     return new Draft3Runtime(runtime.getCores(), runtime.getRam(), runtime.getOutdir(), tmpdir, runtime.getOutdirSize(), runtime.getTmpdirSize());
   }
+  
+  public static Draft3Runtime remapTmpAndOutDir(Draft3Runtime runtime, FilePathMapper filePathMapper, Map<String, Object> config) throws BindingException {
+    String outdir = null;
+    String tmpdir = null;
+    try {
+      if(runtime.getOutdir() != null) {
+        outdir = filePathMapper.map(runtime.getOutdir(), config);
+      }
+      if(runtime.getTmpdir() != null) {
+        tmpdir = filePathMapper.map(runtime.getTmpdir(), config);
+      }
+    } catch (FileMappingException e) {
+      throw new BindingException(e);
+      }
+    return new Draft3Runtime(runtime.getCores(), runtime.getRam(), outdir, tmpdir, runtime.getOutdirSize(), runtime.getTmpdirSize());
+    }
   
   public static Resources convertToResources(Draft3Runtime runtime) {
     return new Resources(runtime.getCores() != null ? runtime.getCores() : null, runtime.getRam() != null ? runtime.getRam() : null, null, false, runtime.getOutdir(), runtime.getTmpdir(), runtime.getOutdirSize(), runtime.getTmpdirSize());

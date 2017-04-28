@@ -8,5 +8,6 @@ public enum TESState {
   Complete,
   Error,
   SystemError,
-  Canceled;
+  Canceled,
+  Initializing
 }

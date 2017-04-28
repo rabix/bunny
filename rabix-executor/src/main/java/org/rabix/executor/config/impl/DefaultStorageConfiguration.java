@@ -2,6 +2,7 @@ package org.rabix.executor.config.impl;
 
 import java.io.File;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
@@ -36,8 +37,8 @@ public class DefaultStorageConfiguration implements StorageConfiguration {
   }
   
   @Override
-  public File getRootDir(String rootId, Map<String, Object> config) {
-    File contextDir = new File(getPhysicalExecutionBaseDir(), rootId);
+  public File getRootDir(UUID rootId, Map<String, Object> config) {
+    File contextDir = new File(getPhysicalExecutionBaseDir(), rootId.toString());
     if (!contextDir.exists()) {
       contextDir.mkdirs();
     }
@@ -84,11 +85,7 @@ public class DefaultStorageConfiguration implements StorageConfiguration {
    * Normalize application ID
    */
   private static String sanitize(String id) {
-    id = id.replace("@", "_");
-    id = id.replace("/", "_");
-    id = id.replace("^", "_");
-    id = id.replace(":", "_");
-    return id.replaceAll("_+", "_");
+    return id.replaceAll("[^A-Za-z0-9 ]", "_");
   }
 
 }

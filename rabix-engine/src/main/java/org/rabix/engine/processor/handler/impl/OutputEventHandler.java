@@ -3,7 +3,6 @@ package org.rabix.engine.processor.handler.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
@@ -12,13 +11,14 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
+import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.db.ReadyJobGroupsDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.event.impl.OutputUpdateEvent;
 import org.rabix.engine.model.JobRecord;
+import org.rabix.engine.model.JobStatsRecord;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.model.scatter.ScatterStrategy;
@@ -27,13 +27,11 @@ import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobRecordService.JobState;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.status.EngineStatusCallback;
-import org.rabix.engine.status.EngineStatusCallbackException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.google.inject.Inject;
 
@@ -42,79 +40,77 @@ import com.google.inject.Inject;
  */
 public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
-  private final static Logger logger = LoggerFactory.getLogger(OutputEventHandler.class);
-  
-  private JobRecordService jobService;
+  private JobRecordService jobRecordService;
   private LinkRecordService linkService;
   private VariableRecordService variableService;
   private ContextRecordService contextService;
-    
+  private JobStatsRecordService jobStatsRecordService;
   private final EventProcessor eventProcessor;
   
   private DAGNodeDB dagNodeDB;
-  private ReadyJobGroupsDB jobGroupsDB;
-  private EngineStatusCallback engineStatusCallback;
+  private AppDB appDB;
+  private JobService jobService;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, ReadyJobGroupsDB jobGroupsDB) {
+  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService, VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService, DAGNodeDB dagNodeDB, AppDB appDB, JobService jobService, JobStatsRecordService jobStatsRecordService) {
     this.dagNodeDB = dagNodeDB;
-    this.jobGroupsDB = jobGroupsDB;
-    this.jobService = jobService;
+    this.appDB = appDB;
+    this.jobRecordService = jobRecordService;
     this.linkService = linkService;
     this.contextService = contextService;
     this.variableService = variableService;
     this.eventProcessor = eventProcessor;
-  }
-
-  public void initialize(EngineStatusCallback engineStatusCallback) {
-    this.engineStatusCallback = engineStatusCallback;
+    this.jobService = jobService;
+    this.jobStatsRecordService = jobStatsRecordService;
   }
   
   public void handle(final OutputUpdateEvent event) throws EventHandlerException {
-    JobRecord sourceJob = jobService.find(event.getJobId(), event.getContextId());
+    JobRecord sourceJob = jobRecordService.find(event.getJobId(), event.getContextId());
+    if (sourceJob.getState().equals(JobState.COMPLETED)) {
+      return;
+    }
     if (event.isFromScatter()) {
-      sourceJob.resetOutputPortCounter(event.getNumberOfScattered(), event.getPortId());
+      jobRecordService.resetOutputPortCounter(sourceJob, event.getNumberOfScattered(), event.getPortId());
     }
     VariableRecord sourceVariable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.OUTPUT, event.getContextId());
-    sourceJob.decrementPortCounter(event.getPortId(), LinkPortType.OUTPUT);
-    sourceVariable.addValue(event.getValue(), event.getPosition(), sourceJob.isScatterWrapper() || event.isFromScatter());
-    jobService.update(sourceJob);
+    jobRecordService.decrementPortCounter(sourceJob, event.getPortId(), LinkPortType.OUTPUT);
+    variableService.addValue(sourceVariable, event.getValue(), event.getPosition(), sourceJob.isScatterWrapper() || event.isFromScatter());
+    variableService.update(sourceVariable); // TODO wha?
+    jobRecordService.update(sourceJob);
     
     if (sourceJob.isCompleted()) {
-      sourceJob.setState(JobState.COMPLETED);
-      jobService.update(sourceJob);
-      
-      try {
-        Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobService, variableService, linkService, contextService, dagNodeDB);
-        engineStatusCallback.onJobCompleted(completedJob);
-      } catch (BindingException e) {
-        logger.error("Failed to create Job " + sourceJob.getId(), e);
-      } catch (EngineStatusCallbackException e) {
-        logger.error("Failed to call onJobCompleted callback for Job " + sourceJob.getId(), e);
-      }
-      
-      if (sourceJob.isRoot()) {
-        Map<String, Object> outputs = new HashMap<>();
-        List<VariableRecord> outputVariables = variableService.find(sourceJob.getId(), LinkPortType.OUTPUT, sourceJob.getRootId());
-        for (VariableRecord outputVariable : outputVariables) {
-          Object value = CloneHelper.deepCopy(outputVariable.getValue());
-          outputs.put(outputVariable.getPortId(), value);
+      if(sourceJob.getOutputCounter(sourceVariable.getPortId()) != null) {
+        if ((sourceJob.isContainer() || sourceJob.isScatterWrapper()) &&
+            sourceJob.getParentId() != null && sourceJob.getParentId().equals(sourceJob.getRootId())) {
+          JobStatsRecord jobStatsRecord = jobStatsRecordService.findOrCreate(sourceJob.getRootId());
+          jobStatsRecord.increaseCompleted();
+          jobStatsRecord.increaseRunning();
+          jobStatsRecordService.update(jobStatsRecord);
         }
-        if(sourceJob.isRoot() && sourceJob.isContainer()) {
-          // if root job is CommandLineTool OutputUpdateEvents are created from JobStatusEvent
-          eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, outputs, event.getEventGroupId()));
+
+        if (sourceJob.isRoot()) {
+          Job rootJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
+          if (!event.isFromScatter() || (event.getNumberOfScattered() == sourceVariable.getNumberOfTimesUpdated())) {
+            jobService.handleJobRootPartiallyCompleted(rootJob, event.isFromScatter() ? InternalSchemaHelper.getJobIdFromScatteredId(event.getProducedByNode()) : event.getProducedByNode());
+          }
+          if (sourceJob.isContainer()) {
+            eventProcessor.send(
+                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), event.getProducedByNode()));
+          }
+          return;
         }
-        return;
+        else {
+          try {
+            Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB);
+            jobService.handleJobCompleted(completedJob);
+          } catch (BindingException e) {
+          }
+        }
       }
     }
-    
-    if (sourceJob.isRoot()) {
-      try {
-        engineStatusCallback.onJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())));
-      } catch (EngineStatusCallbackException e) {
-        logger.error("Failed to call onReady callback for Job " + sourceJob.getId(), e);
-        throw new EventHandlerException("Failed to call onJobRootPartiallyCompleted callback for Job " + sourceJob.getId(), e);
-      }
+
+    if(sourceJob.isRoot() && (!event.isFromScatter() || (event.getNumberOfScattered()==sourceVariable.getNumberOfTimesUpdated()))){
+        jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.isFromScatter() ? InternalSchemaHelper.getJobIdFromScatteredId(event.getProducedByNode()) : event.getProducedByNode());
     }
     
     Object value = null;
@@ -126,99 +122,85 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if (scatterStrategy.isBlocking()) {
         if (sourceJob.isOutputPortReady(event.getPortId())) {
           isValueFromScatterStrategy = true;
-          value = scatterStrategy.values(sourceJob.getId(), event.getPortId(), event.getContextId());
+          value = scatterStrategy.values(variableService, sourceJob.getId(), event.getPortId(), event.getContextId());
         } else {
           return;
         }
       }
       
-      List<LinkRecord> links = linkService.findBySource(sourceVariable.getJobId(), sourceVariable.getPortId(), event.getContextId());
+      List<LinkRecord> links = linkService.findBySourceAndSourceType(sourceVariable.getJobId(), sourceVariable.getPortId(), LinkPortType.OUTPUT, event.getContextId());
       for (LinkRecord link : links) {
         if (!isValueFromScatterStrategy) {
           value = null; // reset
         }
-        List<VariableRecord> destinationVariables = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), event.getContextId());
+        VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), link.getDestinationVarType(), event.getContextId());
 
         JobRecord destinationJob = null;
         boolean isDestinationPortScatterable = false;
-        for (VariableRecord destinationVariable : destinationVariables) {
-          switch (destinationVariable.getType()) {
-          case INPUT:
-            destinationJob = jobService.find(destinationVariable.getJobId(), destinationVariable.getContextId());
-            isDestinationPortScatterable = destinationJob.isScatterPort(destinationVariable.getPortId());
-            if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
-              value = value != null ? value : event.getValue();
-              int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-              Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId());
+        switch (destinationVariable.getType()) {
+        case INPUT:
+          destinationJob = jobRecordService.find(destinationVariable.getJobId(), destinationVariable.getRootId());
+          isDestinationPortScatterable = destinationJob.isScatterPort(destinationVariable.getPortId());
+          if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
+            value = value != null ? value : event.getValue();
+            int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
+            Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+            eventProcessor.send(updateInputEvent);
+          } else {
+            if (sourceJob.isOutputPortReady(event.getPortId())) {
+              value = value != null ? value : variableService.getValue(sourceVariable);
+              Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
               eventProcessor.send(updateInputEvent);
-            } else {
-              if (sourceJob.isOutputPortReady(event.getPortId())) {
-                value = value != null ? value : sourceVariable.getValue();
-                Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
-                eventProcessor.send(updateInputEvent);
-              }
             }
-            break;
-          case OUTPUT:
-            destinationJob = jobService.find(destinationVariable.getJobId(), destinationVariable.getContextId());
-            if (destinationJob.getOutputPortIncoming(event.getPortId()) > 1) {
-              if (sourceJob.isOutputPortReady(event.getPortId())) {
-                value = value != null? value : sourceVariable.getValue();
-                Event updateInputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
-                eventProcessor.send(updateInputEvent);
-              }
-            } else {
-              value = value != null? value : event.getValue();
-              if (isValueFromScatterStrategy) {
-                Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, false, 1, 1, event.getEventGroupId());
-                eventProcessor.send(updateOutputEvent);
-              } else {
-                int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-                Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId());
-                eventProcessor.send(updateOutputEvent);
-              }
-            }
-            break;
           }
+          break;
+        case OUTPUT:
+          destinationJob = jobRecordService.find(destinationVariable.getJobId(), destinationVariable.getRootId());
+          if (destinationJob.getOutputPortIncoming(event.getPortId()) > 1) {
+            if (sourceJob.isOutputPortReady(event.getPortId())) {
+              value = value != null ? value : variableService.getValue(sourceVariable);
+              Event updateInputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+              eventProcessor.send(updateInputEvent);
+            }
+          } else {
+            value = value != null ? value : event.getValue();
+            if (isValueFromScatterStrategy) {
+              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, false, 1, 1, event.getEventGroupId(), event.getProducedByNode());
+              eventProcessor.send(updateOutputEvent);
+            } else {
+              int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
+              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+              eventProcessor.send(updateOutputEvent);
+            }
+          }
+          break;
         }
       }
       return;
     }
     
     if (sourceJob.isOutputPortReady(event.getPortId())) {
-      List<LinkRecord> links = linkService.findBySource(event.getJobId(), event.getPortId(), event.getContextId());
+      List<LinkRecord> links = linkService.findBySourceAndSourceType(event.getJobId(), event.getPortId(),
+          LinkPortType.OUTPUT, event.getContextId());
       for (LinkRecord link : links) {
-        List<VariableRecord> destinationVariables = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), event.getContextId());
-        
-        value = sourceVariable.getValue();
-        for (VariableRecord destinationVariable : destinationVariables) {
-          switch (destinationVariable.getType()) {
-          case INPUT:
-            Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
-            eventProcessor.send(updateInputEvent);
-            break;
-          case OUTPUT:
-            if (sourceJob.isScattered()) {
-              int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
-              int position = InternalSchemaHelper.getScatteredNumber(sourceJob.getId());
-              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, position, event.getEventGroupId());
-              eventProcessor.send(updateOutputEvent);
-            } else if(InternalSchemaHelper.getParentId(sourceJob.getId()).equals(destinationVariable.getJobId())) {
-              Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId());
-              eventProcessor.send(updateOutputEvent);
-            }
-            break;
+        VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), link.getDestinationVarType(), event.getContextId());
+        value = variableService.getValue(sourceVariable);
+        switch (destinationVariable.getType()) {
+        case INPUT:
+          Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+          eventProcessor.send(updateInputEvent);
+          break;
+        case OUTPUT:
+          if (sourceJob.isScattered()) {
+            int numberOfScattered = sourceJob.getNumberOfGlobalOutputs();
+            int position = InternalSchemaHelper.getScatteredNumber(sourceJob.getId());
+            Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, true, numberOfScattered, position, event.getEventGroupId(), event.getProducedByNode());
+            eventProcessor.send(updateOutputEvent);
+          } else if (InternalSchemaHelper.getParentId(sourceJob.getId()).equals(destinationVariable.getJobId())) {
+            Event updateOutputEvent = new OutputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), value, link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+            eventProcessor.send(updateOutputEvent);
           }
-        }
-      }
-      
-      if (event.getEventGroupId() != null && event.getEventGroupId().equals(sourceJob.getExternalId()) && sourceJob.isCompleted()) {
-        Set<Job> readyJobs = jobGroupsDB.get(event.getContextId(), event.getEventGroupId());
-        try {
-          engineStatusCallback.onJobsReady(readyJobs);
-        } catch (EngineStatusCallbackException e) {
-          logger.error("Failed to call onJobsReady() callback", e);
-          throw new EventHandlerException(e);
+          break;
         }
       }
     }
@@ -228,10 +210,10 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     Map<String, Object> outputs = new HashMap<>();
     List<VariableRecord> outputVariables = variableService.find(jobRecord.getId(), LinkPortType.OUTPUT, jobRecord.getRootId());
     for (VariableRecord outputVariable : outputVariables) {
-      Object value = CloneHelper.deepCopy(outputVariable.getValue());
+      Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
       outputs.put(outputVariable.getPortId(), value);
     }
-    return JobHelper.createRootJob(jobRecord, status, jobService, variableService, linkService, contextService, dagNodeDB, outputs);
+    return JobHelper.createRootJob(jobRecord, status, jobRecordService, variableService, linkService, contextService, dagNodeDB, appDB, outputs);
   }
   
 }

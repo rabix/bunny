@@ -1,8 +1,10 @@
 package org.rabix.bindings.model.dag;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ScatterMethod;
 
@@ -12,13 +14,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DAGContainer extends DAGNode {
 
   @JsonProperty("links")
-  private final List<DAGLink> links;
+  private List<DAGLink> links = new ArrayList<>();
   @JsonProperty("children")
-  private final List<DAGNode> children;
+  private List<DAGNode> children = new ArrayList<>();
 
   @JsonCreator
-  public DAGContainer(@JsonProperty("id") String id, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts, @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("app") Application app, @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("links") List<DAGLink> links, @JsonProperty("children") List<DAGNode> children, @JsonProperty("defaults") Map<String, Object> defaults) {
-    super(id, inputPorts, outputPorts, scatterMethod, app, defaults);
+  public DAGContainer(@JsonProperty("id") String id, @JsonProperty("inputPorts") List<DAGLinkPort> inputPorts,
+      @JsonProperty("outputPorts") List<DAGLinkPort> outputPorts, @JsonProperty("app") Application app,
+      @JsonProperty("scatterMethod") ScatterMethod scatterMethod, @JsonProperty("links") List<DAGLink> links,
+      @JsonProperty("children") List<DAGNode> children, @JsonProperty("defaults") Map<String, Object> defaults,
+      @JsonProperty("protocolType") ProtocolType protocolType) {
+    super(id, inputPorts, outputPorts, scatterMethod, app, defaults, protocolType);
     this.links = links;
     this.children = children;
   }

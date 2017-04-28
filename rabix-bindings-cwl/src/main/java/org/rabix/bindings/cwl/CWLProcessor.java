@@ -78,12 +78,13 @@ public class CWLProcessor implements ProtocolProcessor {
     CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
       Map<String, Object> inputs = cwlJob.getInputs();
-      
+
       inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
       inputs = portProcessorHelper.setPathsToInputs(inputs);
       inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
+//      inputs = portProcessorHelper.setInputSecondaryFiles(inputs, workingDir, null);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       
       @SuppressWarnings("unchecked")
@@ -160,8 +161,7 @@ public class CWLProcessor implements ProtocolProcessor {
         Map<String, Object> mappedResult = new CWLPortProcessor(job).processOutputs(result, new CWLFilePathMapProcessorCallback(logFilePathMapper, config));
         BeanSerializer.serializePartial(resultFile, mappedResult);
       } catch (CWLPortProcessorException e) {
-        logger.error("Failed to map outputs", e);
-        throw new CWLGlobException(e);
+        throw new CWLGlobException("Failed to map outputs", e);
       }
     } else {
       BeanSerializer.serializePartial(resultFile, result);
@@ -169,7 +169,7 @@ public class CWLProcessor implements ProtocolProcessor {
     return result;
   }
   
-  private void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, File workingDir) throws IOException {
+  public static void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, File workingDir) throws IOException {
     if (value == null) {
       return;
     }
@@ -302,7 +302,7 @@ public class CWLProcessor implements ProtocolProcessor {
     if (outputEval != null) {
       Object self = result != null ? result : Collections.emptyList();
       result = CWLBindingHelper.evaluateOutputEval(job, self, binding);
-      logger.info("OutputEval transformed result into {}.", result);
+      logger.debug("OutputEval transformed result into {}.", result);
     }
     if (CWLSchemaHelper.isFileFromSchema(schema) || CWLSchemaHelper.isDirectoryFromSchema(schema)) {
 	  if (result instanceof List<?>) {
@@ -313,8 +313,6 @@ public class CWLProcessor implements ProtocolProcessor {
         case 1:
           result = ((List<?>) result).get(0);
           break;
-        default:
-          throw new BindingException("Invalid file format " + result);
         }
       }
     }
@@ -368,7 +366,6 @@ public class CWLProcessor implements ProtocolProcessor {
       try {
         result.add(formFileValue(file, job, outputBinding, outputPort, hashAlgorithm, workingDir));
       } catch (Exception e) {
-        logger.error("Failed to extract outputs", e);
         throw new CWLGlobException("Failed to extract outputs.", e);
       }
     }
@@ -442,7 +439,7 @@ public class CWLProcessor implements ProtocolProcessor {
    * Gets secondary files (absolute paths)
    */
   @SuppressWarnings("unchecked")
-  private List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object secondaryFilesObj, File workingDir) throws CWLExpressionException, IOException {
+  public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String filePath, Object secondaryFilesObj, File workingDir) throws CWLExpressionException, IOException {
     if (secondaryFilesObj == null) {
       return null;
     }
@@ -460,7 +457,7 @@ public class CWLProcessor implements ProtocolProcessor {
         String secondaryFilePath;
         String suffix = (String) expr;
         if((suffix).startsWith("^") || suffix.startsWith(".")) {
-          secondaryFilePath = fileName.toString();
+          secondaryFilePath = filePath.toString();
           while (suffix.startsWith("^")) {
             int extensionIndex = secondaryFilePath.lastIndexOf(".");
             if (extensionIndex != -1) {
@@ -497,10 +494,11 @@ public class CWLProcessor implements ProtocolProcessor {
 
   @Override
   public Object transformInputs(Object value, Job job, Object transform) throws BindingException {
+    Object specificValue = CWLValueTranslator.translateToSpecific(value);
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     Object result = null;
     try {
-      result = CWLExpressionResolver.resolve(transform, cwlJob, value);
+      result = CWLExpressionResolver.resolve(transform, cwlJob, specificValue);
       return CWLValueTranslator.translateToCommon(result);
     } catch (CWLExpressionException e) {
       throw new BindingException(e);

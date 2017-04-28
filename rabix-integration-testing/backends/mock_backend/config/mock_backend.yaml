@@ -1,0 +1,12 @@
+bunny_engine_url: http://localhost:8081
+cache_directory: /Users/janko/Desktop/genome
+engine_heartbeat_interval: 10
+mocks_file: /home/milos/tools/bunny_mock_backend/config/mocks.json
+
+rabbitmq_host: localhost
+rabbitmq_auth: bunny:bunny
+rabbitmq_vhost: bunny
+rabbitmq_engine_exchange: engine_exchange
+rabbitmq_receive_routing_key: receive_routing_key
+rabbitmq_heartbeat_routing_key: heartbeat_routing_key
+

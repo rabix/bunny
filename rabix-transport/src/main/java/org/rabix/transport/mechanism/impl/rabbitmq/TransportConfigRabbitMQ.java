@@ -68,4 +68,8 @@ public class TransportConfigRabbitMQ {
     return configuration.getLong("rabbitmq.backend.heartbeatTimeMills");
   }
   
+  public static boolean durableQueues(Configuration configuration) {
+    return configuration.getBoolean("rabbitmq.backend.durableQueues", false);
+  }
+  
 }

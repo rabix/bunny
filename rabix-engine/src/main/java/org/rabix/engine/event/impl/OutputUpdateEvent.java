@@ -1,29 +1,42 @@
 package org.rabix.engine.event.impl;
 
+import java.util.UUID;
+
 import org.rabix.engine.event.Event;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This event is used to update one output (per port) for the specific Job. Potentially, it can produce one ore more output and inputs events. 
  */
 public class OutputUpdateEvent implements Event {
 
+  @JsonProperty("jobId")
   private final String jobId;
-  private final String contextId;
-  
+  @JsonProperty("contextId")
+  private final UUID contextId;
+  @JsonProperty("value")
   private final Object value;
+  @JsonProperty("portId")
   private final String portId;
-  
+  @JsonProperty("position")
   private final Integer position;
+  @JsonProperty("fromScatter")
   private final boolean fromScatter;            // it's a scatter event
+  @JsonProperty("numberOfScattered")
   private final Integer numberOfScattered;      // number of scattered nodes
-  
-  private final String eventGroupId;
+  @JsonProperty("eventGroupId")
+  private final UUID eventGroupId;
+  @JsonProperty("producedByNode")
+  private final String producedByNode;
 
-  public OutputUpdateEvent(String contextId, String jobId, String portId, Object value, Integer position, String eventGroupId) {
-    this(contextId, jobId, portId, value, false, null, position, eventGroupId);
+  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object value, Integer position, UUID eventGroupId, String producedByNode) {
+    this(contextId, jobId, portId, value, false, null, position, eventGroupId, producedByNode);
   }
   
-  public OutputUpdateEvent(String contextId, String jobId, String portId, Object outputValue, boolean fromScatter, Integer numberOfScattered, Integer position, String eventGroupId) {
+  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object outputValue, boolean fromScatter,
+      Integer numberOfScattered, Integer position, UUID eventGroupId, String producedByNode) {
     this.jobId = jobId;
     this.contextId = contextId;
     this.portId = portId;
@@ -31,9 +44,27 @@ public class OutputUpdateEvent implements Event {
     this.position = position;
     this.fromScatter = fromScatter;
     this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
     this.numberOfScattered = numberOfScattered;
   }
-  
+
+  @JsonCreator
+  public OutputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") UUID contextId,
+      @JsonProperty("value") Object value, @JsonProperty("portId") String portId,
+      @JsonProperty("position") Integer position, @JsonProperty("fromScatter") boolean fromScatter,
+      @JsonProperty("numberOfScattered") Integer numberOfScattered, @JsonProperty("eventGroupId") UUID eventGroupId,
+      @JsonProperty("producedByNode") String producedByNode) {
+    this.jobId = jobId;
+    this.contextId = contextId;
+    this.value = value;
+    this.portId = portId;
+    this.position = position;
+    this.fromScatter = fromScatter;
+    this.numberOfScattered = numberOfScattered;
+    this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
+  }
+
   public String getJobId() {
     return jobId;
   }
@@ -59,12 +90,17 @@ public class OutputUpdateEvent implements Event {
   }
   
   @Override
-  public String getEventGroupId() {
+  public UUID getEventGroupId() {
     return eventGroupId;
   }
   
   @Override
-  public String getContextId() {
+  public String getProducedByNode() {
+    return producedByNode;
+  }
+  
+  @Override
+  public UUID getContextId() {
     return contextId;
   }
   
@@ -128,6 +164,11 @@ public class OutputUpdateEvent implements Event {
   @Override
   public String toString() {
     return "OutputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", portId=" + portId + ", value=" + value + ", fromScatter=" + fromScatter + ", numberOfScattered=" + numberOfScattered + "]";
+  }
+
+  @Override
+  public PersistentEventType getPersistentType() {
+    return null;
   }
   
 }

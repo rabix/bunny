@@ -1,15 +1,21 @@
 package org.rabix.transport.backend;
 
+import java.util.UUID;
+
+import org.rabix.common.json.BeanPropertyView;
+import org.rabix.common.json.BeanSerializer;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonView;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ 
@@ -19,8 +25,20 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonInclude(Include.NON_NULL)
 public abstract class Backend {
 
+  public static enum BackendStatus {
+    ACTIVE,
+    INACTIVE
+  }
+  
   @JsonProperty("id")
-  protected String id;
+  @JsonView(BeanPropertyView.Full.class)
+  protected UUID id;
+  @JsonProperty("name")
+  @JsonView(BeanPropertyView.Full.class)
+  protected String name;
+  @JsonProperty("status")
+  @JsonView(BeanPropertyView.Full.class)
+  protected BackendStatus status;
   
   public static enum BackendType {
     LOCAL,
@@ -28,14 +46,22 @@ public abstract class Backend {
     RABBIT_MQ
   }
 
-  public String getId() {
+  public UUID getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(UUID id) {
     this.id = id;
   }
 
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+  
   public abstract BackendType getType();
 
   @Override
@@ -63,4 +89,17 @@ public abstract class Backend {
     return true;
   }
   
+  @JsonView(BeanPropertyView.Full.class)
+  @JsonIgnore
+  public String getConfiguration() {
+    return BeanSerializer.serializePartial(this);
+  }
+
+  public BackendStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(BackendStatus status) {
+    this.status = status;
+  }
 }

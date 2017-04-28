@@ -1,5 +1,6 @@
 package org.rabix.engine.model.scatter.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.rabix.bindings.model.ScatterMethod;
 import org.rabix.bindings.model.dag.DAGLinkPort;
@@ -17,27 +19,55 @@ import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.model.scatter.PortMapping;
 import org.rabix.engine.model.scatter.RowMapping;
 import org.rabix.engine.model.scatter.ScatterStrategy;
+import org.rabix.engine.model.scatter.ScatterStrategyException;
 import org.rabix.engine.service.VariableRecordService;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 
 public class ScatterZipStrategy implements ScatterStrategy {
 
+  @JsonProperty("combinations")
   private LinkedList<Combination> combinations;
   
+  @JsonProperty("values")
   private Map<String, LinkedList<Object>> values;
+  @JsonProperty("indexes")
   private Map<String, LinkedList<Boolean>> indexes;
 
-  private final ScatterMethod scatterMethod;
-  private final VariableRecordService variableRecordService;
+  @JsonProperty("scatterMethod")
+  private ScatterMethod scatterMethod;
   
-  public ScatterZipStrategy(DAGNode dagNode, VariableRecordService variableRecordService) {
+  @JsonProperty("emptyListDetected")
+  private Boolean emptyListDetected;
+  
+  @JsonProperty("skipScatter")
+  private Boolean skipScatter;
+  
+  @JsonCreator
+  public ScatterZipStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
+      @JsonProperty("values") Map<String, LinkedList<Object>> values,
+      @JsonProperty("indexes") Map<String, LinkedList<Boolean>> indexes,
+      @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
+      @JsonProperty("emptyListDetected") Boolean emptyListDetected, @JsonProperty("skipScatter") Boolean skipScatter) {
+    super();
+    this.combinations = combinations;
+    this.values = values;
+    this.indexes = indexes;
+    this.scatterMethod = scatterMethod;
+    this.emptyListDetected = emptyListDetected;
+    this.skipScatter = skipScatter;
+  }
+
+  public ScatterZipStrategy(DAGNode dagNode) {
     values = new HashMap<>();
     indexes = new HashMap<>();
     combinations = new LinkedList<>();
     
     this.scatterMethod = dagNode.getScatterMethod();
-    this.variableRecordService = variableRecordService;
+    this.emptyListDetected = false;
+    this.skipScatter = false;
     initialize(dagNode);
   }
   
@@ -50,7 +80,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
     }
   }
   
-  public void enable(String port, Object value, Integer position) {
+  public void enable(String port, Object value, Integer position, Integer sizePerPort) throws ScatterStrategyException {
     Preconditions.checkNotNull(port);
     Preconditions.checkNotNull(position);
     
@@ -149,11 +179,14 @@ public class ScatterZipStrategy implements ScatterStrategy {
     return combinations.size();
   }
 
-  private class Combination {
+  public static class Combination {
+    @JsonProperty("position")
     int position;
+    @JsonProperty("enabled")
     boolean enabled;
 
-    public Combination(int position, boolean enabled) {
+    @JsonCreator
+    public Combination(@JsonProperty("position") int position, @JsonProperty("enabled") boolean enabled) {
       this.position = position;
       this.enabled = enabled;
     }
@@ -165,7 +198,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
   }
 
   @Override
-  public LinkedList<Object> values(String jobId, String portId, String contextId) {
+  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
@@ -176,10 +209,45 @@ public class ScatterZipStrategy implements ScatterStrategy {
     LinkedList<Object> result = new LinkedList<>();
     for (Combination combination : combinations) {
       String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-      VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-      result.addLast(variableRecord.getValue());
+      VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, rootId);
+      result.addLast(variableRecordService.getValue(variableRecord));
     }
     return result;
+  }
+
+  @Override
+  public boolean isHanging() {
+    for (String port : values.keySet()) {
+      if (values.get(port) == null || (values.get(port) instanceof List<?> && ((List<?>)values.get(port)).isEmpty())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public Object generateOutputsForEmptyList() {
+    return new ArrayList<>();
+  }
+
+  @Override
+  public void setEmptyListDetected() {
+    this.emptyListDetected = true;
+  }
+  
+  @Override
+  public boolean isEmptyListDetected() {
+    return emptyListDetected;
+  }
+
+  @Override
+  public boolean skipScatter() {
+    return skipScatter;
+  }
+
+  @Override
+  public void skipScatter(boolean skip) {
+    this.skipScatter = skip;
   }
 
 }

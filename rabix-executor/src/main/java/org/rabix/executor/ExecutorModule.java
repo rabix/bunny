@@ -1,5 +1,6 @@
 package org.rabix.executor;
 
+import org.apache.commons.configuration.Configuration;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
@@ -19,9 +20,13 @@ import org.rabix.executor.service.impl.FilePermissionServiceImpl;
 import org.rabix.executor.service.impl.FileServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
+import org.rabix.executor.service.impl.MockExecutorServiceImpl;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
+import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 public class ExecutorModule extends AbstractModule {
@@ -45,9 +50,19 @@ public class ExecutorModule extends AbstractModule {
     bind(JobHandlerCommandDispatcher.class).in(Scopes.SINGLETON);
 
     bind(FileService.class).to(FileServiceImpl.class).in(Scopes.SINGLETON);
-    bind(ExecutorService.class).to(ExecutorServiceImpl.class).in(Scopes.SINGLETON);
     bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
     bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
   }
 
+  @Provides
+  @Singleton
+  public ExecutorService provideExecutorService(Injector injector, Configuration configuration) {
+    boolean mockBackendEnabled = configuration.getBoolean("backend.mock.enabled", false);
+    if (mockBackendEnabled) {
+      return injector.getInstance(MockExecutorServiceImpl.class);
+    } else {
+      return injector.getInstance(ExecutorServiceImpl.class);
+    }
+  }
+  
 }

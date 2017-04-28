@@ -38,7 +38,7 @@ public class ConformanceCommandLineTest {
       expectedList.add("rabix/tests/test-files/example_human_Illumina.pe_1.fastq");
       expectedList.add("rabix/tests/test-files/example_human_Illumina.pe_2.fastq");
 
-      Job job = new Job(commandLineToolStr, inputs);
+      Job job = new Job(commandLineToolStr, inputs);      
       List<?> resultList = new Draft3Bindings().buildCommandLineObject(job, null, null).getParts();
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());

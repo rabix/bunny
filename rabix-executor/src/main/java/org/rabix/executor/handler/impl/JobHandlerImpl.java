@@ -153,6 +153,7 @@ public class JobHandlerImpl implements JobHandler {
       
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
+      cacheService.cache(cachedJob);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -257,6 +258,16 @@ public class JobHandlerImpl implements JobHandler {
           continue;
         }
         if (fileRequirement instanceof SingleInputFileRequirement || fileRequirement instanceof SingleInputDirectoryRequirement) {
+          FileValue content = ((SingleInputFileRequirement) fileRequirement).getContent();
+          if (FileValue.isLiteral(content)) {
+            if (fileRequirement instanceof SingleInputDirectoryRequirement) {
+              destinationFile.mkdirs();
+            } else {
+              destinationFile.createNewFile();              
+            }
+            return;
+          }
+          
           String path = ((SingleInputFileRequirement) fileRequirement).getContent().getPath();
           String mappedPath = inputFileMapper.map(path, job.getConfig());
           File file = new File(mappedPath);
@@ -276,8 +287,7 @@ public class JobHandlerImpl implements JobHandler {
         }
       }
     } catch (IOException e) {
-      logger.error("Failed to process file requirements.", e);
-      throw new ExecutorException("Failed to process file requirements.");
+      throw new ExecutorException("Failed to process file requirements.", e);
     }
   }
 
@@ -337,22 +347,25 @@ public class JobHandlerImpl implements JobHandler {
       logger.debug("Command line tool {} returned result {}.", job.getId(), job.getOutputs());
       return job;
     } catch (ContainerException e) {
-      logger.error("Failed to query container.", e);
       throw new ExecutorException("Failed to query container.", e);
     } catch (BindingException e) {
-      logger.error("Could not collect outputs.", e);
       throw new ExecutorException("Could not collect outputs.", e);
     } catch (UploadServiceException e) {
-      logger.error("Could not upload outputs.", e);
       throw new ExecutorException("Could not upload outputs.", e);
     } catch (ExecutorStatusCallbackException e) {
-      logger.error("Could not call executor callback.", e);
       throw new ExecutorException("Could not call executor callback.", e);
     }
   }
   
   public void removeContainer() {
-    containerHandler.removeContainer();
+    try {
+      if(isSuccessful()) {
+        containerHandler.removeContainer();
+      }
+    } catch (ExecutorException e) {
+      logger.debug("Failed to remove container");
+    }
+    
   }
 
   private void uploadOutputFiles(final Job job, final Bindings bindings) throws BindingException, UploadServiceException {
@@ -389,9 +402,10 @@ public class JobHandlerImpl implements JobHandler {
     }
     try {
       containerHandler.stop();
-      containerHandler.removeContainer();
+      if(isSuccessful()) {
+        containerHandler.removeContainer();
+      }
     } catch (ContainerException e) {
-      logger.error("Failed to stop execution", e);
       throw new ExecutorException("Failed to stop execution.", e);
     }
   }
@@ -405,7 +419,6 @@ public class JobHandlerImpl implements JobHandler {
     try {
       return containerHandler.isStarted();
     } catch (ContainerException e) {
-      logger.error("Failed to query container for status", e);
       throw new ExecutorException("Failed to query container for status.", e);
     }
   }
@@ -418,7 +431,6 @@ public class JobHandlerImpl implements JobHandler {
     try {
       return containerHandler.isRunning();
     } catch (ContainerException e) {
-      logger.error("Couldn't check if container is running or not", e);
       throw new ExecutorException("Couldn't check if container is running or not.", e);
     }
   }
@@ -429,7 +441,6 @@ public class JobHandlerImpl implements JobHandler {
     try {
       return containerHandler.getProcessExitStatus();
     } catch (ContainerException e) {
-      logger.error("Couldn't get process exit value", e);
       throw new ExecutorException("Couldn't get process exit value.", e);
     }
   }
@@ -447,8 +458,7 @@ public class JobHandlerImpl implements JobHandler {
       Bindings bindings = BindingsFactory.create(job);
       return bindings.isSuccessful(job, processExitCode);
     } catch (BindingException e) {
-      logger.error("Failed to create Bindings", e);
-      throw new ExecutorException(e);
+      throw new ExecutorException("Failed to create Bindings", e);
     }
   }
 

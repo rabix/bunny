@@ -1,5 +1,6 @@
 package org.rabix.engine.model.scatter.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.ScatterMethod;
@@ -18,24 +20,59 @@ import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.model.scatter.PortMapping;
 import org.rabix.engine.model.scatter.RowMapping;
 import org.rabix.engine.model.scatter.ScatterStrategy;
+import org.rabix.engine.model.scatter.ScatterStrategyException;
 import org.rabix.engine.service.VariableRecordService;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ScatterCartesianStrategy implements ScatterStrategy {
 
+  @JsonProperty("combinations")
   private LinkedList<Combination> combinations;
 
+  @JsonProperty("values")
   private Map<String, LinkedList<Object>> values;
+  @JsonProperty("positions")
   private Map<String, LinkedList<Integer>> positions;
+  @JsonProperty("sizePerPort")
+  private Map<String, Integer> sizePerPort;
 
-  private final ScatterMethod scatterMethod;
-  private final VariableRecordService variableRecordService;
+  @JsonProperty("scatterMethod")
+  private ScatterMethod scatterMethod;
   
-  public ScatterCartesianStrategy(DAGNode dagNode, VariableRecordService variableRecordService) {
+  @JsonProperty("emptyListDetected")
+  private Boolean emptyListDetected;
+  
+  @JsonProperty("skipScatter")
+  private Boolean skipScatter;
+  
+  @JsonCreator
+  public ScatterCartesianStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
+      @JsonProperty("values") Map<String, LinkedList<Object>> values,
+      @JsonProperty("positions") Map<String, LinkedList<Integer>> positions,
+      @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
+      @JsonProperty("sizePerPort") Map<String, Integer> sizePerPort,
+      @JsonProperty("emptyListDetected") Boolean emptyListDetected,
+      @JsonProperty("skipScatter") Boolean skipScatter) {
+    super();
+    this.combinations = combinations;
+    this.values = values;
+    this.positions = positions;
+    this.sizePerPort = sizePerPort;
+    this.scatterMethod = scatterMethod;
+    this.emptyListDetected = emptyListDetected;
+    this.skipScatter = skipScatter;
+  }
+
+  public ScatterCartesianStrategy(DAGNode dagNode) {
     this.values = new HashMap<>();
     this.positions = new HashMap<>();
     this.combinations = new LinkedList<>();
     this.scatterMethod = dagNode.getScatterMethod();
-    this.variableRecordService = variableRecordService;
+    this.sizePerPort = new HashMap<>();
+    this.emptyListDetected = false;
+    this.skipScatter = false;
     initialize(dagNode);
   }
 
@@ -53,7 +90,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public void enable(String port, Object value, Integer position) {
+  public synchronized void enable(String port, Object value, Integer position, Integer sizePerPort) throws ScatterStrategyException {
     LinkedList<Integer> positionList = positions.get(port);
     positionList = expand(positionList, position);
     positionList.set(position - 1, position);
@@ -63,10 +100,11 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     valueList = expand(valueList, position);
     valueList.set(position - 1, value);
     values.put(port, valueList);
+    this.sizePerPort.put(port, sizePerPort);
   }
 
   @Override
-  public LinkedList<Object> values(String jobId, String portId, String contextId) {
+  public synchronized LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID contextId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
@@ -79,7 +117,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
       for (Combination combination : combinations) {
         String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
         VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-        result.addLast(variableRecord.getValue());
+        result.addLast(variableRecordService.getValue(variableRecord));
       }
       return result;
     }
@@ -96,7 +134,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
         }
         String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
         VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-        subresult.addLast(variableRecord.getValue());
+        subresult.addLast(variableRecordService.getValue(variableRecord));
       }
       result.addLast(subresult);
       return result;
@@ -141,7 +179,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public void commit(List<RowMapping> mappings) {
+  public synchronized void commit(List<RowMapping> mappings) {
     for (RowMapping mapping : mappings) {
       for (Combination combination : combinations) {
         if (combination.position == mapping.getIndex()) {
@@ -152,43 +190,52 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public int enabledCount() {
-    return combinations.size();
+  public synchronized int enabledCount() {
+    int size = 1;
+    for (Entry<String, Integer> sizePerPort : this.sizePerPort.entrySet()) {
+      size = size * sizePerPort.getValue();
+    }
+    return size;
   }
 
   @Override
-  public List<RowMapping> enabled() throws BindingException {
+  public synchronized List<RowMapping> enabled() throws ScatterStrategyException {
     List<RowMapping> result = new LinkedList<>();
     LinkedList<LinkedList<Integer>> mapping = new LinkedList<>();
     for (Entry<String, LinkedList<Integer>> positionEntry : positions.entrySet()) {
       mapping.add(positionEntry.getValue());
     }
-    LinkedList<LinkedList<Integer>> newMapping = cartesianProduct(mapping);
-
-    for (int i = 0; i < newMapping.size(); i++) {
-      LinkedList<Integer> indexes = newMapping.get(i);
-      if (!hasNull(indexes)) {
-        Combination combination = getCombination(indexes);
-        if (combination == null) {
-          combination = new Combination(combinations.size() + 1, false, indexes);
-          combinations.add(combination);
-        }
-        if (!combination.enabled) {
-          List<PortMapping> portMappings = new LinkedList<>();
-
-          int positionIndex = 1;
-          for (Entry<String, LinkedList<Object>> valueEntry : values.entrySet()) {
-            String port = valueEntry.getKey();
-            int position = combination.indexes.get(positionIndex - 1);
-            Object value = valueEntry.getValue().get(position - 1);
-            portMappings.add(new PortMapping(port, value));
-            positionIndex++;
+    LinkedList<LinkedList<Integer>> newMapping;
+    try {
+      newMapping = cartesianProduct(mapping);
+      
+      for (int i = 0; i < newMapping.size(); i++) {
+        LinkedList<Integer> indexes = newMapping.get(i);
+        if (!hasNull(indexes)) {
+          Combination combination = getCombination(indexes);
+          if (combination == null) {
+            combination = new Combination(combinations.size() + 1, false, indexes);
+            combinations.add(combination);
           }
-          result.add(new RowMapping(combination.position, portMappings));
+          if (!combination.enabled) {
+            List<PortMapping> portMappings = new LinkedList<>();
+
+            int positionIndex = 1;
+            for (Entry<String, LinkedList<Object>> valueEntry : values.entrySet()) {
+              String port = valueEntry.getKey();
+              int position = combination.indexes.get(positionIndex - 1);
+              Object value = valueEntry.getValue().get(position - 1);
+              portMappings.add(new PortMapping(port, value));
+              positionIndex++;
+            }
+            result.add(new RowMapping(combination.position, portMappings));
+          }
         }
       }
+      return result;
+    } catch (BindingException e) {
+      throw new ScatterStrategyException(e);
     }
-    return result;
   }
 
   private boolean hasNull(LinkedList<Integer> list) {
@@ -209,12 +256,17 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     return null;
   }
 
-  private class Combination {
+  public static class Combination {
+    @JsonProperty("position")
     int position;
+    @JsonProperty("enabled")
     boolean enabled;
+    @JsonProperty("indexes")
     LinkedList<Integer> indexes;
 
-    public Combination(int position, boolean enabled, LinkedList<Integer> indexes) {
+    @JsonCreator
+    public Combination(@JsonProperty("position") int position, @JsonProperty("enabled") boolean enabled,
+        @JsonProperty("indexes") LinkedList<Integer> indexes) {
       this.position = position;
       this.enabled = enabled;
       this.indexes = indexes;
@@ -230,6 +282,44 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   @Override
   public boolean isBlocking() {
     return ScatterMethod.isBlocking(scatterMethod);
+  }
+
+  @Override
+  public boolean isHanging() {
+    for (String port : values.keySet()) {
+      if (values.get(port) == null || (values.get(port) instanceof List<?> && ((List<?>)values.get(port)).isEmpty())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public Object generateOutputsForEmptyList() {
+    if (scatterMethod.equals(ScatterMethod.flat_crossproduct)) {
+      return new ArrayList<>();  
+    }
+    return new ArrayList<>(); // TODO implement outputs for nested_crossproduct
+  }
+
+  @Override
+  public void setEmptyListDetected() {
+    this.emptyListDetected = true;
+  }
+
+  @Override
+  public boolean isEmptyListDetected() {
+    return emptyListDetected;
+  }
+
+  @Override
+  public void skipScatter(boolean skipScatter) {
+    this.skipScatter = skipScatter;
+  }
+
+  @Override
+  public boolean skipScatter() {
+    return skipScatter;
   }
 
 }

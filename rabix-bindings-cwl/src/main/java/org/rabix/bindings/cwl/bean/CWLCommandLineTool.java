@@ -3,7 +3,6 @@ package org.rabix.bindings.cwl.bean;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
@@ -98,17 +97,6 @@ public class CWLCommandLineTool extends CWLJobApp {
 
   public List<Object> getArguments() {
     return arguments;
-  }
-
-  @JsonIgnore
-  public Object getArgument(CWLJob job, Object binding) throws CWLExpressionException {
-    if (binding instanceof Map<?, ?>) {
-      Object value = ((Map<?, ?>) binding).get(KEY_ARGUMENT_VALUE);
-      if (value != null) {
-        return CWLExpressionResolver.resolve(value, job, null);
-      }
-    }
-    return CWLExpressionResolver.resolve(binding, job, null);
   }
 
   public static String generateRandomStdoutGlob() {

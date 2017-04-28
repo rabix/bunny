@@ -43,17 +43,13 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
     }
     
     Draft2CommandLineTool commandLineTool = (Draft2CommandLineTool) draft2Job.getApp();
-    List<String> commandLineParts = Lists.transform(buildCommandLineParts(draft2Job, workingDir, filePathMapper), new Function<Object, String>() {
-      public String apply(Object obj) {
-        return obj.toString();
-      }
-    });
+    List<CommandLine.Part> commandLineParts = Lists.transform(buildCommandLineParts(draft2Job, workingDir, filePathMapper), (obj ->
+        new CommandLine.Part(obj.toString())));
 
     String stdin = null;
     try {
       stdin = commandLineTool.getStdin(draft2Job);
     } catch (Draft2ExpressionException e) {
-      logger.error("Failed to extract standard input.", e);
       throw new BindingException("Failed to extract standard input.", e);
     }
 
@@ -61,11 +57,10 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
     try {
       stdout = commandLineTool.getStdout(draft2Job);
     } catch (Draft2ExpressionException e) {
-      logger.error("Failed to extract standard output.", e);
       throw new BindingException("Failed to extract standard outputs.", e);
     }
 
-    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null);
+    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null, true);
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }
@@ -135,7 +130,6 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
         }
       }
     } catch (Draft2ExpressionException e) {
-      logger.error("Failed to build command line.", e);
       throw new BindingException("Failed to build command line.", e);
     }
     return result;

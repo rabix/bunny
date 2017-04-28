@@ -81,7 +81,7 @@ public class FileValueHelper {
    */
   public static DataType getDataTypeFromValue(Object value) {
     if (value==null)
-      return new DataType(DataType.Type.ANY);
+      return new DataType(DataType.Type.NULL);
 
     // DIRECTORY
     if (value instanceof DirectoryValue)
@@ -144,8 +144,7 @@ public class FileValueHelper {
     try {
       mapValue(clonedInputs, fileMapper, job.getConfig());
     } catch (FileMappingException e) {
-      logger.error("Failed to map file paths", e);
-      throw new BindingException(e);
+      throw new BindingException("Failed to map input file paths", e);
     }
     return Job.cloneWithInputs(job, clonedInputs);
   }
@@ -166,8 +165,7 @@ public class FileValueHelper {
     try {
       mapValue(clonedOutputs, fileMapper, job.getConfig());
     } catch (FileMappingException e) {
-      logger.error("Failed to map file paths", e);
-      throw new BindingException(e);
+      throw new BindingException("Failed to map output file paths", e);
     }
     return Job.cloneWithOutputs(job, clonedOutputs);
   }

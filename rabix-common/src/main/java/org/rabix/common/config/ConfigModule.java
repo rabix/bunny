@@ -60,8 +60,7 @@ public class ConfigModule extends AbstractModule {
       }
       return configuration;
     } catch (ConfigurationException e) {
-      logger.error("Failed to load configuration properties", e);
-      throw new RuntimeException("Failed to load configuration properties");
+      throw new RuntimeException("Failed to load configuration properties", e);
     }
   }
 

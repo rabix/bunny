@@ -38,8 +38,7 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
     try {
       return process(null, job);
     } catch (Draft3Exception e) {
-      logger.error("Failed to process Job.", e);
-      throw new BeanProcessorException(e);
+      throw new BeanProcessorException("Failed to process draft-3 Job.", e);
     }
   }
   
@@ -137,7 +136,7 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
         String source = sources.get(position);
         source = Draft2ToDraft3Converter.convertSource(source);
         source = Draft3SchemaHelper.normalizeId(source);
-        Draft3DataLink dataLink = new Draft3DataLink(source, destination, linkMerge, position + 1);
+        Draft3DataLink dataLink = new Draft3DataLink(source, destination, linkMerge, position + 1, true);
         workflow.addDataLink(dataLink);
       }
     }
@@ -158,7 +157,7 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
           source = Draft2ToDraft3Converter.convertSource(source);
           
           source = Draft3SchemaHelper.normalizeId(source);
-          Draft3DataLink dataLink = new Draft3DataLink(source, destination, linkMerge, position + 1);
+          Draft3DataLink dataLink = new Draft3DataLink(source, destination, linkMerge, position + 1, false);
           dataLinks.add(dataLink);
         }
       }
@@ -235,7 +234,6 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
    */
   private void processDataLinks(List<Draft3DataLink> dataLinks, ApplicationPort port, Draft3Job job, boolean strip) {
     for (Draft3DataLink dataLink : dataLinks) {
-      String source = dataLink.getSource();
       String destination = dataLink.getDestination();
       
       String scatter = null;
@@ -250,7 +248,7 @@ public class Draft3JobProcessor implements BeanProcessor<Draft3Job> {
       }
       
       // TODO fix
-      if ((source.equals(scatter) || destination.equals(scatter)) && (dataLink.getScattered() == null || !dataLink.getScattered())) {
+      if (destination.equals(scatter) && (dataLink.getScattered() == null || !dataLink.getScattered())) {
         dataLink.setScattered(port.getScatter());
       }
     }

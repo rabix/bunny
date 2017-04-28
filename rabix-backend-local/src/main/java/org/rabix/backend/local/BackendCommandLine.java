@@ -47,23 +47,32 @@ import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
 import org.rabix.engine.EngineModule;
+import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
-import org.rabix.engine.rest.backend.BackendDispatcher;
-import org.rabix.engine.rest.db.BackendDB;
-import org.rabix.engine.rest.db.JobDB;
-import org.rabix.engine.rest.service.BackendService;
-import org.rabix.engine.rest.service.IntermediaryFilesService;
-import org.rabix.engine.rest.service.JobService;
-import org.rabix.engine.rest.service.JobServiceException;
-import org.rabix.engine.rest.service.impl.BackendServiceImpl;
-import org.rabix.engine.rest.service.impl.IntermediaryFilesServiceLocalImpl;
-import org.rabix.engine.rest.service.impl.JobServiceImpl;
+import org.rabix.engine.service.BackendService;
+import org.rabix.engine.service.BackendServiceException;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.IntermediaryFilesHandler;
+import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobServiceException;
+import org.rabix.engine.service.SchedulerService;
+import org.rabix.engine.service.SchedulerService.SchedulerCallback;
+import org.rabix.engine.service.impl.BackendServiceImpl;
+import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
+import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
+import org.rabix.engine.service.impl.JobReceiverImpl;
+import org.rabix.engine.service.impl.JobServiceImpl;
+import org.rabix.engine.service.impl.SchedulerServiceImpl;
+import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
+import org.rabix.engine.stub.BackendStubFactory;
+import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.DefaultStorageConfiguration;
-import org.rabix.executor.config.impl.LocalStorageConfiguration;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.execution.JobHandlerCommandDispatcher;
 import org.rabix.executor.handler.JobHandler;
@@ -72,24 +81,23 @@ import org.rabix.executor.handler.impl.JobHandlerImpl;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.pathmapper.local.LocalPathMapper;
+import org.rabix.executor.service.CacheService;
 import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
-import org.rabix.executor.service.CacheService;
+import org.rabix.executor.service.impl.CacheServiceImpl;
 import org.rabix.executor.service.impl.ExecutorServiceImpl;
 import org.rabix.executor.service.impl.FilePermissionServiceImpl;
 import org.rabix.executor.service.impl.FileServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
-import org.rabix.executor.service.impl.CacheServiceImpl;
 import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
-import org.rabix.transport.backend.BackendPopulator;
 import org.rabix.transport.backend.impl.BackendLocal;
-import org.rabix.transport.mechanism.TransportPluginException;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +106,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
@@ -164,6 +173,7 @@ public class BackendCommandLine {
       }
 
       Map<String, Object> configOverrides = new HashMap<>();
+      configOverrides.put("cleaner.backend.period", 5000L);
       String executionDirPath = commandLine.getOptionValue("basedir");
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
@@ -183,7 +193,7 @@ public class BackendCommandLine {
         configOverrides.put("backend.execution.directory", workingDir);
       }
       if (commandLine.hasOption("no-container")) {
-        configOverrides.put("backend.docker.enabled", false);
+        configOverrides.put("docker.enabled", false);
       }
       if (commandLine.hasOption("cache-dir")) {
         String cacheDir = commandLine.getOptionValue("cache-dir");
@@ -192,7 +202,7 @@ public class BackendCommandLine {
           VerboseLogger.log(String.format("Cache directory %s does not exist.", cacheDirFile.getCanonicalPath()));
           printUsageAndExit(posixOptions);
         }
-        configOverrides.put("cache.is_enabled", true);
+        configOverrides.put("cache.enabled", true);
         configOverrides.put("cache.directory", cacheDirFile.getCanonicalPath());
       }
 
@@ -227,21 +237,22 @@ public class BackendCommandLine {
       
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
-          new SimpleFTPModule(), 
-          new EngineModule(),
+          new SimpleFTPModule(),
+          new EngineModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {
               install(configModule);
               
-              bind(JobDB.class).in(Scopes.SINGLETON);
-              bind(StorageConfiguration.class).toInstance(new LocalStorageConfiguration(appPath,configModule.provideConfig()));
-              bind(BackendDB.class).in(Scopes.SINGLETON);
-              bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceLocalImpl.class).in(Scopes.SINGLETON);
+              bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
+              bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
+              bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
+              
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
-              bind(BackendPopulator.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
-              bind(BackendDispatcher.class).in(Scopes.SINGLETON);
+              bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+              bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+              bind(EngineStatusCallback.class).to(DefaultEngineStatusCallback.class).in(Scopes.SINGLETON);
               bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
               bind(DownloadService.class).to(LocalDownloadServiceImpl.class).in(Scopes.SINGLETON);
               bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
@@ -249,6 +260,8 @@ public class BackendCommandLine {
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
               bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
               bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
+              bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
+              bind(new TypeLiteral<ReceiveCallback<Job>>(){}).to(JobReceiverImpl.class).in(Scopes.SINGLETON);
               
               if (isTesEnabled) {
                 bind(TESHttpClient.class).in(Scopes.SINGLETON);
@@ -395,14 +408,17 @@ public class BackendCommandLine {
         }
       }
 
+      final SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
+      
       final JobService jobService = injector.getInstance(JobService.class);
       final BackendService backendService = injector.getInstance(BackendService.class);
       final ExecutorService executorService = injector.getInstance(ExecutorService.class);
-
+      final ContextRecordService contextRecordService = injector.getInstance(ContextRecordService.class);
+      
       BackendLocal backendLocal = new BackendLocal();
       backendLocal = backendService.create(backendLocal);
       executorService.initialize(backendLocal);
-
+      schedulerService.start();
       Object commonInputs = null;
       try {
         commonInputs = bindings.translateToCommon(inputs);
@@ -419,17 +435,18 @@ public class BackendCommandLine {
         @Override
         @SuppressWarnings("unchecked")
         public void run() {
-          Job rootJob = jobService.get(job.getId());
-
-          while (!Job.isFinished(rootJob)) {
+          ContextRecord contextRecord = contextRecordService.find(job.getId());
+          
+          while (contextRecord == null || contextRecord.getStatus().equals(ContextRecord.ContextStatus.RUNNING)) {
             try {
               Thread.sleep(1000);
-              rootJob = jobService.get(job.getId());
+              contextRecord = contextRecordService.find(job.getId());
             } catch (InterruptedException e) {
               logger.error("Failed to wait for root Job to finish", e);
               throw new RuntimeException(e);
             }
           }
+          Job rootJob = jobService.get(job.getId());
           if (rootJob.getStatus().equals(JobStatus.COMPLETED)) {
             try {
               try {
@@ -458,7 +475,10 @@ public class BackendCommandLine {
     } catch (IOException e) {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
-    } catch (JobServiceException | TransportPluginException | InterruptedException e) {
+    } catch (JobServiceException | InterruptedException e) {
+      logger.error("Encountered an error while starting local backend.", e);
+      System.exit(10);
+    } catch (BackendServiceException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }
@@ -549,7 +569,7 @@ public class BackendCommandLine {
   }
   
   private static void printVersionAndExit(Options posixOptions) {
-    System.out.println("Rabix 1.0.0-RC2");
+    System.out.println("Rabix 1.0.0-RC5");
     System.exit(0);
   }
 
@@ -572,7 +592,7 @@ public class BackendCommandLine {
     }
     File config = new File(new File(BackendCommandLine.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParentFile().getParentFile() + "/config");
 
-    logger.debug("Config path: " + config.getCanonicalPath());
+    logger.debug("Config path: {}", config.getCanonicalPath());
     if (config.exists() && config.isDirectory()) {
       logger.debug("Configuration directory found localy.");
       return config;

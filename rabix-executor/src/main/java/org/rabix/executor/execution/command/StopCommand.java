@@ -1,5 +1,7 @@
 package org.rabix.executor.execution.command;
 
+import java.util.UUID;
+
 import javax.inject.Inject;
 
 import org.rabix.bindings.BindingException;
@@ -26,8 +28,8 @@ public class StopCommand extends JobHandlerCommand {
   }
 
   @Override
-  public Result run(JobData jobData, JobHandler handler, String contextId) {
-    String jobId = jobData.getJob().getId();
+  public Result run(JobData jobData, JobHandler handler, UUID rootId) {
+    UUID jobId = jobData.getJob().getId();
     try {
       handler.removeContainer();
       handler.stop();
@@ -37,6 +39,7 @@ public class StopCommand extends JobHandlerCommand {
       jobFitter.free(jobData.getJob());
     } catch (ExecutorException | BindingException e) {
       String message = String.format("Failed to stop %s. %s", jobId, e.toString());
+      logger.error(message, e);
       jobData = jobDataService.save(jobData, message, JobDataStatus.FAILED);
     }
     return new Result(true);

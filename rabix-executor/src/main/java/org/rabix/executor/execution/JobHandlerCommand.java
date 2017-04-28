@@ -1,6 +1,7 @@
 package org.rabix.executor.execution;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -40,7 +41,7 @@ public abstract class JobHandlerCommand {
   /**
    * Find {@link JobData} and run command 
    */
-  public Result run(String id, String contextId, JobHandler handler) {
+  public Result run(UUID id, UUID contextId, JobHandler handler) {
     JobData data = null;
     try {
       data = jobDataService.find(id, contextId);
@@ -58,7 +59,7 @@ public abstract class JobHandlerCommand {
   /**
    * Run command using the {@link JobData} 
    */
-  public abstract Result run(JobData jobData, JobHandler handler, String contextId);
+  public abstract Result run(JobData jobData, JobHandler handler, UUID contextId);
 
   /**
    * Get repeat information. By default, the command is not repeatable.
