@@ -60,21 +60,22 @@ public class Draft2DocumentResolver {
     
     File file = null;
     JsonNode root = null;
-    try {
-      boolean isFile = URIHelper.isFile(appUrlBase);
-      if (isFile) {
-        file = new File(URIHelper.getURIInfo(appUrlBase));
-      } else {
-        file = new File(".");
-      }
-      root = JSONHelper.getTransformed(URIHelper.getData(appUrlBase));
-      if (root.has(CWL_VERSION_KEY)) {
-        throw new BindingWrongVersionException("Document version is not draft-2");
-      }
-      
-    } catch (Exception e) {
-      throw new BindingException(e);
+
+    boolean isFile = URIHelper.isFile(appUrlBase);
+    if (isFile) {
+      file = new File(URIHelper.getURIInfo(appUrlBase));
+    } else {
+      file = new File(".");
     }
+    try {
+      root = JSONHelper.getTransformed(URIHelper.getData(appUrlBase));
+    } catch (IOException e) {
+      throw new BindingException(e.getMessage());
+    }
+    if (root.has(CWL_VERSION_KEY)) {
+      throw new BindingWrongVersionException("Document version is not draft-2");
+    }
+
     
     if (root.isArray()) {
       Map<String, JsonNode> fragmentsCachePerUrl = getFragmentsCache(appUrl);

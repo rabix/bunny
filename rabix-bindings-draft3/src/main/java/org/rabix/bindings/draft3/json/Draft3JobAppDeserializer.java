@@ -35,6 +35,9 @@ public class Draft3JobAppDeserializer extends JsonDeserializer<Draft3JobApp> {
     }
     if (tree.isObject()) {
       if(tree.get(Draft3DocumentResolver.CWL_VERSION_KEY) == null || tree.get(Draft3DocumentResolver.CWL_VERSION_KEY).asText().equals(ProtocolType.DRAFT3.appVersion)) {
+        if (tree.get(CLASS_KEY) == null)
+          throw new IllegalStateException("\"" + CLASS_KEY + "\" attribute missing!");
+
         if(tree.get(CLASS_KEY).asText().equals(WORKFLOW_CLASS)) {
           return objectMapper.readValue(JSONHelper.writeObject(tree), Draft3Workflow.class);
         }
@@ -46,6 +49,8 @@ public class Draft3JobAppDeserializer extends JsonDeserializer<Draft3JobApp> {
         }
         else if(tree.get(CLASS_KEY).asText().equals(EXPRESSION_CLASS)) {
           return objectMapper.readValue(JSONHelper.writeObject(tree), Draft3ExpressionTool.class);
+        } else {
+          throw new IllegalStateException("Ivalid value for \"" + CLASS_KEY + "\" attribute!");
         }
       }
     }

@@ -59,7 +59,7 @@ public class JSONHelper {
     try {
       return readJsonNode(writeObject(yamlReader.load(input)));
     }catch(Exception e){
-      throw new IOException("\nCan't parse as JSON:\n"+jsonMessage+"\nCan't parse as YAML: "+e.getMessage());
+      throw new IOException("Can't parse as JSON or as YAML");
     }
   }
 
