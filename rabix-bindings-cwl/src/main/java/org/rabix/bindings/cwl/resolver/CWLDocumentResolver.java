@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
@@ -89,7 +87,6 @@ public class CWLDocumentResolver {
 
   private static final String DEFAULT_ENCODING = "UTF-8";
 
-  private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>();
   private static boolean graphResolve = false;
 
   private static Map<String, String> namespaces = new HashMap<String, String>();
@@ -97,10 +94,6 @@ public class CWLDocumentResolver {
   private static Map<String, List<CWLDocumentResolverReplacement>> replacements = new HashMap<>();
 
   public static String resolve(String appUrl) throws BindingException {
-    if (cache.containsKey(appUrl)) {
-      return cache.get(appUrl);
-    }
-
     String appUrlBase = appUrl;
     if (!URIHelper.isData(appUrl)) {
       appUrlBase = URIHelper.extractBase(appUrl);
@@ -183,7 +176,6 @@ public class CWLDocumentResolver {
           Map<String, Object> result = JSONHelper.readMap(elem);
           result.put(CWL_VERSION_KEY, cwlVersion);
           root = JSONHelper.convertToJsonNode(result);
-          cache.put(appUrl, JSONHelper.writeObject(root));
           break;
         }
       }
@@ -194,16 +186,14 @@ public class CWLDocumentResolver {
         clearReferenceCache(appUrl);
         throw new BindingException("Document version is not v1.0");
       }
-      cache.put(appUrl, JSONHelper.writeObject(root));
     }
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);
 
     if (rewriteDefaultPaths) {
       addAppLocations(root, appUrl);
-      cache.put(appUrl, JSONHelper.writeObject(root));
     }
-    return cache.get(appUrl);
+    return JSONHelper.writeObject(root);
   }
 
   private static void addAppLocations(JsonNode node, String previous) {
