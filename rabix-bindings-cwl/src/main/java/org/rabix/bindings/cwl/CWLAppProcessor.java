@@ -11,18 +11,20 @@ import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.cwl.resolver.CWLDocumentResolver;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Job;
-import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.helper.JSONHelper;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class CWLAppProcessor implements ProtocolAppProcessor {
 
   @Override
-  public String loadApp(String uri) throws BindingException {
+  public JsonNode loadApp(String uri) throws BindingException {
     return CWLDocumentResolver.resolve(uri);
   }
   
   @Override
   public Application loadAppObject(String app) throws BindingException {
-    return BeanSerializer.deserialize(loadApp(app), CWLJobApp.class);
+    return JSONHelper.readObject(loadApp(app), CWLJobApp.class);
   }
 
   @Override

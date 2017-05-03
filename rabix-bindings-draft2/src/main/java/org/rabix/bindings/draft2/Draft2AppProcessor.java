@@ -11,18 +11,20 @@ import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import org.rabix.bindings.draft2.resolver.Draft2DocumentResolver;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Job;
-import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.helper.JSONHelper;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class Draft2AppProcessor implements ProtocolAppProcessor {
 
   @Override
-  public String loadApp(String uri) throws BindingException {
+  public JsonNode loadApp(String uri) throws BindingException {
     return Draft2DocumentResolver.resolve(uri);
   }
   
   @Override
   public Application loadAppObject(String app) throws BindingException {
-    return BeanSerializer.deserialize(loadApp(app), Draft2JobApp.class);
+    return JSONHelper.readObject(loadApp(app), Draft2JobApp.class);
   }
 
   @Override
