@@ -11,14 +11,16 @@ import org.rabix.bindings.draft3.bean.Draft3Runtime;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
 import org.rabix.bindings.draft3.resolver.Draft3DocumentResolver;
 import org.rabix.bindings.model.Job;
-import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.helper.JSONHelper;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class Draft3JobHelper {
 
   @SuppressWarnings("unchecked")
   public static Draft3Job getDraft3Job(Job job) throws BindingException {
-    String resolvedAppStr = Draft3DocumentResolver.resolve(job.getApp());
-    Draft3JobApp app = BeanSerializer.deserialize(resolvedAppStr, Draft3JobApp.class);
+    JsonNode resolvedApp = Draft3DocumentResolver.resolve(job.getApp());
+    Draft3JobApp app = JSONHelper.readObject(resolvedApp, Draft3JobApp.class);
     
     Map<String, Object> nativeInputs = (Map<String, Object>) Draft3ValueTranslator.translateToSpecific(job.getInputs());
     Map<String, Object> nativeOutputs = (Map<String, Object>) Draft3ValueTranslator.translateToSpecific(job.getOutputs());

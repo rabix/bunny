@@ -14,6 +14,8 @@ import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 public interface Bindings {
 
   /**
@@ -23,7 +25,7 @@ public interface Bindings {
    * @return            Application as string
    * @throws BindingException
    */
-  String loadApp(String appURI) throws BindingException;
+  JsonNode loadApp(String appURI) throws BindingException;
   
   /**
    * Loads application object from URL

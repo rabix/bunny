@@ -21,7 +21,7 @@ public class Draft2ReferenceResolverTest {
     String fileURI = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, filePath);
     
     JsonNode resolvedRoot = readJsonNode("count-lines1-wf-resolved.cwl.json");
-    Assert.assertEquals(Draft2DocumentResolver.resolve(fileURI), JSONHelper.writeObject(resolvedRoot));
+    Assert.assertEquals(Draft2DocumentResolver.resolve(fileURI), resolvedRoot);
   }
 
   @Test
@@ -30,7 +30,7 @@ public class Draft2ReferenceResolverTest {
     String fileURI = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, filePath);
     
     JsonNode resolvedRoot = readJsonNode("regular-resolved.json");
-    Assert.assertEquals(Draft2DocumentResolver.resolve(fileURI), JSONHelper.writeObject(resolvedRoot));
+    Assert.assertEquals(Draft2DocumentResolver.resolve(fileURI), resolvedRoot);
   }
 
   @Test
@@ -39,7 +39,7 @@ public class Draft2ReferenceResolverTest {
     String fileURI = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, filePath);
     
     JsonNode resolvedRoot = readJsonNode("regular-json-pointer-resolved.json");
-    Assert.assertEquals(Draft2DocumentResolver.resolve(fileURI), JSONHelper.writeObject(resolvedRoot));
+    Assert.assertEquals(Draft2DocumentResolver.resolve(fileURI), resolvedRoot);
   }
 
   @Test(expectedExceptions = { BindingException.class })

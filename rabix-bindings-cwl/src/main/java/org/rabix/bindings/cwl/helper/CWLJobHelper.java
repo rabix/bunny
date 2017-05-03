@@ -11,14 +11,13 @@ import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.resolver.CWLDocumentResolver;
 import org.rabix.bindings.model.Job;
-import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.helper.JSONHelper;
 
 public class CWLJobHelper {
 
   @SuppressWarnings("unchecked")
   public static CWLJob getCWLJob(Job job) throws BindingException {
-    String resolvedAppStr = CWLDocumentResolver.resolve(job.getApp());
-    CWLJobApp app = BeanSerializer.deserialize(resolvedAppStr, CWLJobApp.class);
+    CWLJobApp app = JSONHelper.readObject(CWLDocumentResolver.resolve(job.getApp()), CWLJobApp.class);
 
     Map<String, Object> nativeInputs = (Map<String, Object>) CWLValueTranslator.translateToSpecific(job.getInputs());
     Map<String, Object> nativeOutputs = (Map<String, Object>) CWLValueTranslator.translateToSpecific(job.getOutputs());

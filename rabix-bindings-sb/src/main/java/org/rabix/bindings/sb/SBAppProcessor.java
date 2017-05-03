@@ -11,18 +11,20 @@ import org.rabix.bindings.sb.bean.SBJobAppType;
 import org.rabix.bindings.sb.helper.SBJobHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.rabix.bindings.sb.resolver.SBDocumentResolver;
-import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.helper.JSONHelper;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class SBAppProcessor implements ProtocolAppProcessor {
 
   @Override
-  public String loadApp(String uri) throws BindingException {
+  public JsonNode loadApp(String uri) throws BindingException {
     return SBDocumentResolver.resolve(uri);
   }
   
   @Override
   public Application loadAppObject(String app) throws BindingException {
-    return BeanSerializer.deserialize(loadApp(app), SBJobApp.class);
+    return JSONHelper.readObject(loadApp(app), SBJobApp.class);
   }
 
   @Override

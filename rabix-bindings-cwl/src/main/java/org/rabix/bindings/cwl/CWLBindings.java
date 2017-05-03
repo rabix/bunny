@@ -30,6 +30,8 @@ import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 public class CWLBindings implements Bindings {
 
   private final ProtocolType protocolType;
@@ -54,7 +56,7 @@ public class CWLBindings implements Bindings {
   }
   
   @Override
-  public String loadApp(String uri) throws BindingException {
+  public JsonNode loadApp(String uri) throws BindingException {
     return appProcessor.loadApp(uri);
   }
   

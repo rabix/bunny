@@ -10,14 +10,16 @@ import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.bean.SBJobApp;
 import org.rabix.bindings.sb.bean.SBResources;
 import org.rabix.bindings.sb.resolver.SBDocumentResolver;
-import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.helper.JSONHelper;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class SBJobHelper {
 
   @SuppressWarnings("unchecked")
   public static SBJob getSBJob(Job job) throws BindingException {
-    String resolvedAppStr = SBDocumentResolver.resolve(job.getApp());
-    SBJobApp app = BeanSerializer.deserialize(resolvedAppStr, SBJobApp.class);
+    JsonNode resolvedApp = SBDocumentResolver.resolve(job.getApp());
+    SBJobApp app = JSONHelper.readObject(resolvedApp, SBJobApp.class);
     
     Map<String, Object> nativeInputs = (Map<String, Object>) SBValueTranslator.translateToSpecific(job.getInputs());
     Map<String, Object> nativeOutputs = (Map<String, Object>) SBValueTranslator.translateToSpecific(job.getOutputs());

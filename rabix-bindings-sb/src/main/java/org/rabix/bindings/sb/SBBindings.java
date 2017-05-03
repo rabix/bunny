@@ -26,6 +26,8 @@ import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 public class SBBindings implements Bindings {
 
   private final ProtocolType protocolType;
@@ -50,7 +52,7 @@ public class SBBindings implements Bindings {
   }
   
   @Override
-  public String loadApp(String uri) throws BindingException {
+  public JsonNode loadApp(String uri) throws BindingException {
     return appProcessor.loadApp(uri);
   }
   

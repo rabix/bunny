@@ -12,8 +12,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -39,19 +37,13 @@ public class Draft2DocumentResolver {
   private static final String DEFAULT_ENCODING = "UTF-8";
   
   public static final String CWL_VERSION_KEY = "cwlVersion";
-
-  private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>(); 
   
   private static final Map<String, Map<String, JsonNode>> fragmentsCache = new HashMap<>();
 
   private static final Map<String, Map<String, Draft2DocumentResolverReference>> referenceCache = new HashMap<>();
   private static final Map<String, LinkedHashSet<Draft2DocumentResolverReplacement>> replacements = new HashMap<>();
   
-  public static String resolve(String appUrl) throws BindingException {
-    if (cache.containsKey(appUrl)) {
-      return cache.get(appUrl);
-    }
-    
+  public static JsonNode resolve(String appUrl) throws BindingException {
     String appUrlBase = appUrl;
     if (!URIHelper.isData(appUrl)) {
       appUrlBase = URIHelper.extractBase(appUrl);
@@ -95,12 +87,11 @@ public class Draft2DocumentResolver {
       }
     }
     
-    cache.put(appUrl, JSONHelper.writeObject(root));
 
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);
     clearFragmentCache(appUrl);
-    return cache.get(appUrl);
+    return root;
   }
   
   private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
