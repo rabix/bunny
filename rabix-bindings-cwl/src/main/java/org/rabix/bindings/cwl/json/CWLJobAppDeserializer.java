@@ -36,6 +36,9 @@ public class CWLJobAppDeserializer extends JsonDeserializer<CWLJobApp> {
     }
     if (tree.isObject()) {
       if(tree.get(CWLDocumentResolver.CWL_VERSION_KEY) == null || tree.get(CWLDocumentResolver.CWL_VERSION_KEY).asText().equals(ProtocolType.CWL.appVersion)) {
+        if (tree.get(CLASS_KEY) == null)
+          throw new IllegalStateException("\"" + CLASS_KEY + "\" attribute missing!");
+
         if(tree.get(CLASS_KEY).asText().equals(WORKFLOW_CLASS)) {
           return objectMapper.readValue(JSONHelper.writeObject(tree), CWLWorkflow.class);
         }
@@ -47,6 +50,8 @@ public class CWLJobAppDeserializer extends JsonDeserializer<CWLJobApp> {
         }
         else if(tree.get(CLASS_KEY).asText().equals(EXPRESSION_CLASS)) {
           return objectMapper.readValue(JSONHelper.writeObject(tree), CWLExpressionTool.class);
+        } else {
+          throw new IllegalStateException("Ivalid value for \"" + CLASS_KEY + "\" attribute!");
         }
       }
     }

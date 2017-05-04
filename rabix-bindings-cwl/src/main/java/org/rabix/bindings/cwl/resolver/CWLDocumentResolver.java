@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.BindingWrongVersionException;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.helper.URIHelper;
@@ -119,12 +120,7 @@ public class CWLDocumentResolver {
         file = new File(".");
       }
       String input = URIHelper.getData(appUrlBase);
-      try {
-        root = JSONHelper.readJsonNode(input);
-      } catch (Exception e) {
-        // try to parse YAML
-        root = JSONHelper.readJsonNode(JSONHelper.transformToJSON(input));
-      }
+      root = JSONHelper.getTransformed(input);
       if (isFile) {
         addAppLocation(root, appUrl, StringUtils.EMPTY);
       }
@@ -144,7 +140,15 @@ public class CWLDocumentResolver {
       populateNamespaces(root);
       ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
+    
 
+    JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
+    if (cwlVersion==null || !(cwlVersion.asText().equals(ProtocolType.CWL.appVersion))) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      throw new BindingWrongVersionException("Document version is not " + ProtocolType.CWL.appVersion);
+    }
+    
     traverse(appUrl, root, file, null, root, false);
 
     for (CWLDocumentResolverReplacement replacement : getReplacements(appUrl)) {
@@ -157,13 +161,6 @@ public class CWLDocumentResolver {
 
     if (graphResolve) {
       String fragment = URIHelper.extractFragment(appUrl).substring(1);
-
-      String cwlVersion = root.get(CWL_VERSION_KEY).asText();
-      if (!(cwlVersion.equals(ProtocolType.CWL.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not v1.0");
-      }
 
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
@@ -181,7 +178,7 @@ public class CWLDocumentResolver {
       for (final JsonNode elem : root.get(GRAPH_KEY)) {
         if (elem.get("id").asText().equals(fragment)) {
           Map<String, Object> result = JSONHelper.readMap(elem);
-          result.put(CWL_VERSION_KEY, cwlVersion);
+          result.put(CWL_VERSION_KEY,  cwlVersion);
           root = JSONHelper.convertToJsonNode(result);
           cache.put(appUrl, JSONHelper.writeObject(root));
           break;
@@ -189,11 +186,6 @@ public class CWLDocumentResolver {
       }
       graphResolve = false;
     } else {
-      if (!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.CWL.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not v1.0");
-      }
       cache.put(appUrl, JSONHelper.writeObject(root));
     }
     clearReplacements(appUrl);
@@ -483,8 +475,12 @@ public class CWLDocumentResolver {
       if (parts.length > 2) {
         throw new BindingException("Invalid reference " + reference);
       }
-      String contents = loadContents(file, parts[0]);
-      return JSONHelper.readJsonNode(JSONHelper.transformToJSON(contents));
+      String contents = loadContents(file, parts[0]);     
+      try {
+        return JSONHelper.getTransformed(contents);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
     }
   }
 

@@ -42,6 +42,8 @@ public class BindingsFactory {
   }
 
   public static synchronized Bindings create(String appURL) throws BindingException {
+    int wrongVersions = 0;
+    Exception finalException = null;
     for (Bindings binding : bindings) {
       try {
         Application app = binding.loadAppObject(appURL);
@@ -54,15 +56,34 @@ public class BindingsFactory {
         else if(app.getVersion() == null && binding.getProtocolType().appVersion == null) {
           return binding;
         }
-        else {
-          continue;
-        }
       } catch (NotImplementedException e) {
         throw e; // fail if we do not support this kind of deserialization (Schema salad)
-      } catch (Exception ignore) {
+      } catch (BindingWrongVersionException ignore) {
+        wrongVersions++;
+      } catch (Exception e) {
+        finalException = e;
       }
     }
-    throw new BindingException("Cannot find binding for the payload.");
+
+    if (wrongVersions == bindings.size()) {
+      StringBuilder validVersions = new StringBuilder();
+      boolean first = true;
+      for (Bindings b : bindings) {
+        if (b.getProtocolType().appVersion == null)
+          continue;
+        if (!first)
+          validVersions.append(", ");
+        validVersions.append(b.getProtocolType().appVersion);
+        first = false;
+      }
+      throw new BindingException("Ivalid cwlVersion. Allowed values are: " + validVersions);
+    }
+
+    if (finalException != null && finalException.getMessage() != null) {
+      throw new BindingException(finalException.getMessage());
+    }
+
+    throw new BindingException("Unknown error when parsing the app!");
   }
 
   public static synchronized Bindings create(Job job) throws BindingException {

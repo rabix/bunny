@@ -29,12 +29,14 @@ public class Draft2JobAppDeserializer extends JsonDeserializer<Draft2JobApp> {
   public Draft2JobApp deserialize(JsonParser p, DeserializationContext ctxt)
       throws IOException, JsonProcessingException {
     ObjectMapper objectMapper = (ObjectMapper) p.getCodec();
-    ;
     JsonNode tree = p.getCodec().readTree(p);
     if (tree.isNull()) {
       return null;
     }
     if (tree.isObject()) {
+      if (tree.get(CLASS_KEY) == null)
+        throw new IllegalStateException("\"" + CLASS_KEY + "\" attribute missing!");
+
       if (tree.get(CLASS_KEY).asText().equals(WORKFLOW_CLASS)) {
         return objectMapper.readValue(JSONHelper.writeObject(tree), Draft2Workflow.class);
       } else if (tree.get(CLASS_KEY).asText().equals(COMMANDLINETOOL_CLASS)) {
@@ -43,6 +45,8 @@ public class Draft2JobAppDeserializer extends JsonDeserializer<Draft2JobApp> {
         return objectMapper.readValue(JSONHelper.writeObject(tree), Draft2PythonTool.class);
       } else if (tree.get(CLASS_KEY).asText().equals(EXPRESSION_CLASS)) {
         return objectMapper.readValue(JSONHelper.writeObject(tree), Draft2ExpressionTool.class);
+      } else {
+        throw new IllegalStateException("Ivalid value for \"" + CLASS_KEY + "\" attribute!");
       }
     }
     return new Draft2EmbeddedApp(JSONHelper.writeObject(tree));

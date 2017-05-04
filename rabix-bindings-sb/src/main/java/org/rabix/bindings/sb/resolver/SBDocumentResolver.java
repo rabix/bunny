@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.BindingWrongVersionException;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
@@ -64,10 +65,17 @@ public class SBDocumentResolver {
       } else {
         file = new File(".");
       }
-      String input = JSONHelper.transformToJSON(URIHelper.getData(appUrlBase));
-      root = JSONHelper.readJsonNode(input);
+      root = JSONHelper.getTransformed(URIHelper.getData(appUrlBase));
     } catch (Exception e) {
       throw new BindingException(e);
+    }
+
+    JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
+    if (cwlVersion == null || !(cwlVersion.asText().equals(ProtocolType.SB.appVersion))){
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      clearFragmentCache(appUrl);
+      throw new BindingWrongVersionException("Document version is not " + ProtocolType.SB.appVersion);
     }
     
     if (root.isArray()) {
@@ -87,13 +95,6 @@ public class SBDocumentResolver {
       } else if (replacement.getParentNode().isObject()) {
         replaceObjectItem(appUrl, root, replacement);
       }
-    }
-    
-    if(!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion))) {
-      clearReplacements(appUrl);
-      clearReferenceCache(appUrl);
-      clearFragmentCache(appUrl);
-      throw new BindingException("Document version is not sbg:draft-2");
     }
     cache.put(appUrl, JSONHelper.writeObject(root));
     
@@ -208,7 +209,11 @@ public class SBDocumentResolver {
         throw new BindingException("Invalid reference " + reference);
       }
       String contents = loadContents(file, parts[0]);
-      return JSONHelper.readJsonNode(JSONHelper.transformToJSON(contents));
+      try {
+        return JSONHelper.getTransformed(contents);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
     }
   }
   
