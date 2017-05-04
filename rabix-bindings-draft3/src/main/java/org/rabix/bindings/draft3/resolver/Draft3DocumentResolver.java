@@ -13,8 +13,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
@@ -68,7 +66,6 @@ public static Set<String> types = new HashSet<String>();
   
   private static final String DEFAULT_ENCODING = "UTF-8";
 
-  private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>(); 
   private static boolean graphResolve = false;
   
   private static Map<String, String> namespaces = new HashMap<String, String>();
@@ -76,10 +73,6 @@ public static Set<String> types = new HashSet<String>();
   private static Map<String, LinkedHashSet<Draft3DocumentResolverReplacement>> replacements = new HashMap<>();
   
   public static String resolve(String appUrl) throws BindingException {
-    if (cache.containsKey(appUrl)) {
-      return cache.get(appUrl);
-    }
-    
     String appUrlBase = appUrl;
     if (!URIHelper.isData(appUrl)) {
       appUrlBase = URIHelper.extractBase(appUrl);
@@ -145,23 +138,27 @@ public static Set<String> types = new HashSet<String>();
         }
       }
       
-      for(final JsonNode elem: root.get(GRAPH_KEY)) {
-        if(elem.get("id").asText().equals(fragment)) {
+      for (final JsonNode elem : root.get(GRAPH_KEY)) {
+        if (elem.get("id").asText().equals(fragment)) {
           Map<String, Object> result = JSONHelper.readMap(elem);
-          result.put(CWL_VERSION_KEY, cwlVersion.asText());
-          cache.put(appUrl, JSONHelper.writeObject(result));
+          result.put(CWL_VERSION_KEY, cwlVersion);
+          root = JSONHelper.convertToJsonNode(result);
           break;
         }
       }
       graphResolve = false;
     }
     else {
-      cache.put(appUrl, JSONHelper.writeObject(root));
+      if (!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.DRAFT3.appVersion))) {
+        clearReplacements(appUrl);
+        clearReferenceCache(appUrl);
+        throw new BindingException("Document version is not cwl:draft-3");
+      }
     }
 
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);
-    return cache.get(appUrl);
+    return JSONHelper.writeObject(root);
   }
   
   private static void populateNamespaces(JsonNode root) {

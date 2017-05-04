@@ -12,8 +12,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -26,7 +24,6 @@ import org.rabix.common.helper.JSONHelper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.Preconditions;
 
 public class SBDocumentResolver {
@@ -38,8 +35,6 @@ public class SBDocumentResolver {
   public static final String DOCUMENT_FRAGMENT_SEPARATOR = "#";
   
   private static final String DEFAULT_ENCODING = "UTF-8";
-
-  private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>(); 
   
   private static final Map<String, Map<String, JsonNode>> fragmentsCache = new HashMap<>();
 
@@ -47,10 +42,6 @@ public class SBDocumentResolver {
   private static final Map<String, LinkedHashSet<SBDocumentResolverReplacement>> replacements = new HashMap<>();
   
   public static String resolve(String appUrl) throws BindingException {
-    if (cache.containsKey(appUrl)) {
-      return cache.get(appUrl);
-    }
-    
     String appUrlBase = appUrl;
     if (!URIHelper.isData(appUrl)) {
       appUrlBase = URIHelper.extractBase(appUrl);
@@ -96,12 +87,18 @@ public class SBDocumentResolver {
         replaceObjectItem(appUrl, root, replacement);
       }
     }
-    cache.put(appUrl, JSONHelper.writeObject(root));
     
+    if(!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion))) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      clearFragmentCache(appUrl);
+      throw new BindingException("Document version is not sbg:draft-2");
+    }
+
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);
     clearFragmentCache(appUrl);
-    return cache.get(appUrl);
+    return JSONHelper.writeObject(root);
   }
   
   private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
