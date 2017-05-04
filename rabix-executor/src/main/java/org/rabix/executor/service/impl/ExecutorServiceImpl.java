@@ -8,10 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.executor.engine.EngineStub;
-import org.rabix.executor.engine.EngineStubActiveMQ;
-import org.rabix.executor.engine.EngineStubLocal;
-import org.rabix.executor.engine.EngineStubRabbitMQ;
+import org.rabix.executor.engine.*;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.model.JobData.JobDataStatus;
 import org.rabix.executor.service.ExecutorService;
@@ -21,6 +18,7 @@ import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
+import org.rabix.transport.backend.impl.BackendSlurm;
 import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +56,9 @@ public class ExecutorServiceImpl implements ExecutorService {
         break;
       case ACTIVE_MQ:
         engineStub = new EngineStubActiveMQ((BackendActiveMQ) backend, this, configuration);
+        break;
+      case SLURM:
+        engineStub = new EngineStubSlurm((BackendSlurm) backend, this, configuration);
       default:
         break;
       }

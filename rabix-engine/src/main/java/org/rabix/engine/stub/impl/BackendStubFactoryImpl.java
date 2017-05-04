@@ -8,6 +8,7 @@ import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
+import org.rabix.transport.backend.impl.BackendSlurm;
 import org.rabix.transport.mechanism.TransportPluginException;
 
 import com.google.inject.Inject;
@@ -35,6 +36,8 @@ public class BackendStubFactoryImpl implements BackendStubFactory {
       return new BackendStubLocal(jobService, configuration, (BackendLocal) backend);
     case RABBIT_MQ:
       return new BackendStubRabbitMQ(jobService, (BackendRabbitMQ) backend, configuration);
+    case SLURM:
+      return new BackendStubSlurm(jobService, (BackendSlurm) backend, configuration);
     default:
       break;
     }
