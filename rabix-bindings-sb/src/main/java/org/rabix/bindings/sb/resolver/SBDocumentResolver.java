@@ -75,7 +75,7 @@ public class SBDocumentResolver {
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       clearFragmentCache(appUrl);
-      throw new BindingWrongVersionException("Document version is not sbg:draft-2");
+      throw new BindingWrongVersionException("Document version is not " + ProtocolType.SB.appVersion);
     }
     
     if (root.isArray()) {

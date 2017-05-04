@@ -73,6 +73,9 @@ public class Draft2DocumentResolver {
       throw new BindingException(e.getMessage());
     }
     if (root.has(CWL_VERSION_KEY)) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      clearFragmentCache(appUrl);
       throw new BindingWrongVersionException("Document version is not draft-2");
     }
 

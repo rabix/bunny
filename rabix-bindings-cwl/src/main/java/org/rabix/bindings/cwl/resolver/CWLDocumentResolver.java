@@ -146,7 +146,7 @@ public class CWLDocumentResolver {
     if (cwlVersion==null || !(cwlVersion.asText().equals(ProtocolType.CWL.appVersion))) {
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
-      throw new BindingWrongVersionException("Document version is not v1.0");
+      throw new BindingWrongVersionException("Document version is not " + ProtocolType.CWL.appVersion);
     }
     
     traverse(appUrl, root, file, null, root, false);

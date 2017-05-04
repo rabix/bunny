@@ -116,7 +116,7 @@ public static Set<String> types = new HashSet<String>();
     if (cwlVersion == null || !(cwlVersion.asText().equals(ProtocolType.DRAFT3.appVersion))) {
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
-      throw new BindingWrongVersionException("Document version is not cwl:draft-3");
+      throw new BindingWrongVersionException("Document version is not " + ProtocolType.DRAFT3.appVersion);
     }
     
     traverse(appUrl, root, file, null, root);
