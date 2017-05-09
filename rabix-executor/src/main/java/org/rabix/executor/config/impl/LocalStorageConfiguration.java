@@ -40,7 +40,7 @@ public class LocalStorageConfiguration extends DefaultStorageConfiguration {
    */
   public static String generateDirectoryName(String path) {
     String name = FilenameUtils.getBaseName(path);
-    DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssS");
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HHmmss.S");
     return name + "-" + df.format(new Date());
   }
 
