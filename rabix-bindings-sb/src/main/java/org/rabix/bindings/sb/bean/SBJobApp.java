@@ -227,6 +227,11 @@ public abstract class SBJobApp extends Application {
     return (String) getProperty("description");
   }
 
+  @Override
+  public List<String> validate() {
+    return null;
+  }
+
   public List<SBInputPort> getInputs() {
     return inputs;
   }

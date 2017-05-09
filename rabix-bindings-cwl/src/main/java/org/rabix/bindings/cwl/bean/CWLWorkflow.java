@@ -63,4 +63,10 @@ public class CWLWorkflow extends CWLJobApp {
     return CWLJobAppType.WORKFLOW;
   }
 
+  @Override
+  public List<String> validate() {
+    List<String> validationErrors = new ArrayList<>();
+
+    return validationErrors;
+  }
 }

@@ -286,6 +286,11 @@ public abstract class Draft3JobApp extends Application {
     return hints;
   }
 
+  @Override
+  public List<String> validate() {
+    return null;
+  }
+
   @JsonIgnore
   public String getLabel() {
     return (String) getProperty("label");

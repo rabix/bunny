@@ -43,6 +43,9 @@ public abstract class Application {
 
   @JsonIgnore
   public abstract String getVersion();
+
+  @JsonIgnore
+  public abstract List<String> validate();
   
   protected Map<String, Object> raw = new HashMap<>();
   

@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
+import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 
@@ -121,4 +123,12 @@ public class CWLCommandLineTool extends CWLJobApp {
         + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
   }
 
+  @Override
+  public List<String> validate() {
+    List<String> validationErrors = new ArrayList<>();
+    CWLDockerResource dockerResource = lookForResource(CWLResourceType.DOCKER_RESOURCE, CWLDockerResource.class);
+    validationErrors.addAll(checkDockerRequirement(dockerResource));
+
+    return validationErrors;
+  }
 }

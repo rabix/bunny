@@ -13,6 +13,8 @@ import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.json.BeanSerializer;
 
+import java.util.List;
+
 public class CWLAppProcessor implements ProtocolAppProcessor {
 
   @Override
@@ -39,6 +41,13 @@ public class CWLAppProcessor implements ProtocolAppProcessor {
     StringBuilder builder = new StringBuilder("Missing inputs: ");
 
     CWLJobApp cwlJobApp = cwlJob.getApp();
+
+    List<String> errors = cwlJobApp.validate();
+
+    if (!errors.isEmpty()) {
+      throw new BindingException(String.join("\n", errors));
+    }
+
     for (CWLInputPort inputPort : cwlJobApp.getInputs()) {
       if (CWLSchemaHelper.isRequired(inputPort.getSchema())) {
         String inputPortId = CWLSchemaHelper.normalizeId(inputPort.getId());

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.util.Collections;
+import java.util.List;
+
 @JsonDeserialize(as = CWLPythonTool.class)
 public class CWLPythonTool extends CWLJobApp {
 
@@ -26,4 +29,8 @@ public class CWLPythonTool extends CWLJobApp {
         + ", getOutputs()=" + getOutputs() + "]";
   }
 
+  @Override
+  public List<String> validate() {
+    return Collections.emptyList();
+  }
 }

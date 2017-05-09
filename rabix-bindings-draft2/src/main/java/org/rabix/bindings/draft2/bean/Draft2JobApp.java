@@ -226,7 +226,12 @@ public abstract class Draft2JobApp extends Application {
     }
     return null;
   }
-  
+
+  @Override
+  public List<String> validate() {
+    return null;
+  }
+
   @Override
   @JsonIgnore
   public String getVersion() {

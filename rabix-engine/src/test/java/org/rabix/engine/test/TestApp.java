@@ -51,6 +51,11 @@ public class TestApp extends Application {
     return "test";
   }
 
+  @Override
+  public List<String> validate() {
+    return null;
+  }
+
   public DAGNode toDagNode(String id, ScatterMethod scatterMethod) {
     return new DAGNode(id,
         inputs.stream().map(in -> in.toInputPort(id)).collect(Collectors.toList()),

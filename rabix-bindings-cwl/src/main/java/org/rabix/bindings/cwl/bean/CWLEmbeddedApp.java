@@ -55,6 +55,11 @@ public class CWLEmbeddedApp extends CWLJobApp {
   }
 
   @Override
+  public List<String> validate() {
+    return application.validate();
+  }
+
+  @Override
   public String serialize() {
     return application.serialize();
   }
