@@ -8,7 +8,6 @@ import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.model.ContextRecord;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.mechanism.TransportPlugin;
 import org.rabix.transport.mechanism.TransportPluginException;
@@ -39,6 +38,7 @@ public class SlurmPlugin {
 
     public SlurmPlugin(BackendRabbitMQ backendRabbitMQ, Configuration configuration) throws TransportPluginException {
         logger.info("Slurm plugin initialized");
+        this.backend = backendRabbitMQ;
         this.transportPlugin = new TransportPluginRabbitMQ(configuration);
 
         BackendRabbitMQ.BackendConfiguration backendConfiguration = backendRabbitMQ.getBackendConfiguration();
@@ -67,12 +67,14 @@ public class SlurmPlugin {
         transportPlugin.startReceiver(sendToBackendQueue, Job.class, new TransportPlugin.ReceiveCallback<Job>() {
             @Override
             public void handleReceive(Job job) throws TransportPluginException {
+                logger.debug("Received job id = " + job.getId());
                 String jobId = sendSlurmJob(job);
-                Thread squeueChecker = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
+                logger.debug("Submitted slurm job #" + jobId);
                         Runtime rt = Runtime.getRuntime();
-                        String command = "squeue -h -t all -j" + jobId;
+                        String command = "squeue -h -t all -j " + jobId;
+                        // mock command
+                        // String result = "15     debug slurm-jo  vagrant  CD       0:00      1 server";
+                        //  String command = "echo " + result;
                         String[] s;
                         while (true) {
                             try {
@@ -80,14 +82,20 @@ public class SlurmPlugin {
                                 Process proc = rt.exec(command);
                                 BufferedReader stdInput = new BufferedReader(new
                                         InputStreamReader(proc.getInputStream()));
-                                // example line:
+                                // example output line:
                                 //      14     debug job-tran  vagrant   F       0:00      1 (NonZeroExitCode)
                                 // Explanation:
                                 //   JOBID  PARTITION  NAME   USER      ST       TIME  NODES NODELIST(REASON)
-                                s = stdInput.readLine().split(" ");
+                                String output = stdInput.readLine().trim();
+                                logger.debug("Pinging slurm queue: \n" + output);
+                                s = output.split("\\s+");
+                                // Mock squeue output
+                                // String result = "15     debug slurm-jo  vagrant  CD       0:00      1 server";
+                                // s = result.split("\\s+");
                                 String jobState = s[4];
                                 if (isFinished(jobState)){
                                     send(Job.cloneWithStatus(job, slurmBunnyJobStates.get(jobState)));
+                                    break;
                                 }
                             }catch(IOException e) {
                                 logger.error("Could not open job file");
@@ -98,8 +106,6 @@ public class SlurmPlugin {
                                 throw new RuntimeException(e);
                             }
                         }
-                    }
-                });
             }
         }, new TransportPlugin.ErrorCallback() {
             @Override
@@ -127,10 +133,10 @@ public class SlurmPlugin {
             ResourceRequirement resourceRequirements = bindings.getResourceRequirement(job);
             String slurmDirective = getSlurmResourceRequirements(resourceRequirements);
             slurmJobText += slurmDirective;
-
-            String slurmCommand = "srun /usr/share/rabix-slurm-command-line/rabix -j " + bunnyJobPath;
+            // Will be replaced when the execution side is handled
+            String slurmCommand = "srun echo \"Bunny job received\"";
             slurmJobText += slurmCommand;
-
+            logger.debug("Sending slurm job");
             // this file must be transferred to execution node
             File bunnyJobFile = new File(bunnyJobPath);
             FileUtils.writeStringToFile(bunnyJobFile, JSONHelper.writeObject(job));
@@ -142,22 +148,27 @@ public class SlurmPlugin {
             // TODO: explore ProcessBuilder
             Runtime rt = Runtime.getRuntime();
             String command = "sbatch " + slurmJobPath;
+            String s;
+            // Mock command
+            // s = "Submitted batch job 16";
+            // String command = "echo " + s;
             Process proc = rt.exec(command);
             BufferedReader stdInput = new BufferedReader(new
                     InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new
                     InputStreamReader(proc.getErrorStream()));
-            String s;
             int i = 0;
             while ((s = stdInput.readLine()) != null) {
-                // first line of output:
-                // slurmctld: _slurm_rpc_submit_batch_job JobId=12 usec=184
                 if (i == 0) {
-                    String pattern = "JobId=\\d*?";
+                    // Example output (in case of success): "Submitted batch job 16"
+                    // TODO: handle errors
+                    String pattern = "job\\s*\\d*";
                     Pattern r = Pattern.compile(pattern);
                     Matcher m = r.matcher(s);
                     if (m.find()) {
-                        jobId = m.group(0);
+                        jobId = m.group(0).split("\\s")[1];
+                    }else {
+                        logger.debug("Submission went unsuccessfully");
                     }
                     output += s;
                     i++;
