@@ -128,7 +128,7 @@ public class CWLCommandLineTool extends CWLJobApp {
     List<String> validationErrors = new ArrayList<>();
     CWLDockerResource dockerResource = lookForResource(CWLResourceType.DOCKER_RESOURCE, CWLDockerResource.class);
     validationErrors.addAll(checkDockerRequirement(dockerResource));
-
+    validationErrors.addAll(validatePortUniqueness());
     return validationErrors;
   }
 }

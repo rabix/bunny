@@ -31,7 +31,7 @@ public class CWLExpressionTool extends CWLJobApp {
   @Override
   public List<String> validate() {
     List<String> validationErrors = new ArrayList<>();
-
+    validationErrors.addAll(validatePortUniqueness());
     return validationErrors;
   }
 }

@@ -1,7 +1,9 @@
 package org.rabix.bindings.cwl.bean;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.rabix.bindings.cwl.json.CWLStepsDeserializer;
 import org.rabix.common.json.BeanPropertyView;
@@ -63,10 +65,24 @@ public class CWLWorkflow extends CWLJobApp {
     return CWLJobAppType.WORKFLOW;
   }
 
+  private Set<String> checkStepDuplicates() {
+    Set<String> duplicates = new HashSet<>();
+    Set<String> ids = new HashSet<>();
+    for (CWLStep step : steps) {
+      if (!ids.add(step.getId())) {
+        duplicates.add(step.getId());
+      }
+    }
+    return duplicates;
+  }
+
   @Override
   public List<String> validate() {
     List<String> validationErrors = new ArrayList<>();
-
+    validationErrors.addAll(validatePortUniqueness());
+    for (String duplicate : checkStepDuplicates()) {
+      validationErrors.add("Duplicate step id: " + duplicate);
+    }
     return validationErrors;
   }
 }
