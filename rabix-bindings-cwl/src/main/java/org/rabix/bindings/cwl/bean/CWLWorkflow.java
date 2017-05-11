@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.rabix.bindings.cwl.json.CWLStepsDeserializer;
+import org.rabix.bindings.model.ApplicationValidation;
 import org.rabix.common.json.BeanPropertyView;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -77,12 +78,22 @@ public class CWLWorkflow extends CWLJobApp {
   }
 
   @Override
-  public List<String> validate() {
-    List<String> validationErrors = new ArrayList<>();
-    validationErrors.addAll(validatePortUniqueness());
+  public ApplicationValidation validate() {
+    List<String> errors = new ArrayList<>();
+    List<String> warnings = new ArrayList<>();
+    errors.addAll(validatePortUniqueness());
     for (String duplicate : checkStepDuplicates()) {
-      validationErrors.add("Duplicate step id: " + duplicate);
+      errors.add("Duplicate step id: " + duplicate);
     }
-    return validationErrors;
+    for (CWLStep step : steps) {
+      for (String msg : step.getApp().validate().getErrors()) {
+        errors.add("Invalid app in step '" + step.getId() + "': " + msg);
+      }
+      for (String msg : step.getApp().validate().getErrors()) {
+        warnings.add("Warning from app in step '" + step.getId() + "': " + msg);
+      }
+    }
+
+    return new ApplicationValidation(errors, warnings);
   }
 }

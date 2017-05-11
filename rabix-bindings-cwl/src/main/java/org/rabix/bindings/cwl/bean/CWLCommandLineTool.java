@@ -13,6 +13,7 @@ import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.rabix.bindings.model.ApplicationValidation;
 
 @JsonDeserialize(as = CWLCommandLineTool.class)
 public class CWLCommandLineTool extends CWLJobApp {
@@ -124,11 +125,13 @@ public class CWLCommandLineTool extends CWLJobApp {
   }
 
   @Override
-  public List<String> validate() {
-    List<String> validationErrors = new ArrayList<>();
+  public ApplicationValidation validate() {
+    List<String> errors = new ArrayList<>();
+    List<String> warnings = new ArrayList<>();
     CWLDockerResource dockerResource = lookForResource(CWLResourceType.DOCKER_RESOURCE, CWLDockerResource.class);
-    validationErrors.addAll(checkDockerRequirement(dockerResource));
-    validationErrors.addAll(validatePortUniqueness());
-    return validationErrors;
+    errors.addAll(checkDockerRequirement(dockerResource));
+    errors.addAll(validatePortUniqueness());
+
+    return new ApplicationValidation(errors, warnings);
   }
 }

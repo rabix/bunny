@@ -10,6 +10,7 @@ import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.cwl.resolver.CWLDocumentResolver;
 import org.rabix.bindings.model.Application;
+import org.rabix.bindings.model.ApplicationValidation;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.json.BeanSerializer;
 
@@ -42,10 +43,10 @@ public class CWLAppProcessor implements ProtocolAppProcessor {
 
     CWLJobApp cwlJobApp = cwlJob.getApp();
 
-    List<String> errors = cwlJobApp.validate();
+    ApplicationValidation validation = cwlJobApp.validate();
 
-    if (!errors.isEmpty()) {
-      throw new BindingException(String.join("\n", errors));
+    if (!validation.getErrors().isEmpty()) {
+      throw new BindingException(String.join("\n", validation.getErrors()));
     }
 
     for (CWLInputPort inputPort : cwlJobApp.getInputs()) {

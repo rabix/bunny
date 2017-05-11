@@ -3,6 +3,7 @@ package org.rabix.bindings.cwl.bean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.rabix.bindings.model.ApplicationValidation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +30,17 @@ public class CWLExpressionTool extends CWLJobApp {
   }
 
   @Override
-  public List<String> validate() {
-    List<String> validationErrors = new ArrayList<>();
-    validationErrors.addAll(validatePortUniqueness());
-    return validationErrors;
+  public ApplicationValidation validate() {
+    List<String> errors = new ArrayList<>();
+    List<String> warnigs = new ArrayList<>();
+    errors.addAll(validatePortUniqueness());
+    if (script == null) {
+      errors.add("ExpressionTool must have an expression");
+    } else if (!(script instanceof String)) {
+      errors.add("ExpressionTool expression must be a string");
+    } else if (((String) script).isEmpty()) {
+      warnigs.add("Expression is empty");
+    }
+    return new ApplicationValidation(errors, warnigs);
   }
 }

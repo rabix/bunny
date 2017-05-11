@@ -3,6 +3,7 @@ package org.rabix.bindings.cwl.bean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.rabix.bindings.model.ApplicationValidation;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +31,7 @@ public class CWLPythonTool extends CWLJobApp {
   }
 
   @Override
-  public List<String> validate() {
-    return Collections.emptyList();
+  public ApplicationValidation validate() {
+    return new ApplicationValidation();
   }
 }

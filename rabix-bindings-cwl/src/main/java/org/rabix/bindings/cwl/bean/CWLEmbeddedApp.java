@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import org.rabix.bindings.model.ApplicationValidation;
 
 @JsonDeserialize(as = CWLEmbeddedApp.class)
 public class CWLEmbeddedApp extends CWLJobApp {
@@ -55,7 +56,7 @@ public class CWLEmbeddedApp extends CWLJobApp {
   }
 
   @Override
-  public List<String> validate() {
+  public ApplicationValidation validate() {
     return application.validate();
   }
 

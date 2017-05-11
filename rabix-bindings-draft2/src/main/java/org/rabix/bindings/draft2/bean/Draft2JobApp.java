@@ -18,6 +18,7 @@ import org.rabix.bindings.draft2.bean.resource.requirement.Draft2SchemaDefRequir
 import org.rabix.bindings.draft2.json.Draft2JobAppDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.ApplicationValidation;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -228,8 +229,8 @@ public abstract class Draft2JobApp extends Application {
   }
 
   @Override
-  public List<String> validate() {
-    return null;
+  public ApplicationValidation validate() {
+    return new ApplicationValidation();
   }
 
   @Override
