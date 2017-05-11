@@ -39,8 +39,8 @@ public class CWLEmbeddedApp extends CWLJobApp {
           return new CWLOutputPort(port.getId(), null, port.getDefaultValue(), port.getSchema(), null, port.getScatter(), null, port.getLinkMerge(), null, port.getDescription());
         }
       });
-    } catch (BindingException e1) {
-      throw new RuntimeException();
+    } catch (BindingException e) {
+      throw new RuntimeException(e);
     }
   }
 

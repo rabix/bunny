@@ -6,4 +6,4 @@ inputs:
   in: string
 outputs:
   out: string
-expression: "$(inputs)"
+expression: "$(inputs.in)"

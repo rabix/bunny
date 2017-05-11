@@ -42,16 +42,16 @@ public class CWLJobAppDeserializer extends JsonDeserializer<CWLJobApp> {
           throw new IllegalStateException("\"" + CLASS_KEY + "\" attribute missing!");
 
         if(classNode.asText().equals(WORKFLOW_CLASS)) {
-          return objectMapper.readValue(JSONHelper.writeObject(tree), CWLWorkflow.class);
+          return objectMapper.treeToValue(tree, CWLWorkflow.class);
         }
         else if(classNode.asText().equals(COMMANDLINETOOL_CLASS)) {
-          return objectMapper.readValue(JSONHelper.writeObject(tree), CWLCommandLineTool.class);
+          return objectMapper.treeToValue(tree, CWLCommandLineTool.class);
         }
         else if(classNode.asText().equals(PYTHONTOOL_CLASS)) {
-          return objectMapper.readValue(JSONHelper.writeObject(tree), CWLPythonTool.class);
+          return objectMapper.treeToValue(tree, CWLPythonTool.class);
         }
         else if(classNode.asText().equals(EXPRESSION_CLASS)) {
-          return objectMapper.readValue(JSONHelper.writeObject(tree), CWLExpressionTool.class);
+          return objectMapper.treeToValue(tree, CWLExpressionTool.class);
         } else {
           throw new IllegalStateException("Ivalid value for \"" + CLASS_KEY + "\" attribute!");
         }

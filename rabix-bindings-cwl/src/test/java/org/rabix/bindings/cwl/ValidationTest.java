@@ -1,12 +1,16 @@
 package org.rabix.bindings.cwl;
 
 
+import org.rabix.bindings.Bindings;
+import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
+import org.rabix.bindings.model.Application;
 import org.rabix.common.helper.ResourceHelper;
 import org.rabix.common.json.BeanSerializer;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
+import java.io.File;
 import java.util.List;
 
 @Test(groups = { "functional" })
@@ -40,8 +44,13 @@ public class ValidationTest {
 
   //@Test
   public void testDuplicateStepId()  throws Exception {
-    String inputJson = ResourceHelper.readResource(this.getClass(), "duplicate-step-id.cwl.yml");
-    CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
+    String appURL = "file://" + ResourceHelper.getResourcePath(this.getClass(), "duplicate-step-id.cwl.yml");
+    Bindings b = BindingsFactory.create(appURL);
+    Application app = b.loadAppObject(appURL);
+
+//    String inputJson = ResourceHelper.readResource(this.getClass(), "duplicate-step-id.cwl.yml");
+//    CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
+
     List<String> errors = app.validate();
     assertEquals(errors.size(), 1, "Expecting one error");
     assertEquals(errors.get(0), "Duplicate step id: one");
