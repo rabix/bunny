@@ -77,23 +77,35 @@ public class CWLWorkflow extends CWLJobApp {
     return duplicates;
   }
 
+//  private Set<String> unconnectedOutputs() {
+//
+//  }
+//
+//  private Set<String> unconnectedSteps() {
+//
+//  }
+//
+//  private Set<String> unconnectedInputs() {
+//
+//  }
+
   @Override
   public ValidationReport validate() {
-    List<String> errors = new ArrayList<>();
-    List<String> warnings = new ArrayList<>();
-    errors.addAll(validatePortUniqueness());
+    List<ValidationReport.Item> messages = new ArrayList<>();
+    messages.addAll(ValidationReport.messagesToItems(validatePortUniqueness(), ValidationReport.Severity.ERROR));
     for (String duplicate : checkStepDuplicates()) {
-      errors.add("Duplicate step id: " + duplicate);
+      messages.add(ValidationReport.error("Duplicate step id: " + duplicate));
     }
     for (CWLStep step : steps) {
-      for (String msg : step.getApp().validate().getErrors()) {
-        errors.add("Invalid app in step '" + step.getId() + "': " + msg);
-      }
-      for (String msg : step.getApp().validate().getErrors()) {
-        warnings.add("Warning from app in step '" + step.getId() + "': " + msg);
+      for (ValidationReport.Item item : step.getApp().validate().getItems()) {
+        messages.add(
+            ValidationReport.item(
+                item.getSeverity() + " from app in step '" + step.getId() + "': " + item.getMessage(),
+                item.getSeverity())
+        );
       }
     }
 
-    return new ValidationReport(errors, warnings);
+    return new ValidationReport(messages);
   }
 }

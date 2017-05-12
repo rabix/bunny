@@ -1,6 +1,7 @@
 package org.rabix.bindings.cwl;
 
 
+import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
@@ -12,6 +13,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 @Test(groups = { "functional" })
@@ -39,9 +41,6 @@ public class ValidationTest {
     String inputJson = ResourceHelper.readResource(this.getClass(), "duplicate-input-id.cwl");
     CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
     List<String> errors = app.validate().getErrors();
-    for (String error : errors) {
-      System.err.println(error);
-    }
     assertEquals(errors.size(), 1, "Expecting one error");
     assertEquals(errors.get(0), "Duplicate input id: message");
   }
@@ -122,20 +121,15 @@ public class ValidationTest {
 
     List<String> errors = app.validate().getErrors();
     assertEquals(errors.size(), 1, "Expecting one error");
-    assertEquals(errors.get(0), "Invalid app in step 'one': Docker requirement contains neither 'dockerPull' nor 'imageId'.");
+    assertEquals(errors.get(0), "ERROR from app in step 'one': Docker requirement contains neither 'dockerPull' nor 'imageId'.");
   }
 
-  @Test
+  @Test(expectedExceptions = BindingException.class)
   public void testCyclicWorkflow()  throws Exception {
     String appURL = "file://" + ResourceHelper.getResourcePath(this.getClass(), "cyclic-workflow.cwl");
     Bindings b = BindingsFactory.create(appURL);
-    Application app = b.loadAppObject(appURL);
-
-    List<String> errors = app.validate().getErrors();
-//    assertEquals(errors.size(), 1, "Expecting one error");
-//    assertEquals(errors.get(0), "Invalid app in step 'one': Docker requirement contains neither 'dockerPull' nor 'imageId'.");
+    b.translateToDAG(new Job(appURL, Collections.emptyMap()));
   }
-
 
 
 }

@@ -22,6 +22,14 @@ public class ValidationReport {
       this.message = message;
       this.severity = severity;
     }
+
+    public String getMessage() {
+      return message;
+    }
+
+    public Severity getSeverity() {
+      return severity;
+    }
   }
 
   private final List<Item> items;
@@ -69,6 +77,10 @@ public class ValidationReport {
 
   public static Item warning(String message) {
     return new Item(message, Severity.WARNING);
+  }
+
+  public static Item item(String message, Severity s) {
+    return new Item(message, s);
   }
 
 }
