@@ -41,6 +41,10 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     setValue(CWLSchemaHelper.KEY_JOB_TYPE, CWLSchemaHelper.TYPE_JOB_FILE, raw);
   }
 
+  public static void setDirType(Object raw) {
+    setValue(CWLSchemaHelper.KEY_JOB_TYPE, CWLSchemaHelper.TYPE_JOB_DIRECTORY, raw);
+  }
+
   public static String getFormat(Object raw) {
     return getValue(KEY_FORMAT, raw);
   }

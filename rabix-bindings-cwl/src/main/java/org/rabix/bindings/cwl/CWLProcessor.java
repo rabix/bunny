@@ -473,7 +473,11 @@ public class CWLProcessor implements ProtocolProcessor {
         }
         File secondaryFile = new File(secondaryFilePath);
         if (secondaryFile.exists()) {
-          CWLFileValueHelper.setFileType(secondaryFileMap);
+          if (secondaryFile.isDirectory()) {
+            CWLFileValueHelper.setDirType(secondaryFileMap);
+          } else {
+            CWLFileValueHelper.setFileType(secondaryFileMap);
+          }
           CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
           CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
           CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
