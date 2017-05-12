@@ -6,16 +6,30 @@ import java.util.List;
 /**
  * Created by luka on 11.5.17..
  */
-public class ApplicationValidation {
-  private List<String> errors;
-  private List<String> warnings;
+public class Validation {
 
-  public ApplicationValidation() {
+  public enum Severity {
+    WARNING, ERROR
+  }
+
+  public class Item {
+    String message;
+    Severity severity;
+
+    public Item(String message, Severity severity) {
+      this.message = message;
+      this.severity = severity;
+    }
+  }
+
+  private List<Item> messages;
+
+  public Validation() {
     errors = Collections.emptyList();
     warnings = Collections.emptyList();
   }
 
-  public ApplicationValidation(List<String> errors, List<String> warnings) {
+  public Validation(List<String> errors, List<String> warnings) {
     this.errors = errors;
     this.warnings = warnings;
   }
