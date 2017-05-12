@@ -39,6 +39,9 @@ public class ValidationTest {
     String inputJson = ResourceHelper.readResource(this.getClass(), "duplicate-input-id.cwl");
     CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
     List<String> errors = app.validate().getErrors();
+    for (String error : errors) {
+      System.err.println(error);
+    }
     assertEquals(errors.size(), 1, "Expecting one error");
     assertEquals(errors.get(0), "Duplicate input id: message");
   }
@@ -59,6 +62,42 @@ public class ValidationTest {
     List<String> warnings = app.validate().getWarnings();
     assertEquals(warnings.size(), 1, "Expecting one error");
     assertEquals(warnings.get(0), "Expression is empty");
+  }
+
+  @Test
+  public void testInvalidExpression()  throws Exception {
+    String inputJson = ResourceHelper.readResource(this.getClass(), "invalid-expression.yml");
+    CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
+    List<String> errors = app.validate().getErrors();
+    assertEquals(errors.size(), 1, "Expecting one error");
+    assertEquals(errors.get(0), "ExpressionTool expression must be a string, got '{one=1}' instead");
+  }
+
+  @Test
+  public void testNoBaseCommand()  throws Exception {
+    String inputJson = ResourceHelper.readResource(this.getClass(), "no-base-command.cwl");
+    CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
+    List<String> warnings = app.validate().getWarnings();
+    assertEquals(warnings.size(), 1, "Expecting one error");
+    assertEquals(warnings.get(0), "Tool's 'baseCommand' is empty");
+  }
+
+  @Test
+  public void testEmptyBaseCommand()  throws Exception {
+    String inputJson = ResourceHelper.readResource(this.getClass(), "empty-base-command.cwl");
+    CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
+    List<String> warnings = app.validate().getWarnings();
+    assertEquals(warnings.size(), 1, "Expecting one error");
+    assertEquals(warnings.get(0), "Tool's 'baseCommand' is empty");
+  }
+
+  @Test
+  public void testInvalidBaseCommand()  throws Exception {
+    String inputJson = ResourceHelper.readResource(this.getClass(), "invalid-base-command.cwl");
+    CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
+    List<String> errors = app.validate().getErrors();
+    assertEquals(errors.size(), 1, "Expecting one error");
+    assertEquals(errors.get(0), "Tool's 'baseCommand' must be a string or a list of strings, got '17' instead");
   }
 
   @Test

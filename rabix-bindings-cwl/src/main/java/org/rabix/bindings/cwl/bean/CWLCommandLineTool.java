@@ -1,9 +1,7 @@
 package org.rabix.bindings.cwl.bean;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
@@ -13,7 +11,7 @@ import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.rabix.bindings.model.ApplicationValidation;
+import org.rabix.bindings.model.ValidationReport;
 
 @JsonDeserialize(as = CWLCommandLineTool.class)
 public class CWLCommandLineTool extends CWLJobApp {
@@ -46,11 +44,10 @@ public class CWLCommandLineTool extends CWLJobApp {
 
   @SuppressWarnings("unchecked")
   public List<Object> getBaseCmd(CWLJob job) throws CWLExpressionException {
-    List<Object> result = new LinkedList<>();
+    List<Object> result = new ArrayList<>();
     if (baseCommand instanceof List<?>) {
       result = (List<Object>) baseCommand;
     } else if (baseCommand instanceof String) {
-      result = new LinkedList<>();
       result.add(baseCommand);
     }
     return result;
@@ -58,7 +55,7 @@ public class CWLCommandLineTool extends CWLJobApp {
   
   public String getStdin(CWLJob job) throws CWLExpressionException {
     String evaluatedStdin = CWLExpressionResolver.resolve(stdin, job, null);
-    return evaluatedStdin != null ? evaluatedStdin : null;
+    return evaluatedStdin;
   }
   
   public void setStdin(Object stdin) {
@@ -67,7 +64,7 @@ public class CWLCommandLineTool extends CWLJobApp {
 
   public String getStdout(CWLJob job) throws CWLExpressionException {
     String evaluatedStdout = CWLExpressionResolver.resolve(stdout, job, null);
-    return evaluatedStdout != null ? evaluatedStdout : null;
+    return evaluatedStdout;
   }
   
   @JsonIgnore
@@ -81,7 +78,7 @@ public class CWLCommandLineTool extends CWLJobApp {
   
   public String getStderr(CWLJob job) throws CWLExpressionException {
     String evaluatedStderr = CWLExpressionResolver.resolve(stderr, job, null);
-    return evaluatedStderr != null ? evaluatedStderr : null;
+    return evaluatedStderr;
   }
   
   public void setStderr(Object stderr) {
@@ -125,13 +122,38 @@ public class CWLCommandLineTool extends CWLJobApp {
   }
 
   @Override
-  public ApplicationValidation validate() {
-    List<String> errors = new ArrayList<>();
-    List<String> warnings = new ArrayList<>();
+  public ValidationReport validate() {
+    List<ValidationReport.Item> messages = new ArrayList<>();
     CWLDockerResource dockerResource = lookForResource(CWLResourceType.DOCKER_RESOURCE, CWLDockerResource.class);
-    errors.addAll(checkDockerRequirement(dockerResource));
-    errors.addAll(validatePortUniqueness());
+    messages.addAll(ValidationReport.messagesToItems(checkDockerRequirement(dockerResource), ValidationReport.Severity.ERROR));
+    messages.addAll(ValidationReport.messagesToItems(validatePortUniqueness(), ValidationReport.Severity.ERROR));
+    messages.addAll(validateBaseCommand());
+    return new ValidationReport(messages);
+  }
 
-    return new ApplicationValidation(errors, warnings);
+  private List<ValidationReport.Item> validateBaseCommand() {
+    List<ValidationReport.Item> messages = new ArrayList<>();
+    if (baseCommand == null) {
+      messages.add(ValidationReport.warning("Tool doesn't have a 'baseCommand'"));
+    } else if (baseCommand instanceof String) {
+      if (((String) baseCommand).isEmpty()) {
+        messages.add(ValidationReport.warning("Tool's 'baseCommand' is empty"));
+      }
+    } else if (baseCommand instanceof List) {
+      List baseList = (List) baseCommand;
+      if (baseList.isEmpty()) {
+        messages.add(ValidationReport.warning("Tool's 'baseCommand' is empty"));
+      } else {
+        for (Object o : baseList) {
+          if (! (o instanceof String)) {
+            messages.add(ValidationReport.error("Tool's 'baseCommand' must be a string or a list of strings, got '" + o + "' instead"));
+          }
+        }
+      }
+    } else {
+      messages.add(ValidationReport.error("Tool's 'baseCommand' must be a string or a list of strings, got '" + baseCommand + "' instead"));
+    }
+
+    return messages;
   }
 }

@@ -43,7 +43,7 @@ public abstract class Application {
   public abstract String getVersion();
 
   @JsonIgnore
-  public abstract ApplicationValidation validate();
+  public abstract ValidationReport validate();
   
   protected Map<String, Object> raw = new HashMap<>();
   

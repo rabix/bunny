@@ -7,7 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.bindings.model.ApplicationValidation;
+import org.rabix.bindings.model.ValidationReport;
 import org.rabix.bindings.sb.bean.resource.SBCpuResource;
 import org.rabix.bindings.sb.bean.resource.SBMemoryResource;
 import org.rabix.bindings.sb.bean.resource.SBResource;
@@ -229,8 +229,8 @@ public abstract class SBJobApp extends Application {
   }
 
   @Override
-  public ApplicationValidation validate() {
-    return new ApplicationValidation();
+  public ValidationReport validate() {
+    return new ValidationReport();
   }
 
   public List<SBInputPort> getInputs() {

@@ -3,7 +3,7 @@ package org.rabix.engine.test;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.bindings.model.ApplicationValidation;
+import org.rabix.bindings.model.ValidationReport;
 import org.rabix.bindings.model.ScatterMethod;
 import org.rabix.bindings.model.dag.DAGNode;
 
@@ -53,7 +53,7 @@ public class TestApp extends Application {
   }
 
   @Override
-  public ApplicationValidation validate() {
+  public ValidationReport validate() {
     return null;
   }
 

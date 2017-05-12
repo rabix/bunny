@@ -17,7 +17,7 @@ import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ShellCommandReq
 import org.rabix.bindings.draft3.json.Draft3JobAppDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.bindings.model.ApplicationValidation;
+import org.rabix.bindings.model.ValidationReport;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -288,8 +288,8 @@ public abstract class Draft3JobApp extends Application {
   }
 
   @Override
-  public ApplicationValidation validate() {
-    return new ApplicationValidation();
+  public ValidationReport validate() {
+    return new ValidationReport();
   }
 
   @JsonIgnore

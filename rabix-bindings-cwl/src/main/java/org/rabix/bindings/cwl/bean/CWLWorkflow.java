@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.rabix.bindings.cwl.json.CWLStepsDeserializer;
-import org.rabix.bindings.model.ApplicationValidation;
+import org.rabix.bindings.model.ValidationReport;
 import org.rabix.common.json.BeanPropertyView;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -78,7 +78,7 @@ public class CWLWorkflow extends CWLJobApp {
   }
 
   @Override
-  public ApplicationValidation validate() {
+  public ValidationReport validate() {
     List<String> errors = new ArrayList<>();
     List<String> warnings = new ArrayList<>();
     errors.addAll(validatePortUniqueness());
@@ -94,6 +94,6 @@ public class CWLWorkflow extends CWLJobApp {
       }
     }
 
-    return new ApplicationValidation(errors, warnings);
+    return new ValidationReport(errors, warnings);
   }
 }
