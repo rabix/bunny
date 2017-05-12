@@ -8,8 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -126,19 +129,32 @@ public class JSONHelper {
     }
   }
   
-  public static JsonNode readJsonNode(String json) {
+  public static JsonNode readJsonNode(String data) {
     try {
-      return mapper.readTree(json);
+      return mapper.readTree(data);
     } catch (Exception e) {
       try {
-        return mapperYaml.readTree(json);
+        return mapperYaml.readTree(data);
       } catch(Exception e2) {
-        throw new IllegalStateException("Can't parse input as either JSON or as YAML.", e2);
+        Exception rootException = isJson(data)? e : e2;
+        throw new IllegalStateException("Can't parse input as either JSON or as YAML. " + getDetailedMessage(rootException), rootException);
       }
     }
-
   }
 
+  private static boolean isJson(String data) {
+    return StringUtils.trim(data).startsWith("{");
+  }
+  
+  private static String getDetailedMessage(Exception e) {
+    String message = e.getMessage();
+    if (e instanceof JsonProcessingException) {
+      JsonParseException jpe = (JsonParseException) e;
+      message = jpe.getOriginalMessage() + ". Line: " + jpe.getLocation().getLineNr() + ", column: " + jpe.getLocation().getColumnNr();
+    }
+    return message;
+  }
+  
   public static JsonNode convertToJsonNode(Object value) {
     if (value == null) {
       return null;
