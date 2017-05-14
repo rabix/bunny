@@ -47,7 +47,18 @@ public class OutputUpdateEvent implements Event {
     this.producedByNode = producedByNode;
     this.numberOfScattered = numberOfScattered;
   }
-
+  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object outputValue,
+      Integer numberOfScattered, Integer position, UUID eventGroupId, String producedByNode) {
+    this.jobId = jobId;
+    this.contextId = contextId;
+    this.portId = portId;
+    this.value = outputValue;
+    this.position = position;
+    this.fromScatter = numberOfScattered > 1;
+    this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
+    this.numberOfScattered = numberOfScattered;
+  }
   @JsonCreator
   public OutputUpdateEvent(@JsonProperty("jobId") String jobId, @JsonProperty("contextId") UUID contextId,
       @JsonProperty("value") Object value, @JsonProperty("portId") String portId,
