@@ -4,6 +4,7 @@ package org.rabix.bindings.cwl;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Job;
@@ -31,8 +32,15 @@ public class ValidationTest {
     CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
   }
   @Test(expectedExceptions = IllegalStateException.class)
+
   public void testInvalidClass()  throws Exception {
     String inputJson = ResourceHelper.readResource(this.getClass(), "invalid-class.cwl");
+    CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
+  }
+
+  @Test(expectedExceptions = IllegalStateException.class)
+  public void testWrongType()  throws Exception {
+    String inputJson = ResourceHelper.readResource(this.getClass(), "bad-success-codes.cwl");
     CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
   }
 
@@ -97,6 +105,27 @@ public class ValidationTest {
     List<String> errors = app.validate().getErrors();
     assertEquals(errors.size(), 1, "Expecting one error");
     assertEquals(errors.get(0), "Tool's 'baseCommand' must be a string or a list of strings, got '17' instead");
+  }
+
+  @Test
+  public void testBadArguments()  throws Exception {
+    String inputJson = ResourceHelper.readResource(this.getClass(), "bad-arguments.cwl");
+    CWLJobApp app = BeanSerializer.deserialize(inputJson, CWLJobApp.class);
+    List<String> errors = app.validate().getErrors();
+    assertEquals(errors.size(), 2, "Expecting two errors");
+
+    assertEquals(errors.get(0),"CommandLineBinding in 'arguments' must have a 'valueFrom' present",
+        "Expecting to detect invalid CommandLineBinding");
+    assertEquals(errors.get(1), "Tool's 'arguments' must be a list of strings or CommandLineBindings, got '42' instead",
+        "Expecting to detect argument of a wrong type");
+
+  }
+
+  @Test
+  public void testEmptyWorkflow()  throws Exception {
+    String appURL = "file://" + ResourceHelper.getResourcePath(this.getClass(), "empty-wf.yml");
+    Bindings b = BindingsFactory.create(appURL);
+    b.translateToDAG(new Job(appURL, Collections.emptyMap()));
   }
 
   @Test

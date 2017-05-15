@@ -26,11 +26,11 @@ public class CWLCommandLineTool extends CWLJobApp {
   public static final String RANDOM_STDERR_PREFIX = "random_error_";
 
   @JsonProperty("stdin")
-  private Object stdin;
+  private String stdin;
   @JsonProperty("stdout")
-  private Object stdout;
+  private String stdout;
   @JsonProperty("stderr")
-  private Object stderr;
+  private String stderr;
   @JsonProperty("baseCommand")
   private Object baseCommand;
   @JsonProperty("arguments")
@@ -58,7 +58,7 @@ public class CWLCommandLineTool extends CWLJobApp {
     return evaluatedStdin;
   }
   
-  public void setStdin(Object stdin) {
+  public void setStdin(String stdin) {
     this.stdin = stdin;
   }
 
@@ -72,7 +72,7 @@ public class CWLCommandLineTool extends CWLJobApp {
     return stdout;
   }
 
-  public void setStdout(Object stdout) {
+  public void setStdout(String stdout) {
     this.stdout = stdout;
   }
   
@@ -81,7 +81,7 @@ public class CWLCommandLineTool extends CWLJobApp {
     return evaluatedStderr;
   }
   
-  public void setStderr(Object stderr) {
+  public void setStderr(String stderr) {
     this.stderr = stderr;
   }
   
@@ -128,6 +128,7 @@ public class CWLCommandLineTool extends CWLJobApp {
     messages.addAll(ValidationReport.messagesToItems(checkDockerRequirement(dockerResource), ValidationReport.Severity.ERROR));
     messages.addAll(ValidationReport.messagesToItems(validatePortUniqueness(), ValidationReport.Severity.ERROR));
     messages.addAll(validateBaseCommand());
+    messages.addAll(validateArguments());
     return new ValidationReport(messages);
   }
 
@@ -152,6 +153,23 @@ public class CWLCommandLineTool extends CWLJobApp {
       }
     } else {
       messages.add(ValidationReport.error("Tool's 'baseCommand' must be a string or a list of strings, got '" + baseCommand + "' instead"));
+    }
+
+    return messages;
+  }
+
+  private List<ValidationReport.Item> validateArguments() {
+    List<ValidationReport.Item> messages = new ArrayList<>();
+
+    for (Object argument : arguments) {
+      if (argument instanceof Map<?, ?>) {
+        if (!((Map) argument).containsKey("valueFrom")) {
+          messages.add(ValidationReport.error("CommandLineBinding in 'arguments' must have a 'valueFrom' present"));
+        }
+
+      } else if (! (argument instanceof String)) {
+        messages.add(ValidationReport.error("Tool's 'arguments' must be a list of strings or CommandLineBindings, got '" + argument + "' instead"));
+      }
     }
 
     return messages;

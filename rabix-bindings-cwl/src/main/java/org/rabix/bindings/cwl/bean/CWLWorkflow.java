@@ -96,6 +96,11 @@ public class CWLWorkflow extends CWLJobApp {
     for (String duplicate : checkStepDuplicates()) {
       messages.add(ValidationReport.error("Duplicate step id: " + duplicate));
     }
+
+    if (steps == null || steps.isEmpty()) {
+      messages.add(ValidationReport.error("Workflow has no steps"));
+    }
+
     for (CWLStep step : steps) {
       for (ValidationReport.Item item : step.getApp().validate().getItems()) {
         messages.add(
