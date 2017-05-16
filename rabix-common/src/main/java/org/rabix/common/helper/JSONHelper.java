@@ -106,7 +106,7 @@ public class JSONHelper {
     try {
       return mapper.readValue(json, clazz);
     } catch (IOException e) {
-      throw new IllegalStateException("JSON: " + json, e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -114,7 +114,7 @@ public class JSONHelper {
     try {
       return mapper.readValue(json, valueTypeRef);
     } catch (IOException e) {
-      throw new IllegalStateException("JSON: " + json, e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -193,7 +193,7 @@ public class JSONHelper {
       final Object obj = mapperWithoutIdentation.treeToValue(node, Object.class);
       return mapperWithoutIdentation.writeValueAsString(obj);
     } catch (IOException e) {
-      throw new IllegalStateException("JSON: " + node, e);
+      throw new IllegalStateException(e);
     }
   }
   
