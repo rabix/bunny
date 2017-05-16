@@ -149,38 +149,23 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       Event newEvent = null;
       switch (destinationVariable.getType()) {
         case INPUT:
+          boolean lookAhead = false;
           if (isScatterWrapper) {
             isDestinationPortScatterable = destinationJob.isScatterPort(destinationVariable.getPortId());
-
             if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
-              newEvent = propagateInput(event, destinationVariable, valueFromScatterStrategy ? value : event.getValue(), true, numberOfGlobalOutputs,
-                  event.getPosition());
+              value = event.getValue();
+              lookAhead = true;
             } else {
-              if (sourceJob.isOutputPortReady(event.getPortId())) {
-                newEvent = propagateInput(event, destinationVariable, value, false, numberOfGlobalOutputs,
-                    link.getPosition());
+              if (!sourceJob.isOutputPortReady(event.getPortId())) {
+                break;
               }
             }
-          } else {
-            newEvent = propagateInput(event, destinationVariable, event.getValue(), false, numberOfGlobalOutputs, link.getPosition());
           }
+          newEvent = propagateInput(event, destinationVariable, value, lookAhead, numberOfGlobalOutputs, link.getPosition());
           break;
         case OUTPUT:
-          if(!sourceJob.isOutputPortReady(event.getPortId()))
-            break;
-          if (isScatterWrapper) {
-            if (destinationJob.getOutputPortIncoming(event.getPortId()) > 1) {
-                newEvent = propagateOutput(event, destinationVariable, value, numberOfGlobalOutputs, link.getPosition());
-            } else {
-                newEvent = propagateOutput(event, destinationVariable, value, numberOfGlobalOutputs, 1);
-            }
-          } else {
-            if (sourceJob.isScattered()) {
-              newEvent = propagateOutput(event, destinationVariable, value, sourceJob.getNumberOfGlobalOutputs(), link.getPosition());
-            } else if (InternalSchemaHelper.getParentId(sourceJob.getId()).equals(destinationVariable.getJobId())) {
-              newEvent = propagateOutput(event, destinationVariable, value, numberOfGlobalOutputs, link.getPosition());
-            }
-          }
+          if(sourceJob.isOutputPortReady(event.getPortId()) || sourceJob.isScattered())
+            newEvent = propagateOutput(event, destinationVariable, value, numberOfGlobalOutputs, link.getPosition());
           break;
       }
       if (newEvent != null)
