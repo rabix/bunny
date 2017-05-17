@@ -150,10 +150,12 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       switch (destinationVariable.getType()) {
         case INPUT:
           boolean lookAhead = false;
+          int position = link.getPosition();
           if (isScatterWrapper) {
             isDestinationPortScatterable = destinationJob.isScatterPort(destinationVariable.getPortId());
             if (isDestinationPortScatterable && !destinationJob.isBlocking() && !(destinationJob.getInputPortIncoming(event.getPortId()) > 1)) {
               value = event.getValue();
+              position = event.getPosition();
               lookAhead = true;
             } else {
               if (!sourceJob.isOutputPortReady(event.getPortId())) {
@@ -161,7 +163,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
               }
             }
           }
-          newEvent = propagateInput(event, destinationVariable, value, lookAhead, numberOfGlobalOutputs, link.getPosition());
+          newEvent = propagateInput(event, destinationVariable, value, lookAhead, numberOfGlobalOutputs, position);
           break;
         case OUTPUT:
           if(sourceJob.isOutputPortReady(event.getPortId()) || sourceJob.isScattered())
