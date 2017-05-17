@@ -154,6 +154,27 @@ public class ValidationTest {
   }
 
   @Test(expectedExceptions = BindingException.class)
+  public void testInvalidVersion()  throws Exception {
+    String appURL = "file://" + ResourceHelper.getResourcePath(this.getClass(), "invalid-version.cwl");
+    Bindings b = BindingsFactory.create(appURL);
+    Application app = b.loadAppObject(appURL);
+  }
+
+  @Test(expectedExceptions = BindingException.class)
+  public void testWorkflowWithInvalidAppVersion()  throws Exception {
+    String appURL = "file://" + ResourceHelper.getResourcePath(this.getClass(), "workflow-with-invalid-app-version.cwl.yml");
+    Bindings b = BindingsFactory.create(appURL);
+    Application app = b.loadAppObject(appURL);
+  }
+
+  @Test(expectedExceptions = BindingException.class)
+  public void testGiveMeYourWorst()  throws Exception {
+    String appURL = "file://" + ResourceHelper.getResourcePath(this.getClass(), "bad.json");
+    Bindings b = BindingsFactory.create(appURL);
+    Application app = b.loadAppObject(appURL);
+  }
+
+  @Test(expectedExceptions = BindingException.class)
   public void testCyclicWorkflow()  throws Exception {
     String appURL = "file://" + ResourceHelper.getResourcePath(this.getClass(), "cyclic-workflow.cwl");
     Bindings b = BindingsFactory.create(appURL);
