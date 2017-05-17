@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.draft2.bean.Draft2InputPort;
 import org.rabix.bindings.draft2.bean.Draft2Job;
 import org.rabix.bindings.draft2.bean.Draft2OutputPort;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
+import org.rabix.bindings.model.ApplicationPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +86,7 @@ public class Draft2PortProcessor {
       for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
         Map<?, ?> field = Draft2SchemaHelper.getField(entry.getKey(), Draft2SchemaHelper.getSchemaForRecordField(job.getApp().getSchemaDefs(), schema));
 
-        if (field == null) {
+        if (field == null  && Draft2SchemaHelper.getType(schema).equals("record")) {
           logger.info("Field {} not found in schema {}", entry.getKey(), schema);
           continue;
         }

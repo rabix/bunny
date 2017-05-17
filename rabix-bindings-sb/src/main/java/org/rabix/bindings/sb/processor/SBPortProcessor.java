@@ -86,8 +86,8 @@ public class SBPortProcessor {
 
       for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
         Map<?, ?> field = SBSchemaHelper.getField(entry.getKey(), SBSchemaHelper.getSchemaForRecordField(job.getApp().getSchemaDefs(), schema));
-
-        if (field == null) {
+        
+        if (field == null && SBSchemaHelper.getType(schema).equals("record")) {
           logger.info("Field {} not found in schema {}", entry.getKey(), schema);
           continue;
         }

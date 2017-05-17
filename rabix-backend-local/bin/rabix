@@ -17,8 +17,7 @@ realpath() {
 basedir="$(dirname "$(realpath "$0")")"
 
 loggingConfiguration="$basedir/config/logback.xml"
-for var in "$@"
-do
+for var in "$@" ; do
     if [ "$var" = "-v" -o "$var" = "-verbose" ]
     then
         loggingConfiguration="$basedir/config/logback-verbose.xml"
@@ -27,4 +26,16 @@ done
 
 command="java -Dlogback.configurationFile='${loggingConfiguration}' -jar '$basedir/lib/rabix-backend-local.jar'"
 
-eval $command "$@"
+args=""
+
+# quote non-parameter arguments
+for var in "$@"; do
+ parameter=`echo $var|grep -o "^-"`
+ if [ "$parameter" != "" ]; then
+    args="$args $var"
+ else
+   args="$args \"$var\""
+ fi
+done
+
+eval $command $args

@@ -80,8 +80,12 @@ public class ScatterHandler {
         throw new EventHandlerException(e);
       }
     }
+    
+    if(value instanceof List<?> && ((List<?>)value).isEmpty()){
+      scatterStrategy.setEmptyListDetected();
+    }
 
-    if (isLookAhead) {
+    if (isLookAhead && !scatterStrategy.isEmptyListDetected()) {
       int numberOfScattered = getNumberOfScattered(job, numberOfScatteredFromEvent);
       createScatteredJobs(job, event, portId, value, node, numberOfScattered, position);
       return;
@@ -110,9 +114,7 @@ public class ScatterHandler {
       values = (List<Object>) value;
     }
     
-    if (values.size() == 0) {
-      scatterStrategy.setEmptyListDetected();
-    } else {
+    if (!scatterStrategy.isEmptyListDetected()) {
       for (int i = 0; i < values.size(); i++) {
         createScatteredJobs(job, event, portId, values.get(i), node, values.size(), usePositionFromEvent ? position : i + 1);
       }

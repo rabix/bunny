@@ -88,7 +88,7 @@ public class Draft3PortProcessor {
       for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
         Map<?, ?> field = Draft3SchemaHelper.getField(entry.getKey(), Draft3SchemaHelper.getSchemaForRecordField(job.getApp().getSchemaDefs(), schema));
 
-        if (field == null) {
+        if (field == null && Draft3SchemaHelper.getType(schema).equals("record")) {
           logger.info("Field {} not found in schema {}", entry.getKey(), schema);
           continue;
         }

@@ -92,7 +92,7 @@ public class CWLPortProcessor {
       for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
         Map<?, ?> field = CWLSchemaHelper.getField(entry.getKey(), CWLSchemaHelper.getSchemaForRecordField(job.getApp().getSchemaDefs(), schema));
 
-        if (field == null) {
+        if (field == null && CWLSchemaHelper.getType(schema).equals("record")) {
           logger.info("Field {} not found in schema {}", entry.getKey(), schema);
           continue;
         }
