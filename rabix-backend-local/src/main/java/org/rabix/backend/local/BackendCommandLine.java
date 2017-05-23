@@ -20,7 +20,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
-import org.rabix.backend.local.download.LocalDownloadServiceImpl;
+import org.rabix.backend.api.BackendAPI;
+import org.rabix.backend.api.BackendAPIException;
+import org.rabix.backend.local.service.LocalDownloadServiceImpl;
 import org.rabix.backend.local.tes.client.TESHttpClient;
 import org.rabix.backend.local.tes.service.TESStorageService;
 import org.rabix.backend.local.tes.service.impl.LocalTESExecutorServiceImpl;
@@ -104,6 +106,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
@@ -411,13 +414,8 @@ public class BackendCommandLine {
       final SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
       
       final JobService jobService = injector.getInstance(JobService.class);
-      final BackendService backendService = injector.getInstance(BackendService.class);
-      final ExecutorService executorService = injector.getInstance(ExecutorService.class);
       final ContextRecordService contextRecordService = injector.getInstance(ContextRecordService.class);
       
-      BackendLocal backendLocal = new BackendLocal();
-      backendLocal = backendService.create(backendLocal);
-      executorService.initialize(backendLocal);
       schedulerService.start();
       Object commonInputs = null;
       try {
@@ -476,9 +474,6 @@ public class BackendCommandLine {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
     } catch (JobServiceException | InterruptedException e) {
-      logger.error("Encountered an error while starting local backend.", e);
-      System.exit(10);
-    } catch (BackendServiceException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }
@@ -645,4 +640,24 @@ public class BackendCommandLine {
     }
   }
 
+  public static class LocalBackend implements BackendAPI {
+
+    @Inject
+    private BackendService backendService;
+    @Inject
+    private ExecutorService executorService;
+    
+    @Override
+    public void start() throws BackendAPIException {
+      BackendLocal backendLocal = new BackendLocal();
+      try {
+        backendLocal = backendService.create(backendLocal);
+        executorService.initialize(backendLocal);
+      } catch (BackendServiceException e) {
+        throw new BackendAPIException(e);
+      }
+    }
+    
+  }
+  
 }

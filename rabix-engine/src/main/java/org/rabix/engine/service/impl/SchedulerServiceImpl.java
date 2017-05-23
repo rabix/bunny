@@ -16,9 +16,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.configuration.Configuration;
+import org.rabix.backend.api.BackendAPI;
+import org.rabix.backend.api.BackendAPIException;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
+import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.engine.repository.BackendRepository;
 import org.rabix.engine.repository.JobRepository.JobEntity;
 import org.rabix.engine.repository.TransactionHelper;
@@ -39,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback {
 
@@ -73,11 +77,14 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
   private ReceiveCallback<Job> jobReceiver;
 
   private ErrorCallback errorCallback;
+
+  private final Injector injector;
   
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService,
       TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerCallback schedulerCallback, ReceiveCallback<Job> jobReceiver,
-      BackendRepository backendRepository) {
+      BackendRepository backendRepository, Injector injector) {
+    this.injector = injector;
     this.jobService = jobService;
     this.backendService = backendService;
     this.schedulerCallback = schedulerCallback;
@@ -113,6 +120,21 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
 
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
     storeCleanupService.start();
+    scanBackends();
+  }
+  
+  private void scanBackends() {
+    Set<Class<BackendAPI>> clazzes = ClasspathScanner.<BackendAPI>scanInterfaceImplementations(BackendAPI.class);
+
+    for (Class<BackendAPI> clazz : clazzes) {
+      try {
+        BackendAPI backend = clazz.newInstance();
+        injector.injectMembers(backend);
+        backend.start();
+      } catch (InstantiationException | IllegalAccessException | BackendAPIException e) {
+        logger.error("Failed to register backend " + clazz, e);
+      }
+    }
   }
 
   private void schedule() {

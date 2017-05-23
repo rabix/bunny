@@ -22,6 +22,7 @@
 		<module>rabix-bindings-draft3</module>
 		<module>rabix-bindings-sb</module>
 		<module>rabix-tes-command-line</module>
+		<module>rabix-backend-api</module>
   </modules>
 
 	<properties>

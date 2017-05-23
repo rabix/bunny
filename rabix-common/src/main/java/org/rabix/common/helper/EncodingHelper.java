@@ -1,11 +1,8 @@
 package org.rabix.common.helper;
 
 import java.nio.charset.Charset;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.escape.Escaper;
-import com.google.common.escape.Escapers;
 import org.apache.commons.codec.binary.Base64;
 
 public class EncodingHelper {
@@ -31,20 +28,4 @@ public class EncodingHelper {
     return "'" + argument.replace("'", "'\\''") + "'";
   }
 
-//  public static String shellUnquote(String argument) {
-//    System.out.println("shellUnquote " + argument);
-//    if (argument == null) {
-//      return null;
-//    }
-//
-//    if (!argument.startsWith("'") && !argument.endsWith("'")) {
-//      return argument;
-//    }
-//    String res = argument.substring(1, argument.length() - 1).replace("'\\''", "'");
-//    System.out.println("unescaping " + argument);
-//    System.out.println(res);
-//    return res;
-//
-//  }
-  
 }

@@ -47,7 +47,6 @@ public class EngineModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    // install(config);
     Configuration configuration = this.config.provideConfig();
     String persistence = configuration.getString("engine.store", "IN_MEMORY");
     if (persistence.equals("POSTGRES")) {

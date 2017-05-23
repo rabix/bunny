@@ -50,15 +50,13 @@ public class JSONHelper {
   }
 
   public static JsonNode getTransformed(String input) throws IOException {
-    String jsonMessage;
     try {
       return readJsonNode(input);
     } catch (IllegalStateException e) {
-      jsonMessage = e.getMessage();
     }
     try {
       return readJsonNode(writeObject(yamlReader.load(input)));
-    }catch(Exception e){
+    } catch (Exception e) {
       throw new IOException("Can't parse as JSON or as YAML");
     }
   }
