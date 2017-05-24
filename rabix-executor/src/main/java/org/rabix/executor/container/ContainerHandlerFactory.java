@@ -1,5 +1,6 @@
 package org.rabix.executor.container;
 
+import org.rabix.backend.api.callback.ExecutorStatusCallback;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.LocalContainerRequirement;
@@ -10,7 +11,6 @@ import org.rabix.executor.container.impl.CompletedContainerHandler;
 import org.rabix.executor.container.impl.DockerContainerHandler;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.container.impl.LocalContainerHandler;
-import org.rabix.executor.status.ExecutorStatusCallback;
 
 public class ContainerHandlerFactory {
 

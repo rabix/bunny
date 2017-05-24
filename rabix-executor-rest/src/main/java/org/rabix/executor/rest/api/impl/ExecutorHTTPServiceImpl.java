@@ -2,9 +2,9 @@ package org.rabix.executor.rest.api.impl;
 
 import javax.ws.rs.core.Response;
 
+import org.rabix.backend.api.ExecutorService;
 import org.rabix.executor.ExecutorStatus;
 import org.rabix.executor.rest.api.ExecutorHTTPService;
-import org.rabix.executor.service.ExecutorService;
 
 import com.google.inject.Inject;
 

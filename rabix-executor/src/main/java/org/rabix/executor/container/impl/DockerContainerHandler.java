@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.rabix.backend.api.callback.ExecutorStatusCallback;
+import org.rabix.backend.api.callback.ExecutorStatusCallbackException;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -41,8 +43,6 @@ import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.container.ContainerException;
 import org.rabix.executor.container.ContainerHandler;
 import org.rabix.executor.handler.JobHandler;
-import org.rabix.executor.status.ExecutorStatusCallback;
-import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

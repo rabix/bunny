@@ -1,8 +1,8 @@
 package org.rabix.executor.rest.status;
 
+import org.rabix.backend.api.callback.ExecutorStatusCallback;
+import org.rabix.backend.api.callback.ExecutorStatusCallbackException;
 import org.rabix.bindings.model.Job;
-import org.rabix.executor.status.ExecutorStatusCallback;
-import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -89,11 +89,6 @@
 			<artifactId>rabix-engine-rest</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>${ok.http.version}</version>
-		</dependency>
 	</dependencies>
 
 	<profiles>

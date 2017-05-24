@@ -6,16 +6,15 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.configuration.Configuration;
+import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.engine.EngineStub;
+import org.rabix.backend.api.engine.EngineStubActiveMQ;
+import org.rabix.backend.api.engine.EngineStubLocal;
+import org.rabix.backend.api.engine.EngineStubRabbitMQ;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.executor.engine.EngineStub;
-import org.rabix.executor.engine.EngineStubActiveMQ;
-import org.rabix.executor.engine.EngineStubLocal;
-import org.rabix.executor.engine.EngineStubRabbitMQ;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.model.JobData.JobDataStatus;
-import org.rabix.executor.service.ExecutorService;
-import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
@@ -35,13 +34,11 @@ public class ExecutorServiceImpl implements ExecutorService {
 
   private final AtomicBoolean stopped = new AtomicBoolean(false);
 
-  private FileService fileService;
   private Configuration configuration;
   private EngineStub<?,?,?> engineStub;
   
   @Inject
-  public ExecutorServiceImpl(JobDataService jobDataService, FileService fileService, Configuration configuration) {
-    this.fileService = fileService;
+  public ExecutorServiceImpl(JobDataService jobDataService, Configuration configuration) {
     this.configuration = configuration;
     this.jobDataService = jobDataService;
   }
@@ -91,7 +88,7 @@ public class ExecutorServiceImpl implements ExecutorService {
 
   @Override
   public void free(UUID rootId, Map<String, Object> config) {
-    fileService.delete(rootId, config);
+    // free resources
   }
   
   @Override

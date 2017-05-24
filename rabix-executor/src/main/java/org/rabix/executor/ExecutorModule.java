@@ -1,6 +1,7 @@
 package org.rabix.executor;
 
 import org.apache.commons.configuration.Configuration;
+import org.rabix.backend.api.ExecutorService;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
@@ -9,15 +10,12 @@ import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.handler.JobHandlerFactory;
 import org.rabix.executor.handler.impl.JobHandlerImpl;
 import org.rabix.executor.service.CacheService;
-import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.service.FilePermissionService;
-import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
 import org.rabix.executor.service.impl.CacheServiceImpl;
 import org.rabix.executor.service.impl.ExecutorServiceImpl;
 import org.rabix.executor.service.impl.FilePermissionServiceImpl;
-import org.rabix.executor.service.impl.FileServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
 import org.rabix.executor.service.impl.MockExecutorServiceImpl;
@@ -49,7 +47,6 @@ public class ExecutorModule extends AbstractModule {
     bind(JobDataService.class).to(JobDataServiceImpl.class).in(Scopes.SINGLETON);
     bind(JobHandlerCommandDispatcher.class).in(Scopes.SINGLETON);
 
-    bind(FileService.class).to(FileServiceImpl.class).in(Scopes.SINGLETON);
     bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
     bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
   }

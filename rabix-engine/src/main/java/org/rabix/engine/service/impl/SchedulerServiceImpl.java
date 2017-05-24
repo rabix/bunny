@@ -118,8 +118,9 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageC
       try {
         BackendAPI backend = clazz.newInstance();
         injector.injectMembers(backend);
-        backend.start();
-      } catch (InstantiationException | IllegalAccessException | BackendAPIException e) {
+        Backend populated = backendService.create(backend.start());
+        backend.initialize(populated);
+      } catch (InstantiationException | IllegalAccessException | BackendAPIException | BackendServiceException e) {
         logger.error("Failed to register backend " + clazz, e);
       }
     }

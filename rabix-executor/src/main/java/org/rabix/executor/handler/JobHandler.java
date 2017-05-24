@@ -1,8 +1,8 @@
 package org.rabix.executor.handler;
 
+import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.bindings.model.Job;
 import org.rabix.executor.ExecutorException;
-import org.rabix.executor.engine.EngineStub;
 
 public interface JobHandler {
 

@@ -3,7 +3,7 @@ package org.rabix.executor.service;
 import java.util.List;
 import java.util.UUID;
 
-import org.rabix.executor.engine.EngineStub;
+import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.model.JobData.JobDataStatus;
 

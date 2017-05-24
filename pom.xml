@@ -23,7 +23,8 @@
 		<module>rabix-bindings-sb</module>
 		<module>rabix-tes-command-line</module>
 		<module>rabix-backend-api</module>
-  </modules>
+		<module>rabix-backend-tes</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

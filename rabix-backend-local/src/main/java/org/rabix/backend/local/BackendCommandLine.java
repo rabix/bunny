@@ -22,11 +22,10 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.api.BackendAPI;
 import org.rabix.backend.api.BackendAPIException;
+import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.callback.ExecutorStatusCallback;
+import org.rabix.backend.api.callback.impl.NoOpExecutorStatusCallback;
 import org.rabix.backend.local.service.LocalDownloadServiceImpl;
-import org.rabix.backend.local.tes.client.TESHttpClient;
-import org.rabix.backend.local.tes.service.TESStorageService;
-import org.rabix.backend.local.tes.service.impl.LocalTESExecutorServiceImpl;
-import org.rabix.backend.local.tes.service.impl.LocalTESStorageServiceImpl;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -55,7 +54,6 @@ import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
 import org.rabix.engine.service.BackendService;
-import org.rabix.engine.service.BackendServiceException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
@@ -86,20 +84,16 @@ import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.pathmapper.local.LocalPathMapper;
 import org.rabix.executor.service.CacheService;
-import org.rabix.executor.service.ExecutorService;
 import org.rabix.executor.service.FilePermissionService;
-import org.rabix.executor.service.FileService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
 import org.rabix.executor.service.impl.CacheServiceImpl;
 import org.rabix.executor.service.impl.ExecutorServiceImpl;
 import org.rabix.executor.service.impl.FilePermissionServiceImpl;
-import org.rabix.executor.service.impl.FileServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
-import org.rabix.executor.status.ExecutorStatusCallback;
-import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
+import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
@@ -271,9 +265,9 @@ public class BackendCommandLine {
               bind(new TypeLiteral<ReceiveCallback<Job>>(){}).to(JobReceiverImpl.class).in(Scopes.SINGLETON);
               
               if (isTesEnabled) {
-                bind(TESHttpClient.class).in(Scopes.SINGLETON);
-                bind(TESStorageService.class).to(LocalTESStorageServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ExecutorService.class).to(LocalTESExecutorServiceImpl.class).in(Scopes.SINGLETON);
+//                bind(TESHttpClient.class).in(Scopes.SINGLETON);
+//                bind(TESStorageService.class).to(LocalTESStorageServiceImpl.class).in(Scopes.SINGLETON);
+//                bind(ExecutorService.class).to(LocalTESExecutorServiceImpl.class).in(Scopes.SINGLETON);
               } else {
                 install(new RetryInterceptorModule());
                 install(new FactoryModuleBuilder().implement(JobHandler.class, JobHandlerImpl.class).build(JobHandlerFactory.class));
@@ -284,7 +278,6 @@ public class BackendCommandLine {
                 bind(JobDataService.class).to(JobDataServiceImpl.class).in(Scopes.SINGLETON);
                 bind(JobHandlerCommandDispatcher.class).in(Scopes.SINGLETON);
 
-                bind(FileService.class).to(FileServiceImpl.class).in(Scopes.SINGLETON);
                 bind(ExecutorService.class).to(ExecutorServiceImpl.class).in(Scopes.SINGLETON);
                 bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
                 bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
@@ -647,19 +640,16 @@ public class BackendCommandLine {
   public static class LocalBackend implements BackendAPI {
 
     @Inject
-    private BackendService backendService;
-    @Inject
     private ExecutorService executorService;
     
     @Override
-    public void start() throws BackendAPIException {
-      BackendLocal backendLocal = new BackendLocal();
-      try {
-        backendLocal = backendService.create(backendLocal);
-        executorService.initialize(backendLocal);
-      } catch (BackendServiceException e) {
-        throw new BackendAPIException(e);
-      }
+    public Backend start() throws BackendAPIException {
+      return new BackendLocal();
+    }
+
+    @Override
+    public void initialize(Backend backend) throws BackendAPIException {
+      executorService.initialize(backend);
     }
     
   }

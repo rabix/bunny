@@ -3,7 +3,6 @@ package org.rabix.executor.rest;
 import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.UUID;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.ApplicationPath;
@@ -25,6 +24,8 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.callback.ExecutorStatusCallback;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.service.download.DownloadService;
@@ -40,11 +41,8 @@ import org.rabix.executor.pathmapper.local.LocalPathMapper;
 import org.rabix.executor.rest.api.ExecutorHTTPService;
 import org.rabix.executor.rest.api.impl.ExecutorHTTPServiceImpl;
 import org.rabix.executor.rest.status.NoOpExecutorStatusCallback;
-import org.rabix.executor.service.ExecutorService;
-import org.rabix.executor.status.ExecutorStatusCallback;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
-import org.rabix.transport.backend.impl.BackendRabbitMQ.EngineConfiguration;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
