@@ -56,7 +56,7 @@ public class SBDocumentResolver {
       } else {
         file = new File(".");
       }
-      root = JSONHelper.getTransformed(URIHelper.getData(appUrlBase));
+      root = JSONHelper.readJsonNode(URIHelper.getData(appUrlBase));
     } catch (Exception e) {
       throw new BindingException(e);
     }
@@ -207,8 +207,8 @@ public class SBDocumentResolver {
       }
       String contents = loadContents(file, parts[0]);
       try {
-        return JSONHelper.getTransformed(contents);
-      } catch (IOException e) {
+        return JSONHelper.readJsonNode(contents);
+      } catch (Exception e) {
         throw new BindingException(e);
       }
     }

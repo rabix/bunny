@@ -26,7 +26,7 @@ public class ManualTest {
     Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
     WebTarget webTarget = client.target("http://localhost" + ":" + 8081 + "/v0/engine/jobs");
 
-    Map<String, Object> inputs = JSONHelper.readMap(JSONHelper.transformToJSON(FileUtils.readFileToString(new File("/Users/janko/Desktop/Archive/varscan.inputs.yaml"))));
+    Map<String, Object> inputs = JSONHelper.readMap(JSONHelper.readJsonNode(FileUtils.readFileToString(new File("/Users/janko/Desktop/Archive/varscan.inputs.yaml"))));
     Job job = new Job("file:///Users/janko/Desktop/Archive/varscan.wf.yaml", inputs);
 
     Invocation.Builder invocationBuilder = webTarget.request(javax.ws.rs.core.MediaType.APPLICATION_JSON).header("batch", times);

@@ -14,14 +14,14 @@ public class DAGValidationHelperTest {
   @Test(expectedExceptions = BindingException.class)
   public void testDetectingLoopInWorkflow() throws Exception {
     String appText = ResourceHelper.readResource(this.getClass(), "grep-wf-loop.cwl.json");
-    DAGNode node = JSONHelper.readObject(appText, DAGNode.class);
+    DAGNode node = JSONHelper.readObject(JSONHelper.readJsonNode(appText), DAGNode.class);
     DAGValidationHelper.detectLoop((DAGContainer) node);
   }
 
   @Test
   public void testNoLoopInWorkflow() throws Exception {
     String appText = ResourceHelper.readResource(this.getClass(), "grep-wf.cwl.json");
-    DAGNode node = JSONHelper.readObject(appText, DAGNode.class);
+    DAGNode node = JSONHelper.readObject(JSONHelper.readJsonNode(appText), DAGNode.class);
     DAGValidationHelper.detectLoop((DAGContainer) node);
   }
 

@@ -8,10 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.yaml.snakeyaml.Yaml;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -32,7 +35,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 public class JSONHelper {
 
-  public static final Yaml yamlReader = new Yaml();
+  public static final ObjectMapper mapperYaml = new YAMLMapper();
   public static final ObjectMapper mapper = new ObjectMapper();
   public static final ObjectMapper mapperWithoutNulls = new ObjectMapper();
   public static final ObjectMapper mapperWithoutIdentation = new ObjectMapper();
@@ -43,24 +46,6 @@ public class JSONHelper {
     mapperWithoutNulls.enable(SerializationFeature.INDENT_OUTPUT);
     mapperWithoutNulls.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false).setSerializationInclusion(Include.NON_NULL).configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
     mapperWithoutIdentation.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
-  }
-
-  public static String transformToJSON(String data) {
-      return writeObject(yamlReader.load(data));
-  }
-
-  public static JsonNode getTransformed(String input) throws IOException {
-    String jsonMessage;
-    try {
-      return readJsonNode(input);
-    } catch (IllegalStateException e) {
-      jsonMessage = e.getMessage();
-    }
-    try {
-      return readJsonNode(writeObject(yamlReader.load(input)));
-    }catch(Exception e){
-      throw new IOException("Can't parse as JSON or as YAML");
-    }
   }
 
   @SuppressWarnings("unchecked")
@@ -103,11 +88,8 @@ public class JSONHelper {
     if (json == null) {
       return null;
     }
-    try {
-      return mapper.readValue(json, clazz);
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
+    JsonNode node = readJsonNode(json);
+    return readObject(node, clazz);
   }
 
   public static <T> T readObject(String json, TypeReference<T> valueTypeRef) {
@@ -147,14 +129,32 @@ public class JSONHelper {
     }
   }
   
-  public static JsonNode readJsonNode(String json) {
+  public static JsonNode readJsonNode(String data) {
     try {
-      return mapper.readTree(json);
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
+      return mapper.readTree(data);
+    } catch (Exception e) {
+      try {
+        return mapperYaml.readTree(data);
+      } catch(Exception e2) {
+        Exception rootException = isJson(data)? e : e2;
+        throw new IllegalStateException("Can't parse input as either JSON or as YAML. " + getDetailedMessage(rootException), rootException);
+      }
     }
   }
 
+  private static boolean isJson(String data) {
+    return StringUtils.trim(data).startsWith("{");
+  }
+  
+  private static String getDetailedMessage(Exception e) {
+    String message = e.getMessage();
+    if (e instanceof JsonProcessingException) {
+      JsonParseException jpe = (JsonParseException) e;
+      message = jpe.getOriginalMessage() + ". Line: " + jpe.getLocation().getLineNr() + ", column: " + jpe.getLocation().getColumnNr();
+    }
+    return message;
+  }
+  
   public static JsonNode convertToJsonNode(Object value) {
     if (value == null) {
       return null;

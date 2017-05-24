@@ -18,6 +18,7 @@ import org.rabix.bindings.draft2.bean.resource.requirement.Draft2SchemaDefRequir
 import org.rabix.bindings.draft2.json.Draft2JobAppDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.ValidationReport;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -226,7 +227,12 @@ public abstract class Draft2JobApp extends Application {
     }
     return null;
   }
-  
+
+  @Override
+  public ValidationReport validate() {
+    return new ValidationReport();
+  }
+
   @Override
   @JsonIgnore
   public String getVersion() {
