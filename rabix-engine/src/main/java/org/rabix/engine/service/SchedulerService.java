@@ -20,6 +20,7 @@ public interface SchedulerService {
 
   void deallocate(Job job);
   
+  @FunctionalInterface
   public static interface SchedulerJobBackendAssigner {
     
     public class JobBackendAssignment {
@@ -49,10 +50,12 @@ public interface SchedulerService {
     Set<JobBackendAssignment> assign(final Set<Job> jobs, final Set<Backend> backends);
   }
   
+  @FunctionalInterface
   public static interface SchedulerMessageCreator {
     Set<SchedulerMessage> create(Set<JobBackendAssignment> entities, Set<UUID> backendIds);
   }
   
+  @FunctionalInterface
   public static interface SchedulerMessageSender {
     void send(Set<SchedulerMessage> messages);
   }
