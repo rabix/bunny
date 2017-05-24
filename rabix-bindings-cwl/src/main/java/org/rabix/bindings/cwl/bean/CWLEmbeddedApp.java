@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import org.rabix.bindings.model.ValidationReport;
 
 @JsonDeserialize(as = CWLEmbeddedApp.class)
 public class CWLEmbeddedApp extends CWLJobApp {
@@ -39,8 +40,8 @@ public class CWLEmbeddedApp extends CWLJobApp {
           return new CWLOutputPort(port.getId(), null, port.getDefaultValue(), port.getSchema(), null, port.getScatter(), null, port.getLinkMerge(), null, port.getDescription());
         }
       });
-    } catch (BindingException e1) {
-      throw new RuntimeException();
+    } catch (BindingException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -52,6 +53,11 @@ public class CWLEmbeddedApp extends CWLJobApp {
   @Override
   public List<CWLOutputPort> getOutputs() {
     return outputs;
+  }
+
+  @Override
+  public ValidationReport validate() {
+    return application.validate();
   }
 
   @Override

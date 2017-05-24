@@ -20,14 +20,10 @@ import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
 import org.rabix.bindings.draft3.service.Draft3GlobException;
 import org.rabix.bindings.draft3.service.Draft3GlobService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 public class Draft3GlobServiceImpl implements Draft3GlobService {
-
-  private final Logger logger = LoggerFactory.getLogger(Draft3GlobServiceImpl.class);
 
   /**
    * Find all files that match GLOB inside the working directory 

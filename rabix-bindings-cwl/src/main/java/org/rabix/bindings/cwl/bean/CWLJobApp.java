@@ -1,6 +1,7 @@
 package org.rabix.bindings.cwl.bean;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -77,7 +78,7 @@ public abstract class CWLJobApp extends Application {
   public void setCwlVersion(String cwlVersion) {
     this.cwlVersion = cwlVersion;
   }
-  
+
   @Override
   @JsonIgnore
   public String getVersion() {
@@ -110,13 +111,21 @@ public abstract class CWLJobApp extends Application {
   /**
    * Do some basic validation
    */
-  private void validateDockerRequirement(CWLDockerResource requirement) {
+  protected void validateDockerRequirement(CWLDockerResource requirement) {
+    List<String> res = checkDockerRequirement(requirement);
+    if (! res.isEmpty()) {
+      throw new IllegalArgumentException(String.join("\n", res));
+    }
+  }
+
+  protected List<String> checkDockerRequirement(CWLDockerResource requirement) {
     String imageId = requirement.getImageId();
     String dockerPull = requirement.getDockerPull();
 
     if (StringUtils.isEmpty(dockerPull) && StringUtils.isEmpty(imageId)) {
-      throw new IllegalArgumentException("Docker requirements are empty.");
+      return Collections.singletonList("Docker requirement contains neither 'dockerPull' nor 'imageId'.");
     }
+    return Collections.emptyList();
   }
 
   @JsonIgnore
@@ -183,10 +192,12 @@ public abstract class CWLJobApp extends Application {
     }
   }
 
+
+
   /**
    * Find one resource by type 
    */
-  private <T extends CWLResource> T lookForResource(CWLResourceType type, Class<T> clazz) {
+  protected <T extends CWLResource> T lookForResource(CWLResourceType type, Class<T> clazz) {
     List<T> resources = lookForResources(type, clazz);
     return resources != null && resources.size() > 0 ? resources.get(0) : null;
   }
@@ -194,7 +205,7 @@ public abstract class CWLJobApp extends Application {
   /**
    * Find all resources by type 
    */
-  private <T extends CWLResource> List<T> lookForResources(CWLResourceType type, Class<T> clazz) {
+  protected <T extends CWLResource> List<T> lookForResources(CWLResourceType type, Class<T> clazz) {
     List<T> resources = getRequirements(type, clazz);
     if (resources == null || resources.size() == 0) {
       resources = getHints(type, clazz);

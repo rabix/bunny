@@ -1,0 +1,9 @@
+class: ExpressionTool
+cwlVersion: v1.0
+requirements:
+  InlineJavascriptRequirement: {}
+inputs:
+  in: string
+outputs:
+  out: string
+expression: "$(inputs.in)"
