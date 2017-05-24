@@ -34,29 +34,38 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
     List<Object> files = new ArrayList<>();
     if (listingObj instanceof String || CWLExpressionResolver.isExpressionObject(listingObj)) {
       files = CWLExpressionResolver.resolve(listingObj, job, null); // TODO validate
+      if(files instanceof List<?>) {
+        files = castListingMembers(job, files);
+      }
     }
-    
+
     if (listingObj instanceof List<?>) {
       // iterate and cast
       List<Object> listingArray = (List<Object>) listingObj;
-      
-      for (Object listingArrayObj : listingArray) {
-        if (listingArrayObj instanceof String || CWLExpressionResolver.isExpressionObject(listingArrayObj)) {
-          files.add(CWLExpressionResolver.resolve(listingArrayObj, job, null)); // TODO validate
-          continue;
-        }
-        if (CWLSchemaHelper.isFileFromValue(listingArrayObj)) {
-          files.add(CWLFileValueHelper.createFileValue(listingArrayObj));
-          continue;
-        }
-        if (CWLSchemaHelper.isDirectoryFromValue(listingArrayObj)) {
-          files.add(CWLDirectoryValueHelper.createDirectoryValue(listingArrayObj));
-          continue;
-        }
-        if (isDirent(listingArrayObj)) {
-          files.add(createDirent(listingArrayObj, job));
-          continue;
-        }
+      files = castListingMembers(job, listingArray);
+    }
+    return files;
+  }
+  
+  public static List<Object> castListingMembers(CWLJob job, List<?> listingArray) throws CWLExpressionException {
+    List<Object> files = new ArrayList<>();
+    
+    for (Object listingArrayObj : listingArray) {
+      if (listingArrayObj instanceof String || CWLExpressionResolver.isExpressionObject(listingArrayObj)) {
+        files.add(CWLExpressionResolver.resolve(listingArrayObj, job, null)); // TODO validate
+        continue;
+      }
+      if (CWLSchemaHelper.isFileFromValue(listingArrayObj)) {
+        files.add(CWLFileValueHelper.createFileValue(listingArrayObj));
+        continue;
+      }
+      if (CWLSchemaHelper.isDirectoryFromValue(listingArrayObj)) {
+        files.add(CWLDirectoryValueHelper.createDirectoryValue(listingArrayObj));
+        continue;
+      }
+      if (isDirent(listingArrayObj)) {
+        files.add(createDirent(listingArrayObj, job));
+        continue;
       }
     }
     return files;
