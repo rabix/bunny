@@ -76,11 +76,11 @@ public class BindingsFactory {
         validVersions.append(b.getProtocolType().appVersion);
         first = false;
       }
-      throw new BindingException("Ivalid cwlVersion. Allowed values are: " + validVersions);
+      throw new BindingException("Invalid cwlVersion. Allowed values are: " + validVersions);
     }
 
     if (finalException != null && finalException.getMessage() != null) {
-      throw new BindingException(finalException.getMessage());
+      throw new BindingException(finalException.getMessage(), finalException);
     }
 
     throw new BindingException("Unknown error when parsing the app!");

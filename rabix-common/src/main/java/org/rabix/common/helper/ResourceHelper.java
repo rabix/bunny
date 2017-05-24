@@ -23,8 +23,8 @@ public class ResourceHelper {
     return clazz == null ? ClassLoader.getSystemResourceAsStream(resource) : clazz.getResourceAsStream(resource);
   }
 
-  public static String getResourcePath(String fileName) {
-    URL resource = Thread.currentThread().getContextClassLoader().getResource(fileName);
+  public static String getResourcePath(Class<?> clazz, String fileName) {
+    URL resource = clazz.getResource(fileName);
     return resource == null ? null : resource.getPath();
   }
 

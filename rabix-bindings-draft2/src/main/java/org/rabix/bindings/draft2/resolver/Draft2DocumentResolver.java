@@ -60,7 +60,7 @@ public class Draft2DocumentResolver {
       file = new File(".");
     }
     try {
-      root = JSONHelper.getTransformed(URIHelper.getData(appUrlBase));
+      root = JSONHelper.readJsonNode(URIHelper.getData(appUrlBase));
     } catch (IOException e) {
       throw new BindingException(e.getMessage());
     }
@@ -220,8 +220,8 @@ public class Draft2DocumentResolver {
       }
       String contents = loadContents(file, parts[0]);
       try {
-        return root = JSONHelper.getTransformed(contents);
-      } catch (IOException e) {
+        return root = JSONHelper.readJsonNode(contents);
+      } catch (Exception e) {
         throw new BindingException(e);
       }
     }
