@@ -155,8 +155,8 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
     if (valueFrom != null) {
       if (Draft2ExpressionBeanHelper.isExpression(valueFrom)) {
         try {
-          value = filePathMapper.map(Draft2ExpressionBeanHelper.evaluate(job, value, valueFrom), new HashMap<>());
-        } catch (Draft2ExpressionException | FileMappingException e) {
+          value = Draft2ExpressionBeanHelper.evaluate(job, value, valueFrom);
+        } catch (Draft2ExpressionException e) {
           throw new BindingException(e);
         }
       } else {
@@ -167,7 +167,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
     boolean isFile = Draft2SchemaHelper.isFileFromValue(value);
     if (isFile) {
       try {
-        value =filePathMapper.map(Draft2FileValueHelper.getPath(value), new HashMap<>());
+        value = filePathMapper.map(Draft2FileValueHelper.getPath(value), new HashMap<>());
       } catch (FileMappingException e) {
         throw new BindingException(e);
       }
