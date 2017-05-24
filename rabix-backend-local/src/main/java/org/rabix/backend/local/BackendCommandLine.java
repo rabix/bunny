@@ -74,7 +74,6 @@ import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.executor.config.StorageConfiguration;
-import org.rabix.executor.config.impl.DefaultStorageConfiguration;
 import org.rabix.executor.config.impl.LocalStorageConfiguration;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.execution.JobHandlerCommandDispatcher;

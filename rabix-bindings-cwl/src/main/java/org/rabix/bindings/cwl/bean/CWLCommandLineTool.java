@@ -1,17 +1,19 @@
 package org.rabix.bindings.cwl.bean;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
+import org.rabix.bindings.model.ValidationReport;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.rabix.bindings.model.ValidationReport;
 
 @JsonDeserialize(as = CWLCommandLineTool.class)
 public class CWLCommandLineTool extends CWLJobApp {
@@ -141,7 +143,7 @@ public class CWLCommandLineTool extends CWLJobApp {
         messages.add(ValidationReport.warning("Tool's 'baseCommand' is empty"));
       }
     } else if (baseCommand instanceof List) {
-      List baseList = (List) baseCommand;
+      List<?> baseList = (List<?>) baseCommand;
       if (baseList.isEmpty()) {
         messages.add(ValidationReport.warning("Tool's 'baseCommand' is empty"));
       } else {
@@ -163,7 +165,7 @@ public class CWLCommandLineTool extends CWLJobApp {
 
     for (Object argument : arguments) {
       if (argument instanceof Map<?, ?>) {
-        if (!((Map) argument).containsKey("valueFrom")) {
+        if (!((Map<?,?>) argument).containsKey("valueFrom")) {
           messages.add(ValidationReport.error("CommandLineBinding in 'arguments' must have a 'valueFrom' present"));
         }
 

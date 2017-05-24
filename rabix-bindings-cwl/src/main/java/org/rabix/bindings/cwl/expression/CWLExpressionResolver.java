@@ -14,8 +14,6 @@ import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLInlineJavascriptRequirement;
 import org.rabix.bindings.cwl.expression.javascript.CWLExpressionJavascriptResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,8 +21,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class CWLExpressionResolver {
 
-  private static Logger logger = LoggerFactory.getLogger(CWLExpressionResolver.class);
-  
   public static String KEY_EXPRESSION_VALUE = "script";
   public static String KEY_EXPRESSION_LANGUAGE = "engine";
   

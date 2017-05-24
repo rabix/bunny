@@ -22,14 +22,10 @@ import org.rabix.bindings.draft2.expression.Draft2ExpressionException;
 import org.rabix.bindings.draft2.expression.helper.Draft2ExpressionBeanHelper;
 import org.rabix.bindings.draft2.service.Draft2GlobException;
 import org.rabix.bindings.draft2.service.Draft2GlobService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 public class Draft2GlobServiceImpl implements Draft2GlobService {
-
-  private final Logger logger = LoggerFactory.getLogger(Draft2GlobServiceImpl.class);
 
   /**
    * Find all files that match GLOB inside the working directory 
