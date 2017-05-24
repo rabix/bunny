@@ -32,43 +32,31 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
     }
     
     List<Object> files = new ArrayList<>();
-    if (listingObj instanceof String || CWLExpressionResolver.isExpressionObject(listingObj)) {
-      files = CWLExpressionResolver.resolve(listingObj, job, null); // TODO validate
-      if(files instanceof List<?>) {
-        files = castListingMembers(job, files);
-      }
-    }
-
-    if (listingObj instanceof List<?>) {
-      // iterate and cast
-      List<Object> listingArray = (List<Object>) listingObj;
-      files = castListingMembers(job, listingArray);
-    }
+    castListingMembers(job, listingObj, files);
     return files;
   }
   
-  public static List<Object> castListingMembers(CWLJob job, List<?> listingArray) throws CWLExpressionException {
-    List<Object> files = new ArrayList<>();
-    
-    for (Object listingArrayObj : listingArray) {
-      if (listingArrayObj instanceof String || CWLExpressionResolver.isExpressionObject(listingArrayObj)) {
-        files.add(CWLExpressionResolver.resolve(listingArrayObj, job, null)); // TODO validate
-        continue;
-      }
-      if (CWLSchemaHelper.isFileFromValue(listingArrayObj)) {
-        files.add(CWLFileValueHelper.createFileValue(listingArrayObj));
-        continue;
-      }
-      if (CWLSchemaHelper.isDirectoryFromValue(listingArrayObj)) {
-        files.add(CWLDirectoryValueHelper.createDirectoryValue(listingArrayObj));
-        continue;
-      }
-      if (isDirent(listingArrayObj)) {
-        files.add(createDirent(listingArrayObj, job));
-        continue;
-      }
+  public static void castListingMembers(CWLJob job, Object listingObj, List<Object> result) throws CWLExpressionException {
+    if (CWLSchemaHelper.isFileFromValue(listingObj)) {
+      result.add(CWLFileValueHelper.createFileValue(listingObj));
     }
-    return files;
+    else if (CWLSchemaHelper.isDirectoryFromValue(listingObj)) {
+      result.add(CWLDirectoryValueHelper.createDirectoryValue(listingObj));
+    }
+    else if (isDirent(listingObj)) {
+      result.add(createDirent(listingObj, job));
+    }
+    else if (listingObj instanceof String || CWLExpressionResolver.isExpressionObject(listingObj)) {
+      Object exprResolved = CWLExpressionResolver.resolve(listingObj, job, null);
+      castListingMembers(job, exprResolved, result);
+    }
+    else if (listingObj instanceof List<?>) {
+      List<Object> listingArray = (List<Object>) listingObj;
+      for (Object listingArrayObj : listingArray) {
+        castListingMembers(job, listingArrayObj, result);
+      }
+      
+    }
   }
   
   @SuppressWarnings("unchecked")
