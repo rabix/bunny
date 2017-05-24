@@ -1,7 +1,7 @@
 package org.rabix.backend.api.engine;
 
 import org.apache.commons.configuration.Configuration;
-import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.WorkerService;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.BackendConfiguration;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.EngineConfiguration;
@@ -11,7 +11,7 @@ import org.rabix.transport.mechanism.impl.rabbitmq.TransportQueueRabbitMQ;
 
 public class EngineStubRabbitMQ extends EngineStub<TransportQueueRabbitMQ, BackendRabbitMQ, TransportPluginRabbitMQ> {
 
-  public EngineStubRabbitMQ(BackendRabbitMQ backendRabbitMQ, ExecutorService executorService, Configuration configuration) throws TransportPluginException {
+  public EngineStubRabbitMQ(BackendRabbitMQ backendRabbitMQ, WorkerService executorService, Configuration configuration) throws TransportPluginException {
     this.backend = backendRabbitMQ;
     this.executorService = executorService;
     this.transportPlugin = new TransportPluginRabbitMQ(configuration);

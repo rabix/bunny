@@ -1,4 +1,4 @@
-package org.rabix.executor.rest.status;
+package org.rabix.backend.api.callback.impl;
 
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
@@ -6,9 +6,9 @@ import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NoOpExecutorStatusCallback implements WorkerStatusCallback {
+public class NoOpWorkerStatusCallback implements WorkerStatusCallback {
 
-  private final static Logger logger = LoggerFactory.getLogger(NoOpExecutorStatusCallback.class);
+  private final static Logger logger = LoggerFactory.getLogger(NoOpWorkerStatusCallback.class);
 
   @Override
   public Job onJobReady(Job job) throws WorkerStatusCallbackException {
@@ -27,6 +27,12 @@ public class NoOpExecutorStatusCallback implements WorkerStatusCallback {
     logger.debug("onJobStarted(jobId={})", job.getId());
     return job;
   }
+  
+  @Override
+  public Job onJobStopped(Job job) throws WorkerStatusCallbackException {
+    logger.debug("onJobStopped(jobId={})", job.getId());
+    return job;
+  }
 
   @Override
   public Job onJobCompleted(Job job) throws WorkerStatusCallbackException {
@@ -34,12 +40,6 @@ public class NoOpExecutorStatusCallback implements WorkerStatusCallback {
     return job;
   }
 
-  @Override
-  public Job onJobStopped(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onJobStopped(jobId={})", job.getId());
-    return job;
-  }
-  
   @Override
   public void onContainerImagePullStarted(Job job, String image) throws WorkerStatusCallbackException {
     logger.debug("onContainerImagePullStarted(jobId={}, image={})", job.getId(), image);
@@ -67,12 +67,12 @@ public class NoOpExecutorStatusCallback implements WorkerStatusCallback {
 
   @Override
   public void onOutputFilesUploadCompleted(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onOutputFilesUploadCompleted(jobId={})", job.getId());
+    logger.debug("onOutputFilesUploadComplted(jobId={})", job.getId());
   }
 
   @Override
   public void onContainerImagePullFailed(Job job, String image) throws WorkerStatusCallbackException {
-    logger.debug("onContainerImagePullFailed(jobId={}, image={})", job.getId(), image);
+    logger.debug("onContainerImagePullFailed(jobId={})", job.getId());
   }
 
   @Override

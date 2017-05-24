@@ -2,7 +2,7 @@ package org.rabix.executor.rest.api.impl;
 
 import javax.ws.rs.core.Response;
 
-import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.WorkerService;
 import org.rabix.executor.ExecutorStatus;
 import org.rabix.executor.rest.api.ExecutorHTTPService;
 
@@ -10,10 +10,10 @@ import com.google.inject.Inject;
 
 public class ExecutorHTTPServiceImpl implements ExecutorHTTPService {
 
-  private final ExecutorService executorService;
+  private final WorkerService executorService;
 
   @Inject
-  public ExecutorHTTPServiceImpl(ExecutorService executorService) {
+  public ExecutorHTTPServiceImpl(WorkerService executorService) {
     this.executorService = executorService;
   }
 

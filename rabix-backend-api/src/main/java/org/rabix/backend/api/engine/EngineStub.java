@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.WorkerService;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlMessage;
@@ -40,7 +40,7 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
   
   protected Long heartbeatTimeMills;
   
-  protected ExecutorService executorService;
+  protected WorkerService executorService;
   
   public void start() {
     transportPlugin.startReceiver(sendToBackendQueue, Job.class, new ReceiveCallback<Job>() {

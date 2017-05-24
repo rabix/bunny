@@ -6,7 +6,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.configuration.Configuration;
-import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.WorkerService;
 import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.backend.api.engine.EngineStubActiveMQ;
 import org.rabix.backend.api.engine.EngineStubLocal;
@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class ExecutorServiceImpl implements ExecutorService {
+public class WorkerServiceImpl implements WorkerService {
 
-  private static final Logger logger = LoggerFactory.getLogger(ExecutorServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(WorkerServiceImpl.class);
 
   private final JobDataService jobDataService;
 
@@ -38,7 +38,7 @@ public class ExecutorServiceImpl implements ExecutorService {
   private EngineStub<?,?,?> engineStub;
   
   @Inject
-  public ExecutorServiceImpl(JobDataService jobDataService, Configuration configuration) {
+  public WorkerServiceImpl(JobDataService jobDataService, Configuration configuration) {
     this.configuration = configuration;
     this.jobDataService = jobDataService;
   }

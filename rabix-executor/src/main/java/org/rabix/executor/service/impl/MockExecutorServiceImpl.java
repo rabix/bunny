@@ -16,7 +16,7 @@ import javax.inject.Inject;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
-import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.WorkerService;
 import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.backend.api.engine.EngineStubActiveMQ;
 import org.rabix.backend.api.engine.EngineStubLocal;
@@ -44,7 +44,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-public class MockExecutorServiceImpl implements ExecutorService {
+public class MockExecutorServiceImpl implements WorkerService {
 
   private final static Logger logger = LoggerFactory.getLogger(MockExecutorServiceImpl.class);
   

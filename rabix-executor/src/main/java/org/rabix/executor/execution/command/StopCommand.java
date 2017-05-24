@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-import org.rabix.backend.api.callback.ExecutorStatusCallback;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.bindings.BindingException;
 import org.rabix.executor.ExecutorException;
 import org.rabix.executor.execution.JobHandlerCommand;
@@ -22,7 +22,7 @@ public class StopCommand extends JobHandlerCommand {
   private JobFitter jobFitter;
   
   @Inject
-  public StopCommand(JobDataService jobDataService, ExecutorStatusCallback statusCallback, JobFitter jobFitter) {
+  public StopCommand(JobDataService jobDataService, WorkerStatusCallback statusCallback, JobFitter jobFitter) {
     super(jobDataService, statusCallback);
     this.jobFitter = jobFitter;
   }

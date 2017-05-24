@@ -13,8 +13,8 @@ import javax.inject.Inject;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
-import org.rabix.backend.api.callback.ExecutorStatusCallback;
-import org.rabix.backend.api.callback.ExecutorStatusCallbackException;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
+import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
@@ -90,7 +90,7 @@ public class JobHandlerImpl implements JobHandler {
   private ContainerHandler containerHandler;
   private DockerClientLockDecorator dockerClient;
 
-  private final ExecutorStatusCallback statusCallback;
+  private final WorkerStatusCallback statusCallback;
   
   private final FilePermissionService filePermissionService;
   private final CacheService cacheService;
@@ -102,7 +102,7 @@ public class JobHandlerImpl implements JobHandler {
       @Assisted Job job, @Assisted EngineStub<?, ?, ?> engineStub, 
       JobDataService jobDataService, Configuration configuration, StorageConfiguration storageConfig, 
       DockerConfigation dockerConfig, FileConfiguration fileConfiguration, 
-      DockerClientLockDecorator dockerClient, ExecutorStatusCallback statusCallback,
+      DockerClientLockDecorator dockerClient, WorkerStatusCallback statusCallback,
       CacheService cacheService, FilePermissionService filePermissionService, 
       UploadService uploadService, DownloadService downloadService,
       @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper) {
@@ -352,7 +352,7 @@ public class JobHandlerImpl implements JobHandler {
       throw new ExecutorException("Could not collect outputs.", e);
     } catch (UploadServiceException e) {
       throw new ExecutorException("Could not upload outputs.", e);
-    } catch (ExecutorStatusCallbackException e) {
+    } catch (WorkerStatusCallbackException e) {
       throw new ExecutorException("Could not call executor callback.", e);
     }
   }

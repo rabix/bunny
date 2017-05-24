@@ -23,6 +23,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
+			<artifactId>rabix-bindings</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.rabix</groupId>
 			<artifactId>rabix-transport</artifactId>
 			<version>${project.version}</version>
 		</dependency>

@@ -18,9 +18,9 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.mina.util.ConcurrentHashSet;
-import org.rabix.backend.api.ExecutorService;
-import org.rabix.backend.api.callback.ExecutorStatusCallback;
-import org.rabix.backend.api.callback.ExecutorStatusCallbackException;
+import org.rabix.backend.api.WorkerService;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
+import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.backend.api.engine.EngineStubLocal;
 import org.rabix.backend.tes.client.TESHTTPClientException;
@@ -58,9 +58,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public class LocalTESExecutorServiceImpl implements ExecutorService {
+public class LocalTESWorkerServiceImpl implements WorkerService {
 
-  private final static Logger logger = LoggerFactory.getLogger(LocalTESExecutorServiceImpl.class);
+  private final static Logger logger = LoggerFactory.getLogger(LocalTESWorkerServiceImpl.class);
 
   public final static String PYTHON_DEFAULT_DOCKER_IMAGE = "frolvlad/alpine-python2";
   public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix-tes-cli";
@@ -79,7 +79,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   private EngineStub<?, ?, ?> engineStub;
   
   private final Configuration configuration;
-  private final ExecutorStatusCallback statusCallback;
+  private final WorkerStatusCallback statusCallback;
   
   private class PendingResult {
     private Job job;
@@ -92,7 +92,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
   }
   
   @Inject
-  public LocalTESExecutorServiceImpl(final TESHttpClient tesHttpClient, final TESStorageService storage, final ExecutorStatusCallback statusCallback, final Configuration configuration) {
+  public LocalTESWorkerServiceImpl(final TESHttpClient tesHttpClient, final TESStorageService storage, final WorkerStatusCallback statusCallback, final Configuration configuration) {
     this.tesHttpClient = tesHttpClient;
     this.storage = storage;
     this.configuration = configuration;
@@ -165,7 +165,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     job = Job.cloneWithMessage(job, "Success");
     try {
       job = statusCallback.onJobCompleted(job);
-    } catch (ExecutorStatusCallbackException e1) {
+    } catch (WorkerStatusCallbackException e1) {
       logger.warn("Failed to execute statusCallback: {}", e1);
     }
     engineStub.send(job);
@@ -175,7 +175,7 @@ public class LocalTESExecutorServiceImpl implements ExecutorService {
     job = Job.cloneWithStatus(job, JobStatus.FAILED);
     try {
       job = statusCallback.onJobFailed(job);
-    } catch (ExecutorStatusCallbackException e) {
+    } catch (WorkerStatusCallbackException e) {
       logger.warn("Failed to execute statusCallback: {}", e);
     }
     engineStub.send(job);

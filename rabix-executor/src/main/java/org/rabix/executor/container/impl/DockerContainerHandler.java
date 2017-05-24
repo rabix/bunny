@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.rabix.backend.api.callback.ExecutorStatusCallback;
-import org.rabix.backend.api.callback.ExecutorStatusCallbackException;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
+import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -100,11 +100,11 @@ public class DockerContainerHandler implements ContainerHandler {
   private Integer overrideResultStatus = null;
 
   private StorageConfiguration storageConfig;
-  private ExecutorStatusCallback statusCallback;
+  private WorkerStatusCallback statusCallback;
   
   private String commandLine;
   
-  public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, ExecutorStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
+  public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
     this.dockerClient = dockerClient;
     this.dockerResource = dockerResource;
@@ -137,11 +137,11 @@ public class DockerContainerHandler implements ContainerHandler {
     } catch (DockerException | InterruptedException e) {
       logger.error("Failed to pull " + image, e);
       throw new ContainerException("Failed to pull " + image, e);
-    } catch (ExecutorStatusCallbackException e) {
+    } catch (WorkerStatusCallbackException e) {
       logger.error("Failed to call status callback", e);
       try {
         statusCallback.onContainerImagePullFailed(job, image);
-      } catch (ExecutorStatusCallbackException e1) {
+      } catch (WorkerStatusCallbackException e1) {
         logger.error("Failed to call status callback", e1);
       }
       throw new ContainerException("Failed to call status callback", e);

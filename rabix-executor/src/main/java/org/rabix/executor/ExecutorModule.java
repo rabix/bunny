@@ -1,7 +1,7 @@
 package org.rabix.executor;
 
 import org.apache.commons.configuration.Configuration;
-import org.rabix.backend.api.ExecutorService;
+import org.rabix.backend.api.WorkerService;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
@@ -14,7 +14,7 @@ import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
 import org.rabix.executor.service.impl.CacheServiceImpl;
-import org.rabix.executor.service.impl.ExecutorServiceImpl;
+import org.rabix.executor.service.impl.WorkerServiceImpl;
 import org.rabix.executor.service.impl.FilePermissionServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
@@ -53,12 +53,12 @@ public class ExecutorModule extends AbstractModule {
 
   @Provides
   @Singleton
-  public ExecutorService provideExecutorService(Injector injector, Configuration configuration) {
+  public WorkerService provideExecutorService(Injector injector, Configuration configuration) {
     boolean mockBackendEnabled = configuration.getBoolean("backend.mock.enabled", false);
     if (mockBackendEnabled) {
       return injector.getInstance(MockExecutorServiceImpl.class);
     } else {
-      return injector.getInstance(ExecutorServiceImpl.class);
+      return injector.getInstance(WorkerServiceImpl.class);
     }
   }
   

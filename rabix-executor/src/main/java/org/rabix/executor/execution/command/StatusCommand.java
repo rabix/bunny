@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import org.rabix.backend.api.callback.ExecutorStatusCallback;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.bindings.model.Job;
 import org.rabix.executor.execution.JobHandlerCommand;
 import org.rabix.executor.handler.JobHandler;
@@ -28,7 +28,7 @@ public class StatusCommand extends JobHandlerCommand {
   private JobFitter jobFitter;
   
   @Inject
-  public StatusCommand(JobDataService jobDataService, ExecutorStatusCallback statusCallback, JobFitter jobFitter) {
+  public StatusCommand(JobDataService jobDataService, WorkerStatusCallback statusCallback, JobFitter jobFitter) {
     super(jobDataService, statusCallback);
     this.jobFitter = jobFitter;
   }

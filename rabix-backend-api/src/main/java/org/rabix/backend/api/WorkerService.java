@@ -8,7 +8,7 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.transport.backend.Backend;
 
-public interface ExecutorService {
+public interface WorkerService {
 
   void initialize(Backend backend);
   

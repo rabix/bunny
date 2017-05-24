@@ -24,8 +24,8 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.rabix.backend.api.ExecutorService;
-import org.rabix.backend.api.callback.ExecutorStatusCallback;
+import org.rabix.backend.api.WorkerService;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.service.download.DownloadService;
@@ -77,7 +77,7 @@ public class ServerBuilder {
                 bind(ExecutorHTTPService.class).to(ExecutorHTTPServiceImpl.class).in(Scopes.SINGLETON);
                 bind(DownloadService.class).to(NoOpDownloadServiceImpl.class).in(Scopes.SINGLETON);
                 bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ExecutorStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);
+                bind(WorkerStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);
                 
                 bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
 
@@ -111,7 +111,7 @@ public class ServerBuilder {
     BackendRegister backendRegister = injector.getInstance(BackendRegister.class);
     Backend backend = backendRegister.start();
     
-    ExecutorService executorService = injector.getInstance(ExecutorService.class);
+    WorkerService executorService = injector.getInstance(WorkerService.class);
     executorService.initialize(backend);
     return server;
   }

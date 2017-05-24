@@ -3,8 +3,8 @@ package org.rabix.executor.execution;
 import java.util.Map;
 import java.util.UUID;
 
-import org.rabix.backend.api.callback.ExecutorStatusCallback;
-import org.rabix.backend.api.callback.ExecutorStatusCallbackException;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
+import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -31,9 +31,9 @@ public abstract class JobHandlerCommand {
   }
 
   protected final JobDataService jobDataService;
-  protected final ExecutorStatusCallback statusCallback;
+  protected final WorkerStatusCallback statusCallback;
   
-  public JobHandlerCommand(JobDataService jobDataService, ExecutorStatusCallback statusCallback) {
+  public JobHandlerCommand(JobDataService jobDataService, WorkerStatusCallback statusCallback) {
     this.jobDataService = jobDataService;
     this.statusCallback = statusCallback;
   }
@@ -78,7 +78,7 @@ public abstract class JobHandlerCommand {
     job = Job.cloneWithMessage(job, message);
     try {
       job = statusCallback.onJobStarted(job);
-    } catch (ExecutorStatusCallbackException e) {
+    } catch (WorkerStatusCallbackException e) {
       logger.warn("Failed to execute statusCallback: {}", e);
     }
     jobData = JobData.cloneWithJob(jobData, job);
@@ -97,7 +97,7 @@ public abstract class JobHandlerCommand {
     job = Job.cloneWithMessage(job, message);
     try {
       job = statusCallback.onJobFailed(job);
-    } catch (ExecutorStatusCallbackException e1) {
+    } catch (WorkerStatusCallbackException e1) {
       logger.warn("Failed to execute statusCallback: {}", e1);
     }
     jobData = JobData.cloneWithJob(jobData, job);
@@ -117,7 +117,7 @@ public abstract class JobHandlerCommand {
     job = Job.cloneWithMessage(job, message);
     try {
       job = statusCallback.onJobStopped(job);
-    } catch (ExecutorStatusCallbackException e1) {
+    } catch (WorkerStatusCallbackException e1) {
       logger.warn("Failed to execute statusCallback: {}", e1);
     }
     jobData = JobData.cloneWithJob(jobData, job);
@@ -140,7 +140,7 @@ public abstract class JobHandlerCommand {
     job = Job.cloneWithMessage(job, message);
     try {
       job = statusCallback.onJobCompleted(job);
-    } catch (ExecutorStatusCallbackException e1) {
+    } catch (WorkerStatusCallbackException e1) {
       logger.warn("Failed to execute statusCallback: {}", e1);
     }
     jobData = JobData.cloneWithJob(jobData, job);
