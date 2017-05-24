@@ -192,6 +192,7 @@ public class CWLProcessor implements ProtocolProcessor {
         File directory = new File(workingDir, CWLDirectoryValueHelper.getName(value));
         directory.mkdirs();
         CWLDirectoryValueHelper.setLocation(directory.getAbsolutePath(), value);
+        CWLFileValueHelper.setDirType(value);
         
         List<Object> listing = CWLDirectoryValueHelper.getListing(value);
         if (listing != null) {
@@ -481,7 +482,7 @@ public class CWLProcessor implements ProtocolProcessor {
           CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
           CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
           CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-          if (hashAlgorithm != null) {
+          if (hashAlgorithm != null && !secondaryFile.isDirectory()) {
             CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
           }
         }
