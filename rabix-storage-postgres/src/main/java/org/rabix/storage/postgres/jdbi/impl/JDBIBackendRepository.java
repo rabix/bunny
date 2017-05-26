@@ -1,5 +1,6 @@
 package org.rabix.storage.postgres.jdbi.impl;
 
+import java.lang.annotation.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -14,11 +15,9 @@ import org.rabix.storage.model.BackendRecord;
 import org.rabix.storage.postgres.jdbi.bindings.BindJson;
 import org.rabix.storage.postgres.jdbi.impl.JDBIBackendRepository.BackendMapper;
 import org.rabix.storage.repository.BackendRepository;
+import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.BindBean;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
@@ -27,7 +26,7 @@ public interface JDBIBackendRepository extends BackendRepository {
 
   @Override
   @SqlUpdate("insert into backend (id,name,type,configuration,heartbeat_info,status) values (:id,:name,:type::backend_type,:configuration::jsonb,:heartbeat_info,:status::backend_status)")
-  void insert(@BindBean BackendRecord backend);
+  void insert(@BindBackend BackendRecord backend);
   
   @Override
   @SqlUpdate("update backend set configuration=:configuration where id=:id")
@@ -64,7 +63,28 @@ public interface JDBIBackendRepository extends BackendRepository {
       String name = r.getString("name");
       BackendRecord.Status status = BackendRecord.Status.valueOf(r.getString("status"));
       Instant heartbit = r.getObject("heartbit_info", Instant.class);
-      return new BackendRecord(id, name, heartbit, configuration, status);
+      BackendRecord.Type type = BackendRecord.Type.valueOf(r.getString("type"));
+      return new BackendRecord(id, name, heartbit, configuration, status, type);
+    }
+  }
+
+  @BindingAnnotation(JDBIBackendRepository.BindBackend.BackendBinderFactory.class)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ ElementType.PARAMETER })
+  public static @interface BindBackend {
+    public static class BackendBinderFactory implements BinderFactory<Annotation> {
+      public Binder<JDBIBackendRepository.BindBackend, BackendRecord> build(Annotation annotation) {
+        return new Binder<JDBIBackendRepository.BindBackend, BackendRecord>() {
+          public void bind(SQLStatement<?> q, JDBIBackendRepository.BindBackend bind, BackendRecord backend) {
+            q.bind("id", backend.getId());
+            q.bind("name", backend.getName());
+            q.bind("type", backend.getType().toString());
+            q.bind("heartbeat_info", backend.getHeartbeatInfo());
+            q.bind("status", backend.getStatus().toString());
+            q.bind("configuration", JSONHelper.writeObject(backend.getBackendConfig()));
+          }
+        };
+      }
     }
   }
   

@@ -64,7 +64,13 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            BackendRecord br = new BackendRecord(backend.getId(), backend.getName(), Instant.now(), JSONHelper.convertToMap(backend), null);
+            BackendRecord br = new BackendRecord(
+                backend.getId(),
+                backend.getName(),
+                Instant.now(),
+                JSONHelper.convertToMap(backend),
+                null,
+                BackendRecord.Type.valueOf(backend.getType().toString()));
             backendRepository.insert(br);
             BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
             scheduler.addBackendStub(backendStub);

@@ -24,14 +24,16 @@ public class BackendRecord {
   private String name;
   private Instant heartbeatInfo;
   private Status status;
+  private Type type;
   private Map<String, ?> backendConfig;
 
-  public BackendRecord(UUID id, String name, Instant heartbeatInfo, Map<String, ?> backendConfig, Status status) {
+  public BackendRecord(UUID id, String name, Instant heartbeatInfo, Map<String, ?> backendConfig, Status status, Type type) {
     this.id = id;
     this.name = name;
     this.heartbeatInfo = heartbeatInfo;
     this.backendConfig = backendConfig;
     this.status = status;
+    this.type = type;
   }
 
   public UUID getId() {
@@ -72,5 +74,13 @@ public class BackendRecord {
 
   public void setStatus(Status status) {
     this.status = status;
+  }
+
+  public Type getType() {
+    return type;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
   }
 }
