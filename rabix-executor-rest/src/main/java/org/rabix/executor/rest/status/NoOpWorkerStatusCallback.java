@@ -6,9 +6,9 @@ import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NoOpExecutorStatusCallback implements WorkerStatusCallback {
+public class NoOpWorkerStatusCallback implements WorkerStatusCallback {
 
-  private final static Logger logger = LoggerFactory.getLogger(NoOpExecutorStatusCallback.class);
+  private final static Logger logger = LoggerFactory.getLogger(NoOpWorkerStatusCallback.class);
 
   @Override
   public Job onJobReady(Job job) throws WorkerStatusCallbackException {

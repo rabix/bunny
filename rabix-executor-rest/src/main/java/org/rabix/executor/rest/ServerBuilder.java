@@ -40,7 +40,7 @@ import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.pathmapper.local.LocalPathMapper;
 import org.rabix.executor.rest.api.ExecutorHTTPService;
 import org.rabix.executor.rest.api.impl.ExecutorHTTPServiceImpl;
-import org.rabix.executor.rest.status.NoOpExecutorStatusCallback;
+import org.rabix.executor.rest.status.NoOpWorkerStatusCallback;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 
@@ -77,7 +77,7 @@ public class ServerBuilder {
                 bind(ExecutorHTTPService.class).to(ExecutorHTTPServiceImpl.class).in(Scopes.SINGLETON);
                 bind(DownloadService.class).to(NoOpDownloadServiceImpl.class).in(Scopes.SINGLETON);
                 bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
-                bind(WorkerStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);
+                bind(WorkerStatusCallback.class).to(NoOpWorkerStatusCallback.class).in(Scopes.SINGLETON);
                 
                 bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
 
