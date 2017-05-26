@@ -1,6 +1,7 @@
 package org.rabix.backend.tes.model;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,17 +20,27 @@ public class TESDockerExecutor {
   private String standardOut;
   @JsonProperty("stderr")
   private String standardError;
+  @JsonProperty("environ")
+  private Map<String, String> environ;
   
   @JsonCreator
-  public TESDockerExecutor(@JsonProperty("imageName") String imageName, @JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("workdir") String workingDirectory, @JsonProperty("stdin") String standardIn, @JsonProperty("stdout") String standardOut, @JsonProperty("stderr") String standardError) {
+  public TESDockerExecutor(@JsonProperty("imageName") String imageName, @JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("workdir") String workingDirectory, @JsonProperty("stdin") String standardIn, @JsonProperty("stdout") String standardOut, @JsonProperty("stderr") String standardError,  @JsonProperty("environ") Map<String, String> environ) {
     this.imageName = imageName;
     this.commandLineParts = commandLineParts;
     this.workingDirectory = workingDirectory;
     this.standardIn = standardIn;
     this.standardOut = standardOut;
     this.standardError = standardError;
+    this.environ = environ;
   }
 
+  public Map<String, String> getEnviron() {
+    return environ;
+  }
+
+  public void setEnviron(Map<String, String> environ) {
+    this.environ = environ;
+  }
   public String getImageName() {
     return imageName;
   }
