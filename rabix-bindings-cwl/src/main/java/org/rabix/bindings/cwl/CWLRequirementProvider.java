@@ -105,13 +105,13 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         }
         continue;
       }
-      if (CWLSchemaHelper.isFileFromValue(listingObj)) {
-        FileValue fileValue = CWLFileValueHelper.createFileValue(listingObj);
+      if (listingObj instanceof FileValue) {
+        FileValue fileValue = (FileValue) listingObj;
         result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue, false));
         continue;
       }
-      if (CWLSchemaHelper.isDirectoryFromValue(listingObj)) {
-        DirectoryValue directoryValue = CWLDirectoryValueHelper.createDirectoryValue(listingObj);
+      if (listingObj instanceof DirectoryValue) {
+        DirectoryValue directoryValue = (DirectoryValue) listingObj;
         result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue, false));
         continue;
       }

@@ -22,6 +22,7 @@ import org.rabix.bindings.draft2.helper.Draft2BindingHelper;
 import org.rabix.bindings.draft2.helper.Draft2FileValueHelper;
 import org.rabix.bindings.draft2.helper.Draft2JobHelper;
 import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
+import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
@@ -103,7 +104,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
           }
           Object argValue = commandLineTool.getArgument(job, argBinding);
           Map<String, Object> emptySchema = new HashMap<>();
-          Draft2CommandLinePart commandLinePart = buildCommandLinePart(job, null, argBinding, argValue, emptySchema, null);
+          Draft2CommandLinePart commandLinePart = buildCommandLinePart(job, null, argBinding, argValue, emptySchema, null, filePathMapper);
           if (commandLinePart != null) {
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
@@ -115,7 +116,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
         String key = inputPort.getId();
         Object schema = inputPort.getSchema();
 
-        Draft2CommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(Draft2SchemaHelper.normalizeId(key)), schema, key);
+        Draft2CommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(Draft2SchemaHelper.normalizeId(key)), schema, key, filePathMapper);
         if (part != null) {
           commandLineParts.add(part);
         }
@@ -135,7 +136,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
   }
 
   @SuppressWarnings("unchecked")
-  private Draft2CommandLinePart buildCommandLinePart(Draft2Job job, Draft2InputPort inputPort, Object inputBinding, Object value, Object schema, String key) throws BindingException {
+  private Draft2CommandLinePart buildCommandLinePart(Draft2Job job, Draft2InputPort inputPort, Object inputBinding, Object value, Object schema, String key, FilePathMapper filePathMapper) throws BindingException {
     logger.debug("Building command line part for value {} and schema {}", value, schema);
 
     Draft2CommandLineTool commandLineTool = (Draft2CommandLineTool) job.getApp();
@@ -165,7 +166,11 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
 
     boolean isFile = Draft2SchemaHelper.isFileFromValue(value);
     if (isFile) {
-      value = Draft2FileValueHelper.getPath(value);
+      try {
+        value = filePathMapper.map(Draft2FileValueHelper.getPath(value), new HashMap<>());
+      } catch (FileMappingException e) {
+        throw new BindingException(e);
+      }
     }
 
     if (value == null) {
@@ -202,7 +207,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
         Object fieldType = Draft2SchemaHelper.getType(field);
         Object fieldSchema = Draft2SchemaHelper.findSchema(commandLineTool.getSchemaDefs(), fieldType);
 
-        Draft2CommandLinePart fieldCommandLinePart = buildCommandLinePart(job, inputPort, fieldBinding, fieldValue, fieldSchema, fieldKey);
+        Draft2CommandLinePart fieldCommandLinePart = buildCommandLinePart(job, inputPort, fieldBinding, fieldValue, fieldSchema, fieldKey, filePathMapper);
 
         if (fieldCommandLinePart != null) {
           fieldCommandLinePart.setKeyValue(fieldKey);
@@ -223,7 +228,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
           arrayItemInputBinding = (Map<String, Object>) Draft2SchemaHelper.getInputBinding(schema);
         }
         
-        Draft2CommandLinePart subpart = buildCommandLinePart(job, inputPort, arrayItemInputBinding, item, arrayItemSchema, key);
+        Draft2CommandLinePart subpart = buildCommandLinePart(job, inputPort, arrayItemInputBinding, item, arrayItemSchema, key, filePathMapper);
         if (subpart != null) {
           commandLinePartBuilder.part(subpart);
         }

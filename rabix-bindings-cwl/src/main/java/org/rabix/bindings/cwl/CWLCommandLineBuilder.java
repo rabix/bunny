@@ -141,7 +141,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
           }
 
           Map<String, Object> emptySchema = new HashMap<>();
-          CWLCommandLinePart commandLinePart = buildCommandLinePart(job, null, argBinding, argValue, emptySchema, null);
+          CWLCommandLinePart commandLinePart = buildCommandLinePart(job, null, argBinding, argValue, emptySchema, null, filePathMapper);
           if (commandLinePart != null) {
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
@@ -153,11 +153,11 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         Object schema = inputPort.getSchema();
         
         if(schema instanceof Map && ((Map) schema).get("type").equals("record") && inputPort.getInputBinding() == null) {
-          List<CWLCommandLinePart> parts = buildRecordCommandLinePart(job, job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema);
+          List<CWLCommandLinePart> parts = buildRecordCommandLinePart(job, job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema, filePathMapper);
           commandLineParts.addAll(parts);          
         }
         else {
-          CWLCommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema, key);
+          CWLCommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema, key, filePathMapper);
           if (part != null) {
             commandLineParts.add(part);
           }
@@ -182,11 +182,11 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   }
   
   @SuppressWarnings("rawtypes")
-  private List<CWLCommandLinePart> buildRecordCommandLinePart(CWLJob job, Object value, Object schema) throws BindingException {
+  private List<CWLCommandLinePart> buildRecordCommandLinePart(CWLJob job, Object value, Object schema, FilePathMapper filePathMapper) throws BindingException {
     List<CWLCommandLinePart> result = new ArrayList<CWLCommandLinePart>();
     for(Object sch: (List)((Map) schema).get("fields")) {
       if(sch instanceof Map && ((Map) sch).get("type").equals("record") && ((Map) sch).get("inputBinding") == null) {
-        result.addAll(buildRecordCommandLinePart(job, value, sch));
+        result.addAll(buildRecordCommandLinePart(job, value, sch, filePathMapper));
       }
       else {
         Object inputBinding = CWLSchemaHelper.getInputBinding(sch);
@@ -194,7 +194,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         if (inputBinding == null) {
           continue;
         }
-        result.add(buildCommandLinePart(job, null, inputBinding,((Map) value).get(key), sch, (String) key));
+        result.add(buildCommandLinePart(job, null, inputBinding,((Map) value).get(key), sch, (String) key, filePathMapper));
       }
     }
     return result;
@@ -205,7 +205,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   }
 
   @SuppressWarnings("unchecked")
-  private CWLCommandLinePart buildCommandLinePart(CWLJob job, CWLInputPort inputPort, Object inputBinding, Object value, Object schema, String key) throws BindingException {
+  private CWLCommandLinePart buildCommandLinePart(CWLJob job, CWLInputPort inputPort, Object inputBinding, Object value, Object schema, String key, FilePathMapper filePathMapper) throws BindingException {
     logger.debug("Building command line part for value {} and schema {}", value, schema);
 
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
@@ -235,7 +235,11 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
     boolean isFile = CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value);
     if (isFile) {
-      value = CWLFileValueHelper.getPath(value);
+      try {
+        value = filePathMapper.map(CWLFileValueHelper.getPath(value), new HashMap<>());
+      } catch (FileMappingException e) {
+        throw new BindingException(e);
+      }
     }
 
     if (value == null) {
@@ -271,7 +275,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         Object fieldType = CWLSchemaHelper.getType(field);
         Object fieldSchema = CWLSchemaHelper.findSchema(commandLineTool.getSchemaDefs(), fieldType);
 
-        CWLCommandLinePart fieldCommandLinePart = buildCommandLinePart(job, inputPort, fieldBinding, fieldValue, fieldSchema, fieldKey);
+        CWLCommandLinePart fieldCommandLinePart = buildCommandLinePart(job, inputPort, fieldBinding, fieldValue, fieldSchema, fieldKey, filePathMapper);
 
         if (fieldCommandLinePart != null) {
           fieldCommandLinePart.setKeyValue(fieldKey);
@@ -292,7 +296,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
           arrayItemInputBinding = (Map<String, Object>) CWLSchemaHelper.getInputBinding(schema);
         }
         
-        CWLCommandLinePart subpart = buildCommandLinePart(job, inputPort, arrayItemInputBinding, item, arrayItemSchema, key);
+        CWLCommandLinePart subpart = buildCommandLinePart(job, inputPort, arrayItemInputBinding, item, arrayItemSchema, key, filePathMapper);
         if (subpart != null) {
           commandLinePartBuilder.part(subpart);
         }
