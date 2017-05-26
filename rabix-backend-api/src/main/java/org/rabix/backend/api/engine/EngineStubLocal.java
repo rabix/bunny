@@ -18,10 +18,10 @@ public class EngineStubLocal extends EngineStub<TransportQueueLocal, BackendLoca
     
     this.heartbeatTimeMills = LOCAL_HEARTBEAT_TIME_MILLS;
     
-    this.sendToBackendQueue = new TransportQueueLocal(BackendLocal.SEND_TO_BACKEND_QUEUE);
-    this.sendToBackendControlQueue = new TransportQueueLocal(BackendLocal.SEND_TO_BACKEND_CONTROL_QUEUE);
-    this.receiveFromBackendQueue = new TransportQueueLocal(BackendLocal.RECEIVE_FROM_BACKEND_QUEUE);
-    this.receiveFromBackendHeartbeatQueue = new TransportQueueLocal(BackendLocal.RECEIVE_FROM_BACKEND_HEARTBEAT_QUEUE);
+    this.sendToBackendQueue = new TransportQueueLocal(backendLocal.getToBackendQueue());
+    this.sendToBackendControlQueue = new TransportQueueLocal(backendLocal.getToBackendControlQueue());
+    this.receiveFromBackendQueue = new TransportQueueLocal(backendLocal.getFromBackendQueue());
+    this.receiveFromBackendHeartbeatQueue = new TransportQueueLocal(backendLocal.getFromBackendHeartbeatQueue());
   }
   
 }

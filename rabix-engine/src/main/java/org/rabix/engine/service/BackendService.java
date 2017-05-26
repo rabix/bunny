@@ -9,6 +9,8 @@ import org.rabix.transport.backend.HeartbeatInfo;
 
 public interface BackendService {
 
+  boolean isEnabled(String type);
+  
   <T extends Backend> T create(T backend) throws BackendServiceException;
     
   void stopBackend(Backend backend) throws BackendServiceException;

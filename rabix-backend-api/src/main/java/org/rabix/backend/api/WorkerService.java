@@ -10,7 +10,7 @@ import org.rabix.transport.backend.Backend;
 
 public interface WorkerService {
 
-  void initialize(Backend backend);
+  void start(Backend backend);
   
   void start(final Job job, UUID rootId);
 
@@ -27,5 +27,7 @@ public interface WorkerService {
   boolean isStopped();
 
   JobStatus findStatus(UUID id, UUID rootId);
+  
+  String getType();
 
 }

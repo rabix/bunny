@@ -17,8 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
-import org.rabix.backend.api.BackendAPI;
-import org.rabix.backend.api.BackendAPIException;
+import org.rabix.backend.api.WorkerService;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
@@ -37,6 +36,7 @@ import org.rabix.engine.service.StoreCleanupService;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
+import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
@@ -112,15 +112,19 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageC
   }
   
   private void scanBackends() {
-    Set<Class<BackendAPI>> clazzes = ClasspathScanner.<BackendAPI>scanInterfaceImplementations(BackendAPI.class);
+    Set<Class<WorkerService>> clazzes = ClasspathScanner.<WorkerService>scanInterfaceImplementations(WorkerService.class);
 
-    for (Class<BackendAPI> clazz : clazzes) {
+    int prefix = 1;
+    for (Class<WorkerService> clazz : clazzes) {
       try {
-        BackendAPI backend = clazz.newInstance();
-        injector.injectMembers(backend);
-        Backend populated = backendService.create(backend.start());
-        backend.initialize(populated);
-      } catch (InstantiationException | IllegalAccessException | BackendAPIException | BackendServiceException e) {
+        WorkerService backendAPI = clazz.newInstance();
+        if (backendService.isEnabled(backendAPI.getType())) {
+          injector.injectMembers(backendAPI);
+          BackendLocal backendLocal = new BackendLocal(Integer.toString(prefix++));
+          backendService.create(backendLocal);
+          backendAPI.start(backendLocal);
+        }
+      } catch (InstantiationException | IllegalAccessException | BackendServiceException e) {
         logger.error("Failed to register backend " + clazz, e);
       }
     }

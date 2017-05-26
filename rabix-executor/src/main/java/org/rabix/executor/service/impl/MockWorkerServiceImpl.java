@@ -44,22 +44,23 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-public class MockExecutorServiceImpl implements WorkerService {
+public class MockWorkerServiceImpl implements WorkerService {
 
-  private final static Logger logger = LoggerFactory.getLogger(MockExecutorServiceImpl.class);
+  private final static Logger logger = LoggerFactory.getLogger(MockWorkerServiceImpl.class);
+
+  private final static String TYPE = "MOCK";
   
+  @Inject
   private Configuration configuration;
   private EngineStub<?, ?, ?> engineStub;
   
   private Map<String, MutableJob> cachedJobs = new HashMap<>(); 
   
-  @Inject
-  public MockExecutorServiceImpl(Configuration configuration) {
-    this.configuration = configuration;
+  public MockWorkerServiceImpl() {
   }
   
   @Override
-  public void initialize(Backend backend) {
+  public void start(Backend backend) {
     try {
       switch (backend.getType()) {
       case LOCAL:
@@ -93,9 +94,9 @@ public class MockExecutorServiceImpl implements WorkerService {
       logger.error("Failed to initialize Executor", e);
       throw new RuntimeException("Failed to initialize Executor", e);
     } catch (BeanProcessorException e) {
-      e.printStackTrace();
+      logger.error("Failed to initialize Executor", e);
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error("Failed to initialize Executor", e);
     }
   }
   
@@ -137,40 +138,33 @@ public class MockExecutorServiceImpl implements WorkerService {
 
   @Override
   public void stop(List<UUID> ids, UUID rootId) {
-    // TODO Auto-generated method stub
   }
 
   @Override
   public void free(UUID rootId, Map<String, Object> config) {
-    // TODO Auto-generated method stub
   }
 
   @Override
   public void shutdown(Boolean stopEverything) {
-    // TODO Auto-generated method stub
   }
 
   @Override
   public boolean isRunning(UUID id, UUID rootId) {
-    // TODO Auto-generated method stub
     return false;
   }
 
   @Override
   public Map<String, Object> getResult(UUID id, UUID rootId) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public boolean isStopped() {
-    // TODO Auto-generated method stub
     return false;
   }
 
   @Override
   public JobStatus findStatus(UUID id, UUID rootId) {
-    // TODO Auto-generated method stub
     return null;
   }
   
@@ -400,6 +394,11 @@ public class MockExecutorServiceImpl implements WorkerService {
     public String toString() {
       return "Job [id=" + id + ", parentId=" + parentId + ", rootId=" + rootId + ", name=" + name + ", status=" + status + ", message=" + message + ", config=" + config + ", inputs=" + inputs + ", outputs=" + outputs + "]";
     }
+  }
+
+  @Override
+  public String getType() {
+    return TYPE;
   }
 
 }

@@ -2,6 +2,7 @@ package org.rabix.backend.local;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -20,8 +22,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
-import org.rabix.backend.api.BackendAPI;
-import org.rabix.backend.api.BackendAPIException;
+import org.rabix.backend.api.BackendModule;
 import org.rabix.backend.api.WorkerService;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
@@ -46,8 +47,8 @@ import org.rabix.bindings.model.Resources;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.common.logging.VerboseLogger;
-import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
@@ -79,26 +80,10 @@ import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.config.impl.LocalStorageConfiguration;
-import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
-import org.rabix.executor.execution.JobHandlerCommandDispatcher;
-import org.rabix.executor.handler.JobHandler;
-import org.rabix.executor.handler.JobHandlerFactory;
-import org.rabix.executor.handler.impl.JobHandlerImpl;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.pathmapper.local.LocalPathMapper;
-import org.rabix.executor.service.CacheService;
-import org.rabix.executor.service.FilePermissionService;
-import org.rabix.executor.service.JobDataService;
-import org.rabix.executor.service.JobFitter;
-import org.rabix.executor.service.impl.CacheServiceImpl;
-import org.rabix.executor.service.impl.FilePermissionServiceImpl;
-import org.rabix.executor.service.impl.JobDataServiceImpl;
-import org.rabix.executor.service.impl.JobFitterImpl;
-import org.rabix.executor.service.impl.WorkerServiceImpl;
 import org.rabix.ftp.SimpleFTPModule;
-import org.rabix.transport.backend.Backend;
-import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,11 +91,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
  * Local command line executor
@@ -236,8 +219,6 @@ public class BackendCommandLine {
         }
       }
       
-      final boolean isTesEnabled = tesURL != null;
-      
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
           new SimpleFTPModule(),
@@ -247,7 +228,6 @@ public class BackendCommandLine {
             protected void configure() {
               install(configModule);
               
-              bind(StorageConfiguration.class).toInstance(new LocalStorageConfiguration(appPath, configModule.provideConfig()));
               bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
               bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
               
@@ -263,28 +243,28 @@ public class BackendCommandLine {
               bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
               bind(WorkerStatusCallback.class).to(NoOpWorkerStatusCallback.class).in(Scopes.SINGLETON);
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
+
+              bind(StorageConfiguration.class).toInstance(new LocalStorageConfiguration(appPath, configModule.provideConfig()));
               bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
               bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
               bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
               bind(new TypeLiteral<ReceiveCallback<Job>>(){}).to(JobReceiverImpl.class).in(Scopes.SINGLETON);
               
+              Set<Class<BackendModule>> backendModuleClasses = ClasspathScanner.<BackendModule>scanSubclasses(BackendModule.class);
+              for (Class<BackendModule> backendModuleClass : backendModuleClasses) {
+                try {
+                  install(backendModuleClass.getConstructor(ConfigModule.class).newInstance(configModule));
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                  logger.error("Failed to instantiate BackendModule " + backendModuleClass, e);
+                  System.exit(33);
+                }
+              }
+              
+              final boolean isTesEnabled = tesURL != null;
               if (isTesEnabled) {
                 bind(TESHttpClient.class).in(Scopes.SINGLETON);
                 bind(TESStorageService.class).to(LocalTESStorageServiceImpl.class).in(Scopes.SINGLETON);
                 bind(WorkerService.class).to(LocalTESWorkerServiceImpl.class).in(Scopes.SINGLETON);
-              } else {
-                install(new RetryInterceptorModule());
-                install(new FactoryModuleBuilder().implement(JobHandler.class, JobHandlerImpl.class).build(JobHandlerFactory.class));
-
-                bind(DockerClientLockDecorator.class).in(Scopes.SINGLETON);
-
-                bind(JobFitter.class).to(JobFitterImpl.class).in(Scopes.SINGLETON);
-                bind(JobDataService.class).to(JobDataServiceImpl.class).in(Scopes.SINGLETON);
-                bind(JobHandlerCommandDispatcher.class).in(Scopes.SINGLETON);
-
-                bind(WorkerService.class).to(WorkerServiceImpl.class).in(Scopes.SINGLETON);
-                bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
-                bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
               }
             }
           });
@@ -641,21 +621,4 @@ public class BackendCommandLine {
     }
   }
 
-  public static class LocalBackend implements BackendAPI {
-
-    @Inject
-    private WorkerService executorService;
-    
-    @Override
-    public Backend start() throws BackendAPIException {
-      return new BackendLocal();
-    }
-
-    @Override
-    public void initialize(Backend backend) throws BackendAPIException {
-      executorService.initialize(backend);
-    }
-    
-  }
-  
 }

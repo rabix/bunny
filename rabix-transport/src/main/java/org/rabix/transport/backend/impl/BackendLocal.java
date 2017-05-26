@@ -34,6 +34,13 @@ public class BackendLocal extends Backend {
     this.fromBackendHeartbeatQueue = RECEIVE_FROM_BACKEND_HEARTBEAT_QUEUE;
   }
   
+  public BackendLocal(String prefix) {
+    this.toBackendQueue = prefix + "." + SEND_TO_BACKEND_QUEUE;
+    this.toBackendControlQueue = prefix + "." + SEND_TO_BACKEND_CONTROL_QUEUE;
+    this.fromBackendQueue = prefix + "." + RECEIVE_FROM_BACKEND_QUEUE;
+    this.fromBackendHeartbeatQueue = prefix + "." + RECEIVE_FROM_BACKEND_HEARTBEAT_QUEUE;
+  }
+  
   public String getToBackendQueue() {
     return toBackendQueue;
   }

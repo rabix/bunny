@@ -112,7 +112,7 @@ public class ServerBuilder {
     Backend backend = backendRegister.start();
     
     WorkerService executorService = injector.getInstance(WorkerService.class);
-    executorService.initialize(backend);
+    executorService.start(backend);
     return server;
   }
 

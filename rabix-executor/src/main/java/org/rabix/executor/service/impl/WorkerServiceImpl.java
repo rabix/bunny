@@ -1,5 +1,7 @@
 package org.rabix.executor.service.impl;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,27 +26,32 @@ import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Inject;
 
 public class WorkerServiceImpl implements WorkerService {
 
   private static final Logger logger = LoggerFactory.getLogger(WorkerServiceImpl.class);
 
-  private final JobDataService jobDataService;
-
-  private final AtomicBoolean stopped = new AtomicBoolean(false);
-
-  private Configuration configuration;
-  private EngineStub<?,?,?> engineStub;
+  private final static String TYPE = "LOCAL";
+  
+  @BindingAnnotation
+  @Target({ java.lang.annotation.ElementType.FIELD, java.lang.annotation.ElementType.PARAMETER, java.lang.annotation.ElementType.METHOD })
+  @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+  public static @interface LocalWorker {
+  }
   
   @Inject
-  public WorkerServiceImpl(JobDataService jobDataService, Configuration configuration) {
-    this.configuration = configuration;
-    this.jobDataService = jobDataService;
-  }
+  private Configuration configuration;
+  @Inject
+  private JobDataService jobDataService;
+  
+  private AtomicBoolean stopped = new AtomicBoolean(false);
+
+  private EngineStub<?,?,?> engineStub;
 
   @Override
-  public void initialize(Backend backend) {
+  public void start(Backend backend) {
     try {
       switch (backend.getType()) {
       case LOCAL:
@@ -157,7 +164,11 @@ public class WorkerServiceImpl implements WorkerService {
   @Override
   public boolean isStopped() {
     return stopped.get();
+  }
 
+  @Override
+  public String getType() {
+    return TYPE;
   }
 
 }

@@ -62,24 +62,30 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
 
   private final static Logger logger = LoggerFactory.getLogger(LocalTESWorkerServiceImpl.class);
 
+  private final static String TYPE = "TES";
+  
   public final static String PYTHON_DEFAULT_DOCKER_IMAGE = "frolvlad/alpine-python2";
   public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix-tes-cli";
 //  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v2";
   public final static String DEFAULT_PROJECT = "default";
   public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
 
+  @Inject
   private TESHttpClient tesHttpClient;
+  @Inject
   private TESStorageService storage;
 
-  private final Set<PendingResult> pendingResults = new ConcurrentHashSet<>();
+  private Set<PendingResult> pendingResults = new ConcurrentHashSet<>();
   
-  private final ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(1);
-  private final java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(10);
+  private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(1);
+  private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(10);
   
   private EngineStub<?, ?, ?> engineStub;
   
-  private final Configuration configuration;
-  private final WorkerStatusCallback statusCallback;
+  @Inject
+  private Configuration configuration;
+  @Inject
+  private WorkerStatusCallback statusCallback;
   
   private class PendingResult {
     private Job job;
@@ -91,12 +97,65 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     }
   }
   
-  @Inject
-  public LocalTESWorkerServiceImpl(final TESHttpClient tesHttpClient, final TESStorageService storage, final WorkerStatusCallback statusCallback, final Configuration configuration) {
-    this.tesHttpClient = tesHttpClient;
-    this.storage = storage;
-    this.configuration = configuration;
-    this.statusCallback = statusCallback;
+  public LocalTESWorkerServiceImpl() {
+  }
+  
+  @SuppressWarnings("unchecked")
+  private void success(Job job, TESJob tesJob) {
+    job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
+    Map<String, Object> result = null;
+    try {
+      result = (Map<String, Object>) FileValue.deserialize(
+        JSONHelper.readMap(
+          tesJob.getLogs().get(tesJob.getLogs().size() - 1).getStdout()
+        )
+      );
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to process output files: {}", e);
+    }
+
+    try {
+      result = storage.transformOutputFiles(result, job.getRootId().toString(), job.getName());
+    } catch (BindingException e) {
+      logger.error("Failed to process output files", e);
+      throw new RuntimeException("Failed to process output files", e);
+    }
+
+    job = Job.cloneWithOutputs(job, result);
+    job = Job.cloneWithMessage(job, "Success");
+    try {
+      job = statusCallback.onJobCompleted(job);
+    } catch (WorkerStatusCallbackException e1) {
+      logger.warn("Failed to execute statusCallback: {}", e1);
+    }
+    engineStub.send(job);
+  }
+  
+  private void fail(Job job, TESJob tesJob) {
+    job = Job.cloneWithStatus(job, JobStatus.FAILED);
+    try {
+      job = statusCallback.onJobFailed(job);
+    } catch (WorkerStatusCallbackException e) {
+      logger.warn("Failed to execute statusCallback: {}", e);
+    }
+    engineStub.send(job);
+  }
+  
+  @Override
+  public void start(Backend backend) {
+    try {
+      switch (backend.getType()) {
+      case LOCAL:
+        engineStub = new EngineStubLocal((BackendLocal) backend, this, configuration);
+        break;
+      default:
+        throw new TransportPluginException("Backend " + backend.getType() + " is not supported.");
+      }
+      engineStub.start();
+    } catch (TransportPluginException e) {
+      logger.error("Failed to initialize Executor", e);
+      throw new RuntimeException("Failed to initialize Executor", e);
+    }
     
     this.scheduledTaskChecker.scheduleAtFixedRate(new Runnable() {
       @Override
@@ -139,63 +198,6 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         }
       }
     }, 0, 1, TimeUnit.SECONDS);
-  }
-  
-  private void success(Job job, TESJob tesJob) {
-    job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
-    Map<String, Object> result = null;
-    try {
-      result = (Map<String, Object>) FileValue.deserialize(
-        JSONHelper.readMap(
-          tesJob.getLogs().get(tesJob.getLogs().size() - 1).getStdout()
-        )
-      );
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to process output files: {}", e);
-    }
-
-    try {
-      result = storage.transformOutputFiles(result, job.getRootId().toString(), job.getName());
-    } catch (BindingException e) {
-      logger.error("Failed to process output files", e);
-      throw new RuntimeException("Failed to process output files", e);
-    }
-
-    job = Job.cloneWithOutputs(job, result);
-    job = Job.cloneWithMessage(job, "Success");
-    try {
-      job = statusCallback.onJobCompleted(job);
-    } catch (WorkerStatusCallbackException e1) {
-      logger.warn("Failed to execute statusCallback: {}", e1);
-    }
-    engineStub.send(job);
-  }
-  
-  private void fail(Job job, TESJob tesJob) {
-    job = Job.cloneWithStatus(job, JobStatus.FAILED);
-    try {
-      job = statusCallback.onJobFailed(job);
-    } catch (WorkerStatusCallbackException e) {
-      logger.warn("Failed to execute statusCallback: {}", e);
-    }
-    engineStub.send(job);
-  }
-  
-  @Override
-  public void initialize(Backend backend) {
-    try {
-      switch (backend.getType()) {
-      case LOCAL:
-        engineStub = new EngineStubLocal((BackendLocal) backend, this, configuration);
-        break;
-      default:
-        throw new TransportPluginException("Backend " + backend.getType() + " is not supported.");
-      }
-      engineStub.start();
-    } catch (TransportPluginException e) {
-      logger.error("Failed to initialize Executor", e);
-      throw new RuntimeException("Failed to initialize Executor", e);
-    }
   }
 
   public void start(Job job, UUID contextId) {
@@ -516,6 +518,11 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   @Override
   public JobStatus findStatus(UUID id, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
+  }
+
+  @Override
+  public String getType() {
+    return TYPE;
   }
 
 }

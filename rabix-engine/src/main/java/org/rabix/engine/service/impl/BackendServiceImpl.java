@@ -31,6 +31,8 @@ import com.google.inject.Inject;
 public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
+
+  private final static String BACKEND_TYPES_KEY = "backend.types";
   
   private final SchedulerService scheduler;
   private final BackendStubFactory backendStubFactory;
@@ -38,7 +40,7 @@ public class BackendServiceImpl implements BackendService {
   private final Configuration configuration;
   
   private final BackendRepository backendRepository;
-
+  
   @Inject
   public BackendServiceImpl(BackendStubFactory backendStubFactory, SchedulerService backendDispatcher,
       TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration) {
@@ -161,6 +163,17 @@ public class BackendServiceImpl implements BackendService {
   @Override
   public List<Backend> getAllBackends() {
     return backendRepository.getAll();
+  }
+
+  @Override
+  public boolean isEnabled(String type) {
+    String[] backendTypes = configuration.getStringArray(BACKEND_TYPES_KEY);
+    for (String backendType : backendTypes) {
+      if (backendType.trim().equalsIgnoreCase(type)) {
+        return true;
+      }
+    }
+    return false;
   }
   
 }
