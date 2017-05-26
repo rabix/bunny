@@ -9,6 +9,8 @@ import org.rabix.transport.backend.HeartbeatInfo;
 
 public interface BackendService {
 
+  static String BACKEND_TYPES_KEY = "backend.embedded.types";
+  
   boolean isEnabled(String type);
   
   <T extends Backend> T create(T backend) throws BackendServiceException;

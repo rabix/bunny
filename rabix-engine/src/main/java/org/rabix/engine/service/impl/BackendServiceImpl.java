@@ -32,8 +32,6 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
 
-  private final static String BACKEND_TYPES_KEY = "backend.types";
-  
   private final SchedulerService scheduler;
   private final BackendStubFactory backendStubFactory;
   private final TransactionHelper transactionHelper;
