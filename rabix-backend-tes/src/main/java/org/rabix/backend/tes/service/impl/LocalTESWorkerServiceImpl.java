@@ -1,6 +1,8 @@
 package org.rabix.backend.tes.service.impl;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -56,6 +58,7 @@ import org.rabix.transport.mechanism.TransportPluginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Inject;
 
 public class LocalTESWorkerServiceImpl implements WorkerService {
@@ -63,6 +66,12 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   private final static Logger logger = LoggerFactory.getLogger(LocalTESWorkerServiceImpl.class);
 
   private final static String TYPE = "TES";
+  
+  @BindingAnnotation
+  @Target({ java.lang.annotation.ElementType.FIELD, java.lang.annotation.ElementType.PARAMETER, java.lang.annotation.ElementType.METHOD })
+  @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+  public static @interface TESWorker {
+  }
   
   public final static String PYTHON_DEFAULT_DOCKER_IMAGE = "frolvlad/alpine-python2";
   public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix-tes-cli";

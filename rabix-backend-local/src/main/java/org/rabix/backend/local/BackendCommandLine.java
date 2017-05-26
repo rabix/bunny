@@ -23,14 +23,10 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.api.BackendModule;
-import org.rabix.backend.api.WorkerService;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
 import org.rabix.backend.local.service.LocalDownloadServiceImpl;
-import org.rabix.backend.tes.client.TESHttpClient;
-import org.rabix.backend.tes.service.TESStorageService;
-import org.rabix.backend.tes.service.impl.LocalTESStorageServiceImpl;
-import org.rabix.backend.tes.service.impl.LocalTESWorkerServiceImpl;
+import org.rabix.backend.tes.TESModule;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -223,6 +219,7 @@ public class BackendCommandLine {
       Injector injector = Guice.createInjector(
           new SimpleFTPModule(),
           new EngineModule(configModule),
+          new TESModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {
@@ -258,13 +255,6 @@ public class BackendCommandLine {
                   logger.error("Failed to instantiate BackendModule " + backendModuleClass, e);
                   System.exit(33);
                 }
-              }
-              
-              final boolean isTesEnabled = tesURL != null;
-              if (isTesEnabled) {
-                bind(TESHttpClient.class).in(Scopes.SINGLETON);
-                bind(TESStorageService.class).to(LocalTESStorageServiceImpl.class).in(Scopes.SINGLETON);
-                bind(WorkerService.class).to(LocalTESWorkerServiceImpl.class).in(Scopes.SINGLETON);
               }
             }
           });
