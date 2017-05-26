@@ -41,12 +41,15 @@ import org.rabix.executor.pathmapper.local.LocalPathMapper;
 import org.rabix.executor.rest.api.ExecutorHTTPService;
 import org.rabix.executor.rest.api.impl.ExecutorHTTPServiceImpl;
 import org.rabix.executor.rest.status.NoOpWorkerStatusCallback;
+import org.rabix.executor.service.impl.WorkerServiceImpl;
+import org.rabix.executor.service.impl.WorkerServiceImpl.LocalWorker;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Scopes;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.ServletModule;
@@ -77,6 +80,7 @@ public class ServerBuilder {
                 bind(ExecutorHTTPService.class).to(ExecutorHTTPServiceImpl.class).in(Scopes.SINGLETON);
                 bind(DownloadService.class).to(NoOpDownloadServiceImpl.class).in(Scopes.SINGLETON);
                 bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
+                bind(WorkerService.class).annotatedWith(LocalWorker.class).to(WorkerServiceImpl.class).in(Scopes.SINGLETON);
                 bind(WorkerStatusCallback.class).to(NoOpWorkerStatusCallback.class).in(Scopes.SINGLETON);
                 
                 bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
@@ -111,7 +115,7 @@ public class ServerBuilder {
     BackendRegister backendRegister = injector.getInstance(BackendRegister.class);
     Backend backend = backendRegister.start();
     
-    WorkerService executorService = injector.getInstance(WorkerService.class);
+    WorkerService executorService = injector.getInstance(Key.get(WorkerService.class, LocalWorker.class));
     executorService.start(backend);
     return server;
   }
