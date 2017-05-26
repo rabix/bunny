@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.model.LinkRecord;
+import org.rabix.storage.model.LinkRecord;
 
 public interface LinkRecordService {
 

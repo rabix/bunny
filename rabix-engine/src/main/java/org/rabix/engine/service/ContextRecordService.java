@@ -2,7 +2,7 @@ package org.rabix.engine.service;
 
 import java.util.UUID;
 
-import org.rabix.engine.model.ContextRecord;
+import org.rabix.storage.model.ContextRecord;
 
 public interface ContextRecordService {
 

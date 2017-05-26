@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -20,8 +20,8 @@ import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.cache.Cachable;
-import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.BindJobIdRootId;
-import org.rabix.engine.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
+import org.rabix.storage.postgres.jdbi.impl.JDBIJobRecordRepository.BindJobIdRootId;
+import org.rabix.storage.postgres.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.model.VariableRecord;
 import org.rabix.engine.repository.VariableRecordRepository;
@@ -62,7 +62,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   public abstract void updateBatch(@BindVariableRecord Iterator<VariableRecord> records);
   
   @Override
-  @SqlBatch("delete from variable_record where job_id=:id and context_id=:root_id")
+  @SqlBatch("deleteGroup from variable_record where job_id=:id and context_id=:root_id")
   public abstract void delete(@BindJobIdRootId Set<JobIdRootIdPair> pairs);
   
   @Override

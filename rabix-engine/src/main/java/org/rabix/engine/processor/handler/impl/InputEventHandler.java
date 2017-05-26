@@ -11,16 +11,15 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.model.VariableRecord;
+import org.rabix.storage.model.JobRecord;
+import org.rabix.storage.model.LinkRecord;
+import org.rabix.storage.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.google.inject.Inject;
 
@@ -93,7 +92,7 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
     update(job, variable);
     if (job.isReady()) {
-      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, event.getEventGroupId(), event.getProducedByNode());
+      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobRecord.JobState.READY, event.getEventGroupId(), event.getProducedByNode());
       eventProcessor.send(jobStatusEvent);
     }
   }

@@ -1,6 +1,6 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
-import org.rabix.engine.repository.AppRepository;
+import org.rabix.storage.repository.AppRepository;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;

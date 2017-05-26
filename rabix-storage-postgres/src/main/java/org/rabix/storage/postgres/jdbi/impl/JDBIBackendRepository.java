@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -7,11 +7,10 @@ import java.util.List;
 import java.util.UUID;
 
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.jdbi.bindings.BindJson;
-import org.rabix.engine.jdbi.impl.JDBIBackendRepository.BackendMapper;
-import org.rabix.engine.repository.BackendRepository;
-import org.rabix.transport.backend.Backend;
-import org.rabix.transport.backend.Backend.BackendStatus;
+import org.rabix.storage.model.BackendRecord;
+import org.rabix.storage.postgres.jdbi.bindings.BindJson;
+import org.rabix.storage.postgres.jdbi.impl.JDBIBackendRepository.BackendMapper;
+import org.rabix.storage.repository.BackendRepository;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.BindBean;
@@ -25,7 +24,7 @@ public interface JDBIBackendRepository extends BackendRepository {
 
   @Override
   @SqlUpdate("insert into backend (id,name,type,configuration,heartbeat_info,status) values (:id,:name,:type::backend_type,:configuration::jsonb,:heartbeat_info,:status::backend_status)")
-  void insert(@Bind("id") UUID id, @BindBean Backend backend, @Bind("heartbeat_info") Timestamp heartbeatInfo);
+  void insert(@Bind("id") UUID id, @BindBean BackendRecord backend, @Bind("heartbeat_info") Timestamp heartbeatInfo);
   
   @Override
   @SqlUpdate("update backend set configuration=:configuration where id=:id")

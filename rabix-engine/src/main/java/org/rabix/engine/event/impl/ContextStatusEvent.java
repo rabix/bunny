@@ -3,10 +3,11 @@ package org.rabix.engine.event.impl;
 import java.util.UUID;
 
 import org.rabix.engine.event.Event;
-import org.rabix.engine.model.ContextRecord.ContextStatus;
+import org.rabix.storage.model.ContextRecord.ContextStatus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.rabix.storage.model.EventRecord;
 
 public class ContextStatusEvent implements Event {
 
@@ -74,7 +75,7 @@ public class ContextStatusEvent implements Event {
   }
 
   @Override
-  public PersistentEventType getPersistentType() {
+  public EventRecord.PersistentType getPersistentType() {
     return null;
   }
 

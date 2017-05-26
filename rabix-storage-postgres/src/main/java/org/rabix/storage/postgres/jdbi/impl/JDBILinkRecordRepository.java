@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -15,8 +15,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.BindJobIdRootId;
-import org.rabix.engine.jdbi.impl.JDBILinkRecordRepository.LinkRecordMapper;
+import org.rabix.storage.postgres.jdbi.impl.JDBIJobRecordRepository.BindJobIdRootId;
+import org.rabix.storage.postgres.jdbi.impl.JDBILinkRecordRepository.LinkRecordMapper;
 import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.model.LinkRecord;
 import org.rabix.engine.repository.LinkRecordRepository;
@@ -52,7 +52,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   public abstract void updateBatch(@BindLinkRecord Iterator<LinkRecord> records);
   
   @Override
-  @SqlBatch("delete from link_record where source_job_id=:id and context_id=:root_id")
+  @SqlBatch("deleteGroup from link_record where source_job_id=:id and context_id=:root_id")
   public abstract void delete(@BindJobIdRootId Set<JobIdRootIdPair> pairs);
   
   @Override

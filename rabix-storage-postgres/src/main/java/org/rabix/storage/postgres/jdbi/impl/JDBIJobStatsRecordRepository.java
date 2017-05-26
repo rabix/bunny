@@ -1,6 +1,6 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
-import org.rabix.engine.jdbi.impl.JDBIJobStatsRecordRepository.JobStatsRecordMapper;
+import org.rabix.storage.postgres.jdbi.impl.JDBIJobStatsRecordRepository.JobStatsRecordMapper;
 import org.rabix.engine.model.JobStatsRecord;
 import org.rabix.engine.repository.JobStatsRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
@@ -30,7 +30,7 @@ public interface JDBIJobStatsRecordRepository extends JobStatsRecordRepository {
   JobStatsRecord get(@Bind("root_id") UUID id);
 
   @Override
-  @SqlUpdate("delete from job_stats where root_id=:root_id")
+  @SqlUpdate("deleteGroup from job_stats where root_id=:root_id")
   int delete(@Bind("root_id") UUID id);
 
   @BindingAnnotation(BindJobStatsRecord.JobStatsBinderFactory.class)

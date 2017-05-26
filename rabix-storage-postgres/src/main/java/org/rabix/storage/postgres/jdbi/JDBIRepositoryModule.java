@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi;
+package org.rabix.storage.postgres.jdbi;
 
 import java.sql.SQLException;
 import java.util.logging.Logger;

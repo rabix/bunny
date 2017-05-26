@@ -4,8 +4,8 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.engine.lru.dag.DAGCache;
-import org.rabix.engine.repository.DAGRepository;
+import org.rabix.storage.lru.dag.DAGCache;
+import org.rabix.storage.repository.DAGRepository;
 
 import com.google.inject.Inject;
 

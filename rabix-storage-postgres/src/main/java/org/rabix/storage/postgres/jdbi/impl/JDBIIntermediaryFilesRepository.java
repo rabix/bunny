@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.rabix.engine.jdbi.impl.JDBIIntermediaryFilesRepository.IntermediaryFileEntityMapper;
-import org.rabix.engine.repository.IntermediaryFilesRepository;
+import org.rabix.storage.postgres.jdbi.impl.JDBIIntermediaryFilesRepository.IntermediaryFileEntityMapper;
+import org.rabix.storage.repository.IntermediaryFilesRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -37,14 +37,14 @@ public interface JDBIIntermediaryFilesRepository extends IntermediaryFilesReposi
   @SqlUpdate("update intermediary_files set count=:count where root_id=:root_id and filename=:filename")
   void update(@Bind("root_id") UUID root_id, @Bind("filename") String filename, @Bind("count") Integer count);
   
-  @SqlUpdate("delete from intermediary_files where root_id=:root_id and filename=:filename")
+  @SqlUpdate("deleteGroup from intermediary_files where root_id=:root_id and filename=:filename")
   void delete(@Bind("root_id") UUID root_id, @Bind("filename") String filename);
   
-  @SqlUpdate("delete from intermediary_files where root_id=:root_id")
+  @SqlUpdate("deleteGroup from intermediary_files where root_id=:root_id")
   void delete(@Bind("root_id") UUID root_id);
   
   @Override
-  @SqlUpdate("delete from intermediary_files where root_id in (<ids>)")
+  @SqlUpdate("deleteGroup from intermediary_files where root_id in (<ids>)")
   void deleteByRootIds(@BindIn("ids") Set<UUID> rootIds);
   
   @Override

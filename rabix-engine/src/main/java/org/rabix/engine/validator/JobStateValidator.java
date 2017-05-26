@@ -6,45 +6,44 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
+import org.rabix.storage.model.JobRecord;
 
 public class JobStateValidator {
   
-  private static Map<JobState, List<JobState>> transitions = new HashMap<JobState, List<JobState>>();
+  private static Map<JobRecord.JobState, List<JobRecord.JobState>> transitions = new HashMap<JobRecord.JobState, List<JobRecord.JobState>>();
 
   static {
-    List<JobState> transitionFromPending = new ArrayList<JobState>();
-    transitionFromPending.add(JobState.READY);
-    transitionFromPending.add(JobState.COMPLETED);
-    transitions.put(JobState.PENDING, transitionFromPending);
-    List<JobState> transitionFromReady = new ArrayList<JobState>();
-    transitionFromReady.add(JobState.RUNNING);
-    transitionFromReady.add(JobState.FAILED);
-    transitionFromReady.add(JobState.COMPLETED);
-    transitions.put(JobState.READY, transitionFromReady);
-    List<JobState> transitionFromRunning = new ArrayList<JobState>();
-    transitionFromRunning.add(JobState.COMPLETED);
-    transitionFromRunning.add(JobState.ABORTED);
-    transitionFromRunning.add(JobState.FAILED);
-    transitions.put(JobState.RUNNING, transitionFromRunning);
-    List<JobState> transitionFromCompleted = new ArrayList<JobState>();
-    transitionFromCompleted.add(JobState.READY);
-    transitions.put(JobState.COMPLETED, transitionFromCompleted);
-    List<JobState> transitionFromFailed = new ArrayList<JobState>();
-    transitions.put(JobState.FAILED, transitionFromFailed);
-    List<JobState> transitionFromAborted = new ArrayList<JobState>();
-    transitionFromAborted.add(JobState.COMPLETED);
-    transitions.put(JobState.ABORTED, transitionFromAborted);
+    List<JobRecord.JobState> transitionFromPending = new ArrayList<JobRecord.JobState>();
+    transitionFromPending.add(JobRecord.JobState.READY);
+    transitionFromPending.add(JobRecord.JobState.COMPLETED);
+    transitions.put(JobRecord.JobState.PENDING, transitionFromPending);
+    List<JobRecord.JobState> transitionFromReady = new ArrayList<JobRecord.JobState>();
+    transitionFromReady.add(JobRecord.JobState.RUNNING);
+    transitionFromReady.add(JobRecord.JobState.FAILED);
+    transitionFromReady.add(JobRecord.JobState.COMPLETED);
+    transitions.put(JobRecord.JobState.READY, transitionFromReady);
+    List<JobRecord.JobState> transitionFromRunning = new ArrayList<JobRecord.JobState>();
+    transitionFromRunning.add(JobRecord.JobState.COMPLETED);
+    transitionFromRunning.add(JobRecord.JobState.ABORTED);
+    transitionFromRunning.add(JobRecord.JobState.FAILED);
+    transitions.put(JobRecord.JobState.RUNNING, transitionFromRunning);
+    List<JobRecord.JobState> transitionFromCompleted = new ArrayList<JobRecord.JobState>();
+    transitionFromCompleted.add(JobRecord.JobState.READY);
+    transitions.put(JobRecord.JobState.COMPLETED, transitionFromCompleted);
+    List<JobRecord.JobState> transitionFromFailed = new ArrayList<JobRecord.JobState>();
+    transitions.put(JobRecord.JobState.FAILED, transitionFromFailed);
+    List<JobRecord.JobState> transitionFromAborted = new ArrayList<JobRecord.JobState>();
+    transitionFromAborted.add(JobRecord.JobState.COMPLETED);
+    transitions.put(JobRecord.JobState.ABORTED, transitionFromAborted);
     
     transitions = Collections.unmodifiableMap(transitions);
   }
   
-  public static JobState checkState(JobRecord jobRecord, JobState jobState) throws JobStateValidationException {
+  public static JobRecord.JobState checkState(JobRecord jobRecord, JobRecord.JobState jobState) throws JobStateValidationException {
     return checkState(jobRecord.getState(), jobState);
   }
   
-  public static JobState checkState(JobState currentState, JobState jobState) throws JobStateValidationException {
+  public static JobRecord.JobState checkState(JobRecord.JobState currentState, JobRecord.JobState jobState) throws JobStateValidationException {
     if (transitions.get(currentState).contains(jobState)) {
       return jobState;
     } else {

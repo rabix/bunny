@@ -13,11 +13,11 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.model.ContextRecord;
-import org.rabix.engine.model.ContextRecord.ContextStatus;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobStatsRecord;
-import org.rabix.engine.model.VariableRecord;
+import org.rabix.storage.model.ContextRecord;
+import org.rabix.storage.model.ContextRecord.ContextStatus;
+import org.rabix.storage.model.JobRecord;
+import org.rabix.storage.model.JobStatsRecord;
+import org.rabix.storage.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
@@ -25,7 +25,6 @@ import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.google.inject.Inject;
 
@@ -56,7 +55,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     contextRecordService.create(context);
     
     DAGNode node = nodeDB.get(InternalSchemaHelper.ROOT_NAME, event.getContextId(), event.getDagHash());
-    JobRecord job = new JobRecord(event.getContextId(), node.getId(), event.getContextId(), null, JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
+    JobRecord job = new JobRecord(event.getContextId(), node.getId(), event.getContextId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
 
     jobRecordService.create(job);
     if (job.isRoot()) {
@@ -70,7 +69,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     }
 
     for (DAGLinkPort inputPort : node.getInputPorts()) {
-      if (job.getState().equals(JobState.PENDING)) {
+      if (job.getState().equals(JobRecord.JobState.PENDING)) {
         jobRecordService.incrementPortCounter(job, inputPort, LinkPortType.INPUT);
       }
       Object defaultValue = node.getDefaults().get(inputPort.getId());
@@ -87,7 +86,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
 
     if (node.getInputPorts().isEmpty()) {
       // the node is ready
-      eventProcessor.send(new JobStatusEvent(job.getId(), event.getContextId(), JobState.READY, event.getEventGroupId(), event.getProducedByNode()));
+      eventProcessor.send(new JobStatusEvent(job.getId(), event.getContextId(), JobRecord.JobState.READY, event.getEventGroupId(), event.getProducedByNode()));
       return;
     }
     

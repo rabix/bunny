@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.repository.JobRepository.JobEntity;
+import org.rabix.storage.repository.JobRepository.JobEntity;
 
 public interface JobService {
 

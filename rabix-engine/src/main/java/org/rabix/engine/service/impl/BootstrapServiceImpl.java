@@ -1,12 +1,15 @@
 package org.rabix.engine.service.impl;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.EventRepository;
-import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.storage.model.BackendRecord;
+import org.rabix.storage.repository.BackendRepository;
+import org.rabix.storage.repository.EventRepository;
+import org.rabix.storage.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BootstrapService;
 import org.rabix.engine.service.BootstrapServiceException;
@@ -42,14 +45,16 @@ public class BootstrapServiceImpl implements BootstrapService {
       transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
         @Override
         public Void call() throws Exception {
-          List<Backend> activeBackends = backendRepository.getByStatus(BackendStatus.ACTIVE);
+          List<Backend> activeBackends = backendService.getActiveBackends();
           
           for (Backend backend : activeBackends) {
             backendService.startBackend(backend);
             logger.debug("Awakening backend: " + backend.getId());
           }
           
-          List<Event> events = eventRepository.findUnprocessed();
+          List<Event> events = eventRepository.findUnprocessed().stream()
+              .map(er -> JSONHelper.convertToObject(er.getEvent(), Event.class))
+              .collect(Collectors.toList());
           
           for(Event event : events) {
             eventProcessor.addToExternalQueue(event);

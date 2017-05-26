@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -18,10 +18,10 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository.BackendIDMapper;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobEntityMapper;
-import org.rabix.engine.jdbi.impl.JDBIJobRepository.JobMapper;
-import org.rabix.engine.repository.JobRepository;
+import org.rabix.storage.postgres.jdbi.impl.JDBIJobRepository.BackendIDMapper;
+import org.rabix.storage.postgres.jdbi.impl.JDBIJobRepository.JobEntityMapper;
+import org.rabix.storage.postgres.jdbi.impl.JDBIJobRepository.JobMapper;
+import org.rabix.storage.repository.JobRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -109,7 +109,7 @@ public interface JDBIJobRepository extends JobRepository {
   Set<JobEntity> getReadyFree();
   
   @Override
-  @SqlUpdate("delete from job where root_id in (<ids>)")
+  @SqlUpdate("deleteGroup from job where root_id in (<ids>)")
   void deleteByRootIds(@BindIn("ids") Set<UUID> rootIds);
   
   public static class JobMapper implements ResultSetMapper<Job> {

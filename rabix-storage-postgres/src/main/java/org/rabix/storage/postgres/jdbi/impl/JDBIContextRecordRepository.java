@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -14,7 +14,7 @@ import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.jdbi.impl.JDBIContextRecordRepository.ContextRecordMapper;
+import org.rabix.storage.postgres.jdbi.impl.JDBIContextRecordRepository.ContextRecordMapper;
 import org.rabix.engine.model.ContextRecord;
 import org.rabix.engine.model.ContextRecord.ContextStatus;
 import org.rabix.engine.repository.ContextRecordRepository;
@@ -45,7 +45,7 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
   ContextRecord get(@Bind("id") UUID id);
 
   @Override
-  @SqlUpdate("delete from context_record where id=:id")
+  @SqlUpdate("deleteGroup from context_record where id=:id")
   int delete(@Bind("id") UUID id);
 
   @BindingAnnotation(BindContextRecord.ContextBinderFactory.class)

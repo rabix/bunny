@@ -25,16 +25,15 @@ import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.logging.DebugAppender;
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.model.ContextRecord;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobRecord.PortCounter;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.model.VariableRecord;
+import org.rabix.storage.model.ContextRecord;
+import org.rabix.storage.model.JobRecord;
+import org.rabix.storage.model.JobRecord.PortCounter;
+import org.rabix.storage.model.LinkRecord;
+import org.rabix.storage.model.VariableRecord;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +45,7 @@ public class JobHelper {
     return UUID.randomUUID().toString();
   }
   
-  public static JobStatus transformStatus(JobState state) {
+  public static JobStatus transformStatus(JobRecord.JobState state) {
     switch (state) {
     case COMPLETED:
       return JobStatus.COMPLETED;
@@ -64,20 +63,20 @@ public class JobHelper {
     return null;
   }
   
-  public static JobState transformStatus(JobStatus status) {
+  public static JobRecord.JobState transformStatus(JobStatus status) {
     switch (status) {
     case COMPLETED:
-      return JobState.COMPLETED;
+      return JobRecord.JobState.COMPLETED;
     case FAILED:
-      return JobState.FAILED;
+      return JobRecord.JobState.FAILED;
     case RUNNING:
-      return JobState.RUNNING;
+      return JobRecord.JobState.RUNNING;
     case READY:
-      return JobState.READY;
+      return JobRecord.JobState.READY;
     case PENDING:
-      return JobState.PENDING;
+      return JobRecord.JobState.PENDING;
     case ABORTED:
-      return JobState.ABORTED;
+      return JobRecord.JobState.ABORTED;
     default:
       break;
     }

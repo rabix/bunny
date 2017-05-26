@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.engine.repository.JobRepository.JobEntity;
+import org.rabix.storage.repository.JobRepository.JobEntity;
 import org.rabix.engine.stub.BackendStub;
 
 public interface SchedulerService {

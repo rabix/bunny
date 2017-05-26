@@ -6,6 +6,7 @@ import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.rabix.storage.model.EventRecord;
 
 /**
  * This event is used to update one output (per port) for the specific Job. Potentially, it can produce one ore more output and inputs events. 
@@ -167,7 +168,7 @@ public class OutputUpdateEvent implements Event {
   }
 
   @Override
-  public PersistentEventType getPersistentType() {
+  public EventRecord.PersistentType getPersistentType() {
     return null;
   }
   

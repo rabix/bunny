@@ -1,7 +1,7 @@
 package org.rabix.engine.processor.handler.impl;
 
 import org.rabix.engine.event.impl.ContextStatusEvent;
-import org.rabix.engine.model.ContextRecord;
+import org.rabix.storage.model.ContextRecord;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.ContextRecordService;

@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -6,8 +6,8 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.jdbi.bindings.BindJson;
-import org.rabix.engine.jdbi.impl.JDBIDAGRepository.DAGNodeMapper;
+import org.rabix.storage.postgres.jdbi.bindings.BindJson;
+import org.rabix.storage.postgres.jdbi.impl.JDBIDAGRepository.DAGNodeMapper;
 import org.rabix.engine.repository.DAGRepository;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;

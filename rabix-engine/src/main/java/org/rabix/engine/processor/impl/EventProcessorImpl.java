@@ -10,20 +10,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.rabix.bindings.model.Job;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.event.Event;
-import org.rabix.engine.event.Event.EventStatus;
 import org.rabix.engine.event.Event.EventType;
-import org.rabix.engine.event.Event.PersistentEventType;
 import org.rabix.engine.event.impl.ContextStatusEvent;
-import org.rabix.engine.model.ContextRecord;
-import org.rabix.engine.model.ContextRecord.ContextStatus;
+import org.rabix.storage.model.ContextRecord;
+import org.rabix.storage.model.ContextRecord.ContextStatus;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
-import org.rabix.engine.repository.EventRepository;
-import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
+import org.rabix.storage.model.EventRecord;
+import org.rabix.storage.repository.EventRepository;
+import org.rabix.storage.repository.JobRepository;
+import org.rabix.storage.repository.TransactionHelper;
+import org.rabix.storage.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobService;
@@ -91,7 +91,7 @@ public class EventProcessorImpl implements EventProcessor {
               @Override
               public Void call() throws TransactionException {
                 if (!handle(eventReference.get())) {
-                  eventRepository.delete(eventReference.get().getEventGroupId());
+                  eventRepository.deleteGroup(eventReference.get().getEventGroupId());
                   return null;
                 }
                 cacheService.flush(eventReference.get().getContextId());
@@ -100,7 +100,7 @@ public class EventProcessorImpl implements EventProcessor {
                   Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(eventReference.get().getEventGroupId());
                   jobService.handleJobsReady(readyJobs, eventReference.get().getContextId(), eventReference.get().getProducedByNode());  
                 }
-                eventRepository.delete(eventReference.get().getEventGroupId());
+                eventRepository.deleteGroup(eventReference.get().getEventGroupId());
                 return null;
               }
             });
@@ -116,7 +116,9 @@ public class EventProcessorImpl implements EventProcessor {
             }
             try {
               cacheService.clear(eventReference.get().getContextId());
-              eventRepository.update(eventReference.get().getEventGroupId(), eventReference.get().getPersistentType(), Event.EventStatus.FAILED);
+              Event event = eventReference.get();
+              EventRecord er = new EventRecord(event.getEventGroupId(), event.getPersistentType(), EventRecord.Status.FAILED, JSONHelper.convertToMap(e));
+              eventRepository.updateStatus(er);
               invalidateContext(eventReference.get().getContextId());
             } catch (Exception ehe) {
               logger.error("Failed to invalidate Context {}.", eventReference.get().getContextId(), ehe);
@@ -132,7 +134,7 @@ public class EventProcessorImpl implements EventProcessor {
     case INIT:
       return true;
     case JOB_STATUS_UPDATE:
-      if (PersistentEventType.JOB_STATUS_UPDATE_COMPLETED.equals(event.getPersistentType())) {
+      if (EventRecord.PersistentType.JOB_STATUS_UPDATE_COMPLETED.equals(event.getPersistentType())) {
         return true;
       }
       return false;
@@ -199,7 +201,8 @@ public class EventProcessorImpl implements EventProcessor {
     if (stop.get()) {
       return;
     }
-    eventRepository.insert(event.getEventGroupId(), event.getPersistentType(), event, EventStatus.UNPROCESSED);    
+    EventRecord er = new EventRecord(event.getEventGroupId(), event.getPersistentType(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
+    eventRepository.insert(er);
   }
   
   public void addToExternalQueue(Event event) {

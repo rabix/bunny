@@ -1,6 +1,6 @@
 package org.rabix.engine.service.impl;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -19,9 +19,9 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
-import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.JobRepository.JobEntity;
-import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.storage.repository.BackendRepository;
+import org.rabix.storage.repository.JobRepository.JobEntity;
+import org.rabix.storage.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
 import org.rabix.engine.service.JobService;
@@ -191,7 +191,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerCallback
             backendStub.getBackend().setStatus(BackendStatus.ACTIVE);
             logger.debug("Awakening backend: " + backend.getId());
           }
-          backendService.updateHeartbeatInfo(backendStub.getBackend().getId(), new Timestamp(info.getTimestamp()));
+          backendService.updateHeartbeatInfo(backendStub.getBackend().getId(), Instant.ofEpochMilli(info.getTimestamp()));
         }
       }, this.jobReceiver, this.errorCallback);
       this.backendStubs.add(backendStub);

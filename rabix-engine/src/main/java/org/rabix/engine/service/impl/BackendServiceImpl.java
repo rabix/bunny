@@ -1,15 +1,21 @@
 package org.rabix.engine.service.impl;
 
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
+import org.rabix.storage.model.BackendRecord;
+import org.rabix.storage.repository.BackendRepository;
+import org.rabix.storage.repository.TransactionHelper;
+import org.rabix.storage.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
 import org.rabix.engine.service.SchedulerService;
@@ -58,7 +64,8 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            backendRepository.insert(backend.getId(), backend, Timestamp.from(Instant.now()));
+            BackendRecord br = new BackendRecord(backend.getId(), backend.getName(), Instant.now(), JSONHelper.convertToMap(backend), null);
+            backendRepository.insert(br);
             BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
             scheduler.addBackendStub(backendStub);
             logger.info("Backend {} registered.", populated.getId());
@@ -75,8 +82,8 @@ public class BackendServiceImpl implements BackendService {
   
   public void startBackend(Backend backend) throws BackendServiceException {
     try {
-      backendRepository.updateStatus(backend.getId(), BackendStatus.ACTIVE);
-      updateHeartbeatInfo(backend.getId(), Timestamp.from(Instant.now()));
+      backendRepository.updateStatus(backend.getId(), BackendRecord.Status.ACTIVE);
+      updateHeartbeatInfo(backend.getId(), Instant.now());
       scheduler.addBackendStub(backendStubFactory.create(backend));
     } catch (TransportPluginException e) {
       throw new BackendServiceException(e);
@@ -133,34 +140,38 @@ public class BackendServiceImpl implements BackendService {
   }
   
   @Override
-  public void updateHeartbeatInfo(UUID id, Timestamp ts) throws BackendServiceException {
+  public void updateHeartbeatInfo(UUID id, Instant ts) throws BackendServiceException {
     backendRepository.updateHeartbeatInfo(id, ts);
   }
 
   @Override
   public void updateHeartbeatInfo(HeartbeatInfo info) throws BackendServiceException {
-    backendRepository.updateHeartbeatInfo(info.getId(), new Timestamp(info.getTimestamp()));
+    backendRepository.updateHeartbeatInfo(info.getId(), Instant.ofEpochMilli(info.getTimestamp()));
   }
 
   @Override
   public Long getHeartbeatInfo(UUID id) {
-    Timestamp timestamp = backendRepository.getHeartbeatInfo(id);
-    return timestamp != null ? timestamp.getTime() : null;
+    Instant timestamp = backendRepository.getHeartbeatInfo(id);
+    return timestamp != null ? timestamp.toEpochMilli() : null;
   }
 
   @Override
   public List<Backend> getActiveBackends() {
-    return backendRepository.getByStatus(BackendStatus.ACTIVE);
+    return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().map(
+        br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
+    ).collect(Collectors.toList());
   }
 
   @Override
   public void stopBackend(Backend backend) throws BackendServiceException {
-    backendRepository.updateStatus(backend.getId(), BackendStatus.INACTIVE);
+    backendRepository.updateStatus(backend.getId(), BackendRecord.Status.INACTIVE);
   }
 
   @Override
   public List<Backend> getAllBackends() {
-    return backendRepository.getAll();
+    return backendRepository.getAll().stream().map(
+        br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
+    ).collect(Collectors.toList());
   }
   
 }

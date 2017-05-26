@@ -22,11 +22,11 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.model.JobRecord;
+import org.rabix.storage.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.repository.JobRepository.JobEntity;
-import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.storage.repository.JobRepository;
+import org.rabix.storage.repository.JobRepository.JobEntity;
+import org.rabix.storage.repository.TransactionHelper;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
@@ -35,7 +35,6 @@ import org.rabix.engine.service.JobServiceException;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.rabix.engine.validator.JobStateValidator;
@@ -133,34 +132,34 @@ public class JobServiceImpl implements JobService {
           JobStatus status = job.getStatus();
           switch (status) {
           case RUNNING:
-            if (JobState.RUNNING.equals(jobRecord.getState())) {
+            if (JobRecord.JobState.RUNNING.equals(jobRecord.getState())) {
               return null;
             }
-            JobStateValidator.checkState(jobRecord, JobState.RUNNING);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), job.getId(), job.getName());
+            JobStateValidator.checkState(jobRecord, JobRecord.JobState.RUNNING);
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.RUNNING, job.getOutputs(), job.getId(), job.getName());
             break;
           case FAILED:
-            if (JobState.FAILED.equals(jobRecord.getState())) {
+            if (JobRecord.JobState.FAILED.equals(jobRecord.getState())) {
               return null;
             }
-            JobStateValidator.checkState(jobRecord, JobState.FAILED);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, job.getMessage(), job.getId(), job.getName());
+            JobStateValidator.checkState(jobRecord, JobRecord.JobState.FAILED);
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.FAILED, job.getMessage(), job.getId(), job.getName());
             break;
           case ABORTED:
-            if (JobState.ABORTED.equals(jobRecord.getState())) {
+            if (JobRecord.JobState.ABORTED.equals(jobRecord.getState())) {
               return null;
             }
-            JobStateValidator.checkState(jobRecord, JobState.ABORTED);
+            JobStateValidator.checkState(jobRecord, JobRecord.JobState.ABORTED);
             Job rootJob = jobRepository.get(jobRecord.getRootId());
             handleJobRootAborted(rootJob);
-            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobState.ABORTED, rootJob.getId(), rootJob.getName());
+            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobRecord.JobState.ABORTED, rootJob.getId(), rootJob.getName());
             break;
           case COMPLETED:
-            if (JobState.COMPLETED.equals(jobRecord.getState())) {
+            if (JobRecord.JobState.COMPLETED.equals(jobRecord.getState())) {
               return null;
             }
-            JobStateValidator.checkState(jobRecord, JobState.COMPLETED);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs(), job.getId(), job.getName());
+            JobStateValidator.checkState(jobRecord, JobRecord.JobState.COMPLETED);
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.COMPLETED, job.getOutputs(), job.getId(), job.getName());
             break;
           default:
             break;

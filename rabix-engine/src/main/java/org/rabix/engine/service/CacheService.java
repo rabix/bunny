@@ -2,7 +2,7 @@ package org.rabix.engine.service;
 
 import java.util.UUID;
 
-import org.rabix.engine.cache.Cache;
+import org.rabix.storage.cache.Cache;
 
 public interface CacheService {
 

@@ -8,12 +8,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.cache.Cachable;
-import org.rabix.engine.cache.Cache;
-import org.rabix.engine.cache.CacheItem.Action;
-import org.rabix.engine.model.VariableRecord;
-import org.rabix.engine.model.VariableRecord.VariableRecordCacheKey;
-import org.rabix.engine.repository.VariableRecordRepository;
+import org.rabix.storage.cache.Cachable;
+import org.rabix.storage.cache.Cache;
+import org.rabix.storage.cache.CacheItem.Action;
+import org.rabix.storage.model.VariableRecord;
+import org.rabix.storage.model.VariableRecord.VariableRecordCacheKey;
+import org.rabix.storage.repository.VariableRecordRepository;
 import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.VariableRecordService;
 

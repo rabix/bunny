@@ -1,4 +1,4 @@
-package org.rabix.engine.jdbi.impl;
+package org.rabix.storage.postgres.jdbi.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -16,13 +16,12 @@ import java.util.UUID;
 
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.jdbi.impl.JDBIJobRecordRepository.JobRecordMapper;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobRecord.JobIdRootIdPair;
-import org.rabix.engine.model.JobRecord.PortCounter;
-import org.rabix.engine.model.scatter.ScatterStrategy;
-import org.rabix.engine.repository.JobRecordRepository;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
+import org.rabix.storage.postgres.jdbi.impl.JDBIJobRecordRepository.JobRecordMapper;
+import org.rabix.storage.model.JobRecord;
+import org.rabix.storage.model.JobRecord.JobIdRootIdPair;
+import org.rabix.storage.model.JobRecord.PortCounter;
+import org.rabix.storage.model.scatter.ScatterStrategy;
+import org.rabix.storage.repository.JobRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -61,14 +60,14 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
 
   @Override
   @SqlUpdate("update job_record set job_state=:state::job_record_state where root_id=:root_id and job_state::text in (<states>)")
-  public abstract void updateStatus(@Bind("root_id") UUID rootId, @Bind("state") JobState state, @BindIn("states") Set<JobState> whereStates);
+  public abstract void updateStatus(@Bind("root_id") UUID rootId, @Bind("state") JobRecord.JobState state, @BindIn("states") Set<JobRecord.JobState> whereStates);
   
   @Override
-  @SqlUpdate("delete from job_record where job_state=:state::job_record_state")
-  public abstract int deleteByStatus(@Bind("state") JobState state);
+  @SqlUpdate("deleteGroup from job_record where job_state=:state::job_record_state")
+  public abstract int deleteByStatus(@Bind("state") JobRecord.JobState state);
   
   @Override
-  @SqlBatch("delete from job_record where id=:id and root_id=:root_id")
+  @SqlBatch("deleteGroup from job_record where id=:id and root_id=:root_id")
   public abstract void delete(@BindJobIdRootId Set<JobIdRootIdPair> pairs);
   
   @Override
@@ -93,7 +92,7 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   
   @Override
   @SqlQuery("select * from job_record where job_state::text in (<states>) and root_id=:root_id")
-  public abstract List<JobRecord> get(@Bind("root_id") UUID rootId, @BindIn("states") Set<JobState> states);
+  public abstract List<JobRecord> get(@Bind("root_id") UUID rootId, @BindIn("states") Set<JobRecord.JobState> states);
   
   @BindingAnnotation(BindJobRecord.JobBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
@@ -189,7 +188,7 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
       LocalDateTime createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
       LocalDateTime modifiedAt = resultSet.getTimestamp("modified_at").toLocalDateTime();
 
-      JobRecord jobRecord = new JobRecord(rootId, id, externalId, parentId, JobState.valueOf(jobState), isContainer, isScattered, externalId.equals(rootId), isBlocking, dagHash, createdAt, modifiedAt);
+      JobRecord jobRecord = new JobRecord(rootId, id, externalId, parentId, JobRecord.JobState.valueOf(jobState), isContainer, isScattered, externalId.equals(rootId), isBlocking, dagHash, createdAt, modifiedAt);
       jobRecord.setScatterWrapper(isScatterWrapper);
       jobRecord.setNumberOfGlobalInputs(globalInputsCount);
       jobRecord.setNumberOfGlobalOutputs(globalOutputsCount);

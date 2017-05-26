@@ -2,8 +2,8 @@ package org.rabix.engine.service.impl;
 
 import java.util.UUID;
 
-import org.rabix.engine.model.JobStatsRecord;
-import org.rabix.engine.repository.JobStatsRecordRepository;
+import org.rabix.storage.model.JobStatsRecord;
+import org.rabix.storage.repository.JobStatsRecordRepository;
 import org.rabix.engine.service.JobStatsRecordService;
 
 import com.google.inject.Inject;

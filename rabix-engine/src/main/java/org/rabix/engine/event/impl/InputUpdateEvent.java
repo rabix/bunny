@@ -6,6 +6,7 @@ import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.rabix.storage.model.EventRecord;
 
 /**
  * This event is used to update one input (per port) for the specific Job. It triggers the algorithm cycle.
@@ -165,7 +166,7 @@ public class InputUpdateEvent implements Event {
   }
 
   @Override
-  public PersistentEventType getPersistentType() {
+  public EventRecord.PersistentType getPersistentType() {
     return null;
   }
 

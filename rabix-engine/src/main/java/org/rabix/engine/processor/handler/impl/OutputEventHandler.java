@@ -17,11 +17,11 @@ import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.event.impl.OutputUpdateEvent;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobStatsRecord;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.model.VariableRecord;
-import org.rabix.engine.model.scatter.ScatterStrategy;
+import org.rabix.storage.model.JobRecord;
+import org.rabix.storage.model.JobStatsRecord;
+import org.rabix.storage.model.LinkRecord;
+import org.rabix.storage.model.VariableRecord;
+import org.rabix.storage.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
@@ -31,7 +31,6 @@ import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 
 import com.google.inject.Inject;
 
@@ -66,7 +65,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   
   public void handle(final OutputUpdateEvent event) throws EventHandlerException {
     JobRecord sourceJob = jobRecordService.find(event.getJobId(), event.getContextId());
-    if (sourceJob.getState().equals(JobState.COMPLETED)) {
+    if (sourceJob.getState().equals(JobRecord.JobState.COMPLETED)) {
       return;
     }
     if (event.isFromScatter()) {
@@ -95,7 +94,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           }
           if (sourceJob.isContainer()) {
             eventProcessor.send(
-                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), event.getProducedByNode()));
+                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobRecord.JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), event.getProducedByNode()));
           }
           return;
         }

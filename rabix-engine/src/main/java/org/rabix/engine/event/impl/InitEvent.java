@@ -7,6 +7,7 @@ import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.rabix.storage.model.EventRecord;
 
 /**
  * This event is a starter event. It triggers the algorithm start. 
@@ -118,8 +119,8 @@ public class InitEvent implements Event {
   }
 
   @Override
-  public PersistentEventType getPersistentType() {
-    return PersistentEventType.INIT;
+  public EventRecord.PersistentType getPersistentType() {
+    return EventRecord.PersistentType.INIT;
   }
 
 
