@@ -26,5 +26,10 @@
 			<artifactId>commons-daemon</artifactId>
 			<version>1.0.15</version>
 		</dependency>
+		<dependency>
+			<groupId>io.github.lukehutch</groupId>
+			<artifactId>fast-classpath-scanner</artifactId>
+			<version>2.0.21</version>
+		</dependency>
 	</dependencies>
 </project>

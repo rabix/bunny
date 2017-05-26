@@ -86,13 +86,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
-			<artifactId>rabix-engine-rest</artifactId>
+			<artifactId>rabix-backend-tes</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>${ok.http.version}</version>
+			<groupId>org.rabix</groupId>
+			<artifactId>rabix-engine-rest</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -158,6 +158,11 @@
 				<dependency>
 					<groupId>org.rabix</groupId>
 					<artifactId>rabix-bindings-cwl</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-backend-tes</artifactId>
 					<version>${project.version}</version>
 				</dependency>
 			</dependencies>

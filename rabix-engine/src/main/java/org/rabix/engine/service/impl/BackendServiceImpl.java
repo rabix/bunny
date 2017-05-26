@@ -37,14 +37,14 @@ import com.google.inject.Inject;
 public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
-  
+
   private final SchedulerService scheduler;
   private final BackendStubFactory backendStubFactory;
   private final TransactionHelper transactionHelper;
   private final Configuration configuration;
   
   private final BackendRepository backendRepository;
-
+  
   @Inject
   public BackendServiceImpl(BackendStubFactory backendStubFactory, SchedulerService backendDispatcher,
       TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration) {
@@ -172,6 +172,17 @@ public class BackendServiceImpl implements BackendService {
     return backendRepository.getAll().stream().map(
         br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
     ).collect(Collectors.toList());
+  }
+
+  @Override
+  public boolean isEnabled(String type) {
+    String[] backendTypes = configuration.getStringArray(BACKEND_TYPES_KEY);
+    for (String backendType : backendTypes) {
+      if (backendType.trim().equalsIgnoreCase(type)) {
+        return true;
+      }
+    }
+    return false;
   }
   
 }

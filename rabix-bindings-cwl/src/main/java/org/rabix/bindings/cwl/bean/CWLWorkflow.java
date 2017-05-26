@@ -1,9 +1,12 @@
 package org.rabix.bindings.cwl.bean;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.rabix.bindings.cwl.json.CWLStepsDeserializer;
+import org.rabix.bindings.model.ValidationReport;
 import org.rabix.common.json.BeanPropertyView;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -63,4 +66,51 @@ public class CWLWorkflow extends CWLJobApp {
     return CWLJobAppType.WORKFLOW;
   }
 
+  private Set<String> checkStepDuplicates() {
+    Set<String> duplicates = new HashSet<>();
+    Set<String> ids = new HashSet<>();
+    for (CWLStep step : steps) {
+      if (!ids.add(step.getId())) {
+        duplicates.add(step.getId());
+      }
+    }
+    return duplicates;
+  }
+
+//  private Set<String> unconnectedOutputs() {
+//
+//  }
+//
+//  private Set<String> unconnectedSteps() {
+//
+//  }
+//
+//  private Set<String> unconnectedInputs() {
+//
+//  }
+
+  @Override
+  public ValidationReport validate() {
+    List<ValidationReport.Item> messages = new ArrayList<>();
+    messages.addAll(ValidationReport.messagesToItems(validatePortUniqueness(), ValidationReport.Severity.ERROR));
+    for (String duplicate : checkStepDuplicates()) {
+      messages.add(ValidationReport.error("Duplicate step id: " + duplicate));
+    }
+
+    if (steps == null || steps.isEmpty()) {
+      messages.add(ValidationReport.error("Workflow has no steps"));
+    }
+
+    for (CWLStep step : steps) {
+      for (ValidationReport.Item item : step.getApp().validate().getItems()) {
+        messages.add(
+            ValidationReport.item(
+                item.getSeverity() + " from app in step '" + step.getId() + "': " + item.getMessage(),
+                item.getSeverity())
+        );
+      }
+    }
+
+    return new ValidationReport(messages);
+  }
 }

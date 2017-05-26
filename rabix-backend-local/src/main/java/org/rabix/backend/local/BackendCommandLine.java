@@ -2,6 +2,7 @@ package org.rabix.backend.local;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -20,11 +22,11 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
-import org.rabix.backend.local.download.LocalDownloadServiceImpl;
-import org.rabix.backend.local.tes.client.TESHttpClient;
-import org.rabix.backend.local.tes.service.TESStorageService;
-import org.rabix.backend.local.tes.service.impl.LocalTESExecutorServiceImpl;
-import org.rabix.backend.local.tes.service.impl.LocalTESStorageServiceImpl;
+import org.rabix.backend.api.BackendModule;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
+import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
+import org.rabix.backend.local.service.LocalDownloadServiceImpl;
+import org.rabix.backend.tes.TESModule;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -41,8 +43,8 @@ import org.rabix.bindings.model.Resources;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.common.logging.VerboseLogger;
-import org.rabix.common.retry.RetryInterceptorModule;
 import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
@@ -53,14 +55,15 @@ import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
 import org.rabix.engine.rest.api.impl.JobHTTPServiceImpl;
 import org.rabix.engine.service.BackendService;
-import org.rabix.engine.service.BackendServiceException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobServiceException;
 import org.rabix.engine.service.SchedulerService;
-import org.rabix.engine.service.SchedulerService.SchedulerCallback;
+import org.rabix.engine.service.SchedulerService.SchedulerJobBackendAssigner;
+import org.rabix.engine.service.SchedulerService.SchedulerMessageCreator;
+import org.rabix.engine.service.SchedulerService.SchedulerMessageSender;
 import org.rabix.engine.service.impl.BackendServiceImpl;
 import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
 import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
@@ -72,31 +75,11 @@ import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.executor.config.StorageConfiguration;
-import org.rabix.executor.config.impl.DefaultStorageConfiguration;
-import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
-import org.rabix.executor.execution.JobHandlerCommandDispatcher;
-import org.rabix.executor.handler.JobHandler;
-import org.rabix.executor.handler.JobHandlerFactory;
-import org.rabix.executor.handler.impl.JobHandlerImpl;
+import org.rabix.executor.config.impl.LocalStorageConfiguration;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.pathmapper.local.LocalPathMapper;
-import org.rabix.executor.service.CacheService;
-import org.rabix.executor.service.ExecutorService;
-import org.rabix.executor.service.FilePermissionService;
-import org.rabix.executor.service.FileService;
-import org.rabix.executor.service.JobDataService;
-import org.rabix.executor.service.JobFitter;
-import org.rabix.executor.service.impl.CacheServiceImpl;
-import org.rabix.executor.service.impl.ExecutorServiceImpl;
-import org.rabix.executor.service.impl.FilePermissionServiceImpl;
-import org.rabix.executor.service.impl.FileServiceImpl;
-import org.rabix.executor.service.impl.JobDataServiceImpl;
-import org.rabix.executor.service.impl.JobFitterImpl;
-import org.rabix.executor.status.ExecutorStatusCallback;
-import org.rabix.executor.status.impl.NoOpExecutorStatusCallback;
 import org.rabix.ftp.SimpleFTPModule;
-import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +90,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
  * Local command line executor
@@ -233,54 +215,46 @@ public class BackendCommandLine {
         }
       }
       
-      final boolean isTesEnabled = tesURL != null;
-      
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
           new SimpleFTPModule(),
           new EngineModule(configModule),
+          new TESModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {
               install(configModule);
               
-              bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
               bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
               bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
               
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
               bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
-              bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+              bind(SchedulerMessageCreator.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+              bind(SchedulerJobBackendAssigner.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+              bind(SchedulerMessageSender.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
               bind(EngineStatusCallback.class).to(DefaultEngineStatusCallback.class).in(Scopes.SINGLETON);
               bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
               bind(DownloadService.class).to(LocalDownloadServiceImpl.class).in(Scopes.SINGLETON);
               bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
-              bind(ExecutorStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);
+              bind(WorkerStatusCallback.class).to(NoOpWorkerStatusCallback.class).in(Scopes.SINGLETON);
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
+
+              bind(StorageConfiguration.class).toInstance(new LocalStorageConfiguration(appPath, configModule.provideConfig()));
               bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
               bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
               bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
               bind(new TypeLiteral<ReceiveCallback<Job>>(){}).to(JobReceiverImpl.class).in(Scopes.SINGLETON);
               
-              if (isTesEnabled) {
-                bind(TESHttpClient.class).in(Scopes.SINGLETON);
-                bind(TESStorageService.class).to(LocalTESStorageServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ExecutorService.class).to(LocalTESExecutorServiceImpl.class).in(Scopes.SINGLETON);
-              } else {
-                install(new RetryInterceptorModule());
-                install(new FactoryModuleBuilder().implement(JobHandler.class, JobHandlerImpl.class).build(JobHandlerFactory.class));
-
-                bind(DockerClientLockDecorator.class).in(Scopes.SINGLETON);
-
-                bind(JobFitter.class).to(JobFitterImpl.class).in(Scopes.SINGLETON);
-                bind(JobDataService.class).to(JobDataServiceImpl.class).in(Scopes.SINGLETON);
-                bind(JobHandlerCommandDispatcher.class).in(Scopes.SINGLETON);
-
-                bind(FileService.class).to(FileServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ExecutorService.class).to(ExecutorServiceImpl.class).in(Scopes.SINGLETON);
-                bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
-                bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
+              Set<Class<BackendModule>> backendModuleClasses = ClasspathScanner.<BackendModule>scanSubclasses(BackendModule.class);
+              for (Class<BackendModule> backendModuleClass : backendModuleClasses) {
+                try {
+                  install(backendModuleClass.getConstructor(ConfigModule.class).newInstance(configModule));
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                  logger.error("Failed to instantiate BackendModule " + backendModuleClass, e);
+                  System.exit(33);
+                }
               }
             }
           });
@@ -315,7 +289,7 @@ public class BackendCommandLine {
       Map<String, Object> inputs;
       if (inputsFile != null) {
         String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
-        inputs = JSONHelper.readMap(JSONHelper.transformToJSON(inputsText));
+        inputs = JSONHelper.readMap(JSONHelper.readJsonNode(inputsText));
       } else {
         inputs = new HashMap<>();
         // No inputs file. If we didn't provide -- at the end, just print app help and exit
@@ -411,13 +385,8 @@ public class BackendCommandLine {
       final SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
       
       final JobService jobService = injector.getInstance(JobService.class);
-      final BackendService backendService = injector.getInstance(BackendService.class);
-      final ExecutorService executorService = injector.getInstance(ExecutorService.class);
       final ContextRecordService contextRecordService = injector.getInstance(ContextRecordService.class);
       
-      BackendLocal backendLocal = new BackendLocal();
-      backendLocal = backendService.create(backendLocal);
-      executorService.initialize(backendLocal);
       schedulerService.start();
       Object commonInputs = null;
       try {
@@ -476,9 +445,6 @@ public class BackendCommandLine {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
     } catch (JobServiceException | InterruptedException e) {
-      logger.error("Encountered an error while starting local backend.", e);
-      System.exit(10);
-    } catch (BackendServiceException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }

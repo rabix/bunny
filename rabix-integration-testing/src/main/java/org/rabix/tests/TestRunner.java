@@ -105,7 +105,7 @@ public class TestRunner {
         currentTestSuite = child.getPath();
         logger.info("Executing test suite: " + currentTestSuite);
         String currentTest = readFile(child.getAbsolutePath(), Charset.defaultCharset());
-        Map<String, Object> inputSuite = JSONHelper.readMap(JSONHelper.transformToJSON(currentTest));
+        Map<String, Object> inputSuite = JSONHelper.readMap(JSONHelper.readJsonNode(currentTest));
         Iterator<?> entries = inputSuite.entrySet().iterator();
 
         while (entries.hasNext()) {
@@ -133,7 +133,7 @@ public class TestRunner {
           String resultText = readFile(integrationTempResultFile.getAbsolutePath(), Charset.defaultCharset());
           logger.info("\nGenerated result file:");
           logger.info(resultText);
-          Map<String, Object> actualResult = JSONHelper.readMap(JSONHelper.transformToJSON(resultText));
+          Map<String, Object> actualResult = JSONHelper.readMap(JSONHelper.readJsonNode(resultText));
           testPassed = validateTestCase(currentTestDetails, actualResult);
           logger.info("Test result: ");
           if (testPassed) {

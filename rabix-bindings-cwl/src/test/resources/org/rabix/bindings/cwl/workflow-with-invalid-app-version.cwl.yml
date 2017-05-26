@@ -1,0 +1,13 @@
+class: Workflow
+cwlVersion: v1.0
+inputs:
+  in: string[]
+outputs:
+  out: string[]
+steps:
+  - id: one
+    in:
+      in: in
+    out: [out]
+    scatter: in
+    run: invalid-version.cwl

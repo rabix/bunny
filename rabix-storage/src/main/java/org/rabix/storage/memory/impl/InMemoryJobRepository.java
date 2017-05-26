@@ -55,7 +55,7 @@ public class InMemoryJobRepository implements JobRepository {
   public synchronized void dealocateJobs(UUID backendId) {
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       for(JobEntity job: rootJobs.values()) {
-        if(job.getBackendId().equals(backendId) && job.getJob().getStatus().equals(JobStatus.READY)) {
+        if(backendId.equals(job.getBackendId()) && job.getJob().getStatus().equals(JobStatus.READY)) {
           job.setBackendId(null);
         }
       }

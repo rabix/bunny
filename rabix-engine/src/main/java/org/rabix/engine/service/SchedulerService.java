@@ -5,7 +5,9 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
 import org.rabix.storage.repository.JobRepository.JobEntity;
+import org.rabix.engine.service.SchedulerService.SchedulerJobBackendAssigner.JobBackendAssignment;
 import org.rabix.engine.stub.BackendStub;
+import org.rabix.transport.backend.Backend;
 
 public interface SchedulerService {
 
@@ -19,10 +21,44 @@ public interface SchedulerService {
 
   void deallocate(Job job);
   
-  public static interface SchedulerCallback {
+  @FunctionalInterface
+  public static interface SchedulerJobBackendAssigner {
     
-    Set<SchedulerMessage> onSchedule(Set<JobEntity> entities, Set<UUID> backendIDs);
+    public class JobBackendAssignment {
+      private final Job job;
+      private final Backend backend;
+      
+      public JobBackendAssignment(Job job, Backend backend) {
+        super();
+        this.job = job;
+        this.backend = backend;
+      }
+      
+      public Backend getBackend() {
+        return backend;
+      }
+      
+      public Job getJob() {
+        return job;
+      }
+
+      @Override
+      public String toString() {
+        return "JobBackendAssignment [jobId=" + job.getId() + ", backendId=" + backend.getId() + "]";
+      }
+    }
     
+    Set<JobBackendAssignment> assign(final Set<Job> jobs, final Set<Backend> backends);
+  }
+  
+  @FunctionalInterface
+  public static interface SchedulerMessageCreator {
+    Set<SchedulerMessage> create(Set<JobBackendAssignment> entities, Set<UUID> backendIds);
+  }
+  
+  @FunctionalInterface
+  public static interface SchedulerMessageSender {
+    void send(Set<SchedulerMessage> messages);
   }
   
   public static class SchedulerMessage {

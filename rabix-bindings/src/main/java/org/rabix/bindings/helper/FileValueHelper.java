@@ -16,13 +16,9 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.CloneHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FileValueHelper {
 
-  private final static Logger logger = LoggerFactory.getLogger(FileValueHelper.class);
-  
   /**
    * Creates copy of value (in common format) in which all FileValues are updated using fileTransformer
    * @param value
