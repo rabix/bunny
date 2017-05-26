@@ -1,6 +1,7 @@
 package org.rabix.backend.tes.service.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mina.util.ConcurrentHashSet;
@@ -54,6 +56,10 @@ import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleFileRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleInputDirectoryRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.transport.backend.Backend;
@@ -266,6 +272,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         List<Requirement> combinedRequirements = new ArrayList<>();
         combinedRequirements.addAll(bindings.getHints(job));
         combinedRequirements.addAll(bindings.getRequirements(job));
+        stageFileRequirements(workingDir, combinedRequirements);
         FileRequirement requirement = getRequirement(combinedRequirements, FileRequirement.class);
         if (requirement != null) {
           inputs.addAll(requirement.getFileRequirements().stream().map(r -> {
@@ -371,7 +378,43 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           tesJob.getState().equals(TESState.SystemError);
     }
   }
-  
+  private void stageFileRequirements(File workingDir, List<Requirement> requirements) throws BindingException {
+    try {
+      FileRequirement fileRequirementResource = getRequirement(requirements, FileRequirement.class);
+      if (fileRequirementResource == null) {
+        return;
+      }
+
+      List<SingleFileRequirement> fileRequirements = fileRequirementResource.getFileRequirements();
+      if (fileRequirements == null) {
+        return;
+      }
+      for (SingleFileRequirement fileRequirement : fileRequirements) {
+        logger.info("Process file requirement {}", fileRequirement);
+
+        File destinationFile = new File(workingDir, fileRequirement.getFilename());
+        if (fileRequirement instanceof SingleTextFileRequirement) {
+          FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent());
+          continue;
+        }
+        if (fileRequirement instanceof SingleInputFileRequirement || fileRequirement instanceof SingleInputDirectoryRequirement) {
+          String path = ((SingleInputFileRequirement) fileRequirement).getContent().getPath();
+          File file = new File(path);
+          if (!file.exists()) {
+            continue;
+          }
+          if (file.isFile()) {
+            FileUtils.copyFile(file, destinationFile);
+          } else {
+            FileUtils.copyDirectory(file, destinationFile);
+          }
+        }
+      }
+    } catch (IOException e) {
+      logger.error("Failed to process file requirements.", e);
+      throw new BindingException("Failed to process file requirements.");
+    }
+  }
   @Override
   public void cancel(List<UUID> ids, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
