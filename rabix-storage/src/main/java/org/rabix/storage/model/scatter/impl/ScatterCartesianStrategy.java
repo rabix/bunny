@@ -140,7 +140,13 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
 //    }
 //    return null;
 //  }
-  
+
+
+  @Override
+  public List<Integer> shape() {
+    return null;
+  }
+
   private <T> LinkedList<T> expand(LinkedList<T> list, Integer position) {
     if (list == null) {
       list = new LinkedList<>();

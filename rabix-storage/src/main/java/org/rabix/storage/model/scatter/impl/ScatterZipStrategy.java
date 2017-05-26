@@ -214,6 +214,12 @@ public class ScatterZipStrategy implements ScatterStrategy {
 //    return result;
 //  }
 
+
+  @Override
+  public List<Integer> shape() {
+    return Collections.singletonList(combinations.size());
+  }
+
   @Override
   public boolean isHanging() {
     for (String port : values.keySet()) {

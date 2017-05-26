@@ -1,8 +1,8 @@
 package org.rabix.storage.postgres.jdbi.impl;
 
 import org.rabix.storage.postgres.jdbi.impl.JDBIJobStatsRecordRepository.JobStatsRecordMapper;
-import org.rabix.engine.model.JobStatsRecord;
-import org.rabix.engine.repository.JobStatsRecordRepository;
+import org.rabix.storage.model.JobStatsRecord;
+import org.rabix.storage.repository.JobStatsRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.*;

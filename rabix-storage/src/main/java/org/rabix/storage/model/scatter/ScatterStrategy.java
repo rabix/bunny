@@ -25,6 +25,7 @@ public interface ScatterStrategy {
   List<RowMapping> enabled() throws ScatterStrategyException;
   
 //  LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId);
+  List<Integer> shape();
   
   void setEmptyListDetected();
   

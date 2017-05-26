@@ -5,17 +5,17 @@ import java.util.logging.Logger;
 
 import org.apache.commons.configuration.Configuration;
 import org.postgresql.jdbc3.Jdbc3PoolingDataSource;
-import org.rabix.engine.repository.AppRepository;
-import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.ContextRecordRepository;
-import org.rabix.engine.repository.DAGRepository;
-import org.rabix.engine.repository.EventRepository;
-import org.rabix.engine.repository.IntermediaryFilesRepository;
-import org.rabix.engine.repository.JobRecordRepository;
-import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.repository.JobStatsRecordRepository;
-import org.rabix.engine.repository.LinkRecordRepository;
-import org.rabix.engine.repository.VariableRecordRepository;
+import org.rabix.storage.repository.AppRepository;
+import org.rabix.storage.repository.BackendRepository;
+import org.rabix.storage.repository.ContextRecordRepository;
+import org.rabix.storage.repository.DAGRepository;
+import org.rabix.storage.repository.EventRepository;
+import org.rabix.storage.repository.IntermediaryFilesRepository;
+import org.rabix.storage.repository.JobRecordRepository;
+import org.rabix.storage.repository.JobRepository;
+import org.rabix.storage.repository.JobStatsRecordRepository;
+import org.rabix.storage.repository.LinkRecordRepository;
+import org.rabix.storage.repository.VariableRecordRepository;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.logging.SLF4JLog;
 

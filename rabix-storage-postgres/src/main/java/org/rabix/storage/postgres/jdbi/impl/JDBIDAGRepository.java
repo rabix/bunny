@@ -8,7 +8,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.storage.postgres.jdbi.bindings.BindJson;
 import org.rabix.storage.postgres.jdbi.impl.JDBIDAGRepository.DAGNodeMapper;
-import org.rabix.engine.repository.DAGRepository;
+import org.rabix.storage.repository.DAGRepository;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
