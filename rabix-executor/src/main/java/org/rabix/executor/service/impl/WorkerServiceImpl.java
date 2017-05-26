@@ -74,7 +74,7 @@ public class WorkerServiceImpl implements WorkerService {
   }
 
   @Override
-  public void start(final Job job, UUID rootId) {
+  public void submit(final Job job, UUID rootId) {
     logger.debug("start(id={}, important={}, uploadOutputs={})", job.getId());
 
     final JobData jobData = new JobData(job, JobDataStatus.PENDING, "Job is queued to start.", false, false);
@@ -82,7 +82,7 @@ public class WorkerServiceImpl implements WorkerService {
   }
 
   @Override
-  public void stop(List<UUID> ids, UUID rootId) {
+  public void cancel(List<UUID> ids, UUID rootId) {
     logger.debug("stop(ids={})", ids);
 
     for (UUID id : ids) {
@@ -94,7 +94,7 @@ public class WorkerServiceImpl implements WorkerService {
   }
 
   @Override
-  public void free(UUID rootId, Map<String, Object> config) {
+  public void freeResources(UUID rootId, Map<String, Object> config) {
     // free resources
   }
   

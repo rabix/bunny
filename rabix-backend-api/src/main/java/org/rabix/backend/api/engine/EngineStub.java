@@ -46,7 +46,7 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
     transportPlugin.startReceiver(sendToBackendQueue, Job.class, new ReceiveCallback<Job>() {
       @Override
       public void handleReceive(Job job) throws TransportPluginException {
-        executorService.start(job, job.getRootId());
+        executorService.submit(job, job.getRootId());
       }
     }, new ErrorCallback() {
       @Override
@@ -62,10 +62,10 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
         case STOP:
           List<UUID> ids = new ArrayList<>();
           ids.add(((EngineControlStopMessage)controlMessage).getId());
-          executorService.stop(ids, controlMessage.getRootId());
+          executorService.cancel(ids, controlMessage.getRootId());
           break;
         case FREE:
-          executorService.free(controlMessage.getRootId(), ((EngineControlFreeMessage)controlMessage).getConfig());
+          executorService.freeResources(controlMessage.getRootId(), ((EngineControlFreeMessage)controlMessage).getConfig());
           break;
         default:
           break;

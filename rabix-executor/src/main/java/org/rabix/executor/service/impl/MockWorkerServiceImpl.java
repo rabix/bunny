@@ -124,7 +124,7 @@ public class MockWorkerServiceImpl implements WorkerService {
   }
 
   @Override
-  public void start(Job job, UUID rootId) {
+  public void submit(Job job, UUID rootId) {
     logger.info("Received Job {}", job.getName());
     MutableJob cachedJob = cachedJobs.get(job.getName());
     cachedJob.status = JobStatus.COMPLETED;
@@ -137,11 +137,11 @@ public class MockWorkerServiceImpl implements WorkerService {
   }
 
   @Override
-  public void stop(List<UUID> ids, UUID rootId) {
+  public void cancel(List<UUID> ids, UUID rootId) {
   }
 
   @Override
-  public void free(UUID rootId, Map<String, Object> config) {
+  public void freeResources(UUID rootId, Map<String, Object> config) {
   }
 
   @Override

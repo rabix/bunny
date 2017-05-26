@@ -200,7 +200,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     }, 0, 1, TimeUnit.SECONDS);
   }
 
-  public void start(Job job, UUID contextId) {
+  public void submit(Job job, UUID contextId) {
     pendingResults.add(new PendingResult(job, taskPoolExecutor.submit(new TaskRunCallable(job))));
   }
 
@@ -486,12 +486,12 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   }
   
   @Override
-  public void stop(List<UUID> ids, UUID contextId) {
+  public void cancel(List<UUID> ids, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
   }
 
   @Override
-  public void free(UUID rootId, Map<String, Object> config) {
+  public void freeResources(UUID rootId, Map<String, Object> config) {
     throw new NotImplementedException("This method is not implemented");
   }
 

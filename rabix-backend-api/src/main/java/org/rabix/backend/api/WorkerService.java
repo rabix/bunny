@@ -12,11 +12,11 @@ public interface WorkerService {
 
   void start(Backend backend);
   
-  void start(final Job job, UUID rootId);
+  void submit(final Job job, UUID rootId);
 
-  void stop(List<UUID> ids, UUID rootId);
+  void cancel(List<UUID> ids, UUID rootId);
 
-  void free(UUID rootId, Map<String, Object> config);
+  void freeResources(UUID rootId, Map<String, Object> config);
   
   void shutdown(Boolean stopEverything);
 
