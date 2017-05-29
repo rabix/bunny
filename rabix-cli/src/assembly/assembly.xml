@@ -44,9 +44,9 @@
     </fileSets>
     <files>
 		<file>
-			<source>${project.build.directory}/rabix-backend-local-${project.version}.jar</source>
+			<source>${project.build.directory}/rabix-cli-${project.version}.jar</source>
 			<outputDirectory>/lib/</outputDirectory>
-			<destName>rabix-backend-local.jar</destName>
+			<destName>rabix-cli.jar</destName>
 		</file>
 	</files>
 </assembly>

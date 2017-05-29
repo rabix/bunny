@@ -14,7 +14,7 @@
 		<module>rabix-ftp</module>
 		<module>rabix-engine-rest</module>
 		<module>rabix-common</module>
-		<module>rabix-backend-local</module>
+		<module>rabix-cli</module>
 		<module>rabix-transport</module>
 		<module>rabix-integration-testing</module>
 		<module>rabix-bindings-cwl</module>

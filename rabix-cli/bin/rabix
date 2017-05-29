@@ -24,7 +24,7 @@ for var in "$@" ; do
     fi
 done
 
-command="java -Dlogback.configurationFile='${loggingConfiguration}' -jar '$basedir/lib/rabix-backend-local.jar'"
+command="java -Dlogback.configurationFile='${loggingConfiguration}' -jar '$basedir/lib/rabix-cli.jar'"
 
 args=""
 
