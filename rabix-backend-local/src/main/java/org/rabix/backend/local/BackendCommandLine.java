@@ -7,8 +7,11 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.api.BackendModule;
@@ -32,7 +36,6 @@ import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.URIHelper;
-import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.DataType;
@@ -74,11 +77,7 @@ import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
-import org.rabix.executor.config.StorageConfiguration;
-import org.rabix.executor.config.impl.LocalStorageConfiguration;
-import org.rabix.executor.pathmapper.InputFileMapper;
-import org.rabix.executor.pathmapper.OutputFileMapper;
-import org.rabix.executor.pathmapper.local.LocalPathMapper;
+import org.rabix.executor.LocalStorageModule;
 import org.rabix.ftp.SimpleFTPModule;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
@@ -218,6 +217,7 @@ public class BackendCommandLine {
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
           new SimpleFTPModule(),
+          new LocalStorageModule(configModule, generateDirectoryName(appPath)),
           new EngineModule(configModule),
           new TESModule(configModule),
           new AbstractModule() {
@@ -241,9 +241,6 @@ public class BackendCommandLine {
               bind(WorkerStatusCallback.class).to(NoOpWorkerStatusCallback.class).in(Scopes.SINGLETON);
               bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
 
-              bind(StorageConfiguration.class).toInstance(new LocalStorageConfiguration(appPath, configModule.provideConfig()));
-              bind(FilePathMapper.class).annotatedWith(InputFileMapper.class).to(LocalPathMapper.class);
-              bind(FilePathMapper.class).annotatedWith(OutputFileMapper.class).to(LocalPathMapper.class);
               bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
               bind(new TypeLiteral<ReceiveCallback<Job>>(){}).to(JobReceiverImpl.class).in(Scopes.SINGLETON);
               
@@ -609,6 +606,15 @@ public class BackendCommandLine {
     } else {
       return value[0];
     }
+  }
+  
+  /**
+   * Returns a directory name containing the current date and app name
+   */
+  private static String generateDirectoryName(String path) {
+    String name = FilenameUtils.getBaseName(path);
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HHmmss.S");
+    return name + "-" + df.format(new Date());
   }
 
 }
