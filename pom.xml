@@ -22,8 +22,8 @@
 		<module>rabix-bindings-draft3</module>
 		<module>rabix-bindings-sb</module>
 		<module>rabix-tes-command-line</module>
-		<module>rabix-storage</module>
-		<module>rabix-storage-postgres</module>
+		<module>rabix-engine-store</module>
+		<module>rabix-engine-store-postgres</module>
 		<module>rabix-backend-api</module>
 		<module>rabix-backend-tes</module>
 	</modules>

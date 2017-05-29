@@ -59,12 +59,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
-			<artifactId>rabix-storage</artifactId>
+			<artifactId>rabix-engine-store</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
-			<artifactId>rabix-storage-postgres</artifactId>
+			<artifactId>rabix-engine-store-postgres</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
