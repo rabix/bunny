@@ -492,6 +492,14 @@ public class BackendCommandLine {
     options.addOption(null, "outdir", true, "doesn't do anything");
     options.addOption(null, "quiet", false, "don't print anything except final result on standard output");
     options.addOption(null, "tes-url", true, "url of the ga4gh task execution server instance (experimental)");
+    // TODO: implement useful cli overrides for config options
+//    options.addOption(null, "set-ownership", false, "");
+//    options.addOption(null, "ownership-uid", true, "");
+//    options.addOption(null, "ownership-gid", true, "");
+//    options.addOption(null, "remove-containers", false, "");
+//    options.addOption(null, "keep-containers", false, "");
+//    options.addOption(null, "delete-intermediary-files", false, "");
+//    options.addOption(null, "keep-intermediary-files", false, "");
     options.addOption(null, "version", false, "print program version and exit");
     options.addOption("h", "help", false, "print this help message and exit");
     return options;
@@ -513,12 +521,18 @@ public class BackendCommandLine {
    */
   private static void printUsageAndExit(Options options) {
     HelpFormatter hf =new HelpFormatter();
-    hf.setWidth(80);
-    hf.setSyntaxPrefix("Usage: ");
-    final String usage = "rabix [OPTION]... <tool> <job> [-- {inputs}...]";
-    final String header = "Executes CWL application with provided inputs.\n\n";
-    final String footer = "\nYou can add/override additional input parameters after -- parameter.\n\n" +
-            "Rabix suite homepage: https://rabix.org\n" +
+    hf.setWidth(87);
+    hf.setSyntaxPrefix("Usage: \n");
+    final String usage = "    rabix [OPTIONS]... <app> <inputs> [-- input_parameters...]\n" +
+        "    rabix [OPTIONS]... <app> -- input_parameters...\n\n" +
+        "where:\n" +
+        " <app>               is the path to a CWL document that describes the app.\n" +
+        " <inputs>            is the JSON or YAML file that provides the values of app inputs.\n" +
+        " input_parameters... are the app input values specified directly from the command line\n\n";
+    final String header = "Executes CWL application with provided inputs.\n\nOptions:\n";
+    final String footer = "\nInput parameters are specified at the end of the command, after the -- delimiter. You can specify values for each input, using the following format:\n" +
+        "  --<input_port_id> <value>\n\n" +
+            "Rabix suite homepage: http://rabix.io\n" +
             "Source and issue tracker: https://github.com/rabix/bunny.";
     hf.printHelp(usage, header, options, footer);
     System.exit(10);

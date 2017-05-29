@@ -25,7 +25,7 @@ public class JobFitterImpl implements JobFitter {
 
   @Inject
   public JobFitterImpl(Configuration configuration) {
-    this.isEnabled = configuration.getBoolean("resource.fitter.enabled", false);
+    this.isEnabled = configuration.getBoolean("executor.resource_fitter_enabled", false);
     
     this.availableMemory = SystemEnvironmentHelper.getTotalPhysicalMemorySizeInMB();
     this.availableCores = SystemEnvironmentHelper.getNumberOfCores();
