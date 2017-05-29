@@ -121,7 +121,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if (scatterStrategy.isBlocking()) {
         if (sourceJob.isOutputPortReady(event.getPortId())) {
           isValueFromScatterStrategy = true;
-//          value = scatterStrategy.values(variableService, sourceJob.getId(), event.getPortId(), event.getContextId());
+          value = scatterStrategy.values(variableService, sourceJob.getId(), event.getPortId(), event.getContextId());
         } else {
           return;
         }

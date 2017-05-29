@@ -5,8 +5,9 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.storage.model.VariableRecord;
+import org.rabix.storage.model.scatter.VariableFinder;
 
-public interface VariableRecordService {
+public interface VariableRecordService extends VariableFinder{
 
   void create(VariableRecord variableRecord);
   
@@ -16,12 +17,8 @@ public interface VariableRecordService {
   
   List<VariableRecord> find(String jobId, String portId, UUID rootId);
 
-  VariableRecord find(String jobId, String portId, LinkPortType type, UUID rootId);
-
   void addValue(VariableRecord variableRecord, Object value, Integer position, boolean wrap);
   
   Object linkMerge(VariableRecord variableRecord);
-
-  Object getValue(VariableRecord variableRecord);
 
 }

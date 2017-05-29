@@ -17,10 +17,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.storage.model.VariableRecord;
-import org.rabix.storage.model.scatter.PortMapping;
-import org.rabix.storage.model.scatter.RowMapping;
-import org.rabix.storage.model.scatter.ScatterStrategy;
-import org.rabix.storage.model.scatter.ScatterStrategyException;
+import org.rabix.storage.model.scatter.*;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -102,48 +99,42 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     this.sizePerPort.put(port, sizePerPort);
   }
 
-//  @Override
-//  public synchronized LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID contextId) {
-//    Collections.sort(combinations, new Comparator<Combination>() {
-//      @Override
-//      public int compare(Combination o1, Combination o2) {
-//        return o1.indexes.toString().compareTo(o2.indexes.toString());
-//      }
-//    });
-//
-//    if (scatterMethod.equals(ScatterMethod.flat_crossproduct)) {
-//      LinkedList<Object> result = new LinkedList<>();
-//      for (Combination combination : combinations) {
-//        String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-//        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-//        result.addLast(variableRecordService.getValue(variableRecord));
-//      }
-//      return result;
-//    }
-//    if (scatterMethod.equals(ScatterMethod.nested_crossproduct)) {
-//      LinkedList<Object> result = new LinkedList<>();
-//
-//      int position = 1;
-//      LinkedList<Object> subresult = new LinkedList<>();
-//      for (Combination combination : combinations) {
-//        if (combination.indexes.get(0) != position) {
-//          result.addLast(subresult);
-//          subresult = new LinkedList<>();
-//          position++;
-//        }
-//        String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-//        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-//        subresult.addLast(variableRecordService.getValue(variableRecord));
-//      }
-//      result.addLast(subresult);
-//      return result;
-//    }
-//    return null;
-//  }
-
-
   @Override
-  public List<Integer> shape() {
+  public synchronized LinkedList<Object> values(VariableFinder variableRecordService, String jobId, String portId, UUID contextId) {
+    Collections.sort(combinations, new Comparator<Combination>() {
+      @Override
+      public int compare(Combination o1, Combination o2) {
+        return o1.indexes.toString().compareTo(o2.indexes.toString());
+      }
+    });
+
+    if (scatterMethod.equals(ScatterMethod.flat_crossproduct)) {
+      LinkedList<Object> result = new LinkedList<>();
+      for (Combination combination : combinations) {
+        String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
+        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
+        result.addLast(variableRecordService.getValue(variableRecord));
+      }
+      return result;
+    }
+    if (scatterMethod.equals(ScatterMethod.nested_crossproduct)) {
+      LinkedList<Object> result = new LinkedList<>();
+
+      int position = 1;
+      LinkedList<Object> subresult = new LinkedList<>();
+      for (Combination combination : combinations) {
+        if (combination.indexes.get(0) != position) {
+          result.addLast(subresult);
+          subresult = new LinkedList<>();
+          position++;
+        }
+        String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
+        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
+        subresult.addLast(variableRecordService.getValue(variableRecord));
+      }
+      result.addLast(subresult);
+      return result;
+    }
     return null;
   }
 

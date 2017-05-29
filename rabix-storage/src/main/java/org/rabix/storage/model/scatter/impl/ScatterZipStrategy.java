@@ -16,10 +16,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.storage.model.VariableRecord;
-import org.rabix.storage.model.scatter.PortMapping;
-import org.rabix.storage.model.scatter.RowMapping;
-import org.rabix.storage.model.scatter.ScatterStrategy;
-import org.rabix.storage.model.scatter.ScatterStrategyException;
+import org.rabix.storage.model.scatter.*;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -196,28 +193,22 @@ public class ScatterZipStrategy implements ScatterStrategy {
     return ScatterMethod.isBlocking(scatterMethod);
   }
 
-//  @Override
-//  public LinkedList<Object> values(VariableRecordService variableRecordService, String jobId, String portId, UUID rootId) {
-//    Collections.sort(combinations, new Comparator<Combination>() {
-//      @Override
-//      public int compare(Combination o1, Combination o2) {
-//        return o1.position - o2.position;
-//      }
-//    });
-//
-//    LinkedList<Object> result = new LinkedList<>();
-//    for (Combination combination : combinations) {
-//      String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-//      VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, rootId);
-//      result.addLast(variableRecordService.getValue(variableRecord));
-//    }
-//    return result;
-//  }
-
-
   @Override
-  public List<Integer> shape() {
-    return Collections.singletonList(combinations.size());
+  public LinkedList<Object> values(VariableFinder variableRecordService, String jobId, String portId, UUID rootId) {
+    Collections.sort(combinations, new Comparator<Combination>() {
+      @Override
+      public int compare(Combination o1, Combination o2) {
+        return o1.position - o2.position;
+      }
+    });
+
+    LinkedList<Object> result = new LinkedList<>();
+    for (Combination combination : combinations) {
+      String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
+      VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, rootId);
+      result.addLast(variableRecordService.getValue(variableRecord));
+    }
+    return result;
   }
 
   @Override
