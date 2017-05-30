@@ -52,7 +52,6 @@ import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
 import org.rabix.engine.EngineModule;
-import org.rabix.storage.model.ContextRecord;
 import org.rabix.engine.rest.api.BackendHTTPService;
 import org.rabix.engine.rest.api.JobHTTPService;
 import org.rabix.engine.rest.api.impl.BackendHTTPServiceImpl;
@@ -77,8 +76,8 @@ import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
-import org.rabix.executor.LocalStorageModule;
 import org.rabix.ftp.SimpleFTPModule;
+import org.rabix.storage.model.ContextRecord;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,6 +154,10 @@ public class BackendCommandLine {
 
       Map<String, Object> configOverrides = new HashMap<>();
       configOverrides.put("cleaner.backend.period", 5000L);
+      
+      String directoryName = generateDirectoryName(appPath);
+      configOverrides.put("backend.execution.directory.name", directoryName);
+          
       String executionDirPath = commandLine.getOptionValue("basedir");
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
@@ -217,7 +220,6 @@ public class BackendCommandLine {
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
           new SimpleFTPModule(),
-          new LocalStorageModule(configModule, generateDirectoryName(appPath)),
           new EngineModule(configModule),
           new TESModule(configModule),
           new AbstractModule() {
