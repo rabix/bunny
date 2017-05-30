@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.storage.model.JobRecord;
+import org.rabix.engine.store.model.JobRecord;
 
 public interface JobRecordService {
 

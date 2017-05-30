@@ -7,8 +7,8 @@ import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.storage.lru.app.AppCache;
-import org.rabix.storage.repository.AppRepository;
+import org.rabix.engine.store.lru.app.AppCache;
+import org.rabix.engine.store.repository.AppRepository;
 
 import com.google.inject.Inject;
 

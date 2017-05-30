@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.storage.model.VariableRecord;
+import org.rabix.engine.store.model.VariableRecord;
 
 public interface VariableRecordService {
 
