@@ -61,7 +61,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   public abstract void updateBatch(@BindVariableRecord Iterator<VariableRecord> records);
   
   @Override
-  @SqlBatch("deleteGroup from variable_record where job_id=:id and context_id=:root_id")
+  @SqlBatch("delete from variable_record where job_id=:id and context_id=:root_id")
   public abstract void delete(@JDBIJobRecordRepository.BindJobIdRootId Set<JobRecord.JobIdRootIdPair> pairs);
   
   @Override

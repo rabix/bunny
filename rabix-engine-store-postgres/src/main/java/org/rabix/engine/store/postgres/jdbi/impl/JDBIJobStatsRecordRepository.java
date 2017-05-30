@@ -30,7 +30,7 @@ public interface JDBIJobStatsRecordRepository extends JobStatsRecordRepository {
   JobStatsRecord get(@Bind("root_id") UUID id);
 
   @Override
-  @SqlUpdate("deleteGroup from job_stats where root_id=:root_id")
+  @SqlUpdate("delete from job_stats where root_id=:root_id")
   int delete(@Bind("root_id") UUID id);
 
   @BindingAnnotation(BindJobStatsRecord.JobStatsBinderFactory.class)

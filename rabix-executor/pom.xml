@@ -53,11 +53,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
-			<artifactId>rabix-ftp</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
 			<artifactId>rabix-transport</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -70,16 +65,6 @@
 			<groupId>com.spotify</groupId>
 			<artifactId>docker-client</artifactId>
 			<version>${docker-client.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-core</artifactId>
-			<version>5.7.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-pool</artifactId>
-			<version>5.13.2</version>
 		</dependency>
 	</dependencies>
 </project>

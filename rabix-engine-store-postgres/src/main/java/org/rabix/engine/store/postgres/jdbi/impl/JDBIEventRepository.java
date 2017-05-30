@@ -28,7 +28,7 @@ public interface JDBIEventRepository extends EventRepository {
   void updateStatus(@BindEvent EventRecord eventRecord);
   
   @Override
-  @SqlUpdate("deleteGroup from event where id=:id")
+  @SqlUpdate("delete from event where id=:id")
   void deleteGroup(@Bind("id") UUID id);
   
   @Override

@@ -65,7 +65,7 @@ public class BackendServiceImpl implements BackendService {
                 backend.getName(),
                 Instant.now(),
                 JSONHelper.convertToMap(backend),
-                null,
+                BackendRecord.Status.ACTIVE,
                 BackendRecord.Type.valueOf(backend.getType().toString()));
             backendRepository.insert(br);
             BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);

@@ -1,4 +1,4 @@
-package org.rabix.backend.local;
+package org.rabix.cli;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.api.BackendModule;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
-import org.rabix.backend.local.service.LocalDownloadServiceImpl;
+import org.rabix.cli.service.LocalDownloadServiceImpl;
 import org.rabix.backend.tes.TESModule;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;

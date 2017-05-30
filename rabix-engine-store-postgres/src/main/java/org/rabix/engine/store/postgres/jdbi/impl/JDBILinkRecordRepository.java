@@ -51,7 +51,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   public abstract void updateBatch(@BindLinkRecord Iterator<LinkRecord> records);
   
   @Override
-  @SqlBatch("deleteGroup from link_record where source_job_id=:id and context_id=:root_id")
+  @SqlBatch("delete from link_record where source_job_id=:id and context_id=:root_id")
   public abstract void delete(@JDBIJobRecordRepository.BindJobIdRootId Set<JobIdRootIdPair> pairs);
   
   @Override

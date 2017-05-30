@@ -109,7 +109,7 @@ public interface JDBIJobRepository extends JobRepository {
   Set<JobEntity> getReadyFree();
   
   @Override
-  @SqlUpdate("deleteGroup from job where root_id in (<ids>)")
+  @SqlUpdate("delete from job where root_id in (<ids>)")
   void deleteByRootIds(@BindIn("ids") Set<UUID> rootIds);
   
   public static class JobMapper implements ResultSetMapper<Job> {

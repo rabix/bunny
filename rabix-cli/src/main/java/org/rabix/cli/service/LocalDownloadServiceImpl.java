@@ -1,4 +1,4 @@
-package org.rabix.backend.local.service;
+package org.rabix.cli.service;
 
 import java.io.File;
 import java.io.IOException;
