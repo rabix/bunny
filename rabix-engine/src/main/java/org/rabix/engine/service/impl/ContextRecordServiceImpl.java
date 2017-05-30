@@ -2,8 +2,8 @@ package org.rabix.engine.service.impl;
 
 import java.util.UUID;
 
-import org.rabix.storage.model.ContextRecord;
-import org.rabix.storage.repository.ContextRecordRepository;
+import org.rabix.engine.store.model.ContextRecord;
+import org.rabix.engine.store.repository.ContextRecordRepository;
 import org.rabix.engine.service.ContextRecordService;
 
 import com.google.inject.Inject;

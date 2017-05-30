@@ -7,8 +7,8 @@ import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.rabix.storage.model.EventRecord;
-import org.rabix.storage.model.JobRecord;
+import org.rabix.engine.store.model.EventRecord;
+import org.rabix.engine.store.model.JobRecord;
 
 public class JobStatusEvent implements Event {
 

@@ -6,7 +6,7 @@ import org.rabix.engine.event.Event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.rabix.storage.model.EventRecord;
+import org.rabix.engine.store.model.EventRecord;
 
 /**
  * This event is used to update one input (per port) for the specific Job. It triggers the algorithm cycle.

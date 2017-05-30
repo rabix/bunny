@@ -3,11 +3,11 @@ package org.rabix.engine.event.impl;
 import java.util.UUID;
 
 import org.rabix.engine.event.Event;
-import org.rabix.storage.model.ContextRecord.ContextStatus;
+import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.rabix.storage.model.EventRecord;
+import org.rabix.engine.store.model.EventRecord;
 
 public class ContextStatusEvent implements Event {
 
