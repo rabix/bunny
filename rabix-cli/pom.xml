@@ -91,7 +91,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
-			<artifactId>rabix-engine-rest</artifactId>
+			<artifactId>rabix-engine</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
