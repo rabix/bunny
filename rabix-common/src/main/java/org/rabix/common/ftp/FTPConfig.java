@@ -1,4 +1,4 @@
-package org.rabix.ftp;
+package org.rabix.common.ftp;
 
 import org.apache.commons.configuration.Configuration;
 

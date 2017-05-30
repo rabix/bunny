@@ -1,4 +1,4 @@
-package org.rabix.ftp;
+package org.rabix.common.ftp;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

@@ -4,26 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.mina.util.ConcurrentHashSet;
 import org.rabix.backend.api.WorkerService;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
@@ -97,7 +85,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   @Inject
   private TESStorageService storage;
 
-  private Set<PendingResult> pendingResults = new ConcurrentHashSet<>();
+  private Set<PendingResult> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<PendingResult, Boolean>());
   
   private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(1);
   private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(10);
