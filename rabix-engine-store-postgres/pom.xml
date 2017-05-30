@@ -9,8 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>rabix-storage-postgres</artifactId>
-    <name>rabix-storage-postgres</name>
+    <artifactId>rabix-engine-store-postgres</artifactId>
+    <name>rabix-engine-store-postgres</name>
     <url>https://github.com/rabix/bunny</url>
 
     <licenses>
@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>org.rabix</groupId>
-            <artifactId>rabix-storage</artifactId>
+            <artifactId>rabix-engine-store</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

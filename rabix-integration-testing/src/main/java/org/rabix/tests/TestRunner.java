@@ -28,9 +28,9 @@ public class TestRunner {
   private static String testDirPath;
   private static String cmdPrefix;
   private static String buildFilePath;
-  private static String buildFileDirPath = "./rabix-backend-local/target/";
+  private static String buildFileDirPath = "./rabix-cli/target/";
   private static String currentTestSuite;
-  private static String integrationTempResultPath = "./rabix-backend-local/target/result.yaml";
+  private static String integrationTempResultPath = "./rabix-cli/target/result.yaml";
   private static String workingdir;
   private static String cwlTestWorkingdir;
   private static String draftName;
