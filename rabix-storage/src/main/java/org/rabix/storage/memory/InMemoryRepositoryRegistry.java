@@ -1,10 +1,19 @@
 package org.rabix.storage.memory;
 
-import org.rabix.storage.memory.impl.*;
+import org.rabix.storage.memory.impl.InMemoryAppRepository;
+import org.rabix.storage.memory.impl.InMemoryBackendRepository;
+import org.rabix.storage.memory.impl.InMemoryContextRecordRepository;
+import org.rabix.storage.memory.impl.InMemoryDAGRepository;
+import org.rabix.storage.memory.impl.InMemoryEventRepository;
+import org.rabix.storage.memory.impl.InMemoryIntermediaryFilesRepository;
+import org.rabix.storage.memory.impl.InMemoryJobRecordRepository;
+import org.rabix.storage.memory.impl.InMemoryJobRepository;
+import org.rabix.storage.memory.impl.InMemoryJobStatsRecordRepository;
+import org.rabix.storage.memory.impl.InMemoryLinkRecordRepository;
+import org.rabix.storage.memory.impl.InMemoryVariableRecordRepository;
 import org.rabix.storage.repository.TransactionHelper;
 
 import com.google.inject.Inject;
-import org.rabix.storage.memory.impl.*;
 
 public class InMemoryRepositoryRegistry extends TransactionHelper {
   

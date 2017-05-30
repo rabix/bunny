@@ -12,11 +12,12 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.ScatterMethod;
 import org.rabix.bindings.model.dag.DAGLinkPort;
-import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.storage.model.VariableRecord;
-import org.rabix.storage.model.scatter.*;
+import org.rabix.storage.model.scatter.PortMapping;
+import org.rabix.storage.model.scatter.RowMapping;
+import org.rabix.storage.model.scatter.ScatterStrategy;
+import org.rabix.storage.model.scatter.ScatterStrategyException;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -194,23 +195,22 @@ public class ScatterZipStrategy implements ScatterStrategy {
   }
 
   @Override
-  public LinkedList<Object> values(VariableFinder variableRecordService, String jobId, String portId, UUID rootId) {
+  public List<Object> valueStructure(String jobId, String portId, UUID rootId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
         return o1.position - o2.position;
       }
     });
-
+    
     LinkedList<Object> result = new LinkedList<>();
     for (Combination combination : combinations) {
       String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-      VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, rootId);
-      result.addLast(variableRecordService.getValue(variableRecord));
+      result.addLast(new JobPortPair(scatteredJobId, portId));
     }
     return result;
   }
-
+  
   @Override
   public boolean isHanging() {
     for (String port : values.keySet()) {

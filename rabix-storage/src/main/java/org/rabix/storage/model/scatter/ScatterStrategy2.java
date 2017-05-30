@@ -1,17 +1,10 @@
 package org.rabix.storage.model.scatter;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-@JsonInclude(Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-public interface ScatterStrategy {
+public interface ScatterStrategy2 {
 
   void enable(String port, Object value, Integer position, Integer sizePerPort) throws ScatterStrategyException;
 
@@ -23,7 +16,9 @@ public interface ScatterStrategy {
   
   List<RowMapping> enabled() throws ScatterStrategyException;
   
-  List<Object> valueStructure(String jobId, String portId, UUID rootId);
+  LinkedList<Object> values(VariableFinder variableRecordService, String jobId, String portId, UUID rootId);
+
+  List<Object> shape();
   
   void setEmptyListDetected();
   
@@ -36,12 +31,12 @@ public interface ScatterStrategy {
   void skipScatter(boolean skip);
   
   boolean skipScatter();
-
-  public class JobPortPair {
+  
+  class ScatterStrategyPortValue {
     private String jobId;
     private String portId;
 
-    public JobPortPair(String jobId, String portId) {
+    public ScatterStrategyPortValue(String jobId, String portId) {
       this.jobId = jobId;
       this.portId = portId;
     }
@@ -56,8 +51,9 @@ public interface ScatterStrategy {
 
     @Override
     public String toString() {
-      return "JobPortPair [jobId=" + jobId + ", portId=" + portId + "]";
+      return "ScatterStrategyPortValue [jobId=" + jobId + ", portId=" + portId + "]";
     }
+    
   }
   
 }

@@ -13,11 +13,12 @@ import java.util.UUID;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.ScatterMethod;
 import org.rabix.bindings.model.dag.DAGLinkPort;
-import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.storage.model.VariableRecord;
-import org.rabix.storage.model.scatter.*;
+import org.rabix.storage.model.scatter.PortMapping;
+import org.rabix.storage.model.scatter.RowMapping;
+import org.rabix.storage.model.scatter.ScatterStrategy;
+import org.rabix.storage.model.scatter.ScatterStrategyException;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -100,7 +101,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
-  public synchronized LinkedList<Object> values(VariableFinder variableRecordService, String jobId, String portId, UUID contextId) {
+  public List<Object> valueStructure(String jobId, String portId, UUID rootId) {
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
@@ -112,8 +113,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
       LinkedList<Object> result = new LinkedList<>();
       for (Combination combination : combinations) {
         String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-        result.addLast(variableRecordService.getValue(variableRecord));
+        result.addLast(new JobPortPair(scatteredJobId, portId));
       }
       return result;
     }
@@ -129,8 +129,7 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
           position++;
         }
         String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-        VariableRecord variableRecord = variableRecordService.find(scatteredJobId, portId, LinkPortType.OUTPUT, contextId);
-        subresult.addLast(variableRecordService.getValue(variableRecord));
+        subresult.addLast(new JobPortPair(scatteredJobId, portId));
       }
       result.addLast(subresult);
       return result;

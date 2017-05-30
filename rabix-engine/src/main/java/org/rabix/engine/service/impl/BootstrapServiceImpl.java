@@ -6,15 +6,12 @@ import java.util.stream.Collectors;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.storage.model.BackendRecord;
-import org.rabix.storage.repository.BackendRepository;
-import org.rabix.storage.repository.EventRepository;
-import org.rabix.storage.repository.TransactionHelper;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BootstrapService;
 import org.rabix.engine.service.BootstrapServiceException;
+import org.rabix.storage.repository.EventRepository;
+import org.rabix.storage.repository.TransactionHelper;
 import org.rabix.transport.backend.Backend;
-import org.rabix.transport.backend.Backend.BackendStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,16 +22,14 @@ public class BootstrapServiceImpl implements BootstrapService {
   private BackendService backendService;
   
   private EventRepository eventRepository;
-  private BackendRepository backendRepository;
   private TransactionHelper transactionHelper;
   
   private EventProcessor eventProcessor;
   private final static Logger logger = LoggerFactory.getLogger(BootstrapServiceImpl.class);
   
   @Inject
-  public BootstrapServiceImpl(TransactionHelper transactionHelper, EventRepository eventRepository, EventProcessor eventProcessor, BackendService backendService, BackendRepository backendRepository) {
+  public BootstrapServiceImpl(TransactionHelper transactionHelper, EventRepository eventRepository, EventProcessor eventProcessor, BackendService backendService) {
     this.backendService = backendService;
-    this.backendRepository = backendRepository;
     this.eventProcessor = eventProcessor;
     this.eventRepository = eventRepository;
     this.transactionHelper = transactionHelper;

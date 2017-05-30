@@ -8,6 +8,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.common.functional.FunctionalHelper.Recursive;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
@@ -17,11 +18,6 @@ import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.event.impl.OutputUpdateEvent;
-import org.rabix.storage.model.JobRecord;
-import org.rabix.storage.model.JobStatsRecord;
-import org.rabix.storage.model.LinkRecord;
-import org.rabix.storage.model.VariableRecord;
-import org.rabix.storage.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
@@ -31,6 +27,12 @@ import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
+import org.rabix.storage.model.JobRecord;
+import org.rabix.storage.model.JobStatsRecord;
+import org.rabix.storage.model.LinkRecord;
+import org.rabix.storage.model.VariableRecord;
+import org.rabix.storage.model.scatter.ScatterStrategy;
+import org.rabix.storage.model.scatter.ScatterStrategy.JobPortPair;
 
 import com.google.inject.Inject;
 
@@ -121,7 +123,13 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if (scatterStrategy.isBlocking()) {
         if (sourceJob.isOutputPortReady(event.getPortId())) {
           isValueFromScatterStrategy = true;
-          value = scatterStrategy.values(variableService, sourceJob.getId(), event.getPortId(), event.getContextId());
+
+          List<Object> valueStructure = scatterStrategy.valueStructure(sourceJob.getId(), event.getPortId(), event.getContextId());
+          value = Recursive.make(jp -> {
+            JobPortPair jobPair = (JobPortPair) jp;
+            VariableRecord variableRecord = variableService.find(jobPair.getJobId(), jobPair.getPortId(), LinkPortType.OUTPUT, event.getContextId());
+            return variableService.getValue(variableRecord);
+          }).apply(valueStructure);
         } else {
           return;
         }

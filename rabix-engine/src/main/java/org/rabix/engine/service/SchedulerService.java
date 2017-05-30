@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
-import org.rabix.storage.repository.JobRepository.JobEntity;
 import org.rabix.engine.service.SchedulerService.SchedulerJobBackendAssigner.JobBackendAssignment;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.transport.backend.Backend;
