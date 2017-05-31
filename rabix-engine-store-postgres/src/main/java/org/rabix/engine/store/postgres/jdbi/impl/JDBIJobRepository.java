@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
@@ -127,8 +128,8 @@ public interface JDBIJobRepository extends JobRepository {
       String configJson = r.getString("config");
       Resources res = JSONHelper.readObject(resourcesStr, Resources.class);
 
-      Map<String, Object> inputs = JSONHelper.readMap(inputsJson);
-      Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
+      Map<String, Object> inputs = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(inputsJson));
+      Map<String, Object> outputs = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(outputsJson));
       Map<String, Object> config = JSONHelper.readMap(configJson);
 
       return new Job(id, parent_id, root_id, name, app, status, message, inputs, outputs, config, res, Collections.emptySet());
@@ -154,8 +155,8 @@ public interface JDBIJobRepository extends JobRepository {
       Resources res = JSONHelper.readObject(resourcesStr, Resources.class);
       
 
-      Map<String, Object> inputs = JSONHelper.readMap(inputsJson);
-      Map<String, Object> outputs = JSONHelper.readMap(outputsJson);
+      Map<String, Object> inputs = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(inputsJson));
+      Map<String, Object> outputs = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(outputsJson));
       Map<String, Object> config = JSONHelper.readMap(configJson);
 
       Job job = new Job(id, parentId, root_id, name, app, status, message, inputs, outputs, config, res, Collections.emptySet());
