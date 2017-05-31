@@ -16,7 +16,7 @@
           {
             "class": "DockerRequirement",
             "dockerImageId": "",
-            "dockerPull": "rfranklin/pythondev"
+            "dockerPull": "python:2-alpine"
           }
         ],
         "description": "This project was created to demonstrate the use of argparse to create CLI tools in Python, wrap them using CWL/SDK.v2, and running them.\n\nThis tool takes a TXT file with a DNA sequence and converts to an RNA sequence.",
