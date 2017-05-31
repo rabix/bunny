@@ -53,6 +53,7 @@ import com.google.inject.Scopes;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.ServletModule;
 import com.squarespace.jersey2.guice.BootstrapUtils;
+import org.rabix.transport.backend.impl.BackendSlurm;
 
 public class ServerBuilder {
 
@@ -137,6 +138,10 @@ public class ServerBuilder {
     
     public Backend start() throws ExecutorException {
       try {
+        boolean isSlurmActive = configuration.getBoolean("slurm.active", false);
+        if (isSlurmActive)
+          return registerSlurmBackend();
+//       TODO: rewrite accepting backend type as parameter to registerBackend()
         return registerBackend();
       } catch (Exception e) {
         throw new ExecutorException("Failed to register executor to the Engine", e);
@@ -155,6 +160,20 @@ public class ServerBuilder {
       Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
       Response response = invocationBuilder.post(Entity.entity(backendRabbitMQ, MediaType.APPLICATION_JSON));
       return response.readEntity(BackendRabbitMQ.class);
+    }
+
+    private BackendSlurm registerSlurmBackend() {
+      String engineHost = configuration.getString("engine.url");
+      Integer enginePort = configuration.getInteger("engine.port", null);
+
+      Client client = ClientBuilder.newClient(new ClientConfig().register(LoggingFilter.class));
+      WebTarget webTarget = client.target(engineHost + ":" + enginePort + "/v0/engine/backends");
+
+      BackendSlurm backendSlurm = new BackendSlurm();
+
+      Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
+      Response response = invocationBuilder.post(Entity.entity(backendSlurm, MediaType.APPLICATION_JSON));
+      return response.readEntity(BackendSlurm.class);
     }
     
   }

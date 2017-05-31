@@ -7,6 +7,7 @@ import org.rabix.common.json.BeanSerializer;
 import org.rabix.transport.backend.impl.BackendActiveMQ;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
+import org.rabix.transport.backend.impl.BackendSlurm;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 @JsonSubTypes({ 
     @Type(value = BackendActiveMQ.class, name = "ACTIVE_MQ"),
     @Type(value = BackendRabbitMQ.class, name = "RABBIT_MQ"),
+    @Type(value = BackendSlurm.class, name = "SLURM"),
     @Type(value = BackendLocal.class, name = "LOCAL") })
 @JsonInclude(Include.NON_NULL)
 public abstract class Backend {
@@ -43,7 +45,8 @@ public abstract class Backend {
   public static enum BackendType {
     LOCAL,
     ACTIVE_MQ,
-    RABBIT_MQ
+    RABBIT_MQ,
+    SLURM
   }
 
   public UUID getId() {
