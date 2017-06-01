@@ -10,10 +10,12 @@ public interface TransportPlugin<Q extends TransportQueue> {
   
   TransportPluginType getType();
   
+  @FunctionalInterface
   public static interface ReceiveCallback<T> {
     void handleReceive(T entity) throws TransportPluginException;
   }
   
+  @FunctionalInterface
   public static interface ErrorCallback {
     void handleError(Exception error);
   }
