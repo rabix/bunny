@@ -102,12 +102,10 @@ public class ServerBuilder {
 
     Configuration configuration = injector.getInstance(Configuration.class);
 
-    SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
-    schedulerService.start();
-    
-    BootstrapService eventService = injector.getInstance(BootstrapService.class);
+    BootstrapService bootstrapService = injector.getInstance(BootstrapService.class);
     try {
-      eventService.replay();
+      bootstrapService.start();
+      bootstrapService.replay();
     } catch (BootstrapServiceException e) {
       logger.error("Failed to bootstrap engine", e);
       System.exit(-1);
