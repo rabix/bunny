@@ -6,11 +6,10 @@
 	<parent>
 		<groupId>org.rabix</groupId>
 		<artifactId>rabix</artifactId>
-		<version>1.0.0-rc5</version>
+		<version>1.0.0-rc6-SNAPSHOT</version>
 	</parent>
 	<artifactId>rabix-bindings</artifactId>
 	<name>rabix-bindings</name>
-	<url>http://maven.apache.org</url>
 	<packaging>jar</packaging>
 
 	<properties>
