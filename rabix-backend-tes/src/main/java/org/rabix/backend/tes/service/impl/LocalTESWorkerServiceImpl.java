@@ -4,8 +4,22 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.util.*;
-import java.util.concurrent.*;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
@@ -42,12 +56,12 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement;
-import org.rabix.bindings.model.requirement.Requirement;
-import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleFileRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleInputDirectoryRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequirement;
 import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
+import org.rabix.bindings.model.requirement.Requirement;
+import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.transport.backend.Backend;
@@ -58,6 +72,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Inject;
+import com.google.inject.servlet.UriPatternType;
 
 public class LocalTESWorkerServiceImpl implements WorkerService {
 
@@ -117,6 +132,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       Bindings bindings = BindingsFactory.create(job);
       String rootDir = configuration.getString("backend.execution.directory");
       File workingDir = new File(rootDir + "/" + job.getRootId() + "/" + job.getName().replace(".", "/"));
+      stageOutputDir(tesJob, workingDir);
       job = bindings.postprocess(job, workingDir, HashAlgorithm.SHA1, null);
       //job = FileValueHelper.mapInputFilePaths(job,   (String path, Map<String, Object> config) -> path.replaceAll(workingDirTes, "").replaceAll(inputsTes, "")); //usualy not needed, but maybe
     } catch (BindingException e) {
@@ -125,6 +141,11 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     engineStub.send(job);
   }
   
+  private void stageOutputDir(TESJob tesJob, File workingDir) {
+    // TODO Auto-generated method stub
+    
+  }
+
   private void fail(Job job, TESJob tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.FAILED);
     try {
@@ -159,7 +180,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           if (pending.future.isDone()) {
             try {
               TESJob tesJob = pending.future.get();
-              if (tesJob.getState().equals(TESState.Complete)) {
+              if (tesJob.getState().equals(TESState.COMPLETE)) {
                 success(pending.job, tesJob);
               } else {
                 fail(pending.job, tesJob);
@@ -228,7 +249,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       }
       FileValue file = (FileValue) input;
       inputs.add(
-          new TESTaskParameter(name, "", "file://" + file.getPath(), inputsTes + file.getPath(), file instanceof DirectoryValue ? "Directory" : "File", false));
+          new TESTaskParameter(name, "", file.getPath(), inputsTes + URI.create(file.getPath()).getPath(), file instanceof DirectoryValue ? 1 : 0, false));
       if (file.getSecondaryFiles() != null)
         for (int i = 0; i < file.getSecondaryFiles().size(); i++) {
           addInputFile(name + i, file.getSecondaryFiles().get(i), inputs);
@@ -241,7 +262,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         String rootDir = configuration.getString("backend.execution.directory");
         File workingDir = new File(rootDir + "/" + job.getRootId() + "/" + job.getName().replace(".", "/"));
         workingDir.mkdir();
-        String workPath = "file://" + workingDir.getAbsolutePath() + "/";
+//        String workPath = "file://" + workingDir.getAbsolutePath() + "/";
 
         FilePathMapper tesMapper = (String path, Map<String, Object> config) -> path.startsWith("/mnt") ? path : inputsTes + path; //dumb checks, need to use storageconfigs in future
         FilePathMapper filePathMapper = (String path, Map<String, Object> config) -> path.startsWith("/") ? path : rootDir + "/" + path;
@@ -252,10 +273,10 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         List<TESDockerExecutor> commands = new ArrayList<>();
 
         Bindings bindings = BindingsFactory.create(job);
-        job = FileValueHelper.mapInputFilePaths(job, filePathMapper);
+//        job = FileValueHelper.mapInputFilePaths(job, filePathMapper);
         job = bindings.preprocess(job, storage.stagingPath(job.getRootId().toString(), job.getName()).toFile(), null);
-        
-        outputs.add(new TESTaskParameter("directory", "", workPath, workingDirTes, "Directory", true));
+
+        outputs.add(new TESTaskParameter("directory", "", "gs://funnel-bunny/outputs/" + job.getId(), workingDirTes, 1, true));
 
         List<Requirement> combinedRequirements = new ArrayList<>();
         combinedRequirements.addAll(bindings.getHints(job));
@@ -264,10 +285,10 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         FileRequirement requirement = getRequirement(combinedRequirements, FileRequirement.class);
         if (requirement != null) {
           inputs.addAll(requirement.getFileRequirements().stream().map(r -> {
-            return new TESTaskParameter(r.getFilename(), "", workPath + r.getFilename(), workingDirTes + r.getFilename(), "File", true);
+            return new TESTaskParameter(r.getFilename(), "", r.getFilename(), workingDirTes + r.getFilename(), 0, true);
           }).collect(Collectors.toList()));
         }
-        
+
         job.getInputs().entrySet().stream().forEach(e -> { //should be changed to use storage service, first should maybe look into preserving location in our files after mapping
           Object v = e.getValue();
           if (v instanceof Map) {
@@ -286,7 +307,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           } else {
             imageId = dockerContainerRequirement.getDockerPull();
           }
-          CommandLine cmdLine = bindings.buildCommandLineObject(job, new File(workingDirTes), tesMapper);
+          CommandLine cmdLine = bindings.buildCommandLineObject(job, new File(workingDirTes), (String path, Map<String, Object> config) -> inputsTes + URI.create(path).getPath());
 
           EnvironmentVariableRequirement env = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
           Map<String, String> variables = env == null ? new HashMap<>() : env.getVariables();
@@ -360,10 +381,10 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     }
     
     private boolean isFinished(TESJob tesJob) {
-      return tesJob.getState().equals(TESState.Canceled) || 
-          tesJob.getState().equals(TESState.Complete) || 
-          tesJob.getState().equals(TESState.Error) || 
-          tesJob.getState().equals(TESState.SystemError);
+      return tesJob.getState().equals(TESState.CANCELED) || 
+          tesJob.getState().equals(TESState.COMPLETE) || 
+          tesJob.getState().equals(TESState.ERROR) || 
+          tesJob.getState().equals(TESState.SYSTEMERROR);
     }
   }
   private void stageFileRequirements(File workingDir, List<Requirement> requirements) throws BindingException {

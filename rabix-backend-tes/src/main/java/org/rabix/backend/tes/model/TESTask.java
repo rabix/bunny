@@ -20,13 +20,13 @@ public class TESTask {
   private TESResources resources;
   @JsonProperty("taskID")
   private String taskId;
-  @JsonProperty("docker")
+  @JsonProperty("executors")
   private List<TESDockerExecutor> dockerExecutors;
 
   public TESTask(@JsonProperty("name") String name, @JsonProperty("projectID") String projectId,
       @JsonProperty("description") String description, @JsonProperty("inputs") List<TESTaskParameter> inputs,
       @JsonProperty("outputs") List<TESTaskParameter> outputs, @JsonProperty("resources") TESResources resources,
-      @JsonProperty("taskID") String taskId, @JsonProperty("docker") List<TESDockerExecutor> dockerExecutors) {
+      @JsonProperty("taskID") String taskId, @JsonProperty("executors") List<TESDockerExecutor> dockerExecutors) {
     this.name = name;
     this.projectId = projectId;
     this.description = description;

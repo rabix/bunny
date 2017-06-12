@@ -9,16 +9,16 @@ public class TESTaskParameter {
   private String name;
   @JsonProperty("description")
   private String description;
-  @JsonProperty("location")
+  @JsonProperty("url")
   private String location;
   @JsonProperty("path")
   private String path;
-  @JsonProperty("class")
-  private String clazz;
+  @JsonProperty("type")
+  private int clazz;
   @JsonProperty("create")
   private Boolean create;
   
-  public TESTaskParameter(@JsonProperty("name") String name, @JsonProperty("description") String description, @JsonProperty("location") String location, @JsonProperty("path") String path, @JsonProperty("class") String clazz, @JsonProperty("create") Boolean create) {
+  public TESTaskParameter(@JsonProperty("name") String name, @JsonProperty("description") String description, @JsonProperty("url") String location, @JsonProperty("path") String path, @JsonProperty("type") int clazz, @JsonProperty("create") Boolean create) {
     this.name = name;
     this.description = description;
     this.location = location;
@@ -60,12 +60,12 @@ public class TESTaskParameter {
   }
 
   @JsonIgnore
-  public String getClazz() {
+  public int getClazz() {
     return clazz;
   }
 
   @JsonIgnore
-  public void setClazz(String clazz) {
+  public void setClazz(int clazz) {
     this.clazz = clazz;
   }
 
