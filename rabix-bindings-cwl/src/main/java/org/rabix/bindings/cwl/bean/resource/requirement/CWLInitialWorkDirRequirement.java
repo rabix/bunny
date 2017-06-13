@@ -24,7 +24,6 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
   public static final String KEY_DIRENT_ENTRYNAME = "entryname";
   
   @JsonIgnore
-  @SuppressWarnings("unchecked")
   public List<Object> getListing(CWLJob job) throws CWLExpressionException {
     Object listingObj = getValue(KEY_LISTING);
     if (listingObj == null ) {
@@ -51,6 +50,7 @@ public class CWLInitialWorkDirRequirement extends CWLResource {
       castListingMembers(job, exprResolved, result);
     }
     else if (listingObj instanceof List<?>) {
+      @SuppressWarnings("unchecked")
       List<Object> listingArray = (List<Object>) listingObj;
       for (Object listingArrayObj : listingArray) {
         castListingMembers(job, listingArrayObj, result);

@@ -11,6 +11,8 @@ public interface BackendService {
 
   static String BACKEND_TYPES_KEY = "backend.embedded.types";
   
+  void scanEmbedded();
+  
   boolean isEnabled(String type);
   
   <T extends Backend> T create(T backend) throws BackendServiceException;
@@ -28,5 +30,5 @@ public interface BackendService {
   List<Backend> getActiveBackends();
   
   List<Backend> getAllBackends();
-  
+
 }

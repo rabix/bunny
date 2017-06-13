@@ -17,11 +17,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
-import org.rabix.backend.api.WorkerService;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
 import org.rabix.common.engine.control.EngineControlStopMessage;
-import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
 import org.rabix.engine.service.JobService;
@@ -29,21 +27,18 @@ import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.SchedulerService.SchedulerJobBackendAssigner;
 import org.rabix.engine.service.SchedulerService.SchedulerMessageCreator;
 import org.rabix.engine.service.SchedulerService.SchedulerMessageSender;
-import org.rabix.engine.service.StoreCleanupService;
-import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.store.repository.BackendRepository;
 import org.rabix.engine.store.repository.JobRepository.JobEntity;
 import org.rabix.engine.store.repository.TransactionHelper;
+import org.rabix.engine.stub.BackendStub;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
-import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageCreator, SchedulerJobBackendAssigner, SchedulerMessageSender {
 
@@ -66,8 +61,7 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageC
   private final BackendService backendService;
 
   private final TransactionHelper transactionHelper;
-  private final StoreCleanupService storeCleanupService;
-  
+
   private final AtomicReference<Set<SchedulerMessage>> messages = new AtomicReference<Set<SchedulerMessage>>(Collections.<SchedulerMessage>emptySet());
 
   private final ReceiveCallback<Job> jobReceiver;
@@ -76,17 +70,13 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageC
 
   private final SchedulerMessageCreator messageCreator;
   
-  private final Injector injector;
-  
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService,
-      TransactionHelper repositoriesFactory, StoreCleanupService storeCleanupService, SchedulerMessageCreator messageCreator, ReceiveCallback<Job> jobReceiver,
-      BackendRepository backendRepository, Injector injector) {
-    this.injector = injector;
+      TransactionHelper repositoriesFactory, SchedulerMessageCreator messageCreator, ReceiveCallback<Job> jobReceiver,
+      BackendRepository backendRepository) {
     this.jobService = jobService;
     this.backendService = backendService;
     this.transactionHelper = repositoriesFactory;
-    this.storeCleanupService = storeCleanupService;
     this.messageCreator = messageCreator;
     this.heartbeatPeriod = configuration.getLong("cleaner.backend.period", DEFAULT_HEARTBEAT_PERIOD);
 
@@ -107,29 +97,8 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageC
       }
     });
     heartbeatService.scheduleAtFixedRate(new HeartbeatMonitor(), 0, heartbeatPeriod, TimeUnit.MILLISECONDS);
-    storeCleanupService.start();
-    scanBackends();
   }
   
-  private void scanBackends() {
-    Set<Class<WorkerService>> clazzes = ClasspathScanner.<WorkerService>scanInterfaceImplementations(WorkerService.class);
-
-    int prefix = 1;
-    for (Class<WorkerService> clazz : clazzes) {
-      try {
-        WorkerService backendAPI = clazz.newInstance();
-        if (backendService.isEnabled(backendAPI.getType())) {
-          injector.injectMembers(backendAPI);
-          BackendLocal backendLocal = new BackendLocal(Integer.toString(prefix++));
-          backendService.create(backendLocal);
-          backendAPI.start(backendLocal);
-        }
-      } catch (InstantiationException | IllegalAccessException | BackendServiceException e) {
-        logger.error("Failed to register backend " + clazz, e);
-      }
-    }
-  }
-
   private void schedule() {
     try {
       dispatcherLock.lock();

@@ -20,11 +20,7 @@ import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.store.repository.JobRepository;
-import org.rabix.engine.store.repository.JobRepository.JobEntity;
-import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
@@ -35,6 +31,10 @@ import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.repository.JobRepository;
+import org.rabix.engine.store.repository.JobRepository.JobEntity;
+import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +96,6 @@ public class JobServiceImpl implements JobService {
     deleteIntermediaryFiles = configuration.getBoolean("engine.delete_intermediary_files", false);
     keepInputFiles = !configuration.getBoolean("engine.treat_inputs_as_intermediary", false) || !deleteIntermediaryFiles;
     setResources = configuration.getBoolean("engine.set_resources", false);
-    eventProcessor.start();
   }
   
   @Override

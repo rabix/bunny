@@ -2,24 +2,28 @@ package org.rabix.engine.service.impl;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
+import org.rabix.backend.api.WorkerService;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
 import org.rabix.engine.service.SchedulerService;
-import org.rabix.engine.stub.BackendStub;
-import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.store.model.BackendRecord;
 import org.rabix.engine.store.repository.BackendRepository;
 import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.store.repository.TransactionHelper.TransactionException;
+import org.rabix.engine.stub.BackendStub;
+import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
 import org.rabix.transport.backend.HeartbeatInfo;
+import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.BackendConfiguration;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.EngineConfiguration;
@@ -29,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class BackendServiceImpl implements BackendService {
 
@@ -41,14 +46,37 @@ public class BackendServiceImpl implements BackendService {
   
   private final BackendRepository backendRepository;
   
+  private final Injector injector;
+  
   @Inject
   public BackendServiceImpl(BackendStubFactory backendStubFactory, SchedulerService backendDispatcher,
-      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration) {
+      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration, Injector injector) {
+    this.injector = injector;
     this.scheduler = backendDispatcher;
     this.backendStubFactory = backendStubFactory;
     this.transactionHelper = transactionHelper;
     this.configuration = configuration;
     this.backendRepository = backendRepository;
+  }
+  
+  @Override
+  public void scanEmbedded() {
+    Set<Class<WorkerService>> clazzes = ClasspathScanner.<WorkerService>scanInterfaceImplementations(WorkerService.class);
+
+    int prefix = 1;
+    for (Class<WorkerService> clazz : clazzes) {
+      try {
+        WorkerService backendAPI = clazz.newInstance();
+        if (isEnabled(backendAPI.getType())) {
+          injector.injectMembers(backendAPI);
+          BackendLocal backendLocal = new BackendLocal(Integer.toString(prefix++));
+          create(backendLocal);
+          backendAPI.start(backendLocal);
+        }
+      } catch (InstantiationException | IllegalAccessException | BackendServiceException e) {
+        logger.error("Failed to register backend " + clazz, e);
+      }
+    }
   }
   
   @Override

@@ -15,9 +15,6 @@ import org.rabix.common.engine.control.EngineControlStopMessage;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.mechanism.TransportPlugin;
-import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
-import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
-import org.rabix.transport.mechanism.TransportPluginException;
 import org.rabix.transport.mechanism.TransportQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,21 +40,11 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
   protected WorkerService executorService;
   
   public void start() {
-    transportPlugin.startReceiver(sendToBackendQueue, Job.class, new ReceiveCallback<Job>() {
-      @Override
-      public void handleReceive(Job job) throws TransportPluginException {
-        executorService.submit(job, job.getRootId());
-      }
-    }, new ErrorCallback() {
-      @Override
-      public void handleError(Exception error) {
-        logger.error("Failed to receive message.", error);
-      }
-    });
+    transportPlugin.startReceiver(sendToBackendQueue, Job.class, 
+        job -> executorService.submit(job, job.getRootId()),
+        error -> logger.error("Failed to receive message.", error));
 
-    transportPlugin.startReceiver(sendToBackendControlQueue, EngineControlMessage.class, new ReceiveCallback<EngineControlMessage>() {
-      @Override
-      public void handleReceive(EngineControlMessage controlMessage) throws TransportPluginException {
+    transportPlugin.startReceiver(sendToBackendControlQueue, EngineControlMessage.class, controlMessage -> {
         switch (controlMessage.getType()) {
         case STOP:
           List<UUID> ids = new ArrayList<>();
@@ -70,20 +57,11 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
         default:
           break;
         }
-      }
-    }, new ErrorCallback() {
-      @Override
-      public void handleError(Exception error) {
-        logger.error("Failed to execute control message.", error);
-      }
-    });
+    }, error -> logger.error("Failed to execute control message.", error));
 
-    scheduledHeartbeatService.scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        transportPlugin.send(receiveFromBackendHeartbeatQueue, new HeartbeatInfo(backend.getId(), System.currentTimeMillis()));
-      }
-    }, 0, heartbeatTimeMills, TimeUnit.MILLISECONDS);
+    scheduledHeartbeatService.scheduleAtFixedRate(
+        () -> transportPlugin.send(receiveFromBackendHeartbeatQueue, new HeartbeatInfo(backend.getId(), System.currentTimeMillis())),
+        0, heartbeatTimeMills, TimeUnit.MILLISECONDS);
   }
 
   public void stop() {
