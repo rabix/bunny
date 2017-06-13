@@ -43,7 +43,6 @@ import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.helper.FileValueHelper;
-import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.FileValue.FileType;
 import org.rabix.bindings.model.Job;
@@ -75,8 +74,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   }
   
   public final static String PYTHON_DEFAULT_DOCKER_IMAGE = "frolvlad/alpine-python2";
-  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix-tes-cli";
-//  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v2";
+//  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix-tes-cli";
+  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v3";
   public final static String DEFAULT_PROJECT = "default";
   public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
 
@@ -99,9 +98,9 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   
   private class PendingResult {
     private Job job;
-    private Future<TESJob> future;
+    private Future<TESTask> future;
     
-    public PendingResult(Job job, Future<TESJob> future) {
+    public PendingResult(Job job, Future<TESTask> future) {
       this.job = job;
       this.future = future;
     }
@@ -111,13 +110,13 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   }
   
   @SuppressWarnings("unchecked")
-  private void success(Job job, TESJob tesJob) {
+  private void success(Job job, TESTask tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
     Map<String, Object> result = null;
     try {
       result = (Map<String, Object>) FileValue.deserialize(
         JSONHelper.readMap(
-          tesJob.getLogs().get(tesJob.getLogs().size() - 1).getStdout()
+          tesJob.getLogs().get(0).getLogs().get(tesJob.getLogs().get(0).getLogs().size() - 1).getStdout()
         )
       );
     } catch (Exception e) {
@@ -141,7 +140,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     engineStub.send(job);
   }
   
-  private void fail(Job job, TESJob tesJob) {
+  private void fail(Job job, TESTask tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.FAILED);
     try {
       job = statusCallback.onJobFailed(job);
@@ -174,15 +173,15 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           PendingResult pending = (PendingResult) iterator.next();
           if (pending.future.isDone()) {
             try {
-              TESJob tesJob = pending.future.get();
-              if (tesJob.getState().equals(TESState.Complete)) {
+              TESTask tesJob = pending.future.get();
+              if (tesJob.getState().equals(TESState.COMPLETE)) {
                 success(pending.job, tesJob);
               } else {
                 fail(pending.job, tesJob);
               }
               iterator.remove();
             } catch (InterruptedException | ExecutionException e) {
-              logger.error("Failed to retrieve TESJob", e);
+              logger.error("Failed to retrieve TESTask", e);
               handleException(e);
               iterator.remove();
             }
@@ -225,7 +224,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   }
 
   
-  public class TaskRunCallable implements Callable<TESJob> {
+  public class TaskRunCallable implements Callable<TESTask> {
 
     private Job job;
     
@@ -234,7 +233,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     }
     
     @Override
-    public TESJob call() throws Exception {
+    public TESTask call() throws Exception {
       try {
         Bindings bindings = BindingsFactory.create(job);
         job = bindings.preprocess(job, storage.stagingPath(job.getRootId().toString(), job.getName()).toFile(), null);
@@ -262,7 +261,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
             null,
             fileValue.getLocation(),
             fileValue.getPath(),
-            (fileValue instanceof DirectoryValue) ? FileType.Directory.name() : FileType.File.name(),
+            fileValue.getType(),
             false
           ));
           List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();
@@ -273,7 +272,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
                       null,
                       f.getLocation(),
                       f.getPath(),
-                      (f instanceof DirectoryValue) ? FileType.Directory.name() : FileType.File.name(),
+                      f.getType(),
                       false
               ));
             }
@@ -302,7 +301,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           null,
           storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toUri().toString(),
           storage.containerPath("inputs", "job.json").toString(),
-          FileType.File.name(),
+          FileType.File,
           false
         ));
 
@@ -313,7 +312,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           null,
           storage.outputPath(job.getRootId().toString(), job.getName(), "working_dir").toUri().toString(),
           storage.containerPath("working_dir").toString(),
-          FileType.Directory.name(),
+          FileType.Directory,
           false
         ));
 
@@ -466,10 +465,10 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         
         TESJobId tesJobId = tesHttpClient.runTask(task);
 
-        TESJob tesJob;
+        TESTask tesJob;
         do {
           Thread.sleep(1000L);
-          tesJob = tesHttpClient.getJob(tesJobId);
+          tesJob = tesHttpClient.getTask(tesJobId);
           if (tesJob == null) {
             throw new TESServiceException("TESJob is not created. JobId = " + job.getId());
           }
@@ -487,11 +486,11 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       }
     }
     
-    private boolean isFinished(TESJob tesJob) {
-      return tesJob.getState().equals(TESState.Canceled) || 
-          tesJob.getState().equals(TESState.Complete) || 
-          tesJob.getState().equals(TESState.Error) || 
-          tesJob.getState().equals(TESState.SystemError);
+    private boolean isFinished(TESTask tesJob) {
+      return tesJob.getState().equals(TESState.CANCELED) || 
+          tesJob.getState().equals(TESState.COMPLETE) || 
+          tesJob.getState().equals(TESState.ERROR) || 
+          tesJob.getState().equals(TESState.SYSTEMERROR);
     }
   }
   

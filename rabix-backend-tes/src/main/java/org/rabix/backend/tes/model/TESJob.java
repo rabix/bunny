@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TESJob {
 
-  @JsonProperty("jobID")
+  @JsonProperty("id")
   private String tesJobId;
   @JsonProperty("metadata")
   private Map<String, String> metadata;
@@ -20,7 +20,7 @@ public class TESJob {
   private List<TESJobLog> logs;
 
   @JsonCreator
-  public TESJob(@JsonProperty("jobID") String tesJobId, @JsonProperty("metadata") Map<String, String> metadata, @JsonProperty("task") TESTask task, @JsonProperty("state") TESState state, @JsonProperty("logs") List<TESJobLog> logs) {
+  public TESJob(@JsonProperty("id") String tesJobId, @JsonProperty("metadata") Map<String, String> metadata, @JsonProperty("task") TESTask task, @JsonProperty("state") TESState state, @JsonProperty("logs") List<TESJobLog> logs) {
     this.tesJobId = tesJobId;
     this.metadata = metadata;
     this.task = task;
