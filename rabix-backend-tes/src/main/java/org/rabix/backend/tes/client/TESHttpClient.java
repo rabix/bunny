@@ -43,7 +43,8 @@ public class TESHttpClient {
         .scheme(scheme)
         .host(host)
         .port(port)
-        .addPathSegment("v1/jobs-service")
+        .addPathSegment("v1")
+        .addPathSegment("jobs-service")
         .build();
     
     Request request = new Request.Builder().url(httpURL).get().build();
@@ -59,7 +60,8 @@ public class TESHttpClient {
         .scheme(scheme)
         .host(host)
         .port(port)
-        .addPathSegment("v1/jobs");
+        .addPathSegment("v1")
+        .addPathSegment("tasks");
     
     String serialized = JSONHelper.writeObject(task);
     Request request = new Request.Builder().url(httpURLBuilder.build()).post(RequestBody.create(MediaType.parse("JSON"), serialized)).build();
@@ -79,7 +81,8 @@ public class TESHttpClient {
         .scheme(scheme)
         .host(host)
         .port(port)
-        .addPathSegment("v1/jobs");
+        .addPathSegment("v1")
+        .addPathSegment("tasks");
     
     if (jobListRequest != null) {
       if (StringUtils.isEmpty(jobListRequest.getNamePrefix())) {
@@ -113,13 +116,33 @@ public class TESHttpClient {
         .scheme(scheme)
         .host(host)
         .port(port)
-        .addPathSegment("v1/jobs")
+        .addPathSegment("v1")
+        .addPathSegment("tasks")
         .addPathSegment(jobId.getValue())
+        .addQueryParameter("view", "FULL")
         .build();
     
     Request request = new Request.Builder().url(httpURL).build();
     try (Response response = httpClient.newCall(request).execute()) {
       return JSONHelper.readObject(response.body().string(), TESJob.class);
+    } catch (IOException e) {
+      throw new TESHTTPClientException("Failed to get ServiceInfo entity", e);
+    }
+  }  
+  public TESTask getTask(TESJobId jobId) throws TESHTTPClientException {
+    HttpUrl httpURL = new HttpUrl.Builder()
+        .scheme(scheme)
+        .host(host)
+        .port(port)
+        .addPathSegment("v1")
+        .addPathSegment("tasks")
+        .addPathSegment(jobId.getValue())
+        .addQueryParameter("view", "FULL")
+        .build();
+    
+    Request request = new Request.Builder().url(httpURL).build();
+    try (Response response = httpClient.newCall(request).execute()) {
+      return JSONHelper.readObject(response.body().string(), TESTask.class);
     } catch (IOException e) {
       throw new TESHTTPClientException("Failed to get ServiceInfo entity", e);
     }
@@ -130,7 +153,8 @@ public class TESHttpClient {
         .scheme(scheme)
         .host(host)
         .port(port)
-        .addPathSegment("v1/jobs")
+        .addPathSegment("v1")
+        .addPathSegment("tasks")
         .addPathSegment(jobId.getValue())
         .build();
     

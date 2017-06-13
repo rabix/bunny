@@ -10,19 +10,19 @@ public class TESJobLog {
   
   @JsonProperty("cmd")
   private List<String> commandLineParts;
-  @JsonProperty("startTime")
+  @JsonProperty("start_time")
   private String startTime;
-  @JsonProperty("endTime")
+  @JsonProperty("end_time")
   private String endTime;
   @JsonProperty("stdout")
   private String stdout;
   @JsonProperty("stderr")
   private String stderr;
-  @JsonProperty("exitCode")
+  @JsonProperty("exit_code")
   private Integer exitCode;
   
-  public TESJobLog(@JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("startTime") String startTime, @JsonProperty("endTime") String endTime, @JsonProperty("stdout") String stdout, @JsonProperty("stderr") String stderr,
-      @JsonProperty("exitCode") Integer exitCode) {
+  public TESJobLog(@JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("start_time") String startTime, @JsonProperty("end_time") String endTime, @JsonProperty("stdout") String stdout, @JsonProperty("stderr") String stderr,
+      @JsonProperty("exit_code") Integer exitCode) {
     super();
     this.commandLineParts = commandLineParts;
     this.startTime = startTime;
