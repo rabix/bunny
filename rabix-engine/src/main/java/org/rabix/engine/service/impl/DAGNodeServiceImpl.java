@@ -1,24 +1,22 @@
-package org.rabix.engine.db;
+package org.rabix.engine.service.impl;
 
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
+import org.rabix.engine.service.DAGNodeService;
 import org.rabix.engine.store.lru.dag.DAGCache;
 import org.rabix.engine.store.repository.DAGRepository;
 
 import com.google.inject.Inject;
 
-/**
- * In-memory {@link DAGNode} repository
- */
-public class DAGNodeDB {
+public class DAGNodeServiceImpl implements DAGNodeService {
 
-  private DAGRepository dagRepository;
   private DAGCache dagCache;
+  private DAGRepository dagRepository;
 
   @Inject
-  public DAGNodeDB(DAGRepository dagRepository, DAGCache dagCache) {
+  public DAGNodeServiceImpl(DAGRepository dagRepository, DAGCache dagCache) {
     this.dagRepository = dagRepository;
     this.dagCache = dagCache;
   }

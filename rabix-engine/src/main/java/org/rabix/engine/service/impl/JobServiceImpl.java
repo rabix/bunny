@@ -15,13 +15,13 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
-import org.rabix.engine.db.AppDB;
-import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.processor.EventProcessor;
+import org.rabix.engine.service.AppService;
 import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.DAGNodeService;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobService;
@@ -53,8 +53,8 @@ public class JobServiceImpl implements JobService {
   private final ContextRecordService contextRecordService;
 
   private final JobRepository jobRepository;
-  private final DAGNodeDB dagNodeDB;
-  private final AppDB appDB;
+  private final DAGNodeService dagNodeService;
+  private final AppService appService;
   
   private final EventProcessor eventProcessor;
   private final SchedulerService scheduler;
@@ -75,15 +75,15 @@ public class JobServiceImpl implements JobService {
   @Inject
   public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
       VariableRecordService variableRecordService, LinkRecordService linkRecordService,
-      ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeDB dagNodeDB, AppDB appDB,
-      JobRepository jobRepository, TransactionHelper transactionHelper, EngineStatusCallback statusCallback,
-      Configuration configuration, IntermediaryFilesService intermediaryFilesService) {
-
-    this.dagNodeDB = dagNodeDB;
-    this.appDB = appDB;
+      ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeService dagNodeService,
+      AppService appService, JobRepository jobRepository, TransactionHelper transactionHelper,
+      EngineStatusCallback statusCallback, Configuration configuration,
+      IntermediaryFilesService intermediaryFilesService) {
+    this.dagNodeService = dagNodeService;
+    this.appService = appService;
     this.eventProcessor = eventProcessor;
     this.jobRepository = jobRepository;
-    
+
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
     this.variableRecordService = variableRecordService;
@@ -92,7 +92,7 @@ public class JobServiceImpl implements JobService {
     this.transactionHelper = transactionHelper;
     this.engineStatusCallback = statusCallback;
     this.intermediaryFilesService = intermediaryFilesService;
-    
+
     deleteIntermediaryFiles = configuration.getBoolean("engine.delete_intermediary_files", false);
     keepInputFiles = !configuration.getBoolean("engine.treat_inputs_as_intermediary", false) || !deleteIntermediaryFiles;
     setResources = configuration.getBoolean("engine.set_resources", false);
@@ -195,8 +195,8 @@ public class JobServiceImpl implements JobService {
           bindings = BindingsFactory.create(updatedJob);
 
           DAGNode node = bindings.translateToDAG(updatedJob);
-          appDB.loadDB(node);
-          String dagHash = dagNodeDB.loadDB(node, rootId);
+          appService.loadDB(node);
+          String dagHash = dagNodeService.loadDB(node, rootId);
 
           updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.RUNNING);
           updatedJob = Job.cloneWithConfig(updatedJob, config);
@@ -249,7 +249,7 @@ public class JobServiceImpl implements JobService {
   
   @Override
   public Set<Job> getReady(EventProcessor eventProcessor, UUID rootId) throws JobServiceException {
-    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, rootId, setResources);
+    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeService, appService, rootId, setResources);
   }
   
   @Override

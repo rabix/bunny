@@ -26,13 +26,22 @@ import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.logging.DebugAppender;
 import org.rabix.engine.JobHelper;
-import org.rabix.engine.db.AppDB;
-import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.event.impl.OutputUpdateEvent;
+import org.rabix.engine.processor.EventProcessor;
+import org.rabix.engine.processor.handler.EventHandler;
+import org.rabix.engine.processor.handler.EventHandlerException;
+import org.rabix.engine.service.AppService;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.DAGNodeService;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobStatsRecordService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.store.model.ContextRecord;
 import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.store.model.JobRecord;
@@ -40,16 +49,7 @@ import org.rabix.engine.store.model.JobRecord.PortCounter;
 import org.rabix.engine.store.model.JobStatsRecord;
 import org.rabix.engine.store.model.LinkRecord;
 import org.rabix.engine.store.model.VariableRecord;
-import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.processor.handler.EventHandler;
-import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.store.repository.JobRepository;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobService;
-import org.rabix.engine.service.JobStatsRecordService;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.validator.JobStateValidationException;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
@@ -61,8 +61,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
 
   private final Logger logger = LoggerFactory.getLogger(JobStatusEventHandler.class);
   
-  private final DAGNodeDB dagNodeDB;
-  private final AppDB appDB;
+  private final DAGNodeService dagNodeService;
+  private final AppService appService;
   private final ScatterHandler scatterHelper;
   private final EventProcessor eventProcessor;
   
@@ -78,12 +78,13 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final boolean setResources;
 
   @Inject
-  public JobStatusEventHandler(final DAGNodeDB dagNodeDB, final AppDB appDB, final JobRecordService jobRecordService,
-      final LinkRecordService linkRecordService, final VariableRecordService variableRecordService,
-      final ContextRecordService contextRecordService, final EventProcessor eventProcessor,
-      final ScatterHandler scatterHelper, final JobRepository jobRepository, final JobService jobService,
-      final JobStatsRecordService jobStatsRecordService, final Configuration configuration) {
-    this.dagNodeDB = dagNodeDB;
+  public JobStatusEventHandler(final DAGNodeService dagNodeService, final AppService appService,
+      final JobRecordService jobRecordService, final LinkRecordService linkRecordService,
+      final VariableRecordService variableRecordService, final ContextRecordService contextRecordService,
+      final EventProcessor eventProcessor, final ScatterHandler scatterHelper, final JobRepository jobRepository,
+      final JobService jobService, final JobStatsRecordService jobStatsRecordService,
+      final Configuration configuration) {
+    this.dagNodeService = dagNodeService;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
     this.jobRecordService = jobRecordService;
@@ -91,7 +92,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.contextRecordService = contextRecordService;
     this.jobStatsRecordService = jobStatsRecordService;
     this.variableRecordService = variableRecordService;
-    this.appDB = appDB;
+    this.appService = appService;
     this.jobService = jobService;
 
     this.jobRepository = jobRepository;
@@ -129,7 +130,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
         Job job = null;
         try {
-          job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, setResources);
+          job = JobHelper.createReadyJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeService, appService, setResources);
           if (!job.getName().equals(InternalSchemaHelper.ROOT_NAME)) {
             jobRepository.insert(job, event.getEventGroupId(), event.getProducedByNode());
           } else {
@@ -145,7 +146,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       } else {
         Job containerJob = null;
         try {
-          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, false);
+          containerJob = JobHelper.createJob(jobRecord, JobStatus.READY, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeService, appService, false);
         } catch (BindingException e) {
           throw new EventHandlerException("Failed to call onReady callback for Job " + containerJob, e);
         }
@@ -175,7 +176,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             }
           }
           eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
-          Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, event.getResult());
+          Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.COMPLETED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeService, appService, event.getResult());
           jobService.handleJobRootCompleted(rootJob);
         } catch (Exception e) {
           throw new EventHandlerException("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
@@ -209,7 +210,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       
       if (jobRecord.isRoot()) {
         try {
-          Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, null);
+          Job rootJob = JobHelper.createRootJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeService, appService, null);
           rootJob = Job.cloneWithMessage(rootJob, event.getMessage());
           jobService.handleJobRootFailed(rootJob);
           
@@ -219,7 +220,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       } else {
         try {
-          Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB);
+          Job failedJob = JobHelper.createCompletedJob(jobRecord, JobStatus.FAILED, jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeService, appService);
           failedJob = Job.cloneWithMessage(failedJob, event.getMessage());
           jobService.handleJobFailed(failedJob);
           
@@ -241,7 +242,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     job.setState(JobRecord.JobState.READY);
     
     UUID rootId = event.getContextId();
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), rootId, job.getDagHash());
+    DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), rootId, job.getDagHash());
 
     DebugAppender readyJobLogging = new DebugAppender(logger);
     readyJobLogging.append(" --- JobRecord ").append(job.getId()).append(" is ready.").append(" Job isBlocking=").append(job.isBlocking()).append("\n");
@@ -309,13 +310,13 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         return;
       }
       
-      Application app = appDB.get(node.getAppHash());
+      Application app = appService.get(node.getAppHash());
       
       Bindings bindings = null;
       if (node.getProtocolType() != null) {
         bindings = BindingsFactory.create(node.getProtocolType());
       } else {
-        String encodedApp = URIHelper.createDataURI(appDB.get(node.getAppHash()).serialize());
+        String encodedApp = URIHelper.createDataURI(appService.get(node.getAppHash()).serialize());
         bindings = BindingsFactory.create(encodedApp);
       }
       
