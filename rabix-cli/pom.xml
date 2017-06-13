@@ -171,6 +171,31 @@
 				</dependency>
 			</dependencies>
 		</profile>
+		<profile>
+			<id>deploy</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-draft2</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-draft3</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-sb</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-cwl</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
 	</profiles>
 
 </project>
