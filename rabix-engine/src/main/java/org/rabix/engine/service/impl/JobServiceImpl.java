@@ -196,7 +196,7 @@ public class JobServiceImpl implements JobService {
 
           DAGNode node = bindings.translateToDAG(updatedJob);
           appDB.loadDB(node);
-          String dagHash = dagNodeDB.loadDB(node, rootId);
+          String dagHash = dagNodeDB.put(node, rootId);
 
           updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.RUNNING);
           updatedJob = Job.cloneWithConfig(updatedJob, config);
