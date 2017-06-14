@@ -212,7 +212,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
     boolean isFile = SBSchemaHelper.isFileFromValue(value);
     if (isFile) {
       try {
-        value = filePathMapper.map(SBFileValueHelper.getPath(value), new HashMap<>());
+        value = filePathMapper != null ? filePathMapper.map(SBFileValueHelper.getPath(value), new HashMap<>()) : SBFileValueHelper.getPath(value);
       } catch (FileMappingException e) {
         throw new BindingException(e);
       }
