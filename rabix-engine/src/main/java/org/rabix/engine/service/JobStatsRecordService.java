@@ -1,6 +1,6 @@
 package org.rabix.engine.service;
 
-import org.rabix.engine.model.JobStatsRecord;
+import org.rabix.engine.store.model.JobStatsRecord;
 
 import java.util.UUID;
 

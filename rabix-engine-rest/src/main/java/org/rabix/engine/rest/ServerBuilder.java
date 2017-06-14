@@ -37,7 +37,9 @@ import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.SchedulerService;
-import org.rabix.engine.service.SchedulerService.SchedulerCallback;
+import org.rabix.engine.service.SchedulerService.SchedulerJobBackendAssigner;
+import org.rabix.engine.service.SchedulerService.SchedulerMessageCreator;
+import org.rabix.engine.service.SchedulerService.SchedulerMessageSender;
 import org.rabix.engine.service.impl.BackendServiceImpl;
 import org.rabix.engine.service.impl.BootstrapServiceImpl;
 import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
@@ -82,16 +84,17 @@ public class ServerBuilder {
           protected void configure() {
             bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
             bind(EngineStatusCallback.class).to(DefaultEngineStatusCallback.class).in(Scopes.SINGLETON);
-            bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
             bind(BootstrapService.class).to(BootstrapServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
             bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
             bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+            bind(SchedulerMessageCreator.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+            bind(SchedulerJobBackendAssigner.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
+            bind(SchedulerMessageSender.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
             bind(JobHTTPService.class).to(JobHTTPServiceImpl.class);
             bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
             bind(IntermediaryFilesHandler.class).to(NoOpIntermediaryFilesServiceHandler.class).in(Scopes.SINGLETON);
             bind(BackendHTTPService.class).to(BackendHTTPServiceImpl.class).in(Scopes.SINGLETON);
-            bind(SchedulerCallback.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
             bind(new TypeLiteral<ReceiveCallback<Job>>(){}).to(JobReceiverImpl.class).in(Scopes.SINGLETON);
           }
         }));
@@ -99,12 +102,10 @@ public class ServerBuilder {
 
     Configuration configuration = injector.getInstance(Configuration.class);
 
-    SchedulerService schedulerService = injector.getInstance(SchedulerService.class);
-    schedulerService.start();
-    
-    BootstrapService eventService = injector.getInstance(BootstrapService.class);
+    BootstrapService bootstrapService = injector.getInstance(BootstrapService.class);
     try {
-      eventService.replay();
+      bootstrapService.start();
+      bootstrapService.replay();
     } catch (BootstrapServiceException e) {
       logger.error("Failed to bootstrap engine", e);
       System.exit(-1);

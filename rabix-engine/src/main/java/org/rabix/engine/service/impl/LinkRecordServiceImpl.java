@@ -7,12 +7,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.cache.Cachable;
-import org.rabix.engine.cache.Cache;
-import org.rabix.engine.cache.CacheItem.Action;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.model.LinkRecord.LinkRecordCacheKey;
-import org.rabix.engine.repository.LinkRecordRepository;
+import org.rabix.engine.store.cache.Cachable;
+import org.rabix.engine.store.cache.Cache;
+import org.rabix.engine.store.cache.CacheItem.Action;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.model.LinkRecord.LinkRecordCacheKey;
+import org.rabix.engine.store.repository.LinkRecordRepository;
 import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.LinkRecordService;
 

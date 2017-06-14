@@ -174,7 +174,8 @@ public class Draft3FileValueHelper extends Draft3BeanHelper {
     try {
       File file = new File(path);
       is = new FileInputStream(file);
-      byte[] buffer = new byte[Math.min(CONTENTS_NUMBER_OF_BYTES, (int) file.length())];
+      int bufferSize = file.length() > 0 && file.length() < CONTENTS_NUMBER_OF_BYTES ? (int) file.length(): CONTENTS_NUMBER_OF_BYTES;
+      byte[] buffer = new byte[bufferSize];
       is.read(buffer);
       return new String(buffer, "UTF-8");
     } finally {

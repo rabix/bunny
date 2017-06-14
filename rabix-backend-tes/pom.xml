@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.rabix</groupId>
+		<artifactId>rabix</artifactId>
+		<version>1.0.0-rc5</version>
+	</parent>
+	<artifactId>rabix-backend-tes</artifactId>
+	<name>rabix-backend-tes</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<ok.http.version>3.4.2</ok.http.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.rabix</groupId>
+			<artifactId>rabix-backend-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.rabix</groupId>
+			<artifactId>rabix-bindings</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.rabix</groupId>
+			<artifactId>rabix-transport</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>${ok.http.version}</version>
+		</dependency>
+	</dependencies>
+</project>

@@ -7,8 +7,8 @@ import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.lru.app.AppCache;
-import org.rabix.engine.repository.AppRepository;
+import org.rabix.engine.store.lru.app.AppCache;
+import org.rabix.engine.store.repository.AppRepository;
 
 import com.google.inject.Inject;
 
@@ -26,7 +26,7 @@ public class AppDB {
   public Application get(String id) {
     Application app = appCache.get(id);
     if(app == null) {
-      app = BeanSerializer.deserialize(appRepository.get(id), Application.class);;
+      app = BeanSerializer.deserialize(appRepository.get(id), Application.class);
       appCache.put(id, app);
     }
     return app;

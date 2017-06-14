@@ -33,24 +33,23 @@ import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.event.impl.OutputUpdateEvent;
-import org.rabix.engine.model.ContextRecord;
-import org.rabix.engine.model.ContextRecord.ContextStatus;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobRecord.PortCounter;
-import org.rabix.engine.model.JobStatsRecord;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.model.VariableRecord;
+import org.rabix.engine.store.model.ContextRecord;
+import org.rabix.engine.store.model.ContextRecord.ContextStatus;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.model.JobRecord.PortCounter;
+import org.rabix.engine.store.model.JobStatsRecord;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.repository.JobRepository;
+import org.rabix.engine.store.repository.JobRepository;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.validator.JobStateValidationException;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
@@ -121,7 +120,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     switch (event.getState()) {
     case READY:
       ready(jobRecord, event);
-      if (jobRecord.getState().equals(JobState.COMPLETED)) {
+      if (jobRecord.getState().equals(JobRecord.JobState.COMPLETED)) {
         break;
       }
       if (jobRecord.getScatterStrategy() != null && jobRecord.getScatterStrategy().skipScatter()) {
@@ -154,7 +153,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case RUNNING:
-      jobRecord.setState(JobState.RUNNING);
+      jobRecord.setState(JobRecord.JobState.RUNNING);
       jobRecordService.update(jobRecord);
       if (jobStatsRecord != null) {
         jobStatsRecord.increaseRunning();
@@ -189,14 +188,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case ABORTED:
-      Set<JobState> jobRecordStatuses = new HashSet<>();
-      jobRecordStatuses.add(JobState.PENDING);
-      jobRecordStatuses.add(JobState.READY);
-      jobRecordStatuses.add(JobState.RUNNING);
+      Set<JobRecord.JobState> jobRecordStatuses = new HashSet<>();
+      jobRecordStatuses.add(JobRecord.JobState.PENDING);
+      jobRecordStatuses.add(JobRecord.JobState.READY);
+      jobRecordStatuses.add(JobRecord.JobState.RUNNING);
 
       List<JobRecord> records = jobRecordService.find(jobRecord.getRootId(), jobRecordStatuses);
       for (JobRecord record : records) {
-        record.setState(JobState.ABORTED);
+        record.setState(JobRecord.JobState.ABORTED);
         jobRecordService.update(record);
       }
       
@@ -205,7 +204,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       contextRecordService.update(contextRecord);
       break;
     case FAILED:
-      jobRecord.setState(JobState.READY);
+      jobRecord.setState(JobRecord.JobState.READY);
       jobRecordService.update(jobRecord);
       
       if (jobRecord.isRoot()) {
@@ -224,7 +223,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           failedJob = Job.cloneWithMessage(failedJob, event.getMessage());
           jobService.handleJobFailed(failedJob);
           
-          eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobState.FAILED, event.getMessage(), event.getEventGroupId(), event.getProducedByNode()));
+          eventProcessor.send(new JobStatusEvent(InternalSchemaHelper.ROOT_NAME, event.getContextId(), JobRecord.JobState.FAILED, event.getMessage(), event.getEventGroupId(), event.getProducedByNode()));
         } catch (Exception e) {
           throw new EventHandlerException("Failed to call onFailed callback for Job " + jobRecord.getId(), e);
         }
@@ -239,7 +238,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
    * Job is ready
    */
   public void ready(JobRecord job, Event event) throws EventHandlerException {
-    job.setState(JobState.READY);
+    job.setState(JobRecord.JobState.READY);
     
     UUID rootId = event.getContextId();
     DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), rootId, job.getDagHash());
@@ -253,7 +252,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     logger.debug(readyJobLogging.toString());
     
     if (!job.isScattered() && job.getScatterPorts().size() > 0) {
-      job.setState(JobState.RUNNING);
+      job.setState(JobRecord.JobState.RUNNING);
       
       for (String port : job.getScatterPorts()) {
         VariableRecord variable = variableRecordService.find(job.getId(), port, LinkPortType.INPUT, rootId);
@@ -263,7 +262,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       }
     } else if (job.isContainer()) {
-      job.setState(JobState.RUNNING);
+      job.setState(JobRecord.JobState.RUNNING);
 
       DAGContainer containerNode = (DAGContainer) node;
       rollOutContainer(job, containerNode, rootId);
@@ -278,7 +277,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             ready(childJobRecord, event);  
           }
           else {
-            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), rootId, JobState.READY, event.getEventGroupId(), event.getProducedByNode());
+            JobStatusEvent jobStatusEvent = new JobStatusEvent(childJobRecord.getId(), rootId, JobRecord.JobState.READY, event.getEventGroupId(), event.getProducedByNode());
             eventProcessor.send(jobStatusEvent);
           }
         }
@@ -287,7 +286,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           VariableRecord sourceVariable = variableRecordService.find(link.getSourceJobId(), link.getSourceJobPort(), LinkPortType.INPUT, rootId);
           VariableRecord destinationVariable = variableRecordService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, rootId);
           if(destinationVariable == null) {
-            VariableRecord stepVariable = new VariableRecord(rootId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), null);
+            VariableRecord stepVariable = new VariableRecord(rootId, link.getDestinationJobId(), sourceVariable.getPortId(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), node.getLinkMerge(sourceVariable.getPortId(), sourceVariable.getType()));
             variableRecordService.create(stepVariable);
           }
           Event updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
@@ -427,7 +426,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
    */
   private void handleLinkPort(JobRecord job, DAGLinkPort linkPort, boolean isSource) {
     if (linkPort.getType().equals(LinkPortType.INPUT)) {
-      if (job.getState().equals(JobState.PENDING)) {
+      if (job.getState().equals(JobRecord.JobState.PENDING)) {
         jobRecordService.incrementPortCounter(job, linkPort, LinkPortType.INPUT);
         jobRecordService.increaseInputPortIncoming(job, linkPort.getId());
         

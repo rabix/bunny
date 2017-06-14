@@ -2,6 +2,8 @@ package org.rabix.engine.service;
 
 public interface BootstrapService {
 
-  void replay() throws BootstrapServiceException;
+  void start() throws BootstrapServiceException;
   
+  void replay() throws BootstrapServiceException;
+
 }

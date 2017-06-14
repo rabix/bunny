@@ -8,6 +8,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.common.functional.FunctionalHelper.Recursive;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
@@ -17,11 +18,6 @@ import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.event.impl.OutputUpdateEvent;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobStatsRecord;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.model.VariableRecord;
-import org.rabix.engine.model.scatter.ScatterStrategy;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
@@ -31,7 +27,12 @@ import org.rabix.engine.service.JobService;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.model.JobStatsRecord;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.model.VariableRecord;
+import org.rabix.engine.store.model.scatter.ScatterStrategy;
+import org.rabix.engine.store.model.scatter.ScatterStrategy.JobPortPair;
 
 import com.google.inject.Inject;
 
@@ -66,7 +67,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   
   public void handle(final OutputUpdateEvent event) throws EventHandlerException {
     JobRecord sourceJob = jobRecordService.find(event.getJobId(), event.getContextId());
-    if (sourceJob.getState().equals(JobState.COMPLETED)) {
+    if (sourceJob.getState().equals(JobRecord.JobState.COMPLETED)) {
       return;
     }
     if (event.isFromScatter()) {
@@ -95,7 +96,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           }
           if (sourceJob.isContainer()) {
             eventProcessor.send(
-                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), event.getProducedByNode()));
+                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobRecord.JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), event.getProducedByNode()));
           }
           return;
         }
@@ -122,7 +123,13 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if (scatterStrategy.isBlocking()) {
         if (sourceJob.isOutputPortReady(event.getPortId())) {
           isValueFromScatterStrategy = true;
-          value = scatterStrategy.values(variableService, sourceJob.getId(), event.getPortId(), event.getContextId());
+
+          List<Object> valueStructure = scatterStrategy.valueStructure(sourceJob.getId(), event.getPortId(), event.getContextId());
+          value = Recursive.make(jp -> {
+            JobPortPair jobPair = (JobPortPair) jp;
+            VariableRecord variableRecord = variableService.find(jobPair.getJobId(), jobPair.getPortId(), LinkPortType.OUTPUT, event.getContextId());
+            return variableService.getValue(variableRecord);
+          }).apply(valueStructure);
         } else {
           return;
         }

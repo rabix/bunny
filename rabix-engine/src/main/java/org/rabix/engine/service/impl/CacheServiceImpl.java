@@ -8,14 +8,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.configuration.Configuration;
-import org.rabix.engine.cache.Cache;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.model.VariableRecord;
+import org.rabix.engine.store.cache.Cache;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.model.VariableRecord;
 import org.rabix.engine.processor.EventProcessor.EventProcessorDispatcher;
-import org.rabix.engine.repository.JobRecordRepository;
-import org.rabix.engine.repository.LinkRecordRepository;
-import org.rabix.engine.repository.VariableRecordRepository;
+import org.rabix.engine.store.repository.JobRecordRepository;
+import org.rabix.engine.store.repository.LinkRecordRepository;
+import org.rabix.engine.store.repository.VariableRecordRepository;
 import org.rabix.engine.service.CacheService;
 
 import com.google.inject.Inject;

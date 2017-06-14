@@ -11,10 +11,9 @@
 		<module>rabix-bindings</module>
 		<module>rabix-executor</module>
 		<module>rabix-executor-rest</module>
-		<module>rabix-ftp</module>
 		<module>rabix-engine-rest</module>
 		<module>rabix-common</module>
-		<module>rabix-backend-local</module>
+		<module>rabix-cli</module>
 		<module>rabix-transport</module>
 		<module>rabix-integration-testing</module>
 		<module>rabix-bindings-cwl</module>
@@ -22,7 +21,11 @@
 		<module>rabix-bindings-draft3</module>
 		<module>rabix-bindings-sb</module>
 		<module>rabix-tes-command-line</module>
-  </modules>
+		<module>rabix-engine-store</module>
+		<module>rabix-engine-store-postgres</module>
+		<module>rabix-backend-api</module>
+		<module>rabix-backend-tes</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

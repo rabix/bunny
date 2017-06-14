@@ -41,15 +41,5 @@
 			<artifactId>rhino</artifactId>
 			<version>${rhino.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.velocity</groupId>
-			<artifactId>velocity</artifactId>
-			<version>1.7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
-			<artifactId>rabix-ftp</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 	</dependencies>
 </project>

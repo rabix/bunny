@@ -4,11 +4,11 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.engine.db.AppDB;
 import org.rabix.engine.db.DAGNodeDB;
-import org.rabix.engine.jdbi.JDBIRepositoryModule;
-import org.rabix.engine.jdbi.JDBIRepositoryRegistry;
-import org.rabix.engine.lru.dag.DAGCache;
-import org.rabix.engine.memory.InMemoryRepositoryModule;
-import org.rabix.engine.memory.InMemoryRepositoryRegistry;
+import org.rabix.engine.store.postgres.jdbi.JDBIRepositoryModule;
+import org.rabix.engine.store.postgres.jdbi.JDBIRepositoryRegistry;
+import org.rabix.engine.store.lru.dag.DAGCache;
+import org.rabix.engine.store.memory.InMemoryRepositoryModule;
+import org.rabix.engine.store.memory.InMemoryRepositoryRegistry;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.processor.handler.impl.ContextStatusEventHandler;
@@ -18,7 +18,7 @@ import org.rabix.engine.processor.handler.impl.JobStatusEventHandler;
 import org.rabix.engine.processor.handler.impl.OutputEventHandler;
 import org.rabix.engine.processor.handler.impl.ScatterHandler;
 import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
-import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.JobRecordService;
@@ -47,7 +47,6 @@ public class EngineModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    // install(config);
     Configuration configuration = this.config.provideConfig();
     String persistence = configuration.getString("engine.store", "IN_MEMORY");
     if (persistence.equals("POSTGRES")) {
