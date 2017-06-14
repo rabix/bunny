@@ -20,6 +20,8 @@ public class TESTaskParameter {
   private String clazz;
   @JsonProperty("create")
   private Boolean create;
+//  @JsonProperty("contents")
+//  private String contents;
   
   @JsonCreator
   public TESTaskParameter(@JsonProperty("name") String name, @JsonProperty("description") String description, @JsonProperty("url") String location, @JsonProperty("path") String path, @JsonProperty("type") String clazz, @JsonProperty("create") Boolean create) {
