@@ -23,7 +23,7 @@ public class CWLExpressionResolver {
 
   public static String KEY_EXPRESSION_VALUE = "script";
   public static String KEY_EXPRESSION_LANGUAGE = "engine";
-  
+
   private static String segSymbol = "\\w+";
   private static String segSingle = "\\['([^']|\\\\')+'\\]";
   private static String segDouble = "\\[\"([^\"]|\\\\\")+\"\\]";
@@ -32,16 +32,16 @@ public class CWLExpressionResolver {
   private static String segments = String.format("(.%s|%s|%s|%s)", segSymbol, segSingle, segDouble, segIndex);
 
   private static String paramRe = String.format("\\$\\((%s)%s*\\)", segSymbol, segments);
-    
+
   private static Pattern segPattern = Pattern.compile(segments);
   private static Pattern pattern = Pattern.compile(paramRe);
-  
+
   public static final ObjectMapper sortMapper = new ObjectMapper();
-  
+
   static {
     sortMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
   }
-  
+
   @SuppressWarnings({ "unchecked" })
   public static <T> T resolve(final Object expression, final CWLJob job, final Object self) throws CWLExpressionException {
     if (expression == null) {
@@ -68,7 +68,7 @@ public class CWLExpressionResolver {
         Map<String, Object> vars = new HashMap<>();
         vars.put("inputs", job.getInputs());
         vars.put("self", self);
-        
+
         CWLRuntime runtime = job.getRuntime();
         if (runtime != null) {
           vars.put("runtime", runtime.toMap());
@@ -78,11 +78,11 @@ public class CWLExpressionResolver {
     }
     return (T) expression;
   }
-  
+
   public static boolean isExpressionObject(Object expression) {
     return expression instanceof Map<?,?>  && ((Map<?,?>) expression).containsKey(KEY_EXPRESSION_VALUE)  && ((Map<?,?>) expression).containsKey(KEY_EXPRESSION_LANGUAGE);
   }
-  
+
   private static Object nextSegment(String remaining, Object vars) throws CWLExpressionException {
     if (vars == null) {
       return null;
@@ -101,7 +101,7 @@ public class CWLExpressionResolver {
         } else {
           String key = m.group(0).substring(1, m.group(0).length());
           Integer keyInt = Integer.parseInt(key);
-          
+
           Object remainingVars = null;
           if (vars instanceof List<?>) {
             if (((List<?>) vars).size() <= keyInt) {
@@ -138,7 +138,7 @@ public class CWLExpressionResolver {
     }
     return ex;
   }
-  
+
   private static Object javascriptInterpolate(CWLJob job, Object self, String expression, CWLRuntime runtime, List<String> engineConfigs) throws CWLExpressionException {
     expression = expression.trim();
 
@@ -149,37 +149,32 @@ public class CWLExpressionResolver {
     while (scanned != null) {
       parts.add(expression.substring(0, scanned[0]));
 
-      if (expression.charAt(scanned[0]) == '$') {
-        Map<String, Object> inputs = null;
-        if(job != null) {
-          inputs = job.getInputs();
-        }
-        Object evaluated = CWLExpressionJavascriptResolver.evaluate(inputs, self, expression.substring(scanned[0] + 1, scanned[1]), runtime, engineConfigs);
-        if (scanned[0] == 0 && scanned[1] == expression.length()) {
-          return evaluated;
-        }
-        String leafStr = null;
-        try {
-          leafStr = sortMapper.writeValueAsString(evaluated);
-        } catch (JsonProcessingException e) {
-          throw new CWLExpressionException("Failed to serialize " + evaluated + " to JSON.", e);
-        }
-        if (leafStr.startsWith("\"")) {
-          leafStr = leafStr.substring(1, leafStr.length() - 1);
-        }
-        parts.add(leafStr);
-      } else if (expression.charAt(scanned[0]) == '\\') {
-        Object evaluated = expression.charAt(scanned[1] - 1);
-        parts.add(evaluated);
+      Map<String, Object> inputs = null;
+      if(job != null) {
+        inputs = job.getInputs();
       }
-      
+      Object evaluated = CWLExpressionJavascriptResolver.evaluate(inputs, self, expression.substring(scanned[0] + 1, scanned[1]), runtime, engineConfigs);
+      if (scanned[0] == 0 && scanned[1] == expression.length()) {
+        return evaluated;
+      }
+      String leafStr = null;
+      try {
+        leafStr = sortMapper.writeValueAsString(evaluated);
+      } catch (JsonProcessingException e) {
+        throw new CWLExpressionException("Failed to serialize " + evaluated + " to JSON.", e);
+      }
+      if (leafStr.startsWith("\"")) {
+        leafStr = leafStr.substring(1, leafStr.length() - 1);
+      }
+      parts.add(leafStr);
+
       expression = expression.substring(scanned[1]);
       scanned = scanJavascriptExpression(expression);
     }
     parts.add(expression);
     return StringUtils.join(parts, "");
   }
-  
+
   private static int[] scanJavascriptExpression(String expression) throws CWLExpressionException {
     int DEFAULT = 0;
     int DOLLAR = 1;
@@ -206,9 +201,6 @@ public class CWLExpressionResolver {
         }
       } else if (state == BACKSLASH) {
         stack.pop();
-        if (stack.peek() == DEFAULT) {
-          return new int[] { i - 1, i + 1 };
-        }
       } else if (state == DOLLAR) {
         if (c == '(') {
           start = i - 1;
@@ -263,6 +255,6 @@ public class CWLExpressionResolver {
     }
     return null;
   }
-  
+
 
 }
