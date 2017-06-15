@@ -1,8 +1,8 @@
 package org.rabix.backend.tes.service.impl;
 
-import java.io.File;
+import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -16,6 +16,7 @@ import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.transformer.FileTransformer;
+import org.rabix.common.helper.JSONHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,65 +25,19 @@ import com.google.inject.Inject;
 public class LocalTESStorageServiceImpl implements TESStorageService {
 
   private final static Logger logger = LoggerFactory.getLogger(LocalTESStorageServiceImpl.class);
-  private final LocalFileStorage localFileStorage;
-  private final String stagingBase;
-  private final String storageBase;
+
+  private static final Path containerPath = Paths.get(DOCKER_PATH_PREFIX);
+  private final String schema;
+  private final Path localFileStorage;
+  private final Path storageBase;
 
   @Inject
-  public LocalTESStorageServiceImpl(final Configuration configuration) {
-    this.localFileStorage = new LocalFileStorage(configuration.getString("backend.execution.directory"));
-    this.stagingBase = Paths.get(configuration.getString("rabix.tes.staging.base")).toAbsolutePath().toString();
-    this.storageBase = configuration.getString("rabix.tes.storage.base");
+  public LocalTESStorageServiceImpl(Configuration configuration) {
+    this.localFileStorage = Paths.get(configuration.getString("backend.execution.directory"));
+    this.storageBase = Paths.get(URI.create(configuration.getString("rabix.tes.storage.base")));
+    schema = storageBase.toUri().getScheme();
   }
 
-  // TES requires absolute file URLs, e.g. "file:///path/to/file.txt" instead of "./file.txt"
-  // This transforms file locations to this form.
-  // This also prefixes the file path (path inside the container) with DOCKER_PATH_PREFIX.
-  private FileValue stageFile(final FileValue fileValue) throws BindingException {
-
-    String location = fileValue.getPath();
-    String path;
-    URI uri;
-
-    try {
-      uri = new URI(location);
-    } catch (URISyntaxException e) {
-      logger.error("Error staging input directory: {}", location);
-      throw new BindingException("Could not stage input directory");
-    }
-
-    if (uri.getScheme() != null) {
-        path = uri.getPath();
-
-    } else {
-      // location is not a URI, treat as path on local file system
-
-      if (!Paths.get(location).isAbsolute()) {
-        // location is a relative path. Prefix it with workflow execution dir,
-        // which is usually the directory the CWL file is in.
-        location = Paths.get(localFileStorage.getBaseDir(), location).toAbsolutePath().toString();
-      }
-      path = location;
-      // TODO should make TES/Funnel URI compliant, then this prefix won't be needed
-      location = "file://" + location;
-    }
-
-    if (!Paths.get(path).isAbsolute()) {
-      // "path" is a relative path. Prefix it with workflow execution dir,
-      // which is usually the directory the CWL file is in.
-      path = Paths.get(localFileStorage.getBaseDir(), path).toAbsolutePath().toString();
-    }
-
-    // Prefix path with container base directory
-    path = containerPath("inputs", path).toString();
-
-    fileValue.setLocation(location);
-    fileValue.setPath(path);
-    return fileValue;
-  }
-
-  // Essentially, this recursively walks the input files and calls stageFile().
-  // Try to keep special logic out of this, it's better if it does only the recursive walk.
   @Override
   public Job transformInputFiles(Job job) throws BindingException {
     try {
@@ -120,54 +75,71 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobRootID, String jobID) throws BindingException {
-    return (Map<String, Object>) FileValueHelper.updateFileValues(result, (FileValue fileValue) -> {
+  @Override
+  public Path writeJobFile(Job job) throws IOException {
+    Path dir = storageBase.resolve(job.getId().toString());
+    Path path = dir.resolve("job.json");
+    Files.createDirectories(dir);
+    Files.write(path, JSONHelper.writeObject(job).getBytes());
+    return path;
+  }
 
-      String path = fileValue.getPath();
-      String outputPrefix = containerPath().toString();
-      if (path.startsWith(outputPrefix)) {
-        path = path.substring(outputPrefix.length() + 1);
+  protected FileValue stageFile(FileValue fileValue) {
+    fileValue.getSecondaryFiles().stream().forEach(f -> stageFile(f));
+    if (fileValue instanceof DirectoryValue)
+      ((DirectoryValue) fileValue).getListing().stream().forEach(f -> stageFile(f));
+
+    if (fileValue.getLocation() == null) {
+      Path filePath = localFileStorage.resolve(fileValue.getPath());
+      URI uri = filePath.toUri();
+      if (uri.getScheme() != null && uri.getScheme().equals(schema)) {
+        fileValue.setLocation(uri.toString());
+      } else {
+        try {
+          Path staged = storageBase.resolve(fileValue.getPath());
+          if (!Files.exists(staged)) {
+            Files.copy(Paths.get(uri), staged);
+          }
+          fileValue.setLocation(staged.toUri().toString());
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
       }
-      String location = Paths.get(storageBase, jobRootID, jobID, path).toUri().toString();
+    }
+    fileValue.setPath(containerPath.resolve(fileValue.getPath()).toString());
+    return fileValue;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public Map<String, Object> transformOutputFiles(Map<String, Object> result, Job job) throws BindingException {
+    return (Map<String, Object>) FileValueHelper.updateFileValues(result, (FileValue fileValue) -> {
+      String location = output(job, fileValue.getName()).toUri().toString();
       fileValue.setLocation(location);
-      fileValue.setPath(location);
       return fileValue;
     });
   }
 
-  public Path stagingPath(String... args) {
-    Path p = buildPath(stagingBase, args);
-    // TODO check that parent isn't higher than base dir
-    createDir(p.getParent());
-    return p;
+  public Path output(Job job, String filename) {
+    return outputPath(job.getRootId().toString(), job.getName(), "working_dir", filename);
   }
 
+  @Override
   public Path outputPath(String... args) {
-    return buildPath(storageBase, args);
+    return resolveRec(storageBase, args);
   }
 
+  private Path resolveRec(Path path, String... args) {
+    Path out = path;
+    for (String a : args) {
+      out = out.resolve(a);
+    }
+    return out;
+  }
+
+  @Override
   public Path containerPath(String... args) {
-    return buildPath(DOCKER_PATH_PREFIX, args);
-  }
-
-  private Path buildPath(String base, String[] args) {
-    if (args.length == 0) {
-      return Paths.get(base);
-    }
-    String first = args[0];
-    Path path = Paths.get(base, first);
-    for (int i = 1; i < args.length; i++) {
-      path = Paths.get(path.toString(), args[i]);
-    }
-    return path;
-  }
-
-  private File createDir(Path path) {
-    File dir = path.toFile();
-    if (!dir.exists()) {
-      dir.mkdirs();
-    }
-    return dir;
+    return resolveRec(containerPath, args);
   }
 }

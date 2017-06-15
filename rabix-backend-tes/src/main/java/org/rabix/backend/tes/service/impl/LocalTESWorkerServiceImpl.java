@@ -1,5 +1,6 @@
 package org.rabix.backend.tes.service.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -124,7 +125,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     }
 
     try {
-      result = storage.transformOutputFiles(result, job.getRootId().toString(), job.getName());
+      result = storage.transformOutputFiles(result, job);
     } catch (BindingException e) {
       logger.error("Failed to process output files", e);
       throw new RuntimeException("Failed to process output files", e);
@@ -236,7 +237,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     public TESTask call() throws Exception {
       try {
         Bindings bindings = BindingsFactory.create(job);
-        job = bindings.preprocess(job, storage.stagingPath(job.getRootId().toString(), job.getName()).toFile(), null);
+        job = bindings.preprocess(job, null, null);
 
         List<TESTaskParameter> inputs = new ArrayList<>();
         List<TESTaskParameter> outputs = new ArrayList<>();
@@ -245,11 +246,6 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         List<String> mainCommand = new ArrayList<>();
         List<String> finalizeCommand = new ArrayList<>();
         List<TESDockerExecutor> commands = new ArrayList<>();
-
-        // TODO this has the effect of ensuring the working directory is created
-        //      but the interface isn't great. Need to think about a better interface.
-        storage.stagingPath(job.getRootId().toString(), job.getName(), "working_dir", "TODO");
-        storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "TODO");
 
         // Prepare CWL input file into TES-compatible files
         job = storage.transformInputFiles(job);
@@ -279,12 +275,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           }
           return fileValue;
         });
-
-        // Write job.json file
-        FileUtils.writeStringToFile(
-          storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toFile(),
-          JSONHelper.writeObject(job)
-        );
+        
 
       /*
         inputs.add(new TESTaskParameter(
@@ -299,7 +290,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         inputs.add(new TESTaskParameter(
           "job.json",
           null,
-          storage.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toUri().toString(),
+          storage.writeJobFile(job).toUri().toString(),
           storage.containerPath("inputs", "job.json").toString(),
           FileType.File,
           false

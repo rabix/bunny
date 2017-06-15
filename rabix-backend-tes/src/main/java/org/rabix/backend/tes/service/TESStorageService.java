@@ -1,5 +1,6 @@
 package org.rabix.backend.tes.service;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -15,10 +16,16 @@ public interface TESStorageService {
   }
 
   Job transformInputFiles(Job job) throws BindingException;
-  Map<String, Object> transformOutputFiles(Map<String, Object> result, String jobRootID, String jobID) throws BindingException;
+
+  Map<String, Object> transformOutputFiles(Map<String, Object> result, Job job) throws BindingException;
+
   Path outputPath(String... args);
-  Path stagingPath(String... args);
+
+//  Path stagingPath(String... args);
+
   Path containerPath(String... args);
+  
+  Path writeJobFile(Job job) throws IOException;
  
   public static class LocalFileStorage {
     private final String baseDir;
