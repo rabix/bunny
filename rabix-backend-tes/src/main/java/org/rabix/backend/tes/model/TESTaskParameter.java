@@ -1,5 +1,8 @@
 package org.rabix.backend.tes.model;
 
+import org.rabix.bindings.model.FileValue.FileType;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -9,22 +12,29 @@ public class TESTaskParameter {
   private String name;
   @JsonProperty("description")
   private String description;
-  @JsonProperty("location")
+  @JsonProperty("url")
   private String location;
   @JsonProperty("path")
   private String path;
-  @JsonProperty("class")
+  @JsonProperty("type")
   private String clazz;
   @JsonProperty("create")
   private Boolean create;
+//  @JsonProperty("contents")
+//  private String contents;
   
-  public TESTaskParameter(@JsonProperty("name") String name, @JsonProperty("description") String description, @JsonProperty("location") String location, @JsonProperty("path") String path, @JsonProperty("class") String clazz, @JsonProperty("create") Boolean create) {
+  @JsonCreator
+  public TESTaskParameter(@JsonProperty("name") String name, @JsonProperty("description") String description, @JsonProperty("url") String location, @JsonProperty("path") String path, @JsonProperty("type") String clazz, @JsonProperty("create") Boolean create) {
     this.name = name;
     this.description = description;
     this.location = location;
     this.path = path;
     this.clazz = clazz;
     this.create = create;
+  }
+
+  public TESTaskParameter(String name, String description, String location, String path, FileType type, boolean create) {
+    this(name, description, location, path, type.name().toUpperCase(), create);
   }
 
   public String getName() {

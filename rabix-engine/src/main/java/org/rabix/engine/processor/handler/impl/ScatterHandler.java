@@ -55,14 +55,12 @@ public class ScatterHandler {
     this.variableRecordService = variableRecordService;
     this.scatterStrategyFactory = scatterStrategyFactory;
   }
-  
-  /**
+
+  /*
    * Scatters port
-   * @throws BindingException 
-   * @returns Scatter
    */
   @SuppressWarnings("unchecked")
-  public void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
+  void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
     job.setScatterWrapper(true);
     
     ScatterStrategy scatterStrategy = job.getScatterStrategy();
@@ -136,7 +134,7 @@ public class ScatterHandler {
     }
   }
   
-  public JobRecord createJobRecord(String id, UUID parentId, DAGNode node, boolean isScattered, UUID contextId, String dagCache) {
+  JobRecord createJobRecord(String id, UUID parentId, DAGNode node, boolean isScattered, UUID contextId, String dagCache) {
     boolean isBlocking = false;
     for (LinkMerge linkMerge : node.getLinkMergeSet(LinkPortType.INPUT)) {
       if (LinkMerge.isBlocking(linkMerge)) {

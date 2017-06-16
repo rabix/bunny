@@ -41,7 +41,7 @@ public class ExecutorModule extends BackendModule {
     
     String[] backendTypes = configuration.getStringArray("backend.embedded.types");
     for (String backendType : backendTypes) {
-      if (backendType.trim().equalsIgnoreCase("LOCAL")) {
+      if (backendType.trim().equalsIgnoreCase("LOCAL") || backendType.trim().equalsIgnoreCase("TES")) {
         install(new LocalStorageModule(configModule));
         break;
       }

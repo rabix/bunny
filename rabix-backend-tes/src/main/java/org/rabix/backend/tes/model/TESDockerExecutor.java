@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TESDockerExecutor {
   
-  @JsonProperty("imageName")
+  @JsonProperty("image_name")
   private String imageName;
   @JsonProperty("cmd")
   private List<String> commandLineParts;
@@ -24,7 +24,7 @@ public class TESDockerExecutor {
   private Map<String, String> environ;
   
   @JsonCreator
-  public TESDockerExecutor(@JsonProperty("imageName") String imageName, @JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("workdir") String workingDirectory, @JsonProperty("stdin") String standardIn, @JsonProperty("stdout") String standardOut, @JsonProperty("stderr") String standardError,  @JsonProperty("environ") Map<String, String> environ) {
+  public TESDockerExecutor(@JsonProperty("image_name") String imageName, @JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("workdir") String workingDirectory, @JsonProperty("stdin") String standardIn, @JsonProperty("stdout") String standardOut, @JsonProperty("stderr") String standardError,  @JsonProperty("environ") Map<String, String> environ) {
     this.imageName = imageName;
     this.commandLineParts = commandLineParts;
     this.workingDirectory = workingDirectory;

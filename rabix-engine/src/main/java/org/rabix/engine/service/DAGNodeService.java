@@ -11,6 +11,6 @@ public interface DAGNodeService {
   /**
    * Loads node into the repository recursively
    */
-  String loadDB(DAGNode node, UUID rootId);
+  String put(DAGNode node, UUID rootId);
   
 }

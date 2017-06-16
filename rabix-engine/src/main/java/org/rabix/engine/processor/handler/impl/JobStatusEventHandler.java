@@ -235,10 +235,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
   }
   
-  /**
+  /*
    * Job is ready
    */
-  public void ready(JobRecord job, Event event) throws EventHandlerException {
+  private void ready(JobRecord job, Event event) throws EventHandlerException {
     job.setState(JobRecord.JobState.READY);
     
     UUID rootId = event.getContextId();

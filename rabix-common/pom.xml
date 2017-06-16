@@ -6,11 +6,10 @@
 	<parent>
 		<groupId>org.rabix</groupId>
 		<artifactId>rabix</artifactId>
-		<version>1.0.0-rc5</version>
+		<version>1.0.0-rc6-SNAPSHOT</version>
 	</parent>
 	<artifactId>rabix-common</artifactId>
 	<name>rabix-common</name>
-	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<commons-configuration.version>1.10</commons-configuration.version>

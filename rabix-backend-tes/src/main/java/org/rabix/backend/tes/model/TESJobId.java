@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TESJobId {
 
-  @JsonProperty("value")
+  @JsonProperty("id")
   private String value;
 
   @JsonCreator
-  public TESJobId(@JsonProperty("value") String value) {
+  public TESJobId(@JsonProperty("id") String value) {
     this.value = value;
   }
   

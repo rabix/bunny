@@ -10,6 +10,8 @@ import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -27,9 +29,11 @@ public class Draft2Step {
   @JsonProperty("outputs")
   private List<Map<String, Object>> outputs;
 
+  @JsonInclude(Include.NON_NULL)
   @JsonProperty("scatter")
   private Object scatter;
   
+  @JsonInclude(Include.NON_NULL)
   @JsonProperty("scatterMethod")
   private String scatterMethod;
   

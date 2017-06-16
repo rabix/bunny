@@ -15,16 +15,24 @@ public class DAGNodeServiceImpl implements DAGNodeService {
   private DAGCache dagCache;
   private DAGRepository dagRepository;
 
+  /**
+   *
+   * @param dagRepository
+   * @param dagCache
+   */
   @Inject
   public DAGNodeServiceImpl(DAGRepository dagRepository, DAGCache dagCache) {
     this.dagRepository = dagRepository;
     this.dagCache = dagCache;
   }
-  
+
   /**
-   * Gets node from the repository 
+   * Tries to get a node from cache, than fallbacks to repository and updates cache
+   * @param id
+   * @param rootId
+   * @param dagHash
+   * @return
    */
-  
   public DAGNode get(String id, UUID rootId, String dagHash) {
     DAGNode res = dagCache.get(id, rootId, dagHash);
     if(res == null) {
@@ -33,11 +41,14 @@ public class DAGNodeServiceImpl implements DAGNodeService {
     }
     return res;
   }
-  
+
   /**
-   * Loads node into the repository recursively
+   * Puts node into repository and cache
+   * @param node
+   * @param rootId
+   * @return String hash of inserted node
    */
-  public String loadDB(DAGNode node, UUID rootId) {
+  public String put(DAGNode node, UUID rootId) {
     String dagHash = dagCache.put(node, rootId);
     dagRepository.insert(rootId, node);
     return dagHash;
