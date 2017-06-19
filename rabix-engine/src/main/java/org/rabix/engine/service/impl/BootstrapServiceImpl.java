@@ -45,10 +45,10 @@ public class BootstrapServiceImpl implements BootstrapService {
   @Override
   public void start() throws BootstrapServiceException {
     try {
-        eventProcessor.start();
-        backendService.scanEmbedded();
-        schedulerService.start();
-        storeCleanupService.start();
+      eventProcessor.start();
+      backendService.scanEmbedded();
+      schedulerService.start();
+      storeCleanupService.start();
     } catch (Exception e) {
       throw new BootstrapServiceException(e);
     }
@@ -58,24 +58,27 @@ public class BootstrapServiceImpl implements BootstrapService {
   public void replay() throws BootstrapServiceException {
     try {
       transactionHelper.doInTransaction(() -> {
-        List<Backend> activeBackends = backendService.getActiveBackends();
+        List<Backend> activeBackends = backendService.getActiveRemoteBackends();
 
         for (Backend backend : activeBackends) {
           backendService.startBackend(backend);
           logger.debug("Awakening backend: " + backend.getId());
         }
-
-        List<Event> events = eventRepository.findUnprocessed().stream()
-            .map(er -> JSONHelper.convertToObject(er.getEvent(), Event.class))
-            .collect(Collectors.toList());
-
-        for (Event event : events) {
-          eventProcessor.addToExternalQueue(event);
-        }
+        replayEvents();
         return null;
       });
     } catch (Exception e) {
       throw new BootstrapServiceException(e);
+    }
+  }
+
+  private void replayEvents() {
+    List<Event> events = eventRepository.findUnprocessed().stream()
+        .map(er -> JSONHelper.convertToObject(er.getEvent(), Event.class))
+        .collect(Collectors.toList());
+
+    for (Event event : events) {
+      eventProcessor.addToExternalQueue(event);
     }
   }
 }

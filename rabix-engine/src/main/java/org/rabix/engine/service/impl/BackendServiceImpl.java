@@ -22,6 +22,7 @@ import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
+import org.rabix.transport.backend.Backend.BackendType;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
@@ -190,6 +191,12 @@ public class BackendServiceImpl implements BackendService {
     return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().map(
         br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
     ).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Backend> getActiveRemoteBackends() {
+    return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().filter(b -> !b.getType().equals(BackendRecord.Type.LOCAL))
+        .map(br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)).collect(Collectors.toList());
   }
 
   @Override

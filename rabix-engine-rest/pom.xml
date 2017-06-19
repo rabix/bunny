@@ -172,6 +172,26 @@
 				</dependency>
 			</dependencies>
 		</profile>
+	<profile>
+		<id>embedded</id>
+		<dependencies>
+			<dependency>
+				<groupId>org.rabix</groupId>
+				<artifactId>rabix-executor</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</profile>
+	<profile>
+		<id>tes</id>
+		<dependencies>
+			<dependency>
+				<groupId>org.rabix</groupId>
+				<artifactId>rabix-backend-tes</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</profile>
 		<profile>
 			<id>deploy</id>
 			<dependencies>
