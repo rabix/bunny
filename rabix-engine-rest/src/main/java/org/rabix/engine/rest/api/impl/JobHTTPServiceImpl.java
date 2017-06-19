@@ -3,6 +3,14 @@ package org.rabix.engine.rest.api.impl;
 import java.util.Collections;
 import java.util.UUID;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -14,6 +22,8 @@ import org.rabix.engine.service.JobServiceException;
 
 import com.google.inject.Inject;
 
+@Produces(MediaType.APPLICATION_JSON)
+@Path("/v0/engine/jobs")
 public class JobHTTPServiceImpl implements JobHTTPService {
 
   private final JobService jobService;
@@ -22,9 +32,10 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   public JobHTTPServiceImpl(JobService jobService) {
     this.jobService = jobService;
   }
-  
+
   @Override
-  public Response create(Job job, Integer batch) {
+  @POST
+  public Response create(Job job, @HeaderParam("batch") Integer batch) {
     try {
       if (batch != null) {
         for (int i=0;i<batch;i++) {
@@ -39,7 +50,9 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response get(UUID id) {
+  @GET
+  @Path("/{id}")
+  public Response get(@PathParam("id") UUID id) {
     Job job = jobService.get(id);
     if (job == null) {
       return entityNotFound();
@@ -48,7 +61,9 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response save(UUID id, Job job) {
+  @PUT
+  @Path("/{id}")
+  public Response save(@PathParam("id") UUID id, Job job) {
     try {
       jobService.update(job);
     } catch (JobServiceException e) {
@@ -58,7 +73,9 @@ public class JobHTTPServiceImpl implements JobHTTPService {
   }
   
   @Override
-  public Response update(UUID id, JobStatus status) {
+  @PUT
+  @Path("/{id}/{status}")
+  public Response update(@PathParam("id") UUID id, @PathParam("status") JobStatus status){
     try {
       Job job = jobService.get(id);
       job = Job.cloneWithStatus(job, status);
