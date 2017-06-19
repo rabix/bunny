@@ -1,4 +1,4 @@
-package org.rabix.bindings.cwl.processor.callback;
+package org.rabix.bindings.draft3.processor.callback;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,37 +11,37 @@ import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
-import org.rabix.bindings.cwl.bean.CWLInputPort;
-import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
-import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
-import org.rabix.bindings.cwl.processor.CWLPortProcessorCallback;
-import org.rabix.bindings.cwl.processor.CWLPortProcessorResult;
+import org.rabix.bindings.draft3.bean.Draft3InputPort;
+import org.rabix.bindings.draft3.helper.Draft3FileValueHelper;
+import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
+import org.rabix.bindings.draft3.processor.Draft3PortProcessorCallback;
+import org.rabix.bindings.draft3.processor.Draft3PortProcessorResult;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.ApplicationPort.StageInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback {
+public class Draft3StageInputProcessorCallback implements Draft3PortProcessorCallback {
 
-  private static final Logger logger = LoggerFactory.getLogger(CWLStageInputProcessorCallback.class);
+  private static final Logger logger = LoggerFactory.getLogger(Draft3StageInputProcessorCallback.class);
 
   private final File workingDir;
 
-  public CWLStageInputProcessorCallback(File workingDir) {
+  public Draft3StageInputProcessorCallback(File workingDir) {
     this.workingDir = workingDir;
   }
 
   @Override
-  public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (!(port instanceof CWLInputPort)) {
+  public Draft3PortProcessorResult process(Object value, ApplicationPort port) throws Exception {
+    if (!(port instanceof Draft3InputPort)) {
       throw new RuntimeException("Inputs only can be staged!");
     }
-    CWLInputPort inputPort = (CWLInputPort) port;
+    Draft3InputPort inputPort = (Draft3InputPort) port;
     StageInput stageInput = inputPort.getStageInput();
     if (stageInput == null) {
-      return new CWLPortProcessorResult(value, true);
+      return new Draft3PortProcessorResult(value, true);
     }
-    return new CWLPortProcessorResult(stage(value, stageInput), true);
+    return new Draft3PortProcessorResult(stage(value, stageInput), true);
   }
 
   @SuppressWarnings("unchecked")
@@ -49,7 +49,7 @@ public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback 
     if (value == null) {
       return null;
     }
-    if (CWLSchemaHelper.isFileFromValue(value)) {
+    if (Draft3SchemaHelper.isFileFromValue(value)) {
       return stageSingle(value, stageInput);
     } else if (value instanceof List<?>) {
       List<Object> stagedValues = new ArrayList<>();
@@ -68,17 +68,17 @@ public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback 
   }
 
   private Object stageSingle(Object value, StageInput stageInput) throws BindingException {
-    if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
-      String originalPath = CWLFileValueHelper.getPath(value);
+    if (Draft3SchemaHelper.isFileFromValue(value)) {
+      String originalPath = Draft3FileValueHelper.getPath(value);
       String path = stagePath(originalPath, stageInput);
-      CWLFileValueHelper.setPath(path, value);
-      CWLFileValueHelper.setOriginalPath(originalPath, value);;
+      Draft3FileValueHelper.setPath(path, value);
+      Draft3FileValueHelper.setOriginalPath(originalPath, value);;
 
-      List<Map<String, Object>> secondaryFileValues = CWLFileValueHelper.getSecondaryFiles(value);
+      List<Map<String, Object>> secondaryFileValues = Draft3FileValueHelper.getSecondaryFiles(value);
       if (secondaryFileValues != null) {
         for (Map<String, Object> secondaryFileValue : secondaryFileValues) {
-          String secondaryFilePath = stagePath(CWLFileValueHelper.getPath(secondaryFileValue), stageInput);
-          CWLFileValueHelper.setPath(secondaryFilePath, secondaryFileValue);
+          String secondaryFilePath = stagePath(Draft3FileValueHelper.getPath(secondaryFileValue), stageInput);
+          Draft3FileValueHelper.setPath(secondaryFilePath, secondaryFileValue);
         }
       }
     }
