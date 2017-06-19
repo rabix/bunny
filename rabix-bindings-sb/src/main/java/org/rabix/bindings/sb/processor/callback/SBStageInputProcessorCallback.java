@@ -109,7 +109,7 @@ public class SBStageInputProcessorCallback implements SBPortProcessorCallback {
       return destinationFile.getAbsolutePath();
     case LINK:
         try {
-          Files.createSymbolicLink(destinationFile.toPath(), file.toPath());
+          Files.createLink(destinationFile.toPath(), file.toPath());
         } catch (IOException e) {
           throw new BindingException(e);
         }
