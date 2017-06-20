@@ -45,13 +45,10 @@ public class BootstrapServiceImpl implements BootstrapService {
   @Override
   public void start() throws BootstrapServiceException {
     try {
-      transactionHelper.doInTransaction(() -> {
         eventProcessor.start();
         backendService.scanEmbedded();
         schedulerService.start();
         storeCleanupService.start();
-        return null;
-      });
     } catch (Exception e) {
       throw new BootstrapServiceException(e);
     }
