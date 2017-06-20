@@ -29,7 +29,7 @@ public class Draft3EmbeddedApp extends Draft3JobApp {
       inputs = Lists.transform(application.getInputs(), new Function<ApplicationPort, Draft3InputPort>() {
         @Override
         public Draft3InputPort apply(ApplicationPort port) {
-          return new Draft3InputPort(port.getId(), port.getDefaultValue(), port.getSchema(), null, null, null, port.getScatter(), null, port.getDescription());
+          return new Draft3InputPort(port.getId(), port.getDefaultValue(), port.getSchema(), null, null, null, port.getScatter(), null, port.getDescription(), null);
         }
       });
       outputs = Lists.transform(application.getOutputs(), new Function<ApplicationPort, Draft3OutputPort>() {

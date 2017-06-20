@@ -81,6 +81,7 @@ public class Draft3Processor implements ProtocolProcessor {
       Map<String, Object> inputs = draft3Job.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
+      inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, Draft3RuntimeHelper.convertToResources(runtime));
       
       Map<String, Object> mappedInputs = inputs;
