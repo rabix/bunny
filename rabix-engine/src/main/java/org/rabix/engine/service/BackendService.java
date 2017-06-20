@@ -29,6 +29,8 @@ public interface BackendService {
   
   List<Backend> getActiveBackends();
   
+  List<Backend> getActiveRemoteBackends();
+  
   List<Backend> getAllBackends();
 
 }
