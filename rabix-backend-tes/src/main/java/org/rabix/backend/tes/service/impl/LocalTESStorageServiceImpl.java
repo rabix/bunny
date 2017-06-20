@@ -2,6 +2,7 @@ package org.rabix.backend.tes.service.impl;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,21 +34,31 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
 
   @Inject
   public LocalTESStorageServiceImpl(Configuration configuration) {
-    this.localFileStorage = Paths.get(configuration.getString("backend.execution.directory"));
-    this.storageBase = Paths.get(URI.create(configuration.getString("rabix.tes.storage.base")));
+    localFileStorage = Paths.get(configuration.getString("backend.execution.directory"));
+ 
+    URI uri = URI.create(configuration.getString("rabix.tes.storage.base", localFileStorage.toString()));
+    if(uri.getScheme()==null){
+      try {
+        uri = new URI("file", uri.toString(), null);
+      } catch (URISyntaxException e) {
+        logger.error("Failed to parse storage path", e);
+      }
+    }
+    storageBase = Paths.get(uri);
     schema = storageBase.toUri().getScheme();
   }
 
   @Override
   public Job transformInputFiles(Job job) throws BindingException {
     try {
+      Path workdir = workDir(job);
       return FileValueHelper.updateInputFiles(job, new FileTransformer() {
         @Override
         public FileValue transform(FileValue fileValue) throws BindingException {
 
           // transform directory
           if (fileValue instanceof DirectoryValue) {
-            DirectoryValue mapped = (DirectoryValue) stageFile(fileValue);
+            DirectoryValue mapped = (DirectoryValue) stageFile(workdir, fileValue);
 
             // Map directory listing
             List<FileValue> directoryListing = mapped.getListing();
@@ -66,7 +77,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
               transform(secondaryFile);
             }
           }
-          return stageFile(fileValue);
+          return stageFile(workdir, fileValue);
         }
       });
     } catch (BindingException e) {
@@ -77,17 +88,22 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
 
   @Override
   public Path writeJobFile(Job job) throws IOException {
-    Path dir = storageBase.resolve(job.getId().toString());
+    Path dir = workDir(job);
     Path path = dir.resolve("job.json");
     Files.createDirectories(dir);
     Files.write(path, JSONHelper.writeObject(job).getBytes());
     return path;
   }
 
-  protected FileValue stageFile(FileValue fileValue) {
-    fileValue.getSecondaryFiles().stream().forEach(f -> stageFile(f));
+  @Override
+  public Path workDir(Job job) {
+    return storageBase.resolve(job.getRootId().toString()).resolve(job.getName().replaceAll("\\.", "/"));
+  }
+
+  protected FileValue stageFile(Path workdir, FileValue fileValue) {
+    fileValue.getSecondaryFiles().stream().forEach(f -> stageFile(workdir, f));
     if (fileValue instanceof DirectoryValue)
-      ((DirectoryValue) fileValue).getListing().stream().forEach(f -> stageFile(f));
+      ((DirectoryValue) fileValue).getListing().stream().forEach(f -> stageFile(workdir, f));
 
     if (fileValue.getLocation() == null) {
       Path filePath = localFileStorage.resolve(fileValue.getPath());
@@ -96,7 +112,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
         fileValue.setLocation(uri.toString());
       } else {
         try {
-          Path staged = storageBase.resolve(fileValue.getPath());
+          Path staged = workdir.resolve("inputs").resolve(filePath.getFileName().toString());
           if (!Files.exists(staged)) {
             Files.copy(Paths.get(uri), staged);
           }
@@ -122,12 +138,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
   }
 
   public Path output(Job job, String filename) {
-    return outputPath(job.getRootId().toString(), job.getName(), "working_dir", filename);
-  }
-
-  @Override
-  public Path outputPath(String... args) {
-    return resolveRec(storageBase, args);
+    return workDir(job).resolve(filename);
   }
 
   private Path resolveRec(Path path, String... args) {

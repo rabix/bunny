@@ -20,7 +20,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.rabix.backend.api.WorkerService;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
@@ -30,7 +29,6 @@ import org.rabix.backend.api.engine.EngineStubLocal;
 import org.rabix.backend.tes.client.TESHTTPClientException;
 import org.rabix.backend.tes.client.TESHttpClient;
 import org.rabix.backend.tes.model.TESDockerExecutor;
-import org.rabix.backend.tes.model.TESJob;
 import org.rabix.backend.tes.model.TESJobId;
 import org.rabix.backend.tes.model.TESResources;
 import org.rabix.backend.tes.model.TESState;
@@ -96,6 +94,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   private Configuration configuration;
   @Inject
   private WorkerStatusCallback statusCallback;
+
+  static String WORKING_DIR = "working_dir";
   
   private class PendingResult {
     private Job job;
@@ -237,7 +237,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     public TESTask call() throws Exception {
       try {
         Bindings bindings = BindingsFactory.create(job);
-        job = bindings.preprocess(job, null, null);
+        job = bindings.preprocess(job, new File(storage.workDir(job).toString()), (String path, Map<String, Object> config) -> path);
 
         List<TESTaskParameter> inputs = new ArrayList<>();
         List<TESTaskParameter> outputs = new ArrayList<>();
@@ -296,53 +296,31 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           false
         ));
 
-        // TODO should explicitly name all output files, instead of entire directory?
-        //      but how to handle glob?
         outputs.add(new TESTaskParameter(
-          "working_dir",
+          WORKING_DIR,
           null,
-          storage.outputPath(job.getRootId().toString(), job.getName(), "working_dir").toUri().toString(),
-          storage.containerPath("working_dir").toString(),
+          storage.workDir(job).toUri().toString(),
+          storage.containerPath(WORKING_DIR).toString(),
           FileType.Directory,
           false
         ));
-
-        //TODO why are these outputs?
-        /*if (!bindings.isSelfExecutable(job)) {
-          outputs.add(new TESTaskParameter(
-            "command.sh",
-            null,
-            storage.outputPath(job.getId(), "command.sh").toUri().toString(),
-            storage.containerPath("command.sh").toString(),
-            FileType.File.name(),
-            false
-          ));
-          outputs.add(new TESTaskParameter(
-            "environment.sh",
-            null,
-            storage.outputPath(job.getId(), "environment.sh").toUri().toString(),
-            storage.containerPath("environment.sh").toString(),
-            FileType.File.name(),
-            false
-          ));
-         }*/
 
         // Initialization command
         initCommand.add("/usr/share/rabix-tes-command-line/rabix");
         initCommand.add("-j");
         initCommand.add(storage.containerPath("inputs", "job.json").toString());
         initCommand.add("-w");
-        initCommand.add(storage.containerPath("working_dir").toString());
+        initCommand.add(storage.containerPath(WORKING_DIR).toString());
         initCommand.add("-m");
         initCommand.add("initialize");
 
         commands.add(new TESDockerExecutor(
           BUNNY_COMMAND_LINE_DOCKER_IMAGE,
           initCommand,
-          storage.containerPath("working_dir").toString(),
+          storage.containerPath(WORKING_DIR).toString(),
           null,
-          storage.containerPath("working_dir", "standard_out.log").toString(),
-          storage.containerPath("working_dir", "standard_error.log").toString(), null
+          storage.containerPath(WORKING_DIR, "standard_out.log").toString(),
+          storage.containerPath(WORKING_DIR, "standard_error.log").toString(), null
         ));
         
         List<Requirement> combinedRequirements = new ArrayList<>();
@@ -364,25 +342,25 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
             job,
             // TODO needs local staging directory?
             //      is "File" the wrong type for this argument? Why is it a container path?
-            storage.containerPath("working_dir").toFile(),
+            storage.containerPath(WORKING_DIR).toFile(),
             (String path, Map<String, Object> config) -> path
           );
 
           String commandLineToolStdout = commandLine.getStandardOut();
           if (commandLineToolStdout != null && !commandLineToolStdout.startsWith("/")) {
-              commandLineToolStdout = storage.containerPath("working_dir", commandLineToolStdout).toString();
+              commandLineToolStdout = storage.containerPath(WORKING_DIR, commandLineToolStdout).toString();
           }
 
           String commandLineToolErrLog = commandLine.getStandardError();
           if (commandLineToolErrLog == null) {
-            commandLineToolErrLog = storage.containerPath("working_dir", DEFAULT_COMMAND_LINE_TOOL_ERR_LOG).toString();
+            commandLineToolErrLog = storage.containerPath(WORKING_DIR, DEFAULT_COMMAND_LINE_TOOL_ERR_LOG).toString();
           }
 
           // Main job command
           commands.add(new TESDockerExecutor(
             imageId,
             mainCommand,
-            storage.containerPath("working_dir").toString(),
+            storage.containerPath(WORKING_DIR).toString(),
             null,
             commandLineToolStdout,
             commandLineToolErrLog, null
@@ -395,18 +373,18 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         finalizeCommand.add("-j");
         finalizeCommand.add(storage.containerPath("inputs", "job.json").toString());
         finalizeCommand.add("-w");
-        finalizeCommand.add(storage.containerPath("working_dir").toString());
+        finalizeCommand.add(storage.containerPath(WORKING_DIR).toString());
         finalizeCommand.add("-m");
         finalizeCommand.add("finalize");
 
         commands.add(new TESDockerExecutor(
           BUNNY_COMMAND_LINE_DOCKER_IMAGE,
           finalizeCommand,
-          storage.containerPath("working_dir").toString(),
+          storage.containerPath(WORKING_DIR).toString(),
           null,
           // TODO maybe move these to a "rabix" output path so there's zero chance of conflict with the tool
-          storage.containerPath("working_dir", "standard_out.log").toString(),
-          storage.containerPath("working_dir", "standard_error.log").toString(), null
+          storage.containerPath(WORKING_DIR, "standard_out.log").toString(),
+          storage.containerPath(WORKING_DIR, "standard_error.log").toString(), null
         ));
 
         Integer cpus = null;
@@ -420,10 +398,10 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         }
 
         volumes.add(new TESVolume(
-          "working_dir",
+          WORKING_DIR,
           disk,
           null,
-          storage.containerPath("working_dir").toString(),
+          storage.containerPath(WORKING_DIR).toString(),
           false
         ));
 
