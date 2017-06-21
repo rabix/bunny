@@ -151,8 +151,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       for (CWLInputPort inputPort : inputPorts) {
         String key = inputPort.getId();
         Object schema = inputPort.getSchema();
-        
-        if(schema instanceof Map && ((Map) schema).get("type").equals("record") && inputPort.getInputBinding() == null) {
+        if(CWLSchemaHelper.isRecordFromSchema(schema) && inputPort.getInputBinding() == null) {
           List<CWLCommandLinePart> parts = buildRecordCommandLinePart(job, job.getInputs().get(CWLSchemaHelper.normalizeId(key)), schema, filePathMapper);
           commandLineParts.addAll(parts);          
         }
@@ -184,8 +183,10 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   @SuppressWarnings("rawtypes")
   private List<CWLCommandLinePart> buildRecordCommandLinePart(CWLJob job, Object value, Object schema, FilePathMapper filePathMapper) throws BindingException {
     List<CWLCommandLinePart> result = new ArrayList<CWLCommandLinePart>();
-    for(Object sch: (List)((Map) schema).get("fields")) {
-      if(sch instanceof Map && ((Map) sch).get("type").equals("record") && ((Map) sch).get("inputBinding") == null) {
+    Object schemaCopy = !CWLSchemaHelper.isRequired(schema) ? CWLSchemaHelper.getSchemaFromNonRequired(schema) : schema;
+    List<Object> fields = (List<Object>) CWLSchemaHelper.getFields(schemaCopy);
+    for(Object sch: fields) {
+      if(CWLSchemaHelper.isRecordFromSchema(sch) && CWLSchemaHelper.getInputBinding(sch) == null) {
         result.addAll(buildRecordCommandLinePart(job, value, sch, filePathMapper));
       }
       else {
@@ -236,7 +237,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     boolean isFile = CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value);
     if (isFile) {
       try {
-        value = filePathMapper.map(CWLFileValueHelper.getPath(value), new HashMap<>());
+        value = filePathMapper != null ? filePathMapper.map(CWLFileValueHelper.getPath(value), new HashMap<>()) : CWLFileValueHelper.getPath(value);
       } catch (FileMappingException e) {
         throw new BindingException(e);
       }
