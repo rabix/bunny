@@ -213,6 +213,10 @@ public class BackendCommandLine {
           VerboseLogger.log("TES URL is invalid");
           System.exit(-10);
         }
+      }      
+      String tesStorageURL = commandLine.getOptionValue("tes-storage");
+      if (tesStorageURL != null) {
+        configOverrides.put("rabix.tes.storage.base", tesStorageURL);
       }
       
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
@@ -493,6 +497,7 @@ public class BackendCommandLine {
     options.addOption(null, "outdir", true, "doesn't do anything");
     options.addOption(null, "quiet", false, "don't print anything except final result on standard output");
     options.addOption(null, "tes-url", true, "url of the ga4gh task execution server instance (experimental)");
+    options.addOption(null, "tes-storage", true, "path to the storage used by the ga4gh tes server (currently supports locall dirs and google storage cloud paths)");
     // TODO: implement useful cli overrides for config options
 //    options.addOption(null, "set-ownership", false, "");
 //    options.addOption(null, "ownership-uid", true, "");
