@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.sb.SBProcessor;
 import org.rabix.bindings.sb.bean.SBInputPort;
@@ -31,7 +32,7 @@ public class SBInputSecondaryFilesProcessor implements SBPortProcessorCallback {
   @SuppressWarnings("unchecked")
   public SBPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
     if (SBSchemaHelper.isFileFromValue(value) && port instanceof SBInputPort) {
-      if (SBFileValueHelper.getSecondaryFiles(value) != null) {
+      if (!CollectionUtils.isEmpty(SBFileValueHelper.getSecondaryFiles(value))) {
         return new SBPortProcessorResult(value, false); 
       }
       Object secondaryFilesObj = ((SBInputPort) port).getInputBinding();
