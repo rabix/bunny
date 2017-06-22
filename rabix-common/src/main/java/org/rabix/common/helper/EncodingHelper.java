@@ -22,7 +22,7 @@ public class EncodingHelper {
   }
   
   public static String shellQuote(String argument) {
-    if (!NEEDS_QUOTING_PATTERN.matcher(argument).find()) {
+    if (!NEEDS_QUOTING_PATTERN.matcher(argument).find() && !argument.equals("")) {
       return argument;
     }
     return "'" + argument.replace("'", "'\\''") + "'";
