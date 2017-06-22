@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.api.BackendModule;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
+import org.rabix.backend.slurm.SlurmModule;
 import org.rabix.cli.service.LocalDownloadServiceImpl;
 import org.rabix.backend.tes.TESModule;
 import org.rabix.bindings.BindingException;
@@ -219,6 +220,7 @@ public class BackendCommandLine {
       Injector injector = Guice.createInjector(
           new EngineModule(configModule),
           new TESModule(configModule),
+          new SlurmModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {
