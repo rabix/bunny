@@ -8,12 +8,12 @@ import java.util.UUID;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.engine.cache.Cachable;
-import org.rabix.engine.cache.Cache;
-import org.rabix.engine.cache.CacheItem.Action;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobRecord.PortCounter;
-import org.rabix.engine.repository.JobRecordRepository;
+import org.rabix.engine.store.cache.Cachable;
+import org.rabix.engine.store.cache.Cache;
+import org.rabix.engine.store.cache.CacheItem.Action;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.model.JobRecord.PortCounter;
+import org.rabix.engine.store.repository.JobRecordRepository;
 import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.JobRecordService;
 import org.slf4j.Logger;
@@ -24,15 +24,6 @@ import com.google.inject.Inject;
 public class JobRecordServiceImpl implements JobRecordService {
 
   private final static Logger logger = LoggerFactory.getLogger(JobRecordServiceImpl.class);
-  
-  public static enum JobState {
-    PENDING,
-    READY,
-    RUNNING,
-    COMPLETED,
-    FAILED,
-    ABORTED
-  }
 
   private CacheService cacheService;
   private JobRecordRepository jobRecordRepository;
@@ -79,7 +70,7 @@ public class JobRecordServiceImpl implements JobRecordService {
   }
   
   @Override
-  public List<JobRecord> find(UUID rootId, Set<JobState> statuses) {
+  public List<JobRecord> find(UUID rootId, Set<JobRecord.JobState> statuses) {
     List<JobRecord> records = jobRecordRepository.get(rootId, statuses);
 
     Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);

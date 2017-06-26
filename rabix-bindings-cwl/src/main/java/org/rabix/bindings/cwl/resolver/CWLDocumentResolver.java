@@ -113,7 +113,7 @@ public class CWLDocumentResolver {
         file = new File(".");
       }
       String input = URIHelper.getData(appUrlBase);
-      root = JSONHelper.getTransformed(input);
+      root = JSONHelper.readJsonNode(input);
       if (isFile) {
         addAppLocation(root, appUrl, StringUtils.EMPTY);
       }
@@ -467,8 +467,8 @@ public class CWLDocumentResolver {
       }
       String contents = loadContents(file, parts[0]);     
       try {
-        return JSONHelper.getTransformed(contents);
-      } catch (IOException e) {
+        return JSONHelper.readJsonNode(contents);
+      } catch (Exception e) {
         throw new BindingException(e);
       }
     }

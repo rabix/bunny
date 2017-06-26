@@ -6,11 +6,10 @@
 	<parent>
 		<groupId>org.rabix</groupId>
 		<artifactId>rabix</artifactId>
-		<version>1.0.0-rc5</version>
+		<version>1.0.0-rc6-SNAPSHOT</version>
 	</parent>
 	<artifactId>rabix-engine-rest</artifactId>
 	<name>rabix-engine-rest</name>
-	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -96,14 +95,14 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-core</artifactId>
-			<version>5.7.0</version>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+			<version>1.3.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-pool</artifactId>
-			<version>5.13.2</version>
+			<groupId>commons-daemon</groupId>
+			<artifactId>commons-daemon</artifactId>
+			<version>1.0.15</version>
 		</dependency>
 	</dependencies>
 	
@@ -150,6 +149,51 @@
 		</profile>
 		<profile>
 			<id>all</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-draft2</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-draft3</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-sb</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.rabix</groupId>
+					<artifactId>rabix-bindings-cwl</artifactId>
+					<version>${project.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+	<profile>
+		<id>embedded</id>
+		<dependencies>
+			<dependency>
+				<groupId>org.rabix</groupId>
+				<artifactId>rabix-executor</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</profile>
+	<profile>
+		<id>tes</id>
+		<dependencies>
+			<dependency>
+				<groupId>org.rabix</groupId>
+				<artifactId>rabix-backend-tes</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</profile>
+		<profile>
+			<id>deploy</id>
 			<dependencies>
 				<dependency>
 					<groupId>org.rabix</groupId>

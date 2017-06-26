@@ -31,12 +31,12 @@ public class IntermediaryFilesLocalHandler implements IntermediaryFilesHandler {
         logger.info("Deleting file={}", path);
         Files.delete(path);
       } catch (NoSuchFileException e1) {
-        logger.error("Failed to delete file={} No such file", path, e1);
+        logger.error("Failed to deleteGroup file={} No such file", path, e1);
         System.err.format("%s: no such" + " file or directory%n", path);
       } catch (DirectoryNotEmptyException e2) {
-        logger.error("Failed to delete file={}", path, e2);
+        logger.error("Failed to deleteGroup file={}", path, e2);
       } catch (IOException e3) {
-        logger.error("Failed to delete file={}", path, e3);
+        logger.error("Failed to deleteGroup file={}", path, e3);
       }
     }
   }

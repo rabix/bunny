@@ -28,9 +28,9 @@ public class TestRunner {
   private static String testDirPath;
   private static String cmdPrefix;
   private static String buildFilePath;
-  private static String buildFileDirPath = "./rabix-backend-local/target/";
+  private static String buildFileDirPath = "./rabix-cli/target/";
   private static String currentTestSuite;
-  private static String integrationTempResultPath = "./rabix-backend-local/target/result.yaml";
+  private static String integrationTempResultPath = "./rabix-cli/target/result.yaml";
   private static String workingdir;
   private static String cwlTestWorkingdir;
   private static String draftName;
@@ -105,7 +105,7 @@ public class TestRunner {
         currentTestSuite = child.getPath();
         logger.info("Executing test suite: " + currentTestSuite);
         String currentTest = readFile(child.getAbsolutePath(), Charset.defaultCharset());
-        Map<String, Object> inputSuite = JSONHelper.readMap(JSONHelper.transformToJSON(currentTest));
+        Map<String, Object> inputSuite = JSONHelper.readMap(JSONHelper.readJsonNode(currentTest));
         Iterator<?> entries = inputSuite.entrySet().iterator();
 
         while (entries.hasNext()) {
@@ -133,7 +133,7 @@ public class TestRunner {
           String resultText = readFile(integrationTempResultFile.getAbsolutePath(), Charset.defaultCharset());
           logger.info("\nGenerated result file:");
           logger.info(resultText);
-          Map<String, Object> actualResult = JSONHelper.readMap(JSONHelper.transformToJSON(resultText));
+          Map<String, Object> actualResult = JSONHelper.readMap(JSONHelper.readJsonNode(resultText));
           testPassed = validateTestCase(currentTestDetails, actualResult);
           logger.info("Test result: ");
           if (testPassed) {

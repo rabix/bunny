@@ -1,23 +1,30 @@
 package org.rabix.engine.service.impl;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
+import org.rabix.backend.api.WorkerService;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
-import org.rabix.engine.repository.BackendRepository;
-import org.rabix.engine.repository.TransactionHelper;
-import org.rabix.engine.repository.TransactionHelper.TransactionException;
+import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
 import org.rabix.engine.service.SchedulerService;
+import org.rabix.engine.store.model.BackendRecord;
+import org.rabix.engine.store.repository.BackendRepository;
+import org.rabix.engine.store.repository.TransactionHelper;
+import org.rabix.engine.store.repository.TransactionHelper.TransactionException;
 import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
+import org.rabix.transport.backend.Backend.BackendType;
 import org.rabix.transport.backend.HeartbeatInfo;
+import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.BackendConfiguration;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.EngineConfiguration;
@@ -27,26 +34,50 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
-  
+
   private final SchedulerService scheduler;
   private final BackendStubFactory backendStubFactory;
   private final TransactionHelper transactionHelper;
   private final Configuration configuration;
   
   private final BackendRepository backendRepository;
-
+  
+  private final Injector injector;
+  
   @Inject
   public BackendServiceImpl(BackendStubFactory backendStubFactory, SchedulerService backendDispatcher,
-      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration) {
+      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration, Injector injector) {
+    this.injector = injector;
     this.scheduler = backendDispatcher;
     this.backendStubFactory = backendStubFactory;
     this.transactionHelper = transactionHelper;
     this.configuration = configuration;
     this.backendRepository = backendRepository;
+  }
+  
+  @Override
+  public void scanEmbedded() {
+    Set<Class<WorkerService>> clazzes = ClasspathScanner.<WorkerService>scanInterfaceImplementations(WorkerService.class);
+
+    int prefix = 1;
+    for (Class<WorkerService> clazz : clazzes) {
+      try {
+        WorkerService backendAPI = clazz.newInstance();
+        if (isEnabled(backendAPI.getType())) {
+          injector.injectMembers(backendAPI);
+          BackendLocal backendLocal = new BackendLocal(Integer.toString(prefix++));
+          create(backendLocal);
+          backendAPI.start(backendLocal);
+        }
+      } catch (InstantiationException | IllegalAccessException | BackendServiceException e) {
+        logger.error("Failed to register backend " + clazz, e);
+      }
+    }
   }
   
   @Override
@@ -58,7 +89,14 @@ public class BackendServiceImpl implements BackendService {
         public Backend call() throws Exception {
           try {
             Backend populated = populate(backend);
-            backendRepository.insert(backend.getId(), backend, Timestamp.from(Instant.now()));
+            BackendRecord br = new BackendRecord(
+                backend.getId(),
+                backend.getName(),
+                Instant.now(),
+                JSONHelper.convertToMap(backend),
+                BackendRecord.Status.ACTIVE,
+                BackendRecord.Type.valueOf(backend.getType().toString()));
+            backendRepository.insert(br);
             BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
             scheduler.addBackendStub(backendStub);
             logger.info("Backend {} registered.", populated.getId());
@@ -75,8 +113,8 @@ public class BackendServiceImpl implements BackendService {
   
   public void startBackend(Backend backend) throws BackendServiceException {
     try {
-      backendRepository.updateStatus(backend.getId(), BackendStatus.ACTIVE);
-      updateHeartbeatInfo(backend.getId(), Timestamp.from(Instant.now()));
+      backendRepository.updateStatus(backend.getId(), BackendRecord.Status.ACTIVE);
+      updateHeartbeatInfo(backend.getId(), Instant.now());
       scheduler.addBackendStub(backendStubFactory.create(backend));
     } catch (TransportPluginException e) {
       throw new BackendServiceException(e);
@@ -133,34 +171,55 @@ public class BackendServiceImpl implements BackendService {
   }
   
   @Override
-  public void updateHeartbeatInfo(UUID id, Timestamp ts) throws BackendServiceException {
+  public void updateHeartbeatInfo(UUID id, Instant ts) throws BackendServiceException {
     backendRepository.updateHeartbeatInfo(id, ts);
   }
 
   @Override
   public void updateHeartbeatInfo(HeartbeatInfo info) throws BackendServiceException {
-    backendRepository.updateHeartbeatInfo(info.getId(), new Timestamp(info.getTimestamp()));
+    backendRepository.updateHeartbeatInfo(info.getId(), Instant.ofEpochMilli(info.getTimestamp()));
   }
 
   @Override
   public Long getHeartbeatInfo(UUID id) {
-    Timestamp timestamp = backendRepository.getHeartbeatInfo(id);
-    return timestamp != null ? timestamp.getTime() : null;
+    Instant timestamp = backendRepository.getHeartbeatInfo(id);
+    return timestamp != null ? timestamp.toEpochMilli() : null;
   }
 
   @Override
   public List<Backend> getActiveBackends() {
-    return backendRepository.getByStatus(BackendStatus.ACTIVE);
+    return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().map(
+        br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
+    ).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Backend> getActiveRemoteBackends() {
+    return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().filter(b -> !b.getType().equals(BackendRecord.Type.LOCAL))
+        .map(br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)).collect(Collectors.toList());
   }
 
   @Override
   public void stopBackend(Backend backend) throws BackendServiceException {
-    backendRepository.updateStatus(backend.getId(), BackendStatus.INACTIVE);
+    backendRepository.updateStatus(backend.getId(), BackendRecord.Status.INACTIVE);
   }
 
   @Override
   public List<Backend> getAllBackends() {
-    return backendRepository.getAll();
+    return backendRepository.getAll().stream().map(
+        br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
+    ).collect(Collectors.toList());
+  }
+
+  @Override
+  public boolean isEnabled(String type) {
+    String[] backendTypes = configuration.getStringArray(BACKEND_TYPES_KEY);
+    for (String backendType : backendTypes) {
+      if (backendType.trim().equalsIgnoreCase(type)) {
+        return true;
+      }
+    }
+    return false;
   }
   
 }

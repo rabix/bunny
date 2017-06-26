@@ -15,8 +15,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.bindings.model.Job;
-import org.rabix.executor.engine.EngineStub;
 import org.rabix.executor.handler.JobHandlerFactory;
 import org.rabix.executor.model.JobData;
 import org.slf4j.Logger;

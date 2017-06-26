@@ -27,7 +27,7 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
   protected Q receiveFromBackendQueue;
   protected Q receiveFromBackendHeartbeatQueue;
 
-  protected boolean enableControlMesages;
+  protected boolean enableControlMessages;
   protected boolean cleanup;
   
   
@@ -78,7 +78,7 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
   }
 
   public void send(EngineControlMessage controlMessage) {
-    if (enableControlMesages) {
+    if (enableControlMessages) {
       transportPlugin.send(sendToBackendControlQueue, controlMessage);
     }
   }

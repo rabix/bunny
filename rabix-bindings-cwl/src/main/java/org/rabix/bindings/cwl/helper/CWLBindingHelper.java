@@ -32,7 +32,7 @@ public class CWLBindingHelper extends CWLBeanHelper {
   public static final String KEY_OUTPUT_EVAL = "outputEval";
   public static final String KEY_LINK_MERGE = "linkMerge";
 
-  public static Object getGlob(Object binding) {
+  public static String getGlob(Object binding) {
     return getValue(KEY_GLOB, binding);
   }
   

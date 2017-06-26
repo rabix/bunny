@@ -3,6 +3,8 @@ package org.rabix.bindings.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.rabix.bindings.helper.FileValueHelper;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -11,7 +13,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.rabix.bindings.helper.FileValueHelper;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.google.common.base.Preconditions;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -142,4 +145,29 @@ public abstract class ApplicationPort {
       return "Invalid Value for " + id + ".\n Expected: " + getDataType() + ".\n Received: " + inDataType;
     return null;
   }
+  
+  public static enum StageInput {
+    COPY("copy"), LINK("link");
+    
+    private String value;
+
+    @JsonValue
+    public String getValue() {
+      return value;
+    }
+    private StageInput(String value) {
+      this.value = value;
+    }
+    
+    public static StageInput get(String value) {
+      Preconditions.checkNotNull(value);
+      for (StageInput stageInput : values()) {
+        if (value.compareToIgnoreCase(stageInput.value) == 0) {
+          return stageInput;
+        }
+      }
+      throw new IllegalArgumentException("Wrong stageInput value " + value);
+    }
+  }
+  
 }

@@ -6,11 +6,10 @@
 	<parent>
 		<groupId>org.rabix</groupId>
 		<artifactId>rabix</artifactId>
-		<version>1.0.0-rc5</version>
+		<version>1.0.0-rc6-SNAPSHOT</version>
 	</parent>
 	<artifactId>rabix-bindings</artifactId>
 	<name>rabix-bindings</name>
-	<url>http://maven.apache.org</url>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -40,16 +39,6 @@
 			<groupId>org.mozilla</groupId>
 			<artifactId>rhino</artifactId>
 			<version>${rhino.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.velocity</groupId>
-			<artifactId>velocity</artifactId>
-			<version>1.7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
-			<artifactId>rabix-ftp</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>

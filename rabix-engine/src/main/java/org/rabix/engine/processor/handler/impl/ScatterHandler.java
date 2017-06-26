@@ -14,30 +14,29 @@ import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.model.JobRecord.PortCounter;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.model.VariableRecord;
-import org.rabix.engine.model.scatter.RowMapping;
-import org.rabix.engine.model.scatter.ScatterStrategy;
-import org.rabix.engine.model.scatter.ScatterStrategyException;
-import org.rabix.engine.model.scatter.ScatterStrategyFactory;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
+import org.rabix.engine.service.DAGNodeService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.model.JobRecord.PortCounter;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.model.VariableRecord;
+import org.rabix.engine.store.model.scatter.RowMapping;
+import org.rabix.engine.store.model.scatter.ScatterStrategy;
+import org.rabix.engine.store.model.scatter.ScatterStrategyException;
+import org.rabix.engine.store.model.scatter.ScatterStrategyFactory;
 
 import com.google.inject.Inject;
 
 public class ScatterHandler {
 
-  private final DAGNodeDB dagNodeDB;
+  private final DAGNodeService dagNodeService;
   private final EventProcessor eventProcessor;
   
   private final JobRecordService jobRecordService;
@@ -46,24 +45,22 @@ public class ScatterHandler {
   private final ScatterStrategyFactory scatterStrategyFactory;
   
   @Inject
-  public ScatterHandler(final DAGNodeDB dagNodeDB, final JobRecordService jobRecordService,
+  public ScatterHandler(final DAGNodeService dagNodeService, final JobRecordService jobRecordService,
       final VariableRecordService variableRecordService, final LinkRecordService linkRecordService,
       final EventProcessor eventProcessor, final ScatterStrategyFactory scatterStrategyFactory) {
-    this.dagNodeDB = dagNodeDB;
+    this.dagNodeService = dagNodeService;
     this.eventProcessor = eventProcessor;
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
     this.variableRecordService = variableRecordService;
     this.scatterStrategyFactory = scatterStrategyFactory;
   }
-  
-  /**
+
+  /*
    * Scatters port
-   * @throws BindingException 
-   * @returns Scatter
    */
   @SuppressWarnings("unchecked")
-  public void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
+  void scatterPort(JobRecord job, Event event, String portId, Object value, Integer position, Integer numberOfScatteredFromEvent, boolean isLookAhead, boolean isFromEvent) throws EventHandlerException {
     job.setScatterWrapper(true);
     
     ScatterStrategy scatterStrategy = job.getScatterStrategy();
@@ -71,7 +68,7 @@ public class ScatterHandler {
       return;
     }
     
-    DAGNode node = dagNodeDB.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId(), job.getDagHash());
+    DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId(), job.getDagHash());
     if (job.getScatterStrategy() == null) {
       try {
         scatterStrategy = scatterStrategyFactory.create(node);
@@ -132,12 +129,12 @@ public class ScatterHandler {
         outputs.put(outputVariableRecord.getPortId(), output);
       }
       jobRecordService.update(job);
-      eventProcessor.send(new JobStatusEvent(job.getId(), job.getRootId(), JobState.COMPLETED,  outputs, event.getEventGroupId(), event.getProducedByNode()));
+      eventProcessor.send(new JobStatusEvent(job.getId(), job.getRootId(), JobRecord.JobState.COMPLETED,  outputs, event.getEventGroupId(), event.getProducedByNode()));
       return;
     }
   }
   
-  public JobRecord createJobRecord(String id, UUID parentId, DAGNode node, boolean isScattered, UUID contextId, String dagCache) {
+  JobRecord createJobRecord(String id, UUID parentId, DAGNode node, boolean isScattered, UUID contextId, String dagCache) {
     boolean isBlocking = false;
     for (LinkMerge linkMerge : node.getLinkMergeSet(LinkPortType.INPUT)) {
       if (LinkMerge.isBlocking(linkMerge)) {
@@ -148,7 +145,7 @@ public class ScatterHandler {
     if (ScatterMethod.isBlocking(node.getScatterMethod())) {
       isBlocking = true;
     }
-    return new JobRecord(contextId, id, JobRecordService.generateUniqueId(), parentId, JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking, dagCache);
+    return new JobRecord(contextId, id, JobRecordService.generateUniqueId(), parentId, JobRecord.JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking, dagCache);
   }
   
   private void createScatteredJobs(JobRecord job, Event event, String port, Object value, DAGNode node, Integer numberOfScattered, Integer position) throws EventHandlerException {
@@ -171,7 +168,7 @@ public class ScatterHandler {
     int newScatteredNumber = job.getNumberOfGlobalOutputs();
     
     for (RowMapping mapping : mappings) {
-      job.setState(JobState.RUNNING);
+      job.setState(JobRecord.JobState.RUNNING);
       jobRecordService.update(job);
 
       List<Event> events = new ArrayList<>();
@@ -192,7 +189,7 @@ public class ScatterHandler {
           continue;
         }
         
-        if (jobN.getState().equals(JobState.PENDING)) {
+        if (jobN.getState().equals(JobRecord.JobState.PENDING)) {
           jobRecordService.incrementPortCounter(jobN, inputPort, LinkPortType.INPUT);
         }
         LinkRecord link = new LinkRecord(job.getRootId(), job.getId(), inputPort.getId(), LinkPortType.INPUT, jobNId, inputPort.getId(), LinkPortType.INPUT, 1);
@@ -218,7 +215,7 @@ public class ScatterHandler {
         linkRecordService.create(link);
       }
 
-      job.setState(JobState.RUNNING);
+      job.setState(JobRecord.JobState.RUNNING);
       
       newScatteredNumber = getNumberOfScattered(job, numberOfScattered);
       

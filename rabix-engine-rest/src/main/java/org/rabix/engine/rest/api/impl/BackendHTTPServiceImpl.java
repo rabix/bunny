@@ -2,6 +2,10 @@ package org.rabix.engine.rest.api.impl;
 
 import java.util.Collections;
 
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -13,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
+@Produces(MediaType.APPLICATION_JSON)
+@Path("/v0/engine/backends")
 public class BackendHTTPServiceImpl implements BackendHTTPService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendHTTPServiceImpl.class);
@@ -25,6 +31,7 @@ public class BackendHTTPServiceImpl implements BackendHTTPService {
   }
   
   @Override
+  @POST
   public Response create(Backend backend) {
     try {
       return ok(backendService.create(backend));

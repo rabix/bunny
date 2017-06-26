@@ -1,9 +1,7 @@
 package org.rabix.bindings.model;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -43,6 +41,9 @@ public abstract class Application {
 
   @JsonIgnore
   public abstract String getVersion();
+
+  @JsonIgnore
+  public abstract ValidationReport validate();
   
   protected Map<String, Object> raw = new HashMap<>();
   
@@ -91,6 +92,31 @@ public abstract class Application {
     if (!ret.isEmpty())
       return ret;
     return null;
+  }
+
+  public Set<String> checkPortDuplicates(List<? extends ApplicationPort> ports) {
+    Set<String> duplicates = new HashSet<>();
+    Set<String> ids = new HashSet<>();
+    for (ApplicationPort port: ports) {
+      if (!ids.add(port.getId())) {
+        duplicates.add(port.getId());
+      }
+    }
+    return duplicates;
+  }
+
+  protected List<String> validatePortUniqueness() {
+    List<String> validationErrors = new ArrayList<>();
+
+    for (String duplicate : checkPortDuplicates(getInputs())) {
+      validationErrors.add("Duplicate input id: " + duplicate);
+    }
+
+    for (String duplicate : checkPortDuplicates(getOutputs())) {
+      validationErrors.add("Duplicate output id: " + duplicate);
+    }
+
+    return validationErrors;
   }
 
   public static class ApplicationDeserializer extends JsonDeserializer<Application> {

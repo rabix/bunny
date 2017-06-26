@@ -3,7 +3,6 @@ package org.rabix.executor.rest;
 import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.UUID;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.ApplicationPath;
@@ -25,6 +24,8 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.rabix.backend.api.WorkerService;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.service.download.DownloadService;
@@ -39,16 +40,16 @@ import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.pathmapper.local.LocalPathMapper;
 import org.rabix.executor.rest.api.ExecutorHTTPService;
 import org.rabix.executor.rest.api.impl.ExecutorHTTPServiceImpl;
-import org.rabix.executor.rest.status.NoOpExecutorStatusCallback;
-import org.rabix.executor.service.ExecutorService;
-import org.rabix.executor.status.ExecutorStatusCallback;
+import org.rabix.executor.rest.status.NoOpWorkerStatusCallback;
+import org.rabix.executor.service.impl.WorkerServiceImpl;
+import org.rabix.executor.service.impl.WorkerServiceImpl.LocalWorker;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
-import org.rabix.transport.backend.impl.BackendRabbitMQ.EngineConfiguration;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Scopes;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.ServletModule;
@@ -79,7 +80,8 @@ public class ServerBuilder {
                 bind(ExecutorHTTPService.class).to(ExecutorHTTPServiceImpl.class).in(Scopes.SINGLETON);
                 bind(DownloadService.class).to(NoOpDownloadServiceImpl.class).in(Scopes.SINGLETON);
                 bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
-                bind(ExecutorStatusCallback.class).to(NoOpExecutorStatusCallback.class).in(Scopes.SINGLETON);
+                bind(WorkerService.class).annotatedWith(LocalWorker.class).to(WorkerServiceImpl.class).in(Scopes.SINGLETON);
+                bind(WorkerStatusCallback.class).to(NoOpWorkerStatusCallback.class).in(Scopes.SINGLETON);
                 
                 bind(StorageConfiguration.class).to(DefaultStorageConfiguration.class).in(Scopes.SINGLETON);
 
@@ -113,8 +115,8 @@ public class ServerBuilder {
     BackendRegister backendRegister = injector.getInstance(BackendRegister.class);
     Backend backend = backendRegister.start();
     
-    ExecutorService executorService = injector.getInstance(ExecutorService.class);
-    executorService.initialize(backend);
+    WorkerService executorService = injector.getInstance(Key.get(WorkerService.class, LocalWorker.class));
+    executorService.start(backend);
     return server;
   }
 

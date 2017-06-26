@@ -23,16 +23,12 @@ import org.rabix.bindings.model.LinkMerge;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.json.processor.BeanProcessor;
 import org.rabix.common.json.processor.BeanProcessorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link BeanProcessor} used for Job processing. It populates some additional fields.
  */
 public class Draft2JobProcessor implements BeanProcessor<Draft2Job> {
 
-  private final static Logger logger = LoggerFactory.getLogger(Draft2JobProcessor.class);
-  
   public Draft2Job process(Draft2Job job) throws BeanProcessorException {
     try {
       return process(null, job);

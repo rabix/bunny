@@ -3,6 +3,7 @@ package org.rabix.bindings.cwl.bean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.rabix.bindings.model.ValidationReport;
 
 @JsonDeserialize(as = CWLPythonTool.class)
 public class CWLPythonTool extends CWLJobApp {
@@ -26,4 +27,8 @@ public class CWLPythonTool extends CWLJobApp {
         + ", getOutputs()=" + getOutputs() + "]";
   }
 
+  @Override
+  public ValidationReport validate() {
+    return new ValidationReport();
+  }
 }

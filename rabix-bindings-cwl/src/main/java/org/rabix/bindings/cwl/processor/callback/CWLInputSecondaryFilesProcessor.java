@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.rabix.bindings.cwl.CWLProcessor;
 import org.rabix.bindings.cwl.bean.CWLInputPort;
 import org.rabix.bindings.cwl.bean.CWLJob;
@@ -31,7 +32,7 @@ public class CWLInputSecondaryFilesProcessor implements CWLPortProcessorCallback
   @SuppressWarnings("unchecked")
   public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
     if ((CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) && port instanceof CWLInputPort) {
-      if (CWLFileValueHelper.getSecondaryFiles(value) != null) {
+      if (!CollectionUtils.isEmpty(CWLFileValueHelper.getSecondaryFiles(value))) {
         return new CWLPortProcessorResult(value, false); 
       }
       Object secondaryFilesObj = ((CWLInputPort) port).getSecondaryFiles();

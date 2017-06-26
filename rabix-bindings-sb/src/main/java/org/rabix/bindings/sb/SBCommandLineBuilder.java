@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.ProtocolCommandLineBuilder;
+import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.sb.bean.SBCommandLineTool;
@@ -27,7 +28,6 @@ import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
@@ -149,7 +149,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
           }
           Object argValue = commandLineTool.getArgument(job, argBinding);
           Map<String, Object> emptySchema = new HashMap<>();
-          SBCommandLinePart commandLinePart = buildCommandLinePart(job, null, argBinding, argValue, emptySchema, null);
+          SBCommandLinePart commandLinePart = buildCommandLinePart(job, null, argBinding, argValue, emptySchema, null, filePathMapper);
           if (commandLinePart != null) {
             commandLinePart.setArgsArrayOrder(i);
             commandLineParts.add(commandLinePart);
@@ -161,7 +161,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
         String key = inputPort.getId();
         Object schema = inputPort.getSchema();
 
-        SBCommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(SBSchemaHelper.normalizeId(key)), schema, key);
+        SBCommandLinePart part = buildCommandLinePart(job, inputPort, inputPort.getInputBinding(), job.getInputs().get(SBSchemaHelper.normalizeId(key)), schema, key, filePathMapper);
         if (part != null) {
           commandLineParts.add(part);
         }
@@ -181,7 +181,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
   }
 
   @SuppressWarnings("unchecked")
-  private SBCommandLinePart buildCommandLinePart(SBJob job, SBInputPort inputPort, Object inputBinding, Object value, Object schema, String key) throws BindingException {
+  private SBCommandLinePart buildCommandLinePart(SBJob job, SBInputPort inputPort, Object inputBinding, Object value, Object schema, String key, FilePathMapper filePathMapper) throws BindingException {
     logger.debug("Building command line part for value {} and schema {}", value, schema);
 
     SBCommandLineTool commandLineTool = (SBCommandLineTool) job.getApp();
@@ -211,7 +211,11 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
 
     boolean isFile = SBSchemaHelper.isFileFromValue(value);
     if (isFile) {
-      value = SBFileValueHelper.getPath(value);
+      try {
+        value = filePathMapper != null ? filePathMapper.map(SBFileValueHelper.getPath(value), new HashMap<>()) : SBFileValueHelper.getPath(value);
+      } catch (FileMappingException e) {
+        throw new BindingException(e);
+      }
     }
 
     if (value == null) {
@@ -247,7 +251,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
         Object fieldType = SBSchemaHelper.getType(field);
         Object fieldSchema = SBSchemaHelper.findSchema(commandLineTool.getSchemaDefs(), fieldType);
 
-        SBCommandLinePart fieldCommandLinePart = buildCommandLinePart(job, inputPort, fieldBinding, fieldValue, fieldSchema, fieldKey);
+        SBCommandLinePart fieldCommandLinePart = buildCommandLinePart(job, inputPort, fieldBinding, fieldValue, fieldSchema, fieldKey, filePathMapper);
 
         if (fieldCommandLinePart != null) {
           fieldCommandLinePart.setKeyValue(fieldKey);
@@ -268,7 +272,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
           arrayItemInputBinding = (Map<String, Object>) SBSchemaHelper.getInputBinding(schema);
         }
         
-        SBCommandLinePart subpart = buildCommandLinePart(job, inputPort, arrayItemInputBinding, item, arrayItemSchema, key);
+        SBCommandLinePart subpart = buildCommandLinePart(job, inputPort, arrayItemInputBinding, item, arrayItemSchema, key, filePathMapper);
         if (subpart != null) {
           commandLinePartBuilder.part(subpart);
         }
