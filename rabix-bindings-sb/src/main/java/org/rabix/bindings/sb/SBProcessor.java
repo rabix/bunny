@@ -374,17 +374,15 @@ public class SBProcessor implements ProtocolProcessor {
         secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
       }
       File secondaryFile = new File(secondaryFilePath);
-      if (secondaryFile.exists()) {
         Map<String, Object> secondaryFileMap = new HashMap<>();
         SBFileValueHelper.setFileType(secondaryFileMap);
         SBFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
         SBFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
         SBFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-        if (hashAlgorithm != null) {
+        if (hashAlgorithm != null && secondaryFile.exists()) {
           SBFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
         }
         secondaryFileMaps.add(secondaryFileMap);
-      }
     }
     return secondaryFileMaps;
   }

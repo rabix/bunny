@@ -44,16 +44,16 @@ public class SBPortProcessor {
     }
     Map<String, Object> mappedValues = new HashMap<>();
     for (Entry<String, Object> entry : values.entrySet()) {
-      String id = entry.getKey();
+      String id = SBSchemaHelper.denormalizeId(entry.getKey());
       Object value = entry.getValue();
 
-      ApplicationPort port = job.getApp().getPort(SBSchemaHelper.denormalizeId(id), clazz);
+      ApplicationPort port = job.getApp().getPort(id, clazz);
       if (port == null) {
         throw new SBPortProcessorException("Port with ID=" + SBSchemaHelper.denormalizeId(id) + " doesn't exist.");
       }
       Object mappedValue = null;
       try {
-        mappedValue = processValue(value, port, port.getSchema(), SBSchemaHelper.denormalizeId(id), portProcessor);
+        mappedValue = processValue(value, port, port.getSchema(), port.getBinding(), id, portProcessor);
       } catch (Exception e) {
         throw new SBPortProcessorException("Failed to process value " + value, e);
       }
@@ -65,14 +65,14 @@ public class SBPortProcessor {
   }
 
   @SuppressWarnings("unchecked")
-  private Object processValue(Object value, ApplicationPort port, Object schema, String key, SBPortProcessorCallback portProcessor) throws Exception {
+  private Object processValue(Object value, ApplicationPort port, Object schema, Object binding, String key, SBPortProcessorCallback portProcessor) throws Exception {
     logger.debug("Process value {} and schema {}", value, schema);
 
     if (value == null) {
       return null;
     }
 
-    SBPortProcessorResult portProcessorResult = portProcessor.process(value, port);
+    SBPortProcessorResult portProcessorResult = portProcessor.process(value, key, schema, binding, port);
     if (portProcessorResult.isProcessed()) {
       return portProcessorResult.getValue();
     }
@@ -92,7 +92,8 @@ public class SBPortProcessor {
           continue;
         }
 
-        Object singleResult = processValue(entry.getValue(), port, schema, entry.getKey(), portProcessor);
+        Object fieldBinding = port instanceof SBInputPort ? SBSchemaHelper.getInputBinding(field) : SBSchemaHelper.getOutputBinding(field);
+        Object singleResult = processValue(entry.getValue(), port, SBSchemaHelper.getType(field), fieldBinding, entry.getKey(), portProcessor);
         result.put(entry.getKey(), singleResult);
       }
       return result;
@@ -103,7 +104,7 @@ public class SBPortProcessor {
 
       for (Object item : ((List<?>) value)) {
         Object arrayItemSchema = SBSchemaHelper.getSchemaForArrayItem(job.getApp().getSchemaDefs(), schema);
-        Object singleResult = processValue(item, port, arrayItemSchema, key, portProcessor);
+        Object singleResult = processValue(item, port, arrayItemSchema, port.getBinding(), key, portProcessor);
         result.add(singleResult);
       }
       return result;
