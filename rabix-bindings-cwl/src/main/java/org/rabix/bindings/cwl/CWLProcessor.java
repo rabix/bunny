@@ -473,7 +473,6 @@ public class CWLProcessor implements ProtocolProcessor {
           secondaryFilePath = suffix;
         }
         File secondaryFile = new File(secondaryFilePath);
-        if (secondaryFile.exists()) {
           if (secondaryFile.isDirectory()) {
             CWLFileValueHelper.setDirType(secondaryFileMap);
           } else {
@@ -482,10 +481,9 @@ public class CWLProcessor implements ProtocolProcessor {
           CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
           CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
           CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-          if (hashAlgorithm != null && !secondaryFile.isDirectory()) {
+          if (hashAlgorithm != null && secondaryFile.exists() && !secondaryFile.isDirectory()) {
             CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
           }
-        }
       } else if (expr instanceof Map) {
         secondaryFileMap = (Map<String, Object>) expr;
         postprocessCreatedResults(secondaryFileMap, hashAlgorithm, workingDir);

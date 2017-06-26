@@ -20,7 +20,7 @@ import org.rabix.common.helper.CloneHelper;
 public class CWLFilePropertiesProcessorCallback implements CWLPortProcessorCallback {
 
   @Override
-  public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
+  public CWLPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
     if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       Object clonedValue = CloneHelper.deepCopy(value);
 

@@ -25,8 +25,8 @@ public class CWLFileValueProcessorCallback implements CWLPortProcessorCallback {
   }
   
   @Override
-  public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if ((CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) && !skip(port.getId())) {
+  public CWLPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
+    if ((CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) && !skip(id)) {
       FileValue fileValue = null;
       if (CWLSchemaHelper.isFileFromValue(value)) {
         fileValue = CWLFileValueHelper.createFileValue(value);

@@ -13,7 +13,7 @@ public class CWLFileLocationToPathProcessorCallback implements CWLPortProcessorC
   }
 
   @Override
-  public CWLPortProcessorResult process(Object value, ApplicationPort port) throws CWLPortProcessorException {
+  public CWLPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws CWLPortProcessorException {
     if (value == null) {
       return new CWLPortProcessorResult(value, false);
     }

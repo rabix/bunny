@@ -17,7 +17,7 @@ import org.rabix.bindings.draft2.helper.Draft2SchemaHelper;
 import org.rabix.bindings.draft2.processor.Draft2PortProcessorCallback;
 import org.rabix.bindings.draft2.processor.Draft2PortProcessorResult;
 import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.bindings.model.ApplicationPort.StageInput;
+import org.rabix.bindings.model.StageInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

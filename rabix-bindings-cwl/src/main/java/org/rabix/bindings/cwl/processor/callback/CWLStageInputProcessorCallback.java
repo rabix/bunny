@@ -17,7 +17,7 @@ import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorCallback;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorResult;
 import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.bindings.model.ApplicationPort.StageInput;
+import org.rabix.bindings.model.StageInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +32,11 @@ public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback 
   }
 
   @Override
-  public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (!(port instanceof CWLInputPort)) {
+  public CWLPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
+    if (!(parentPort instanceof CWLInputPort)) {
       throw new RuntimeException("Inputs only can be staged!");
     }
-    CWLInputPort inputPort = (CWLInputPort) port;
+    CWLInputPort inputPort = (CWLInputPort) parentPort;
     StageInput stageInput = inputPort.getStageInput();
     if (stageInput == null) {
       return new CWLPortProcessorResult(value, true);
