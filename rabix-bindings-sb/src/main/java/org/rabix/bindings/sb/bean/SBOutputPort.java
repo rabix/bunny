@@ -53,4 +53,10 @@ public class SBOutputPort extends ApplicationPort {
   protected void readDataType() {
     dataType = SBSchemaHelper.readDataType(schema);
   }
+
+  @JsonIgnore
+  @Override
+  public Object getBinding() {
+    return outputBinding;
+  }
 }

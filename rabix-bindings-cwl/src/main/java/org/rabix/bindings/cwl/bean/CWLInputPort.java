@@ -2,6 +2,7 @@ package org.rabix.bindings.cwl.bean;
 
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.StageInput;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -76,6 +77,12 @@ public class CWLInputPort extends ApplicationPort {
   @Override
   public boolean isRequired() {
     return CWLSchemaHelper.isRequired(schema);
+  }
+
+  @Override
+  @JsonIgnore
+  public Object getBinding() {
+    return inputBinding;
   }
 
 }

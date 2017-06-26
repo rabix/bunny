@@ -61,5 +61,10 @@ public class Draft3OutputPort extends ApplicationPort {
     return "OutputPort [outputBinding=" + outputBinding + ", id=" + getId() + ", schema=" + getSchema() + ", scatter="
         + getScatter() + ", source=" + source + "]";
   }
+  @JsonIgnore
+  @Override
+  public Object getBinding() {
+    return outputBinding;
+  }
 
 }

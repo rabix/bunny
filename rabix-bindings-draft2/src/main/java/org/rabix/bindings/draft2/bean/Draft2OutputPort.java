@@ -53,4 +53,10 @@ public class Draft2OutputPort extends ApplicationPort {
   protected void readDataType() {
     Draft2SchemaHelper.readDataType(schema);
   }
+  
+  @JsonIgnore
+  @Override
+  public Object getBinding() {
+    return outputBinding;
+  }
 }
