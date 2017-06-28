@@ -68,8 +68,12 @@ public class CWLGlobServiceImpl implements CWLGlobService {
           }
           @Override
           public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            if (matcher.matches(dir.getFileName()) &&
-                !startDir.equals(dir)) {
+            if(!dir.startsWith(workingDirPath) || startDir.equals(dir))
+              return FileVisitResult.CONTINUE;
+
+            Path pathRelativeToWorkingDir = dir.subpath(workingDirPath.getNameCount(), dir.getNameCount());
+
+            if (matcher.matches(pathRelativeToWorkingDir)) {
               files.add(dir.toFile());
             }
             return super.preVisitDirectory(dir, attrs);
