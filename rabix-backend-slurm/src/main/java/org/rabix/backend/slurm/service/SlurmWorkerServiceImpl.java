@@ -18,6 +18,11 @@ import org.rabix.backend.slurm.model.SlurmState;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.cwl.CWLValueTranslator;
+import org.rabix.bindings.cwl.bean.CWLJob;
+import org.rabix.bindings.cwl.helper.CWLJobHelper;
+import org.rabix.bindings.cwl.processor.CWLPortProcessorException;
+import org.rabix.bindings.cwl.processor.callback.CWLPortProcessorHelper;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.Job;
@@ -80,11 +85,20 @@ public class SlurmWorkerServiceImpl implements WorkerService {
     }
 
     private void success(Job job) {
+        String rootDir = configuration.getString("backend.execution.directory");
         job = Job.cloneWithStatus(job, Job.JobStatus.COMPLETED);
         try {
-            Bindings bindings = BindingsFactory.create(job);
-            String rootDir = configuration.getString("backend.execution.directory");
+            FilePathMapper filePathMapper = (String path, Map<String, Object> config) -> path.startsWith("/") ? path : rootDir + "/" + path;
+            job = FileValueHelper.mapInputFilePaths(job, filePathMapper);
+            CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
 
+            CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
+            Map<String, Object> inputs = cwlJob.getInputs();
+
+            inputs = portProcessorHelper.loadInputContents(inputs);
+            Map<String, Object> commonInputs = (Map<String, Object>) CWLValueTranslator.translateToCommon(inputs);
+            job = Job.cloneWithInputs(job, commonInputs);
+            Bindings bindings = BindingsFactory.create(job);
             File baseDir = new File(rootDir + "/" + job.getRootId() + "/" + job.getName().replace(".", "/"));
             File workingDir = null;
             for (File file: baseDir.listFiles()){
@@ -92,9 +106,12 @@ public class SlurmWorkerServiceImpl implements WorkerService {
                     workingDir = new File(file, "root");
                 }
             }
+            if (workingDir == null) System.exit(14);
             job = bindings.postprocess(job, workingDir, ChecksumHelper.HashAlgorithm.SHA1, null);
         } catch (BindingException e) {
             logger.error("Failed to postprocess job", e);
+        } catch (CWLPortProcessorException e1) {
+            e1.printStackTrace();
         }
         engineStub.send(job);
     }

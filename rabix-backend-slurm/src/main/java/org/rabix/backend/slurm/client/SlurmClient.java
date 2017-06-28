@@ -44,15 +44,13 @@ public class SlurmClient {
         SlurmJob defaultSlurmJob = new SlurmJob("E");
         try {
             String command = "squeue -h -t all -j " + slurmJobId;
-            // mock command
             String result = "15     debug slurm-jo  vagrant  CD       0:00      1 server";
-            String mockCommand = "echo " + result;
+            // mock command
+            command = "echo " + result;
             String[] s;
 
             File commandFile = new File("command.sh");
-//            FileUtils.writeStringToFile(commandFile, command);
-            // mock command
-            FileUtils.writeStringToFile(commandFile, mockCommand);
+            FileUtils.writeStringToFile(commandFile, command);
             String[] commands = {"bash", "command.sh"};
             ProcessBuilder pb = new ProcessBuilder(commands);
             pb.redirectErrorStream(true);
@@ -98,7 +96,7 @@ public class SlurmClient {
             logger.debug("Sending slurm job");
 
             String cwlJob = EncodingHelper.decodeBase64(job.getApp());
-            cwlJob = stripLeadingJSONCharacters(cwlJob);
+            cwlJob = preprocessCWLJob(cwlJob);
             File cwlJobFile = new File(workingDir, "job.json");
             FileUtils.writeStringToFile(cwlJobFile, cwlJob);
             File inputsFile = CWLJobInputsWriter.createInputsFile(job, workingDir);
@@ -107,14 +105,14 @@ public class SlurmClient {
             if (rabixWorkerCLIConfigDir != null)
                 command += " " + rabixWorkerCLIConfigDir;
             command += " " + cwlJobFile.getAbsolutePath() + " " + inputsFile.getAbsolutePath();
-//            slurmCommand += " --wrap=\"" + command + "\"";
+            slurmCommand += " --wrap=\"" + command + "\"";
             // Mock command
             slurmCommand = command + ";\necho Submitted batch job 16";
             String s;
             logger.debug("Submitting command: " + slurmCommand);
-            File commandFile = new File("command.sh");
+            File commandFile = new File(workingDir,"command.sh");
             FileUtils.writeStringToFile(commandFile, slurmCommand);
-            String[] commands = {"bash", "command.sh"};
+            String[] commands = {"bash", commandFile.getAbsolutePath()};
             ProcessBuilder pb = new ProcessBuilder(commands);
             pb.redirectErrorStream(true);
             Process p = pb.start();
@@ -189,4 +187,9 @@ public class SlurmClient {
         return regexpReplacer(jsonSource, pattern, "");
     }
 
+    private static String preprocessCWLJob(String cwlJob){
+        cwlJob = regexpReplacer(cwlJob, ",\\s+\"scatter\" : true\\n", "");
+        cwlJob = stripLeadingJSONCharacters(cwlJob);
+        return cwlJob;
+    }
 }

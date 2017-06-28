@@ -36,5 +36,10 @@
 			<artifactId>rabix-backend-tes</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.rabix</groupId>
+            <artifactId>rabix-bindings-cwl</artifactId>
+            <version>1.0.0-rc6-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

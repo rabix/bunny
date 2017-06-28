@@ -41,8 +41,12 @@ public class CWLJobInputsWriter {
     private static JsonNode processFileValue(Object childNode, FileValue value){
         ObjectNode childNode2 = (ObjectNode) childNode;
         childNode2.put("class", "File");
-        childNode2.put("path", value.getPath());
-//                ((ObjectNode) childNode2).put("size", value.getSize());
+        if (value.getPath() != null){
+        childNode2.put("path", value.getPath());}
+
+        if (value.getLocation() != null){
+            ((ObjectNode) childNode2).put("location", value.getLocation());
+        }
         return childNode2;
     }
 
@@ -56,6 +60,9 @@ public class CWLJobInputsWriter {
                 childArrayNode.add(processFileValue(childNode3, value));
             }else if (obj instanceof Integer){
                 Integer value = (Integer) obj;
+                childArrayNode.add(value);
+            }else if (obj instanceof Long){
+                Long value = (Long) obj;
                 childArrayNode.add(value);
             }else if (obj instanceof String){
                 String value = (String) obj;
@@ -71,8 +78,8 @@ public class CWLJobInputsWriter {
                 childArrayNode.add(childNode);
             }else if (obj instanceof ArrayList){
                 ArrayNode stepsonArrayNode = mapper.createArrayNode();
-                childArrayNode = processArray(stepsonArrayNode, mapper, objectValue);
-                childArrayNode.add(childArrayNode);
+                stepsonArrayNode = processArray(stepsonArrayNode, mapper, obj);
+                childArrayNode.add(stepsonArrayNode);
             }
             else{
                 System.exit(12);
@@ -100,11 +107,20 @@ public class CWLJobInputsWriter {
             }else if (objectValue instanceof Integer){
                 Integer value = (Integer) objectValue;
                 ((ObjectNode) rootNode).put(input.getKey(), value);
+            }else if (objectValue instanceof Long){
+                Long value = (Long) objectValue;
+                ((ObjectNode) rootNode).put(input.getKey(), value);
             }else if (objectValue == null){
             }else if (objectValue instanceof ArrayList){
                 ArrayNode childArrayNode = mapper.createArrayNode();
                 childArrayNode = processArray(childArrayNode, mapper, objectValue);
                 ((ObjectNode) rootNode).put(input.getKey(), childArrayNode);
+            }else if (objectValue instanceof Map) {
+                ObjectMapper m = new ObjectMapper();
+                Map<String, Object> mappedObject = m.convertValue(objectValue, Map.class);
+                JsonNode childNode = mapper.createObjectNode();
+                childNode = processHashMapNode(childNode, mappedObject, mapper);
+                ((ObjectNode) rootNode).set(input.getKey(), childNode);
             }else{
                 logger.error("Not implemented input type: " + input.toString());
                 System.exit(12);
