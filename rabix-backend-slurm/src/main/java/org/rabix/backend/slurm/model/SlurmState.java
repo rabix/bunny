@@ -1,13 +1,19 @@
 package org.rabix.backend.slurm.model;
 
 public enum SlurmState {
-    Unknown,
-    Queued,
-    Running,
-    Paused,
+    BootFail,
+    Cancelled,
     Completed,
-    Error,
-    SystemError,
-    Canceled,
-    Initializing
+    Configuring,
+    Completing,
+    Failed,
+    NodeFail,
+    Pending,
+    Preempted,
+    Running,
+    SpecialExit,
+    Stopped,
+    Suspended,
+    Timeout,
+    Unknown
 }

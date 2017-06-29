@@ -5,6 +5,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.rabix.backend.slurm.helpers.CWLJobInputsWriter;
 import org.rabix.backend.slurm.model.SlurmJob;
+import org.rabix.backend.slurm.model.SlurmState;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -41,7 +42,7 @@ public class SlurmClient {
     }
 
     public SlurmJob getJob(String slurmJobId) throws SlurmClientException {
-        SlurmJob defaultSlurmJob = new SlurmJob("E");
+        SlurmJob defaultSlurmJob = new SlurmJob(SlurmState.Unknown);
         try {
             String command = "squeue -h -t all -j " + slurmJobId;
             String result = "15     debug slurm-jo  vagrant  CD       0:00      1 server";
@@ -67,10 +68,8 @@ public class SlurmClient {
             String output = stdInput.readLine().trim();
             logger.debug("Pinging slurm queue: \n" + output);
             s = output.split("\\s+");
-            // Mock squeue output
-//             String result = "15     debug slurm-jo  vagrant  CD       0:00      1 server";
-//             s = result.split("\\s+");
-            String jobState = s[4];
+            String jobStatus = s[4];
+            SlurmState jobState = SlurmJob.convertToJobState(jobStatus);
             SlurmJob slurmJob = new SlurmJob(jobState);
             return slurmJob;
 
