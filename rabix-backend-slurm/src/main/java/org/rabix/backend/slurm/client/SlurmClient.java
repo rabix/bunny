@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.rabix.backend.slurm.helpers.CWLJobInputsWriter;
 import org.rabix.backend.slurm.model.SlurmJob;
 import org.rabix.backend.slurm.model.SlurmState;
+import org.rabix.backend.slurm.service.SlurmJobService;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -28,6 +29,8 @@ public class SlurmClient {
     private final static Logger logger = LoggerFactory.getLogger(SlurmClient.class);
     private final String rabixWorkerCLI;
     private String rabixWorkerCLIConfigDir = null;
+    @Inject
+    private SlurmJobService slurmJobService;
 
     @Inject
     public SlurmClient(final Configuration configuration) {
@@ -70,8 +73,7 @@ public class SlurmClient {
             s = output.split("\\s+");
             String jobStatus = s[4];
             SlurmState jobState = SlurmJob.convertToJobState(jobStatus);
-            SlurmJob slurmJob = new SlurmJob(jobState);
-            return slurmJob;
+            return new SlurmJob(jobState);
 
         } catch (IOException e) {
             logger.error("Could not open job file");
@@ -154,13 +156,28 @@ public class SlurmClient {
             Long cpuMin = requirements.getCpuMin();
             Long memMin = requirements.getMemMinMB();
             if (cpuMin != null) {
+//                Uncomment on production
 //                directive += " --ntasks-per-node=" + Long.toString(cpuMin);
             }
             if (memMin != null) {
+//                Uncomment on production
 //                directive += " --mem=" + Long.toString(memMin);
             }
         }
         return directive;
+    }
+
+    public static void runCommand(String command){
+        try {
+            File commandFile = new File("command.sh");
+            FileUtils.writeStringToFile(commandFile, command);
+            String[] commands = {"bash", "command.sh"};
+            ProcessBuilder pb = new ProcessBuilder(commands);
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -187,6 +204,7 @@ public class SlurmClient {
     }
 
     private static String preprocessCWLJob(String cwlJob){
+        // invoked bunny-cli doesn't finish separate scatter jobs if they have inputs with scatter = true
         cwlJob = regexpReplacer(cwlJob, ",\\s+\"scatter\" : true\\n", "");
         cwlJob = stripLeadingJSONCharacters(cwlJob);
         return cwlJob;

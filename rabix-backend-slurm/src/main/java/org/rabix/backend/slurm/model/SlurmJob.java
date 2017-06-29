@@ -1,5 +1,7 @@
 package org.rabix.backend.slurm.model;
 
+import org.rabix.bindings.model.Job;
+
 public class SlurmJob {
     private SlurmState jobStatus;
 
@@ -77,7 +79,42 @@ public class SlurmJob {
             case "TO":
                 return SlurmState.Timeout;
             default:
-                return SlurmState.Unknown;
+                return null;
+        }
+    }
+
+    public static Job.JobStatus convertToJobStatus(SlurmState slurmState) {
+        switch (slurmState) {
+            case BootFail:
+                return Job.JobStatus.FAILED;
+            case Cancelled:
+                return Job.JobStatus.ABORTED;
+            case Completed:
+                return Job.JobStatus.COMPLETED;
+            case Configuring:
+                return Job.JobStatus.STARTED;
+            case Completing:
+                return Job.JobStatus.STARTED;
+            case Failed:
+                return Job.JobStatus.FAILED;
+            case NodeFail:
+                return Job.JobStatus.FAILED;
+            case Pending:
+                return Job.JobStatus.PENDING;
+            case Preempted:
+                return Job.JobStatus.ABORTED;
+            case Running:
+                return Job.JobStatus.RUNNING;
+            case SpecialExit:
+                return Job.JobStatus.ABORTED;
+            case Stopped:
+                return Job.JobStatus.FAILED;
+            case Suspended:
+                return Job.JobStatus.ABORTED;
+            case Timeout:
+                return Job.JobStatus.FAILED;
+            default:
+                return null;
         }
     }
 }

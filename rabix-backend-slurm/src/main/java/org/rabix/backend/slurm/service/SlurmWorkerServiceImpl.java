@@ -43,6 +43,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SlurmWorkerServiceImpl implements WorkerService {
 
@@ -61,6 +62,7 @@ public class SlurmWorkerServiceImpl implements WorkerService {
     private final java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(10);
 
     private EngineStub<?, ?, ?> engineStub;
+    private AtomicBoolean stopped = new AtomicBoolean(false);
 
     @Inject
     private Configuration configuration;
@@ -70,6 +72,8 @@ public class SlurmWorkerServiceImpl implements WorkerService {
     private SlurmStorageService storageService;
     @Inject
     private SlurmClient slurmClient;
+    @Inject
+    private SlurmJobService slurmJobService;
 
     private class PendingResult {
         private Job job;
@@ -90,6 +94,7 @@ public class SlurmWorkerServiceImpl implements WorkerService {
         try {
             FilePathMapper filePathMapper = (String path, Map<String, Object> config) -> path.startsWith("/") ? path : rootDir + "/" + path;
             job = FileValueHelper.mapInputFilePaths(job, filePathMapper);
+//            Failing if cwlVersion is not specified!!
             CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
 
             CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
@@ -110,7 +115,8 @@ public class SlurmWorkerServiceImpl implements WorkerService {
             job = bindings.postprocess(job, workingDir, ChecksumHelper.HashAlgorithm.SHA1, null);
         } catch (BindingException e) {
             logger.error("Failed to postprocess job", e);
-        } catch (CWLPortProcessorException e1) {
+        }
+        catch (CWLPortProcessorException e1) {
             e1.printStackTrace();
         }
         engineStub.send(job);
@@ -221,6 +227,7 @@ public class SlurmWorkerServiceImpl implements WorkerService {
 
 
                 String slurmJobId = slurmClient.runJob(job, workingDir);
+                slurmJobService.save(job.getId(), slurmJobId);
                 SlurmJob slurmJob;
                 do {
                     Thread.sleep(1000L);
@@ -293,8 +300,16 @@ public class SlurmWorkerServiceImpl implements WorkerService {
     }
 
     @Override
-    public void cancel(List<UUID> ids, UUID contextId) {
-        throw new NotImplementedException("This method is not implemented");
+    public void cancel(List<UUID> ids, UUID contextId){
+        logger.debug("stop(ids={})", ids);
+
+        String slurmJobIds = "";
+        for (UUID id : ids) {
+            String slurmJobId = slurmJobService.getSlurmJob(id);
+            slurmJobIds += " " + slurmJobId;
+        }
+        String command = "scancel " + slurmJobIds;
+        SlurmClient.runCommand(command);
     }
 
     @Override
@@ -304,12 +319,26 @@ public class SlurmWorkerServiceImpl implements WorkerService {
 
     @Override
     public void shutdown(Boolean stopEverything) {
-        throw new NotImplementedException("This method is not implemented");
+        stopped.set(true);
     }
 
     @Override
     public boolean isRunning(UUID id, UUID contextId) {
-        throw new NotImplementedException("This method is not implemented");
+        logger.debug("isRunning(id={})", id);
+
+        String slurmJobId = slurmJobService.getSlurmJob(id);
+        SlurmJob slurmJob = null;
+        try {
+            slurmJob = slurmClient.getJob(slurmJobId);
+        } catch (SlurmClientException e) {
+            e.printStackTrace();
+        }
+        if (!slurmJob.isFinished()){
+            logger.info("Command line tool {} is running. The status is {}", id, slurmJob.getJobStatus());
+            return true;
+        }
+        logger.info("Command line tool {} is not running. The status is {}", id, slurmJob.getJobStatus());
+        return false;
     }
 
     @Override
@@ -319,12 +348,19 @@ public class SlurmWorkerServiceImpl implements WorkerService {
 
     @Override
     public boolean isStopped() {
-        throw new NotImplementedException("This method is not implemented");
+       return stopped.get();
     }
 
     @Override
     public Job.JobStatus findStatus(UUID id, UUID contextId) {
-        throw new NotImplementedException("This method is not implemented");
+        String slurmJobId = slurmJobService.getSlurmJob(id);
+        SlurmJob slurmJob = null;
+        try {
+            slurmJob = slurmClient.getJob(slurmJobId);
+        } catch (SlurmClientException e) {
+            e.printStackTrace();
+        }
+        return SlurmJob.convertToJobStatus(slurmJob.getJobStatus());
     }
 
     @Override
