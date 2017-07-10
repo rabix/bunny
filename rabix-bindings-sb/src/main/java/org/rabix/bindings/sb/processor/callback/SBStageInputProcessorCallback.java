@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.bindings.model.ApplicationPort.StageInput;
+import org.rabix.bindings.model.StageInput;
 import org.rabix.bindings.sb.bean.SBInputPort;
 import org.rabix.bindings.sb.helper.SBFileValueHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
@@ -32,11 +32,11 @@ public class SBStageInputProcessorCallback implements SBPortProcessorCallback {
   }
 
   @Override
-  public SBPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (!(port instanceof SBInputPort)) {
+  public SBPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
+    if (!(parentPort instanceof SBInputPort)) {
       throw new RuntimeException("Inputs only can be staged!");
     }
-    SBInputPort inputPort = (SBInputPort) port;
+    SBInputPort inputPort = (SBInputPort) parentPort;
     StageInput stageInput = inputPort.getStageInput();
     if (stageInput == null) {
       return new SBPortProcessorResult(value, true);

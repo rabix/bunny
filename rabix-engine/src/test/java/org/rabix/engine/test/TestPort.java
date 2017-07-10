@@ -40,4 +40,10 @@ public class TestPort extends ApplicationPort {
     return new DAGLinkPort(fullId, fullId, DAGLinkPort.LinkPortType.OUTPUT, lm, scatter, defaultValue, null);
   }
 
+  @Override
+  public Object getBinding() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }

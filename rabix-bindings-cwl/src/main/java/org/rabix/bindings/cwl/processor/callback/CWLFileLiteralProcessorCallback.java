@@ -21,13 +21,13 @@ public class CWLFileLiteralProcessorCallback implements CWLPortProcessorCallback
   }
   
   @Override
-  public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
+  public CWLPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
     if (CWLSchemaHelper.isFileFromValue(value)) {
       String path = CWLFileValueHelper.getPath(value);
       if (path == null) {
         String contents = CWLFileValueHelper.getContents(value);
         if (StringUtils.isEmpty(contents)) {
-          throw new CWLPortProcessorException("Cannot process file literal for port " + port.getId());
+          throw new CWLPortProcessorException("Cannot process file literal for port " + id);
         }
         String name = CWLFileValueHelper.getName(value);
         if (StringUtils.isEmpty(name)) {

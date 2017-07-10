@@ -1,6 +1,7 @@
 package org.rabix.bindings.sb.bean;
 
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.StageInput;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -57,4 +58,9 @@ public class SBInputPort extends ApplicationPort {
     return SBSchemaHelper.isRequired(schema);
   }
 
+  @JsonIgnore
+  @Override
+  public Object getBinding() {
+    return inputBinding;
+  }
 }

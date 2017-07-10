@@ -78,7 +78,7 @@ public abstract class Application {
       if (inputValue==null && input.isRequired() && input.getDefaultValue()==null) {
         ret.put(inputId, "Required field");
       } else {
-        String s = input.validateInput(inputValue);
+        String s = input.validate(inputValue);
         if (s!=null)
           ret.put(inputId, s);
       }

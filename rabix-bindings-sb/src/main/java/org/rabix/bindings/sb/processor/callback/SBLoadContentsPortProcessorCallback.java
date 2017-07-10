@@ -12,16 +12,15 @@ import org.rabix.common.helper.CloneHelper;
 public class SBLoadContentsPortProcessorCallback implements SBPortProcessorCallback {
 
   @Override
-  public SBPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (SBSchemaHelper.isFileFromValue(value) && port instanceof SBInputPort) {
+  public SBPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
+    if (SBSchemaHelper.isFileFromValue(value) && parentPort instanceof SBInputPort) {
       Object clonedValue = CloneHelper.deepCopy(value);
       
-      Object inputBinding = ((SBInputPort) port).getInputBinding();
-      if (inputBinding == null) {
+      if (binding == null) {
         return new SBPortProcessorResult(clonedValue, true);
       }
-
-      boolean loadContents = SBBindingHelper.loadContents(inputBinding);
+      
+      boolean loadContents = SBBindingHelper.loadContents(binding);
       if (loadContents) {
         SBFileValueHelper.setContents(clonedValue);
         return new SBPortProcessorResult(clonedValue, true);

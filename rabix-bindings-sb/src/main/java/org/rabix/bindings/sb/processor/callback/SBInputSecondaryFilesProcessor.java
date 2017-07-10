@@ -1,11 +1,12 @@
 package org.rabix.bindings.sb.processor.callback;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.sb.SBProcessor;
 import org.rabix.bindings.sb.bean.SBInputPort;
 import org.rabix.bindings.sb.bean.SBJob;
@@ -19,31 +20,35 @@ import org.rabix.common.helper.CloneHelper;
 public class SBInputSecondaryFilesProcessor implements SBPortProcessorCallback {
 
   private SBJob job;
-  private File workingDir;
   private HashAlgorithm hashAlgorithm;
 
-  public SBInputSecondaryFilesProcessor(SBJob job, HashAlgorithm hashAlgorithm, File workingDir) {
+  public SBInputSecondaryFilesProcessor(SBJob job, HashAlgorithm hashAlgorithm) {
     this.job = job;
-    this.workingDir = workingDir;
     this.hashAlgorithm = hashAlgorithm;
   }
 
+  private boolean isFile(Object value){
+    return SBSchemaHelper.isFileFromValue(value) || FileValue.isFileValue(value) ;
+  }
+  
   @Override
   @SuppressWarnings("unchecked")
-  public SBPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (SBSchemaHelper.isFileFromValue(value) && port instanceof SBInputPort) {
+  public SBPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
+    if (isFile(value) && parentPort instanceof SBInputPort) {
       if (!CollectionUtils.isEmpty(SBFileValueHelper.getSecondaryFiles(value))) {
         return new SBPortProcessorResult(value, false); 
       }
-      Object secondaryFilesObj = ((SBInputPort) port).getInputBinding();
-      if (secondaryFilesObj == null) {
+      
+      List<Map<String, Object>> secondaryFiles = SBFileValueHelper.getSecondaryFiles(binding);
+      if (secondaryFiles == null) {
         return new SBPortProcessorResult(value, false);
       }
 
-      Map<String, Object> clonedValue = (Map<String, Object>) CloneHelper.deepCopy(value);
-      List<Map<String, Object>> secondaryFiles = SBProcessor.getSecondaryFiles(job, hashAlgorithm, clonedValue,  SBFileValueHelper.getLocation(clonedValue), secondaryFilesObj);
+      Map<String, Object> clonedValue = (Map<String, Object>) CloneHelper.deepCopy(value);      
+      List<Map<String, Object>> out = SBProcessor.getSecondaryFiles(job, hashAlgorithm, clonedValue, SBFileValueHelper.getPath(clonedValue), binding);
+
       if (secondaryFiles != null) {
-        SBFileValueHelper.setSecondaryFiles(secondaryFiles, clonedValue);
+        SBFileValueHelper.setSecondaryFiles(out, clonedValue);
         return new SBPortProcessorResult(clonedValue, true);
       }
     }

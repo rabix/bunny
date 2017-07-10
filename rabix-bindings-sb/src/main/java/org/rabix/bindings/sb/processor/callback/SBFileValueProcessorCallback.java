@@ -8,9 +8,7 @@ import java.util.Set;
 
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.FileValue;
-import org.rabix.bindings.sb.bean.SBInputPort;
 import org.rabix.bindings.sb.bean.SBJob;
-import org.rabix.bindings.sb.bean.SBOutputPort;
 import org.rabix.bindings.sb.expression.helper.SBExpressionBeanHelper;
 import org.rabix.bindings.sb.helper.SBBindingHelper;
 import org.rabix.bindings.sb.helper.SBFileValueHelper;
@@ -33,8 +31,8 @@ public class SBFileValueProcessorCallback implements SBPortProcessorCallback {
   }
   
   @Override
-  public SBPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (SBSchemaHelper.isFileFromValue(value) && !skip(port.getId())) {
+  public SBPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
+    if (SBSchemaHelper.isFileFromValue(value) && !skip(id)) {
       FileValue fileValue = SBFileValueHelper.createFileValue(value);
       
       List<Map<String, Object>> secondaryFiles = SBFileValueHelper.getSecondaryFiles(value);
@@ -47,12 +45,6 @@ public class SBFileValueProcessorCallback implements SBPortProcessorCallback {
       } else {
         // try to create secondary files
         if (generateSecondaryFilePaths) {
-          Object binding = null;
-          if (port instanceof SBInputPort) {
-            binding = ((SBInputPort) port).getInputBinding();
-          } else {
-            binding = ((SBOutputPort) port).getOutputBinding();
-          }
           List<String> secondaryFileSufixes = SBBindingHelper.getSecondaryFiles(binding);
           if (secondaryFileSufixes != null) {
 

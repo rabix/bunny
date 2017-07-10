@@ -12,16 +12,15 @@ import org.rabix.common.helper.CloneHelper;
 public class CWLLoadContentsPortProcessorCallback implements CWLPortProcessorCallback {
 
   @Override
-  public CWLPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if ((CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) && port instanceof CWLInputPort) {
+  public CWLPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
+    if ((CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) && parentPort instanceof CWLInputPort) {
       Object clonedValue = CloneHelper.deepCopy(value);
       
-      Object inputBinding = ((CWLInputPort) port).getInputBinding();
-      if (inputBinding == null) {
+      if (binding == null) {
         return new CWLPortProcessorResult(clonedValue, true);
       }
 
-      boolean loadContents = CWLBindingHelper.loadContents(inputBinding);
+      boolean loadContents = CWLBindingHelper.loadContents(binding);
       if (loadContents) {
         CWLFileValueHelper.setContents(clonedValue);
         return new CWLPortProcessorResult(clonedValue, true);

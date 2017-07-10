@@ -2,6 +2,7 @@ package org.rabix.bindings.draft3.bean;
 
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.StageInput;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -72,5 +73,9 @@ public class Draft3InputPort extends ApplicationPort {
     return Draft3SchemaHelper.isRequired(schema);
   }
 
-  
+  @JsonIgnore
+  @Override
+  public Object getBinding() {
+    return inputBinding;
+  }
 }
