@@ -276,7 +276,9 @@ public class BackendCommandLine {
         VerboseLogger.log("Error reading the app file");
         System.exit(10);
       }
-      
+      if (application.getRaw().containsKey("$schemas")) {
+        LoggerFactory.getLogger(BackendCommandLine.class).error("Unsupported feature: $schemas.");
+      }
       Options appInputOptions = new Options();
 
       // Create appInputOptions for parser

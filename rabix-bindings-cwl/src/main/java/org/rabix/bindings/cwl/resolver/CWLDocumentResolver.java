@@ -121,10 +121,6 @@ public class CWLDocumentResolver {
       throw new BindingException(e);
     }
 
-    if (root.has(SCHEMA_KEY)) {
-      throw new NotImplementedException("Feature not implemented");
-    }
-
     if (root.has(GRAPH_KEY)) {
       graphResolve = true;
     }
