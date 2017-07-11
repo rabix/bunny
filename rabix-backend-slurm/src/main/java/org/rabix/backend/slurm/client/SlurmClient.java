@@ -91,6 +91,8 @@ public class SlurmClient {
         try {
             Bindings bindings = BindingsFactory.create(job);
             String slurmCommand = "sbatch -Q -J bunny_job_" + job.getName().replace(".", "_");
+//          Special command
+//            slurmCommand = "chmod -R 777 " + workingDir + ";" + slurmCommand;
             ResourceRequirement resourceRequirements = bindings.getResourceRequirement(job);
             String resourceDirectives = getSlurmResourceRequirements(resourceRequirements);
             slurmCommand += resourceDirectives;

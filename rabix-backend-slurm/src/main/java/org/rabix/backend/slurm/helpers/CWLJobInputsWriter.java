@@ -47,6 +47,9 @@ public class CWLJobInputsWriter {
         if (value.getLocation() != null){
             ((ObjectNode) childNode2).put("location", value.getLocation());
         }
+        if (value.getSize() != null){
+            ((ObjectNode) childNode2).put("size", value.getSize());
+        }
         return childNode2;
     }
 
