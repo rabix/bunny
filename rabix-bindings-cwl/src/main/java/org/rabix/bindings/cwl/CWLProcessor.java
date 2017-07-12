@@ -440,9 +440,13 @@ public class CWLProcessor implements ProtocolProcessor {
    * Gets secondary files (absolute paths)
    */
   @SuppressWarnings("unchecked")
-  public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String filePath, Object secondaryFilesObj, File workingDir) throws CWLExpressionException, IOException {
+  public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String filePath, Object secs, File workingDir) throws CWLExpressionException, IOException {
+    Object secondaryFilesObj = secs;
     if (secondaryFilesObj == null) {
       return null;
+    }
+    if(secondaryFilesObj instanceof String){
+      secondaryFilesObj = CWLExpressionResolver.resolve(secondaryFilesObj, job, fileValue);
     }
     
     List<Object> secondaryFilesList = new ArrayList<>();
