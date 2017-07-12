@@ -65,6 +65,7 @@
 		<module>rabix-engine-store-postgres</module>
 		<module>rabix-backend-api</module>
 		<module>rabix-backend-tes</module>
+		<module>rabix-backend-lsf</module>
 	</modules>
 
 	<properties>
