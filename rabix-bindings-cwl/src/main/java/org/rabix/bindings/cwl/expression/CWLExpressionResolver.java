@@ -91,6 +91,9 @@ public class CWLExpressionResolver {
       Matcher m = segPattern.matcher(remaining);
       if (m.find()) {
         if (m.group(0).startsWith(".")) {
+          if(m.group(0).equals(".length") && vars instanceof List){
+            return ((List) vars).size();
+          }
           return nextSegment(remaining.substring(m.end(0)), ((Map<?, ?>) vars).get(m.group(0).substring(1)));
         } else if (m.group(0).charAt(1) == '\"' || m.group(0).charAt(1) == '\'') {
           Character start = m.group(0).charAt(1);

@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -33,6 +34,7 @@ import org.rabix.bindings.cwl.processor.CWLPortProcessor;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorException;
 import org.rabix.bindings.cwl.processor.callback.CWLFilePathMapProcessorCallback;
 import org.rabix.bindings.cwl.processor.callback.CWLPortProcessorHelper;
+import org.rabix.bindings.cwl.resolver.CWLDocumentResolver;
 import org.rabix.bindings.cwl.service.CWLGlobException;
 import org.rabix.bindings.cwl.service.CWLGlobService;
 import org.rabix.bindings.cwl.service.CWLMetadataService;
@@ -332,7 +334,13 @@ public class CWLProcessor implements ProtocolProcessor {
   
   @SuppressWarnings("unchecked")
   private Object setFormat(Object result, Object format, CWLJob job) throws CWLExpressionException {
-    Object resolved = CWLExpressionResolver.resolve(format, job, null);
+    String resolved = CWLExpressionResolver.resolve(format, job, null);
+    Object namespaces = job.getApp().getRaw().get(CWLDocumentResolver.NAMESPACES_KEY);
+    if (namespaces instanceof Map) {
+      for (Entry<String, String> entry : ((Map<String, String>) namespaces).entrySet()) {
+        resolved = resolved.replace(entry.getKey() + ":", entry.getValue());
+      }
+    }
     ((Map<String, Object>) result).put("format", resolved);
     return result;
   }

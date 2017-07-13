@@ -127,7 +127,7 @@ public class CWLDocumentResolver {
 
     if (root.has(NAMESPACES_KEY)) {
       populateNamespaces(root);
-      ((ObjectNode) root).remove(NAMESPACES_KEY);
+//      ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
     
 
