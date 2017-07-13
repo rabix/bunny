@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -313,7 +314,7 @@ public class CWLDocumentResolver {
 
         JsonNode referenceDocumentRoot = findDocumentRoot(root, file, referencePath, isJsonPointer);
         ParentChild parentChild = findReferencedNode(referenceDocumentRoot, referencePath);
-        JsonNode resolvedNode = traverse(appUrl, root, file, parentChild.parent, parentChild.child, false);
+        JsonNode resolvedNode = traverse(appUrl, root, file.getParentFile().toPath().resolve(referencePath).toFile(), parentChild.parent, parentChild.child, false);
         if (resolvedNode == null) {
           return null;
         }
