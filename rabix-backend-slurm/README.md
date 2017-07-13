@@ -22,20 +22,23 @@ Configuration file for rabix-clis on worker machines (if necessary)
 ```
 rabix.slurm.rabix-worker-cli-config-dir=--configuration-dir /path/to/rabix-cli/config
 ```
-All the machines in the partition need to have a shared file directory. You need to specify a folder 
+All the machines in the partition must have a shared file directory set up. 
 
-Rabix-clis on worker machines need to be installed just as regular rabix-cli:
+Rabix-clis on worker machines are ordinary rabix-clis and they are installed as specified 
+[here](https://github.com/rabix/bunny/blob/master/README.md).
+
 
 
 # Run
 The jobs are submitted to rabix-cli on the controller machine in the same way as to a regular rabix-cli:
-
-
+```
+./rabix /shared/dir/cwl.json /shared/dir/inputs.json
+```
 But internally rabix-backend-slurm runs submits all the job steps to the SLURM scheduler and they are executed 
+by separate rabix-clis on worker nodes within the partition.
 
-
-
-All of the machines in the partition must have a shared file directory. The workflow inp
+The workflow must be located inside a shared file directory so all worker instances can access it with read-write-execute
+permissions.
 
 
 # Development
