@@ -445,7 +445,7 @@ public class CWLProcessor implements ProtocolProcessor {
     if (secondaryFilesObj == null) {
       return null;
     }
-    if(secondaryFilesObj instanceof String){
+    if(secondaryFilesObj instanceof String || CWLExpressionResolver.isExpressionObject(secondaryFilesObj)){
       secondaryFilesObj = CWLExpressionResolver.resolve(secondaryFilesObj, job, fileValue);
     }
     
