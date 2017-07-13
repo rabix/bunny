@@ -196,18 +196,10 @@ public class SlurmWorkerServiceImpl implements WorkerService {
                 Bindings bindings = BindingsFactory.create(job);
                 FilePathMapper filePathMapper = (String path, Map<String, Object> config) -> path.startsWith("/") ? path : rootDir + "/" + path;
                 job = FileValueHelper.mapInputFilePaths(job, filePathMapper);
-                job = bindings.preprocess(job, storageService.stagingPath(job.getRootId().toString(), job.getName()).toFile(), null);
-
                 List<Requirement> combinedRequirements = new ArrayList<>();
                 combinedRequirements.addAll(bindings.getHints(job));
                 combinedRequirements.addAll(bindings.getRequirements(job));
                 stageFileRequirements(workingDir, combinedRequirements);
-                // Write job.json file
-                FileUtils.writeStringToFile(
-                        storageService.stagingPath(job.getRootId().toString(), job.getName(), "inputs", "job.json").toFile(),
-                        JSONHelper.writeObject(job)
-                );
-
 
                 String slurmJobId = slurmClient.runJob(job, workingDir);
                 slurmJobService.save(job.getId(), slurmJobId);
@@ -220,10 +212,8 @@ public class SlurmWorkerServiceImpl implements WorkerService {
                     }
                 } while (!slurmJob.isFinished());
                 return slurmJob;
-            } catch (IOException e) {
-                logger.error("Failed to write files to SharedFileStorage", e);
-                throw new SlurmServiceException("Failed to write files to SharedFileStorage", e);
-            } catch (SlurmServiceException e) {
+            }
+            catch (SlurmServiceException e) {
                 logger.error("Failed to submit Job to SLURM", e);
                 throw new SlurmServiceException("Failed to submit Job to Slurm", e);
             } catch (BindingException e) {
