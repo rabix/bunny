@@ -28,12 +28,14 @@ import java.util.regex.Pattern;
 public class SlurmClient {
     private final static Logger logger = LoggerFactory.getLogger(SlurmClient.class);
     private final String rabixWorkerCLI;
+    private boolean dev;
     private String rabixWorkerCLIConfigDir = null;
     @Inject
     private SlurmJobService slurmJobService;
 
     @Inject
     public SlurmClient(final Configuration configuration) {
+        this.dev = configuration.getBoolean("rabix.slurm.dev");
         this.rabixWorkerCLI = Paths.get(configuration.getString("rabix.slurm.rabix-worker-cli")).toString();
         if (configuration.containsKey("rabix.slurm.rabix-worker-cli-config-dir")) {
             this.rabixWorkerCLIConfigDir = Paths.get(configuration.getString("rabix.slurm.rabix-worker-cli-config-dir")).toString();
@@ -49,8 +51,8 @@ public class SlurmClient {
         try {
             String command = "squeue -h -t all -j " + slurmJobId;
             String result = "15     debug slurm-jo  vagrant  CD       0:00      1 server";
-            // mock command
-            command = "echo " + result;
+            if (dev)
+                command = "echo " + result;
             String[] s;
 
             File commandFile = new File("command.sh");
@@ -91,7 +93,7 @@ public class SlurmClient {
         try {
             Bindings bindings = BindingsFactory.create(job);
             String slurmCommand = "sbatch -Q -J bunny_job_" + job.getName().replace(".", "_");
-//          Special command
+//          Special command if files in shared file directory are created with permissions other than 777
 //            slurmCommand = "chmod -R 777 " + workingDir + ";" + slurmCommand;
             ResourceRequirement resourceRequirements = bindings.getResourceRequirement(job);
             String resourceDirectives = getSlurmResourceRequirements(resourceRequirements);
@@ -109,8 +111,8 @@ public class SlurmClient {
                 command += " " + rabixWorkerCLIConfigDir;
             command += " " + cwlJobFile.getAbsolutePath() + " " + inputsFile.getAbsolutePath();
             slurmCommand += " --wrap=\"" + command + "\"";
-            // Mock command
-            slurmCommand = command + ";\necho Submitted batch job 16";
+            if (dev)
+               slurmCommand = command + ";\necho Submitted batch job 16";
             String s;
             logger.debug("Submitting command: " + slurmCommand);
             File commandFile = new File(workingDir,"command.sh");
@@ -158,12 +160,10 @@ public class SlurmClient {
             Long cpuMin = requirements.getCpuMin();
             Long memMin = requirements.getMemMinMB();
             if (cpuMin != null) {
-//                Uncomment on production
-//                directive += " --ntasks-per-node=" + Long.toString(cpuMin);
+                directive += " --ntasks-per-node=" + Long.toString(cpuMin);
             }
             if (memMin != null) {
-//                Uncomment on production
-//                directive += " --mem=" + Long.toString(memMin);
+                directive += " --mem=" + Long.toString(memMin);
             }
         }
         return directive;
