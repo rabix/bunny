@@ -69,7 +69,13 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
     }
     return new EnvironmentVariableRequirement(result);
   }
-
+  private void processFileValue(List<SingleFileRequirement> result, boolean linkEnabled, String entryname, FileValue fileValue) {
+    result.add(new FileRequirement.SingleInputFileRequirement((String) entryname, fileValue, linkEnabled));        
+    if(fileValue.getSecondaryFiles() !=null)
+      for(FileValue secondary: fileValue.getSecondaryFiles()){
+        processFileValue(result, linkEnabled, secondary.getName(), secondary);
+    }
+  }
   private FileRequirement getFileRequirement(CWLJob cwlJob, CWLInitialWorkDirRequirement initialWorkDirRequirement) throws BindingException {
     if (initialWorkDirRequirement == null) {
       return null;
@@ -91,8 +97,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         Object entry = dirent.getEntry();
         Object entryname = dirent.getEntryname(); // TODO explicit cast
         if (CWLSchemaHelper.isFileFromValue(entry)) {
-          FileValue fileValue = CWLFileValueHelper.createFileValue(((CWLDirent) listingObj).getEntry());
-          result.add(new FileRequirement.SingleInputFileRequirement((String) entryname, fileValue, !dirent.isWritable()));
+          processFileValue(result, !dirent.isWritable(), (String) entryname, CWLFileValueHelper.createFileValue(((CWLDirent) listingObj).getEntry()));
           continue;
         }
         if (CWLSchemaHelper.isDirectoryFromValue(entry)) {
@@ -107,7 +112,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
       }
       if (listingObj instanceof FileValue) {
         FileValue fileValue = (FileValue) listingObj;
-        result.add(new FileRequirement.SingleInputFileRequirement(fileValue.getName(), fileValue, false));
+        processFileValue(result, false, (String) fileValue.getName(), (FileValue) listingObj);
         continue;
       }
       if (listingObj instanceof DirectoryValue) {
