@@ -25,6 +25,7 @@ import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
 import org.rabix.common.helper.ChecksumHelper;
+import org.rabix.common.helper.EncodingHelper;
 import org.rabix.common.json.processor.BeanProcessorException;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.transport.backend.Backend;
@@ -172,30 +173,28 @@ public class LSFWorkerServiceImpl implements WorkerService {
         }
       });
 
-      submitRequest.command = bindings.buildCommandLineObject(job, storageConfig.getWorkingDir(job), new FilePathMapper() {
+      // Environment variables
+      StringBuilder envs = new StringBuilder();
+      EnvironmentVariableRequirement env = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
+      if (env != null) {
+        for (String varName: env.getVariables().keySet()) {
+          envs.append("export ").append(varName).append("=")
+              .append(EncodingHelper.shellQuote(env.getVariables().get(varName))).append(";");
+        }
+      }
+
+      submitRequest.command = envs + bindings.buildCommandLineObject(job, storageConfig.getWorkingDir(job), new FilePathMapper() {
         @Override public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
       }).build();
+
       submitRequest.cwd = storageConfig.getWorkingDir(job).getAbsolutePath();
       submitRequest.options3 = LSBSubmitOptions3.SUB3_CWD;
 
       submitRequest.errFile = "job.stderr.log";
       submitRequest.options = LSBSubmitOptions.SUB_ERR_FILE;
 
-      // Environment variables
-      String preExec = null;
-      EnvironmentVariableRequirement env = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
-      if (env != null) {
-        for (String varName: env.getVariables().keySet()) {
-          preExec = (preExec !=null ? preExec : "") + "export " + varName + "=" + env.getVariables().get(varName) + ";";
-        }
-      }
-      if (preExec != null) {
-        logger.debug("Pre exec Command: {}", preExec);
-        submitRequest.preExecCmd = preExec;
-        submitRequest.options &= ~LSBSubmitOptions.SUB_PRE_EXEC;
-      }
 
       // Resource requirements
       // TODO: Check how to insert getMemRecommendedMB() and getDiskSpaceRecommendedMB()
