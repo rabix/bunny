@@ -130,17 +130,7 @@ public class JobHandlerImpl implements JobHandler {
     logger.info("Start command line tool for id={}", job.getId());
     try {
       job = statusCallback.onJobReady(job);
-      cachedJob = (Job) CloneHelper.deepCopy(job);
-      
-      if (cacheService.isCacheEnabled()) {
-        Map<String, Object> results = cacheService.find(job);
-        if (results != null) {
-          containerHandler = new CompletedContainerHandler(job);
-          containerHandler.start();
-          return;
-        }        
-      }
-      
+
       Bindings bindings = BindingsFactory.create(job);
       statusCallback.onInputFilesDownloadStarted(job);
       try {
@@ -150,9 +140,21 @@ public class JobHandlerImpl implements JobHandler {
         throw e;
       }
       statusCallback.onInputFilesDownloadCompleted(job);
-      
+
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
+
+      if (cacheService.isCacheEnabled()) {
+        Map<String, Object> results = cacheService.find(job);
+        if (results != null) {
+          logger.info("Job {} is successfully copied from cache", job.getName());
+          containerHandler = new CompletedContainerHandler(job);
+          containerHandler.start();
+          return;
+        }
+      }
+
+      cachedJob = (Job) CloneHelper.deepCopy(job);
       cacheService.cache(cachedJob);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
