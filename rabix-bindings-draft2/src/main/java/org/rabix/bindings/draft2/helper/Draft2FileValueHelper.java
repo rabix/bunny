@@ -26,6 +26,7 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
   private static final String KEY_CONTENTS = "contents";
   private static final String KEY_ORIGINAL_PATH = "originalPath";
   private static final String KEY_SECONDARY_FILES = "secondaryFiles";
+  private static final String KEY_DIRNAME = "dirname";
 
   private static final int CONTENTS_NUMBER_OF_BYTES = 65536;
 
@@ -85,6 +86,14 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
   
   public static String getChecksum(Object raw) {
     return getValue(KEY_CHECKSUM, raw);
+  }
+
+  public static String getDirname(Object raw) {
+    return getValue(KEY_DIRNAME, raw);
+  }
+
+  public static void setDirname(String name, Object raw) {
+    setValue(KEY_DIRNAME, name, raw);
   }
 
   public static String getPath(Object raw) {
@@ -186,6 +195,7 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
     String contents = Draft2FileValueHelper.getContents(value);
     String location = Draft2FileValueHelper.getLocation(value);
     String checksum = Draft2FileValueHelper.getChecksum(value);
+    String dirname = Draft2FileValueHelper.getDirname(value);
     Long size = Draft2FileValueHelper.getSize(value);
     
     Map<String, Object> properties = new HashMap<>();
@@ -198,7 +208,9 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
+    FileValue ret = new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
+    ret.setDirname(dirname);
+    return ret;
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
@@ -211,6 +223,7 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
     setContents(fileValue.getContents(), raw);
+    setDirname(fileValue.getDirname(), raw);
     
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {

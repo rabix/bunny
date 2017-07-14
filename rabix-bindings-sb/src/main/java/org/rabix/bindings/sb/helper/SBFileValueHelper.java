@@ -26,6 +26,7 @@ public class SBFileValueHelper extends SBBeanHelper {
   private static final String KEY_CONTENTS = "contents";
   private static final String KEY_ORIGINAL_PATH = "originalPath";
   private static final String KEY_SECONDARY_FILES = "secondaryFiles";
+  private static final String KEY_DIRNAME = "dirname";
 
   private static final int CONTENTS_NUMBER_OF_BYTES = 65536;
 
@@ -68,6 +69,14 @@ public class SBFileValueHelper extends SBBeanHelper {
   
   public static void setChecksum(String checksum, Object raw) {
     setValue(KEY_CHECKSUM, checksum, raw);
+  }
+
+  public static String getDirname(Object raw) {
+    return getValue(KEY_DIRNAME, raw);
+  }
+
+  public static void setDirname(String name, Object raw) {
+    setValue(KEY_DIRNAME, name, raw);
   }
 
   public static void setContents(Object raw) throws IOException {
@@ -186,6 +195,7 @@ public class SBFileValueHelper extends SBBeanHelper {
     String location = SBFileValueHelper.getLocation(value);
     String checksum = SBFileValueHelper.getChecksum(value);
     String contents = SBFileValueHelper.getContents(value);
+    String dirname = SBFileValueHelper.getDirname(value);
     Long size = SBFileValueHelper.getSize(value);
     
     Map<String, Object> properties = new HashMap<>();
@@ -198,7 +208,10 @@ public class SBFileValueHelper extends SBBeanHelper {
         secondaryFiles.add(createFileValue(secondaryFileValue));
       }
     }
-    return new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
+
+    FileValue ret = new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
+    ret.setDirname(dirname);
+    return ret;
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
@@ -211,6 +224,7 @@ public class SBFileValueHelper extends SBBeanHelper {
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
     setContents(fileValue.getContents(), raw);
+    setDirname(fileValue.getDirname(), raw);
 
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {
