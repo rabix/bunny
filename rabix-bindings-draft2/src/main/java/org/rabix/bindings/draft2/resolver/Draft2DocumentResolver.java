@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
@@ -46,8 +47,13 @@ public class Draft2DocumentResolver {
   
   public static String resolve(String appUrl) throws BindingException {
     String appUrlBase = appUrl;
-    if (!URIHelper.isData(appUrl)) {
-      appUrlBase = URIHelper.extractBase(appUrl);
+    try {
+      URI uri = URI.create(appUrl);
+      if (uri.getScheme().equals(URIHelper.DATA_URI_SCHEME)) {
+        appUrlBase = URIHelper.extractBase(appUrl);
+      }
+    } catch (IllegalArgumentException e) {
+
     }
     
     File file = null;
