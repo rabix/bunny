@@ -494,9 +494,9 @@ public class BackendCommandLine {
     options.addOption("r", "resolve-app", false, "resolve all referenced fragments and print application as a single JSON document");
     options.addOption(null, "cache-dir", true, "basic tool result caching (experimental)");
     options.addOption(null, "no-container", false, "don't use containers");
-    options.addOption(null, "tmp-outdir-prefix", true, "doesn't do anything");
-    options.addOption(null, "tmpdir-prefix", true, "doesn't do anything");
-    options.addOption(null, "outdir", true, "doesn't do anything");
+    options.addOption(null, "tmp-outdir-prefix", true, "legacy compatibility parameter, doesn't do anything");
+    options.addOption(null, "tmpdir-prefix", true, "legacy compatibility parameter, doesn't do anything");
+    options.addOption(null, "outdir", true, "legacy compatibility parameter, doesn't do anything");
     options.addOption(null, "quiet", false, "don't print anything except final result on standard output");
     options.addOption(null, "tes-url", true, "url of the ga4gh task execution server instance (experimental)");
     options.addOption(null, "tes-storage", true, "path to the storage used by the ga4gh tes server (currently supports locall dirs and google storage cloud paths)");
