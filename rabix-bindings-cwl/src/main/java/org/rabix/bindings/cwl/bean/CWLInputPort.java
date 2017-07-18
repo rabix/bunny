@@ -2,6 +2,7 @@ package org.rabix.bindings.cwl.bean;
 
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.StageInput;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -9,38 +10,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Preconditions;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CWLInputPort extends ApplicationPort {
-
-  public static enum StageInput {
-    COPY("copy"), LINK("link");
-    
-    private String value;
-    
-    private StageInput(String value) {
-      this.value = value;
-    }
-    
-    public static StageInput get(String value) {
-      Preconditions.checkNotNull(value);
-      for (StageInput stageInput : values()) {
-        if (value.compareToIgnoreCase(stageInput.value) == 0) {
-          return stageInput;
-        }
-      }
-      throw new IllegalArgumentException("Wrong stageInput value " + value);
-    }
-  }
-  
+ 
   @JsonProperty("format")
   protected Object format;
   @JsonProperty("streamable")
   protected Boolean streamable;
   @JsonProperty("sbg:stageInput")
-  protected final String stageInput;
+  protected final StageInput stageInput;
   @JsonProperty("inputBinding")
   protected final Object inputBinding;
   @JsonProperty("secondaryFiles")
@@ -49,7 +29,7 @@ public class CWLInputPort extends ApplicationPort {
   @JsonCreator
   public CWLInputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema, 
       @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("streamable") Boolean streamable, @JsonProperty("format") Object format,
-      @JsonProperty("scatter") Boolean scatter, @JsonProperty("sbg:stageInput") String stageInput, @JsonProperty("linkMerge") String linkMerge,
+      @JsonProperty("scatter") Boolean scatter, @JsonProperty("sbg:stageInput") StageInput stageInput, @JsonProperty("linkMerge") String linkMerge,
                       @JsonProperty("description") String description, @JsonProperty("secondaryFiles") Object secondaryFiles) {
     super(id, defaultValue, schema, scatter, linkMerge, description);
     this.format = format;
@@ -73,7 +53,7 @@ public class CWLInputPort extends ApplicationPort {
     return secondaryFiles;
   }
 
-  public String getStageInput() {
+  public StageInput getStageInput() {
     return stageInput;
   }
   
@@ -97,6 +77,12 @@ public class CWLInputPort extends ApplicationPort {
   @Override
   public boolean isRequired() {
     return CWLSchemaHelper.isRequired(schema);
+  }
+
+  @Override
+  @JsonIgnore
+  public Object getBinding() {
+    return inputBinding;
   }
 
 }

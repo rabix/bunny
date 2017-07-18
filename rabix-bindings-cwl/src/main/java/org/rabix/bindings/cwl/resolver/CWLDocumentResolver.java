@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
@@ -14,13 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.BindingWrongVersionException;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.helper.URIHelper;
@@ -89,7 +88,6 @@ public class CWLDocumentResolver {
 
   private static final String DEFAULT_ENCODING = "UTF-8";
 
-  private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>();
   private static boolean graphResolve = false;
 
   private static Map<String, String> namespaces = new HashMap<String, String>();
@@ -97,13 +95,14 @@ public class CWLDocumentResolver {
   private static Map<String, List<CWLDocumentResolverReplacement>> replacements = new HashMap<>();
 
   public static String resolve(String appUrl) throws BindingException {
-    if (cache.containsKey(appUrl)) {
-      return cache.get(appUrl);
-    }
-
     String appUrlBase = appUrl;
-    if (!URIHelper.isData(appUrl)) {
-      appUrlBase = URIHelper.extractBase(appUrl);
+    try {
+      URI uri = URI.create(appUrl);
+      if (uri.getScheme().equals(URIHelper.DATA_URI_SCHEME)) {
+        appUrlBase = URIHelper.extractBase(appUrl);
+      }
+    } catch (IllegalArgumentException e) {
+
     }
 
     boolean rewriteDefaultPaths = false;
@@ -119,21 +118,12 @@ public class CWLDocumentResolver {
         file = new File(".");
       }
       String input = URIHelper.getData(appUrlBase);
-      try {
-        root = JSONHelper.readJsonNode(input);
-      } catch (Exception e) {
-        // try to parse YAML
-        root = JSONHelper.readJsonNode(JSONHelper.transformToJSON(input));
-      }
+      root = JSONHelper.readJsonNode(input);
       if (isFile) {
         addAppLocation(root, appUrl, StringUtils.EMPTY);
       }
     } catch (IOException e) {
       throw new BindingException(e);
-    }
-
-    if (root.has(SCHEMA_KEY)) {
-      throw new NotImplementedException("Feature not implemented");
     }
 
     if (root.has(GRAPH_KEY)) {
@@ -142,9 +132,17 @@ public class CWLDocumentResolver {
 
     if (root.has(NAMESPACES_KEY)) {
       populateNamespaces(root);
-      ((ObjectNode) root).remove(NAMESPACES_KEY);
+//      ((ObjectNode) root).remove(NAMESPACES_KEY);
     }
+    
 
+    JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
+    if (cwlVersion==null || !(cwlVersion.asText().equals(ProtocolType.CWL.appVersion))) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      throw new BindingWrongVersionException("Document version is not " + ProtocolType.CWL.appVersion);
+    }
+    
     traverse(appUrl, root, file, null, root, false);
 
     for (CWLDocumentResolverReplacement replacement : getReplacements(appUrl)) {
@@ -157,13 +155,6 @@ public class CWLDocumentResolver {
 
     if (graphResolve) {
       String fragment = URIHelper.extractFragment(appUrl).substring(1);
-
-      String cwlVersion = root.get(CWL_VERSION_KEY).asText();
-      if (!(cwlVersion.equals(ProtocolType.CWL.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not v1.0");
-      }
 
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
@@ -183,27 +174,19 @@ public class CWLDocumentResolver {
           Map<String, Object> result = JSONHelper.readMap(elem);
           result.put(CWL_VERSION_KEY, cwlVersion);
           root = JSONHelper.convertToJsonNode(result);
-          cache.put(appUrl, JSONHelper.writeObject(root));
           break;
         }
       }
       graphResolve = false;
-    } else {
-      if (!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.CWL.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not v1.0");
-      }
-      cache.put(appUrl, JSONHelper.writeObject(root));
     }
+    
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);
 
     if (rewriteDefaultPaths) {
       addAppLocations(root, appUrl);
-      cache.put(appUrl, JSONHelper.writeObject(root));
     }
-    return cache.get(appUrl);
+    return JSONHelper.writeObject(root);
   }
 
   private static void addAppLocations(JsonNode node, String previous) {
@@ -335,7 +318,7 @@ public class CWLDocumentResolver {
 
         JsonNode referenceDocumentRoot = findDocumentRoot(root, file, referencePath, isJsonPointer);
         ParentChild parentChild = findReferencedNode(referenceDocumentRoot, referencePath);
-        JsonNode resolvedNode = traverse(appUrl, root, file, parentChild.parent, parentChild.child, false);
+        JsonNode resolvedNode = traverse(appUrl, root, file.getParentFile().toPath().resolve(referencePath).toFile(), parentChild.parent, parentChild.child, false);
         if (resolvedNode == null) {
           return null;
         }
@@ -483,8 +466,12 @@ public class CWLDocumentResolver {
       if (parts.length > 2) {
         throw new BindingException("Invalid reference " + reference);
       }
-      String contents = loadContents(file, parts[0]);
-      return JSONHelper.readJsonNode(JSONHelper.transformToJSON(contents));
+      String contents = loadContents(file, parts[0]);     
+      try {
+        return JSONHelper.readJsonNode(contents);
+      } catch (Exception e) {
+        throw new BindingException(e);
+      }
     }
   }
 

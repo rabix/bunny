@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
@@ -13,22 +14,20 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.BindingWrongVersionException;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.Preconditions;
 
 public class Draft3DocumentResolver {
@@ -67,7 +66,6 @@ public static Set<String> types = new HashSet<String>();
   
   private static final String DEFAULT_ENCODING = "UTF-8";
 
-  private static ConcurrentMap<String, String> cache = new ConcurrentHashMap<>(); 
   private static boolean graphResolve = false;
   
   private static Map<String, String> namespaces = new HashMap<String, String>();
@@ -75,13 +73,14 @@ public static Set<String> types = new HashSet<String>();
   private static Map<String, LinkedHashSet<Draft3DocumentResolverReplacement>> replacements = new HashMap<>();
   
   public static String resolve(String appUrl) throws BindingException {
-    if (cache.containsKey(appUrl)) {
-      return cache.get(appUrl);
-    }
-    
     String appUrlBase = appUrl;
-    if (!URIHelper.isData(appUrl)) {
-      appUrlBase = URIHelper.extractBase(appUrl);
+    try {
+      URI uri = URI.create(appUrl);
+      if (uri.getScheme().equals(URIHelper.DATA_URI_SCHEME)) {
+        appUrlBase = URIHelper.extractBase(appUrl);
+      }
+    } catch (IllegalArgumentException e) {
+
     }
     
     File file = null;
@@ -93,14 +92,9 @@ public static Set<String> types = new HashSet<String>();
       } else {
         file = new File(".");
       }
-      String input = JSONHelper.transformToJSON(URIHelper.getData(appUrlBase));
-      root = JSONHelper.readJsonNode(input);
+      root = JSONHelper.readJsonNode(URIHelper.getData(appUrlBase));
     } catch (IOException e) {
       throw new BindingException(e);
-    }
-    
-    if(root.has(SCHEMA_KEY)) {
-      throw new NotImplementedException("Feature not implemented");
     }
     
     if(root.has(GRAPH_KEY)) {
@@ -110,6 +104,13 @@ public static Set<String> types = new HashSet<String>();
     if(root.has(NAMESPACES_KEY)) {
       populateNamespaces(root);
       ((ObjectNode) root).remove(NAMESPACES_KEY);
+    }
+    
+    JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
+    if (cwlVersion == null || !(cwlVersion.asText().equals(ProtocolType.DRAFT3.appVersion))) {
+      clearReplacements(appUrl);
+      clearReferenceCache(appUrl);
+      throw new BindingWrongVersionException("Document version is not " + ProtocolType.DRAFT3.appVersion);
     }
     
     traverse(appUrl, root, file, null, root);
@@ -125,13 +126,6 @@ public static Set<String> types = new HashSet<String>();
     if(graphResolve) {
       String fragment = URIHelper.extractFragment(appUrl).substring(1);
       
-      String cwlVersion = root.get(CWL_VERSION_KEY).asText();
-      if (!(cwlVersion.equals(ProtocolType.DRAFT3.appVersion))) {
-        clearReplacements(appUrl);
-        clearReferenceCache(appUrl);
-        throw new BindingException("Document version is not cwl:draft-3");
-      }
-      
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       
@@ -145,11 +139,11 @@ public static Set<String> types = new HashSet<String>();
         }
       }
       
-      for(final JsonNode elem: root.get(GRAPH_KEY)) {
-        if(elem.get("id").asText().equals(fragment)) {
+      for (final JsonNode elem : root.get(GRAPH_KEY)) {
+        if (elem.get("id").asText().equals(fragment)) {
           Map<String, Object> result = JSONHelper.readMap(elem);
           result.put(CWL_VERSION_KEY, cwlVersion);
-          cache.put(appUrl, JSONHelper.writeObject(result));
+          root = JSONHelper.convertToJsonNode(result);
           break;
         }
       }
@@ -161,12 +155,11 @@ public static Set<String> types = new HashSet<String>();
         clearReferenceCache(appUrl);
         throw new BindingException("Document version is not cwl:draft-3");
       }
-      cache.put(appUrl, JSONHelper.writeObject(root));
     }
 
     clearReplacements(appUrl);
     clearReferenceCache(appUrl);
-    return cache.get(appUrl);
+    return JSONHelper.writeObject(root);
   }
   
   private static void populateNamespaces(JsonNode root) {
@@ -329,8 +322,12 @@ public static Set<String> types = new HashSet<String>();
       if (parts.length > 2) {
         throw new BindingException("Invalid reference " + reference);
       }
-      String contents = loadContents(file, parts[0]);
-      return JSONHelper.readJsonNode(JSONHelper.transformToJSON(contents));
+      String contents = loadContents(file, parts[0]);      
+      try {
+        return JSONHelper.readJsonNode(contents);
+      } catch (Exception e) {
+        throw new BindingException(e);
+      }
     }
   }
   

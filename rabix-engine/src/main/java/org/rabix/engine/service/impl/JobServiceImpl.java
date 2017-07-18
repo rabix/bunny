@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -17,17 +15,13 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
-import org.rabix.engine.db.AppDB;
-import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.repository.JobRepository.JobEntity;
-import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.engine.service.AppService;
 import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.DAGNodeService;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobService;
@@ -35,9 +29,12 @@ import org.rabix.engine.service.JobServiceException;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.repository.JobRepository;
+import org.rabix.engine.store.repository.JobRepository.JobEntity;
+import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +43,8 @@ import com.google.inject.Inject;
 
 public class JobServiceImpl implements JobService {
 
+  private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
+  
   private final static Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
   
   private final JobRecordService jobRecordService;
@@ -54,8 +53,8 @@ public class JobServiceImpl implements JobService {
   private final ContextRecordService contextRecordService;
 
   private final JobRepository jobRepository;
-  private final DAGNodeDB dagNodeDB;
-  private final AppDB appDB;
+  private final DAGNodeService dagNodeService;
+  private final AppService appService;
   
   private final EventProcessor eventProcessor;
   private final SchedulerService scheduler;
@@ -68,9 +67,6 @@ public class JobServiceImpl implements JobService {
   private boolean isLocalBackend;
 
   private IntermediaryFilesService intermediaryFilesService;
-  private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
-
-  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
   
   private Set<UUID> stoppingRootIds = new HashSet<>();
   private EngineStatusCallback engineStatusCallback;
@@ -79,15 +75,15 @@ public class JobServiceImpl implements JobService {
   @Inject
   public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
       VariableRecordService variableRecordService, LinkRecordService linkRecordService,
-      ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeDB dagNodeDB, AppDB appDB,
-      JobRepository jobRepository, TransactionHelper transactionHelper, EngineStatusCallback statusCallback,
-      Configuration configuration, IntermediaryFilesService intermediaryFilesService) {
-
-    this.dagNodeDB = dagNodeDB;
-    this.appDB = appDB;
+      ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeService dagNodeService,
+      AppService appService, JobRepository jobRepository, TransactionHelper transactionHelper,
+      EngineStatusCallback statusCallback, Configuration configuration,
+      IntermediaryFilesService intermediaryFilesService) {
+    this.dagNodeService = dagNodeService;
+    this.appService = appService;
     this.eventProcessor = eventProcessor;
     this.jobRepository = jobRepository;
-    
+
     this.jobRecordService = jobRecordService;
     this.linkRecordService = linkRecordService;
     this.variableRecordService = variableRecordService;
@@ -96,13 +92,10 @@ public class JobServiceImpl implements JobService {
     this.transactionHelper = transactionHelper;
     this.engineStatusCallback = statusCallback;
     this.intermediaryFilesService = intermediaryFilesService;
-    
-    deleteFilesUponExecution = configuration.getBoolean("engine.delete_files_upon_execution", false);
+
     deleteIntermediaryFiles = configuration.getBoolean("engine.delete_intermediary_files", false);
-    keepInputFiles = configuration.getBoolean("engine.keep_input_files", true);
-    isLocalBackend = configuration.getBoolean("backend.local", false);
+    keepInputFiles = !configuration.getBoolean("engine.treat_inputs_as_intermediary", false) || !deleteIntermediaryFiles;
     setResources = configuration.getBoolean("engine.set_resources", false);
-    eventProcessor.start();
   }
   
   @Override
@@ -133,34 +126,34 @@ public class JobServiceImpl implements JobService {
           JobStatus status = job.getStatus();
           switch (status) {
           case RUNNING:
-            if (JobState.RUNNING.equals(jobRecord.getState())) {
+            if (JobRecord.JobState.RUNNING.equals(jobRecord.getState())) {
               return null;
             }
-            JobStateValidator.checkState(jobRecord, JobState.RUNNING);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.RUNNING, job.getOutputs(), job.getId(), job.getName());
+            JobStateValidator.checkState(jobRecord, JobRecord.JobState.RUNNING);
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.RUNNING, job.getOutputs(), job.getId(), job.getName());
             break;
           case FAILED:
-            if (JobState.FAILED.equals(jobRecord.getState())) {
+            if (JobRecord.JobState.FAILED.equals(jobRecord.getState())) {
               return null;
             }
-            JobStateValidator.checkState(jobRecord, JobState.FAILED);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.FAILED, job.getMessage(), job.getId(), job.getName());
+            JobStateValidator.checkState(jobRecord, JobRecord.JobState.FAILED);
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.FAILED, job.getMessage(), job.getId(), job.getName());
             break;
           case ABORTED:
-            if (JobState.ABORTED.equals(jobRecord.getState())) {
+            if (JobRecord.JobState.ABORTED.equals(jobRecord.getState())) {
               return null;
             }
-            JobStateValidator.checkState(jobRecord, JobState.ABORTED);
+            JobStateValidator.checkState(jobRecord, JobRecord.JobState.ABORTED);
             Job rootJob = jobRepository.get(jobRecord.getRootId());
             handleJobRootAborted(rootJob);
-            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobState.ABORTED, rootJob.getId(), rootJob.getName());
+            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobRecord.JobState.ABORTED, rootJob.getId(), rootJob.getName());
             break;
           case COMPLETED:
-            if (JobState.COMPLETED.equals(jobRecord.getState())) {
+            if (JobRecord.JobState.COMPLETED.equals(jobRecord.getState())) {
               return null;
             }
-            JobStateValidator.checkState(jobRecord, JobState.COMPLETED);
-            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobState.COMPLETED, job.getOutputs(), job.getId(), job.getName());
+            JobStateValidator.checkState(jobRecord, JobRecord.JobState.COMPLETED);
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.COMPLETED, job.getOutputs(), job.getId(), job.getName());
             break;
           default:
             break;
@@ -202,9 +195,10 @@ public class JobServiceImpl implements JobService {
           bindings = BindingsFactory.create(updatedJob);
 
           DAGNode node = bindings.translateToDAG(updatedJob);
-          appDB.loadDB(node);
-          String dagHash = dagNodeDB.loadDB(node, rootId);
+          appService.loadDB(node);
+          String dagHash = dagNodeService.put(node, rootId);
 
+          
           updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.RUNNING);
           updatedJob = Job.cloneWithConfig(updatedJob, config);
           jobRepository.insert(updatedJob, null, null);
@@ -256,7 +250,7 @@ public class JobServiceImpl implements JobService {
   
   @Override
   public Set<Job> getReady(EventProcessor eventProcessor, UUID rootId) throws JobServiceException {
-    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeDB, appDB, rootId, setResources);
+    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeService, appService, rootId, setResources);
   }
   
   @Override

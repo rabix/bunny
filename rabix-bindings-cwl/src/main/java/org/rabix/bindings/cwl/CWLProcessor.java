@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -33,6 +34,7 @@ import org.rabix.bindings.cwl.processor.CWLPortProcessor;
 import org.rabix.bindings.cwl.processor.CWLPortProcessorException;
 import org.rabix.bindings.cwl.processor.callback.CWLFilePathMapProcessorCallback;
 import org.rabix.bindings.cwl.processor.callback.CWLPortProcessorHelper;
+import org.rabix.bindings.cwl.resolver.CWLDocumentResolver;
 import org.rabix.bindings.cwl.service.CWLGlobException;
 import org.rabix.bindings.cwl.service.CWLGlobService;
 import org.rabix.bindings.cwl.service.CWLMetadataService;
@@ -192,6 +194,7 @@ public class CWLProcessor implements ProtocolProcessor {
         File directory = new File(workingDir, CWLDirectoryValueHelper.getName(value));
         directory.mkdirs();
         CWLDirectoryValueHelper.setLocation(directory.getAbsolutePath(), value);
+        CWLFileValueHelper.setDirType(value);
         
         List<Object> listing = CWLDirectoryValueHelper.getListing(value);
         if (listing != null) {
@@ -331,7 +334,13 @@ public class CWLProcessor implements ProtocolProcessor {
   
   @SuppressWarnings("unchecked")
   private Object setFormat(Object result, Object format, CWLJob job) throws CWLExpressionException {
-    Object resolved = CWLExpressionResolver.resolve(format, job, null);
+    String resolved = CWLExpressionResolver.resolve(format, job, null);
+    Object namespaces = job.getApp().getRaw().get(CWLDocumentResolver.NAMESPACES_KEY);
+    if (namespaces instanceof Map) {
+      for (Entry<String, String> entry : ((Map<String, String>) namespaces).entrySet()) {
+        resolved = resolved.replace(entry.getKey() + ":", entry.getValue());
+      }
+    }
     ((Map<String, Object>) result).put("format", resolved);
     return result;
   }
@@ -439,9 +448,13 @@ public class CWLProcessor implements ProtocolProcessor {
    * Gets secondary files (absolute paths)
    */
   @SuppressWarnings("unchecked")
-  public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String filePath, Object secondaryFilesObj, File workingDir) throws CWLExpressionException, IOException {
+  public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String filePath, Object secs, File workingDir) throws CWLExpressionException, IOException {
+    Object secondaryFilesObj = secs;
     if (secondaryFilesObj == null) {
       return null;
+    }
+    if(secondaryFilesObj instanceof String || CWLExpressionResolver.isExpressionObject(secondaryFilesObj)){
+      secondaryFilesObj = CWLExpressionResolver.resolve(secondaryFilesObj, job, fileValue);
     }
     
     List<Object> secondaryFilesList = new ArrayList<>();
@@ -472,15 +485,17 @@ public class CWLProcessor implements ProtocolProcessor {
           secondaryFilePath = suffix;
         }
         File secondaryFile = new File(secondaryFilePath);
-        if (secondaryFile.exists()) {
-          CWLFileValueHelper.setFileType(secondaryFileMap);
+          if (secondaryFile.isDirectory()) {
+            CWLFileValueHelper.setDirType(secondaryFileMap);
+          } else {
+            CWLFileValueHelper.setFileType(secondaryFileMap);
+          }
           CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
           CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
           CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-          if (hashAlgorithm != null) {
+          if (hashAlgorithm != null && secondaryFile.exists() && !secondaryFile.isDirectory()) {
             CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
           }
-        }
       } else if (expr instanceof Map) {
         secondaryFileMap = (Map<String, Object>) expr;
         postprocessCreatedResults(secondaryFileMap, hashAlgorithm, workingDir);

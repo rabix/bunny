@@ -148,6 +148,23 @@ public class CWLSchemaHelper extends CWLBeanHelper {
     }
   }
   
+  @SuppressWarnings("unchecked")
+  public static Object getSchemaFromNonRequired(Object schema) {
+    try {
+      Object clonedSchema = CloneHelper.deepCopy(schema);
+      if (clonedSchema instanceof List) {
+        for (Object subschema : ((List<Object>) clonedSchema)) {
+          if (!(subschema == null || SCHEMA_NULL.equals(subschema))) {
+            return subschema;
+          }
+        }
+      }
+      return clonedSchema;
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to clone schema " + schema);
+    } 
+  }
+  
   public static String getOptionalShortenedType(Object schema) {
     if (schema == null) {
       return null;

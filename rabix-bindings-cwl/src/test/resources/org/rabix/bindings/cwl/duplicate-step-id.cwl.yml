@@ -1,0 +1,22 @@
+class: Workflow
+cwlVersion: v1.0
+requirements:
+  InlineJavascriptRequirement: {}
+inputs:
+  in: string[]
+outputs:
+  out: string[]
+steps:
+  - id: one
+    in:
+      in: in
+    out: [out]
+    scatter: in
+    run: valid.cwl.yml
+
+  - id: one
+    in:
+      in: in
+    out: [out]
+    scatter: in
+    run: valid.cwl.yml

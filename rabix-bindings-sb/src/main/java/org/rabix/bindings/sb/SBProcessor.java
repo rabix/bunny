@@ -348,7 +348,7 @@ public class SBProcessor implements ProtocolProcessor {
   /**
    * Gets secondary files (absolute paths)
    */
-  private List<Map<String, Object>> getSecondaryFiles(SBJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object binding) throws SBExpressionException {
+  public static List<Map<String, Object>> getSecondaryFiles(SBJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object binding) throws SBExpressionException {
     List<String> secondaryFileSufixes = SBBindingHelper.getSecondaryFiles(binding);
 
     if (secondaryFileSufixes == null) {
@@ -374,17 +374,15 @@ public class SBProcessor implements ProtocolProcessor {
         secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
       }
       File secondaryFile = new File(secondaryFilePath);
-      if (secondaryFile.exists()) {
         Map<String, Object> secondaryFileMap = new HashMap<>();
         SBFileValueHelper.setFileType(secondaryFileMap);
         SBFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
         SBFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
         SBFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-        if (hashAlgorithm != null) {
+        if (hashAlgorithm != null && secondaryFile.exists()) {
           SBFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
         }
         secondaryFileMaps.add(secondaryFileMap);
-      }
     }
     return secondaryFileMaps;
   }

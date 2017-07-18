@@ -36,6 +36,9 @@ public class SBJobAppDeserializer extends JsonDeserializer<SBJobApp>  {
     }
     if (tree.isObject()) {
       if(tree.get(SBDocumentResolver.CWL_VERSION_KEY) == null || tree.get(SBDocumentResolver.CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion)) {
+        if (tree.get(CLASS_KEY) == null)
+          throw new IllegalStateException("\"" + CLASS_KEY + "\" attribute missing!");
+
         if(tree.get(CLASS_KEY).asText().equals(WORKFLOW_CLASS)) {
           return objectMapper.readValue(JSONHelper.writeObject(tree), SBWorkflow.class);
         }
@@ -47,6 +50,8 @@ public class SBJobAppDeserializer extends JsonDeserializer<SBJobApp>  {
         }
         else if(tree.get(CLASS_KEY).asText().equals(EXPRESSION_CLASS)) {
           return objectMapper.readValue(JSONHelper.writeObject(tree), SBExpressionTool.class);
+        } else {
+          throw new IllegalStateException("Ivalid value for \"" + CLASS_KEY + "\" attribute!");
         }
       }
     }

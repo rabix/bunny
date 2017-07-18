@@ -3,6 +3,8 @@ package org.rabix.bindings.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.rabix.bindings.helper.FileValueHelper;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -11,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.rabix.bindings.helper.FileValueHelper;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -126,14 +127,15 @@ public abstract class ApplicationPort {
   public boolean isRequired() {
     return false;
   }
-
+  
+  public abstract Object getBinding();
   /**
    * Checks if supplied value is valid for this ApplicationPort
    * @param in Potential input value
    * @return null if input is valid else description why input is not valid
    */
   @JsonIgnore
-  public String validateInput(Object in) {
+  public String validate(Object in) {
     if (in==null)
       return null;
 

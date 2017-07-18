@@ -27,7 +27,7 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
     this.receiveFromBackendHeartbeatQueue = new TransportQueueRabbitMQ(engineConfiguration.getExchange(), engineConfiguration.getExchangeType(), engineConfiguration.getHeartbeatRoutingKey());
 
     this.cleanup = configuration.getBoolean("cleaner.remove_queues", false);
-    this.enableControlMesages = configuration.getBoolean("engine.enable_backend_control_messages", false);
+    this.enableControlMessages = configuration.getBoolean("engine.enable_backend_control_messages", false);
     initialize();
   }
 
@@ -41,7 +41,7 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
       transportPlugin.initQueue(sendToBackendQueue);
       transportPlugin.initQueue(receiveFromBackendQueue);
       transportPlugin.initQueue(receiveFromBackendHeartbeatQueue);
-      if(enableControlMesages)
+      if(enableControlMessages)
         transportPlugin.initQueue(sendToBackendControlQueue);
     } catch (TransportPluginException e) {
       // do nothing
@@ -55,7 +55,7 @@ public class BackendStubRabbitMQ extends BackendStub<TransportQueueRabbitMQ, Bac
       transportPlugin.deleteQueue(sendToBackendQueue.getQueueName());
       transportPlugin.deleteQueue(receiveFromBackendHeartbeatQueue.getQueueName());
       transportPlugin.deleteQueue(receiveFromBackendQueue.getQueueName());
-      if(enableControlMesages)
+      if(enableControlMessages)
         transportPlugin.deleteQueue(sendToBackendControlQueue.getQueueName());
     }
   }

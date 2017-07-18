@@ -2,6 +2,7 @@ package org.rabix.bindings.sb.processor.callback;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,8 +12,8 @@ import java.util.Map.Entry;
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.StageInput;
 import org.rabix.bindings.sb.bean.SBInputPort;
-import org.rabix.bindings.sb.bean.SBInputPort.StageInput;
 import org.rabix.bindings.sb.helper.SBFileValueHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.rabix.bindings.sb.processor.SBPortProcessorCallback;
@@ -31,16 +32,16 @@ public class SBStageInputProcessorCallback implements SBPortProcessorCallback {
   }
 
   @Override
-  public SBPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
-    if (!(port instanceof SBInputPort)) {
+  public SBPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
+    if (!(parentPort instanceof SBInputPort)) {
       throw new RuntimeException("Inputs only can be staged!");
     }
-    SBInputPort inputPort = (SBInputPort) port;
-    String stageInputStr = inputPort.getStageInput();
-    if (stageInputStr == null) {
+    SBInputPort inputPort = (SBInputPort) parentPort;
+    StageInput stageInput = inputPort.getStageInput();
+    if (stageInput == null) {
       return new SBPortProcessorResult(value, true);
     }
-    return new SBPortProcessorResult(stage(value, StageInput.get(stageInputStr)), true);
+    return new SBPortProcessorResult(stage(value, stageInput), true);
   }
 
   @SuppressWarnings("unchecked")
@@ -85,18 +86,17 @@ public class SBStageInputProcessorCallback implements SBPortProcessorCallback {
   }
 
   private String stagePath(String path, StageInput stageInput) throws BindingException {
+    File file = new File(path);
+    if (!file.exists()) {
+      throw new BindingException("Failed to stage input file path " + path);
+    }
+    File destinationFile = new File(workingDir, file.getName());
+    if (destinationFile.exists()) {
+      throw new BindingException("Failed to stage input file path " + path + ". File with the same name already exists.");
+    }
+    logger.info("Stage input file {} to {}.", file, destinationFile);
     switch (stageInput) { // just copy for now
     case COPY:
-    case LINK:
-      File file = new File(path);
-      if (!file.exists()) {
-        throw new BindingException("Failed to stage input file path " + path);
-      }
-      File destinationFile = new File(workingDir, file.getName());
-      if (destinationFile.exists()) {
-        throw new BindingException("Failed to stage input file path " + path + ". File with the same name already exists.");
-      }
-      logger.info("Stage input file {} to {}.", file, destinationFile);
       try {
         if (file.isFile()) {
           FileUtils.copyFile(file, destinationFile);
@@ -107,6 +107,13 @@ public class SBStageInputProcessorCallback implements SBPortProcessorCallback {
         throw new BindingException(e);
       }
       return destinationFile.getAbsolutePath();
+    case LINK:
+        try {
+          Files.createLink(destinationFile.toPath(), file.toPath());
+        } catch (IOException e) {
+          throw new BindingException(e);
+        }
+     return destinationFile.getAbsolutePath();
     default:
       throw new BindingException("Failed to stage input files. StageInput " + stageInput + " is not supported");
     }

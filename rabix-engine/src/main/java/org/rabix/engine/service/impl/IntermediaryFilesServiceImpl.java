@@ -1,6 +1,5 @@
 package org.rabix.engine.service.impl;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,9 +15,9 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.engine.model.LinkRecord;
-import org.rabix.engine.repository.IntermediaryFilesRepository;
-import org.rabix.engine.repository.IntermediaryFilesRepository.IntermediaryFileEntity;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.repository.IntermediaryFilesRepository;
+import org.rabix.engine.store.repository.IntermediaryFilesRepository.IntermediaryFileEntity;
 import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.LinkRecordService;
@@ -97,15 +96,15 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   public void handleJobCompleted(Job job) {
     if(!job.isRoot()) {
       List<LinkRecord> allLinks = linkRecordService.findBySource(job.getName(), job.getRootId());
-      boolean isScattered = false;
+      boolean isScatteredOrContainer = false;
       for (Map.Entry<String, Object> entry : job.getOutputs().entrySet()) {
         List<FileValue> files = FileValueHelper.getFilesFromValue(entry.getValue());
         if (!files.isEmpty()) {
           List<LinkRecord> links = linksForSourcePort(entry.getKey(), allLinks);
           Integer count = links.size();
           for (LinkRecord link : links) {
-            if(link.getDestinationJobId().equals(InternalSchemaHelper.getJobIdFromScatteredId(job.getName())) && InternalSchemaHelper.getScatteredNumber(job.getName()) != null) {
-              isScattered = true;
+            if(link.getDestinationJobId().equals(InternalSchemaHelper.getJobIdFromScatteredId(job.getName())) && (InternalSchemaHelper.getJobNestingDepth(job.getName()) > InternalSchemaHelper.getJobNestingDepth(link.getDestinationJobId()))) {
+              isScatteredOrContainer = true;
             }
             if(!link.getDestinationJobId().equals(InternalSchemaHelper.ROOT_NAME) && link.getDestinationVarType().equals(LinkPortType.OUTPUT)) {
               count--;
@@ -118,7 +117,7 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
           }
         }
       }
-      if(!isScattered) {
+      if(!isScatteredOrContainer) {
         Set<String> inputs = new HashSet<String>();
         for (Map.Entry<String, Object> entry : job.getInputs().entrySet()) {
           List<FileValue> files = FileValueHelper.getFilesFromValue(entry.getValue());

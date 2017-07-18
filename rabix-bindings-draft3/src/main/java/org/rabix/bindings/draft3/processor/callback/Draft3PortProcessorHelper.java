@@ -1,5 +1,6 @@
 package org.rabix.bindings.draft3.processor.callback;
 
+import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
@@ -76,5 +77,12 @@ public class Draft3PortProcessorHelper {
       throw new Draft3PortProcessorException("Failed to load input contents.", e);
     }
   }
-
+  public Map<String, Object> stageInputFiles(Map<String, Object> inputs, File workingDir)
+      throws Draft3PortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new Draft3StageInputProcessorCallback(workingDir));
+    } catch (Draft3PortProcessorException e) {
+      throw new Draft3PortProcessorException("Failed to stage inputs.", e);
+    }
+  }
 }

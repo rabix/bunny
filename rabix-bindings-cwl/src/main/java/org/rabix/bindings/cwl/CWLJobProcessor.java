@@ -263,15 +263,15 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
           CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
           Object outputBinding = ((CWLOutputPort) port).getOutputBinding();
           if (outputBinding != null) {
-            Object glob = CWLBindingHelper.getGlob(outputBinding);
+            String glob = CWLBindingHelper.getGlob(outputBinding);
             if (outputBinding != null && glob != null && glob instanceof String) {
-              if (((String) glob).startsWith(CWLCommandLineTool.RANDOM_STDOUT_PREFIX)) {
+              if (glob.startsWith(CWLCommandLineTool.RANDOM_STDOUT_PREFIX)) {
                 if (commandLineTool.getStdoutRaw() != null) {
                   CWLBindingHelper.setGlob(commandLineTool.getStdoutRaw(), outputBinding);
                 } else {
                   commandLineTool.setStdout(glob);
                 }
-              } else if (((String) glob).startsWith(CWLCommandLineTool.RANDOM_STDERR_PREFIX)) {
+              } else if (glob.startsWith(CWLCommandLineTool.RANDOM_STDERR_PREFIX)) {
                 if (commandLineTool.getStderrRaw() != null) {
                   CWLBindingHelper.setGlob(commandLineTool.getStderrRaw(), outputBinding);
                 } else {

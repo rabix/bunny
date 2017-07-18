@@ -22,19 +22,18 @@ import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.ResourceHelper;
-import org.rabix.engine.db.DAGNodeDB;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.model.ContextRecord;
-import org.rabix.engine.model.JobRecord;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.DAGNodeService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.store.model.ContextRecord;
+import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.test.DummyConfigModule;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -49,7 +48,7 @@ public class EngineModuleTest {
   private HandlerFactory hf;
   private EventProcessor ep;
 
-  private DAGNodeDB nodeDb;
+  private DAGNodeService nodeDb;
 
   private ContextRecordService crs;
   private JobRecordService jrs;
@@ -64,7 +63,7 @@ public class EngineModuleTest {
 
     hf = injector.getInstance(HandlerFactory.class);
 
-    nodeDb = injector.getInstance(DAGNodeDB.class);
+    nodeDb = injector.getInstance(DAGNodeService.class);
 
     crs = injector.getInstance(ContextRecordService.class);
     jrs = injector.getInstance(JobRecordService.class);
@@ -105,7 +104,7 @@ public class EngineModuleTest {
     assertNull(job.getValue().getOutputs());
 
     // JOB COMPLETED
-    JobStatusEvent jse = new JobStatusEvent("root", nullJobId, JobRecordServiceImpl.JobState.COMPLETED,
+    JobStatusEvent jse = new JobStatusEvent("root", nullJobId, JobRecord.JobState.COMPLETED,
         Collections.emptyMap(), UUID.randomUUID(), "node");
     hf.get(jse.getType()).handle(jse);
 

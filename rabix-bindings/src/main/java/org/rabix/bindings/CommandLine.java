@@ -33,10 +33,10 @@ public class CommandLine {
       builder.append(part.toString()).append(PART_SEPARATOR);
     }
     if (!StringUtils.isEmpty(standardIn)) {
-      builder.append(PART_SEPARATOR).append("<").append(PART_SEPARATOR).append(standardIn);
+      builder.append("<").append(PART_SEPARATOR).append(standardIn).append(PART_SEPARATOR);
     }
     if (!StringUtils.isEmpty(standardOut)) {
-      builder.append(PART_SEPARATOR).append(">").append(PART_SEPARATOR).append(standardOut);
+      builder.append(">").append(PART_SEPARATOR).append(standardOut);
     }
     return normalizeCommandLine(builder.toString());
   }
@@ -45,7 +45,7 @@ public class CommandLine {
    * Normalize command line (remove multiple spaces, etc.)
    */
   private String normalizeCommandLine(String commandLine) {
-    return commandLine.trim().replaceAll(PART_SEPARATOR + "+", PART_SEPARATOR);
+    return commandLine.trim();//.replaceAll(PART_SEPARATOR + "+", PART_SEPARATOR);
   }
   
   public List<String> getParts() {

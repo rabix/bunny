@@ -24,7 +24,7 @@ public class SBFilePathMapProcessorCallback implements SBPortProcessorCallback {
 
   @Override
   @SuppressWarnings("unchecked")
-  public SBPortProcessorResult process(Object value, ApplicationPort port) throws SBPortProcessorException {
+  public SBPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws SBPortProcessorException {
     if (value == null) {
       return new SBPortProcessorResult(value, false);
     }

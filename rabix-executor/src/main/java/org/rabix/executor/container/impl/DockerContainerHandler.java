@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
+import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -41,8 +43,6 @@ import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.container.ContainerException;
 import org.rabix.executor.container.ContainerHandler;
 import org.rabix.executor.handler.JobHandler;
-import org.rabix.executor.status.ExecutorStatusCallback;
-import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,13 +53,13 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.spotify.docker.client.DefaultDockerClient;
-import com.spotify.docker.client.DockerCertificateException;
 import com.spotify.docker.client.DockerCertificates;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.LogsParam;
-import com.spotify.docker.client.DockerException;
 import com.spotify.docker.client.LogMessage;
 import com.spotify.docker.client.LogStream;
+import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
@@ -68,6 +68,7 @@ import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerState;
 import com.spotify.docker.client.messages.HostConfig;
 import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.ImageInfo;
 
 /**
  * Docker based implementation of {@link ContainerHandler}
@@ -85,6 +86,7 @@ public class DockerContainerHandler implements ContainerHandler {
   
   private static final String TAG_SEPARATOR = ":";
   private static final String LATEST = "latest";
+  private static final String SEPARATOR = " ";
   
   private String containerId;
   private DockerClientLockDecorator dockerClient;
@@ -100,11 +102,11 @@ public class DockerContainerHandler implements ContainerHandler {
   private Integer overrideResultStatus = null;
 
   private StorageConfiguration storageConfig;
-  private ExecutorStatusCallback statusCallback;
+  private WorkerStatusCallback statusCallback;
   
   private String commandLine;
   
-  public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, ExecutorStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
+  public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
     this.dockerClient = dockerClient;
     this.dockerResource = dockerResource;
@@ -137,11 +139,11 @@ public class DockerContainerHandler implements ContainerHandler {
     } catch (DockerException | InterruptedException e) {
       logger.error("Failed to pull " + image, e);
       throw new ContainerException("Failed to pull " + image, e);
-    } catch (ExecutorStatusCallbackException e) {
+    } catch (WorkerStatusCallbackException e) {
       logger.error("Failed to call status callback", e);
       try {
         statusCallback.onContainerImagePullFailed(job, image);
-      } catch (ExecutorStatusCallbackException e1) {
+      } catch (WorkerStatusCallbackException e1) {
         logger.error("Failed to call status callback", e1);
       }
       throw new ContainerException("Failed to call status callback", e);
@@ -162,10 +164,10 @@ public class DockerContainerHandler implements ContainerHandler {
   @Override
   public void start() throws ContainerException {
     String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
-
+    
     try {
       pull(dockerPull);
-
+      
       Set<String> volumes = new HashSet<>();
       String physicalPath = storageConfig.getPhysicalExecutionBaseDir().getAbsolutePath();
       volumes.add(physicalPath);
@@ -196,7 +198,7 @@ public class DockerContainerHandler implements ContainerHandler {
       
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
-
+      
       Bindings bindings = BindingsFactory.create(job);
       commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
         @Override
@@ -204,22 +206,30 @@ public class DockerContainerHandler implements ContainerHandler {
           return path;
         }
       }).build();
+      
+      if (commandLine.startsWith("/bin/bash -c")) {
+        commandLine = normalizeCommandLine(commandLine.replace("/bin/bash -c", ""));
+        builder.entrypoint("/bin/bash");
+      } else if (commandLine.startsWith("/bin/sh -c")) {
+        commandLine = normalizeCommandLine(commandLine.replace("/bin/sh -c", ""));
+        builder.entrypoint("/bin/sh");
+      } else {
+        commandLine = normalizeCommandLine(commandLine);
+        builder.entrypoint("/bin/sh");
+      }
+      
+      ImageInfo image = dockerClient.inspectImage(dockerPull);
+      List<String> entrypoint = image.containerConfig().entrypoint();
 
+      commandLine = addEntrypoint(entrypoint, commandLine);
+      
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success
         return;
       }
 
-      if (commandLine.startsWith("/bin/bash -c")) {
-        commandLine = normalizeCommandLine(commandLine.replace("/bin/bash -c", ""));
-        builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/bash", "-c", commandLine);
-      } else if (commandLine.startsWith("/bin/sh -c")) {
-        commandLine = normalizeCommandLine(commandLine.replace("/bin/sh -c", ""));
-        builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
-      } else {
-        builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("/bin/sh", "-c", commandLine);
-      }
-
+      builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("-c", commandLine);
+        
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
@@ -266,6 +276,21 @@ public class DockerContainerHandler implements ContainerHandler {
     }
     if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
       commandLine = commandLine.substring(1, commandLine.length() - 1);
+    }
+    return commandLine;
+  }
+  
+  private String addEntrypoint(List<String> entrypoint, String commandLine) {
+    if (entrypoint != null && !entrypoint.isEmpty()) {
+      String entryPointString = null;
+      for (String part : entrypoint) {
+        if (entryPointString == null) {
+          entryPointString = part + " ";
+        } else {
+          entryPointString = entryPointString + part + SEPARATOR;
+        }
+      }
+      commandLine = entryPointString + commandLine;
     }
     return commandLine;
   }
@@ -559,6 +584,10 @@ public class DockerContainerHandler implements ContainerHandler {
         return false;
       }
       return images != null ? images.contains(dockerPull) : false;
+    }
+    
+    public synchronized ImageInfo inspectImage(String dockerPull) throws DockerException, InterruptedException {
+      return dockerClient.inspectImage(dockerPull);
     }
     
     public synchronized List<String> listImages() throws DockerException, InterruptedException {

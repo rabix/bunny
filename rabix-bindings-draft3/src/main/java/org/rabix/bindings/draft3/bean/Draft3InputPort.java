@@ -2,6 +2,7 @@ package org.rabix.bindings.draft3.bean;
 
 import org.rabix.bindings.draft3.helper.Draft3SchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.StageInput;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -9,47 +10,30 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Preconditions;
 
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Draft3InputPort extends ApplicationPort {
 
-  public static enum StageInput {
-    COPY("copy"), LINK("link");
-    
-    private String value;
-    
-    private StageInput(String value) {
-      this.value = value;
-    }
-    
-    public static StageInput get(String value) {
-      Preconditions.checkNotNull(value);
-      for (StageInput stageInput : values()) {
-        if (value.compareToIgnoreCase(stageInput.value) == 0) {
-          return stageInput;
-        }
-      }
-      throw new IllegalArgumentException("Wrong stageInput value " + value);
-    }
-  }
-  
   @JsonProperty("format")
   protected Object format;
   @JsonProperty("streamable")
   protected Boolean streamable;
+  @JsonProperty("sbg:stageInput")
+  protected final StageInput stageInput;
   
   @JsonProperty("inputBinding")
   protected final Object inputBinding;
 
   @JsonCreator
   public Draft3InputPort(@JsonProperty("id") String id, @JsonProperty("default") Object defaultValue, @JsonProperty("type") Object schema, 
-      @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("streamable") Boolean streamable, @JsonProperty("format") Object format, @JsonProperty("scatter") Boolean scatter, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("description") String description) {
+      @JsonProperty("inputBinding") Object inputBinding, @JsonProperty("streamable") Boolean streamable, @JsonProperty("format") Object format, @JsonProperty("scatter") Boolean scatter, @JsonProperty("linkMerge") String linkMerge, @JsonProperty("description") String description, 
+      @JsonProperty("sbg:stageInput") StageInput stageInput) {
     super(id, defaultValue, schema, scatter, linkMerge, description);
     this.format = format;
     this.streamable = streamable;
     this.inputBinding = inputBinding;
+    this.stageInput = stageInput;
   }
 
   @Override
@@ -80,9 +64,18 @@ public class Draft3InputPort extends ApplicationPort {
     dataType = Draft3SchemaHelper.readDataType(schema);
   }
 
+  public StageInput getStageInput() {
+    return stageInput;
+  }
+  
   @Override
   public boolean isRequired() {
     return Draft3SchemaHelper.isRequired(schema);
   }
 
+  @JsonIgnore
+  @Override
+  public Object getBinding() {
+    return inputBinding;
+  }
 }

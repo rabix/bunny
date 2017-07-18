@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.rabix.engine.store.model.EventRecord;
 
 /**
  * Describes event interface used in the algorithm 
@@ -36,25 +37,13 @@ public interface Event {
     JOB_STATUS_UPDATE,
     CONTEXT_STATUS_UPDATE
   }
-  
-  public enum PersistentEventType {
-    INIT,
-    JOB_STATUS_UPDATE_RUNNING,
-    JOB_STATUS_UPDATE_COMPLETED
-  }
 
-  public enum EventStatus {
-    PROCESSED,
-    UNPROCESSED,
-    FAILED
-  }
-  
   /**
    * Gets type of the event 
    */
   EventType getType();
   
-  PersistentEventType getPersistentType();
+  EventRecord.PersistentType getPersistentType();
   
   UUID getContextId();
   

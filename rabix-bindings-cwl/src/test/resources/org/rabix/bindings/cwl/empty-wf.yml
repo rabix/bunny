@@ -1,0 +1,11 @@
+class: Workflow
+cwlVersion: v1.0
+requirements:
+  InlineJavascriptRequirement: {}
+inputs:
+  in: string
+outputs:
+  out:
+    type: string
+    outputSource: in
+steps: []

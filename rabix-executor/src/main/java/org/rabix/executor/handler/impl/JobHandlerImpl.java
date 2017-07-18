@@ -13,6 +13,9 @@ import javax.inject.Inject;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
+import org.rabix.backend.api.callback.WorkerStatusCallbackException;
+import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -49,7 +52,6 @@ import org.rabix.executor.container.ContainerHandler;
 import org.rabix.executor.container.ContainerHandlerFactory;
 import org.rabix.executor.container.impl.CompletedContainerHandler;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
-import org.rabix.executor.engine.EngineStub;
 import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.pathmapper.InputFileMapper;
@@ -57,8 +59,6 @@ import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.service.CacheService;
 import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
-import org.rabix.executor.status.ExecutorStatusCallback;
-import org.rabix.executor.status.ExecutorStatusCallbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +90,7 @@ public class JobHandlerImpl implements JobHandler {
   private ContainerHandler containerHandler;
   private DockerClientLockDecorator dockerClient;
 
-  private final ExecutorStatusCallback statusCallback;
+  private final WorkerStatusCallback statusCallback;
   
   private final FilePermissionService filePermissionService;
   private final CacheService cacheService;
@@ -102,7 +102,7 @@ public class JobHandlerImpl implements JobHandler {
       @Assisted Job job, @Assisted EngineStub<?, ?, ?> engineStub, 
       JobDataService jobDataService, Configuration configuration, StorageConfiguration storageConfig, 
       DockerConfigation dockerConfig, FileConfiguration fileConfiguration, 
-      DockerClientLockDecorator dockerClient, ExecutorStatusCallback statusCallback,
+      DockerClientLockDecorator dockerClient, WorkerStatusCallback statusCallback,
       CacheService cacheService, FilePermissionService filePermissionService, 
       UploadService uploadService, DownloadService downloadService,
       @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper) {
@@ -130,17 +130,7 @@ public class JobHandlerImpl implements JobHandler {
     logger.info("Start command line tool for id={}", job.getId());
     try {
       job = statusCallback.onJobReady(job);
-      cachedJob = (Job) CloneHelper.deepCopy(job);
-      
-      if (cacheService.isCacheEnabled()) {
-        Map<String, Object> results = cacheService.find(job);
-        if (results != null) {
-          containerHandler = new CompletedContainerHandler(job);
-          containerHandler.start();
-          return;
-        }        
-      }
-      
+
       Bindings bindings = BindingsFactory.create(job);
       statusCallback.onInputFilesDownloadStarted(job);
       try {
@@ -150,9 +140,21 @@ public class JobHandlerImpl implements JobHandler {
         throw e;
       }
       statusCallback.onInputFilesDownloadCompleted(job);
-      
+
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
+
+      if (cacheService.isCacheEnabled()) {
+        Map<String, Object> results = cacheService.find(job);
+        if (results != null) {
+          logger.info("Job {} is successfully copied from cache", job.getName());
+          containerHandler = new CompletedContainerHandler(job);
+          containerHandler.start();
+          return;
+        }
+      }
+
+      cachedJob = (Job) CloneHelper.deepCopy(job);
       cacheService.cache(cachedJob);
       
       List<Requirement> combinedRequirements = new ArrayList<>();
@@ -352,7 +354,7 @@ public class JobHandlerImpl implements JobHandler {
       throw new ExecutorException("Could not collect outputs.", e);
     } catch (UploadServiceException e) {
       throw new ExecutorException("Could not upload outputs.", e);
-    } catch (ExecutorStatusCallbackException e) {
+    } catch (WorkerStatusCallbackException e) {
       throw new ExecutorException("Could not call executor callback.", e);
     }
   }

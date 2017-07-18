@@ -6,8 +6,7 @@ import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.model.JobRecord;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
+import org.rabix.engine.store.model.JobRecord;
 
 public interface JobRecordService {
 
@@ -27,7 +26,7 @@ public interface JobRecordService {
   
   JobRecord find(String id, UUID rootId);
   
-  List<JobRecord> find(UUID rootId, Set<JobState> statuses);
+  List<JobRecord> find(UUID rootId, Set<JobRecord.JobState> statuses);
   
   JobRecord findRoot(UUID rootId);
   

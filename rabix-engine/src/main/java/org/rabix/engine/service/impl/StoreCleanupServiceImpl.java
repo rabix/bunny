@@ -12,12 +12,12 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.engine.repository.IntermediaryFilesRepository;
-import org.rabix.engine.repository.JobRecordRepository;
-import org.rabix.engine.repository.JobRepository;
-import org.rabix.engine.repository.TransactionHelper;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.repository.IntermediaryFilesRepository;
+import org.rabix.engine.store.repository.JobRecordRepository;
+import org.rabix.engine.store.repository.JobRepository;
+import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.service.StoreCleanupService;
-import org.rabix.engine.service.impl.JobRecordServiceImpl.JobState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +66,7 @@ public class StoreCleanupServiceImpl implements StoreCleanupService {
                 jobRepository.deleteByRootIds(rootIds);
                 intermediaryFilesRepository.deleteByRootIds(rootIds);
 
-                int deleted = jobRecordRepository.deleteByStatus(JobState.COMPLETED);
+                int deleted = jobRecordRepository.deleteByStatus(JobRecord.JobState.COMPLETED);
                 logger.debug("Deleted {} completed Jobs", deleted);
                 return null;
               }

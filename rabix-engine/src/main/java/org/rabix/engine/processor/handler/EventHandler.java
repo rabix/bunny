@@ -9,6 +9,8 @@ public interface EventHandler<T extends Event> {
 
   /**
    * Handles the event
+   * @param event
+   * @throws EventHandlerException
    */
   void handle(T event) throws EventHandlerException;
 

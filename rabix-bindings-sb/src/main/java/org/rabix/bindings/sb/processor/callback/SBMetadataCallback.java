@@ -66,7 +66,7 @@ public class SBMetadataCallback implements SBPortProcessorCallback {
   }
   
   @Override
-  public SBPortProcessorResult process(Object value, ApplicationPort port) throws Exception {
+  public SBPortProcessorResult process(Object value, String id, Object schema, Object binding, ApplicationPort parentPort) throws Exception {
     if (SBSchemaHelper.isFileFromValue(value)) {
       Object clonedValue = CloneHelper.deepCopy(value);
       String path = SBFileValueHelper.getPath(clonedValue);
