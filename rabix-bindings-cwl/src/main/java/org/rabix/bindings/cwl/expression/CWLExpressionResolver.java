@@ -283,6 +283,7 @@ public class CWLExpressionResolver {
         }
         else {
           stack.pop();
+          i--;
         }
       }
       else if (state == QUOTE_SECOND) {
