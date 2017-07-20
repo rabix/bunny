@@ -64,7 +64,7 @@ public interface JDBIBackendRepository extends BackendRepository {
       UUID id = r.getObject("id", UUID.class);
       String name = r.getString("name");
       BackendRecord.Status status = BackendRecord.Status.valueOf(r.getString("status"));
-      Instant heartbit = r.getObject("heartbit_info", Instant.class);
+      Instant heartbit = r.getObject("heartbeat_info", Timestamp.class).toInstant();
       BackendRecord.Type type = BackendRecord.Type.valueOf(r.getString("type"));
       return new BackendRecord(id, name, heartbit, configuration, status, type);
     }
