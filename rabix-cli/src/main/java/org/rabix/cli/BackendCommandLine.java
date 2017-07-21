@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.api.BackendModule;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
-import org.rabix.cli.service.LocalDownloadServiceImpl;
 import org.rabix.backend.tes.TESModule;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
@@ -43,6 +42,7 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
+import org.rabix.cli.service.LocalDownloadServiceImpl;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
@@ -96,6 +96,7 @@ public class BackendCommandLine {
   private static String configDir = "/.bunny/config";
   
 
+  @SuppressWarnings("unchecked")
   public static void main(String[] commandLineArguments) {
     final CommandLineParser commandLineParser = new DefaultParser();
     final Options posixOptions = createOptions();
