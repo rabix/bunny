@@ -134,9 +134,9 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
       UUID rootId = resultSet.getObject("context_id", UUID.class);
       Boolean isDefault = resultSet.getBoolean("is_default");
 
-      Object valueObject = FileValue.deserialize(JSONHelper.transform(JSONHelper.readJsonNode(value)));
+      Object valueObject = FileValue.deserialize(JSONHelper.transform(JSONHelper.readJsonNode(value), false));
       
-      Object transformObject = JSONHelper.transform(JSONHelper.readJsonNode(transform));
+      Object transformObject = JSONHelper.transform(JSONHelper.readJsonNode(transform), false);
 
       LocalDateTime createdAt = resultSet.getTimestamp("created_at").toLocalDateTime();
       LocalDateTime modifiedAt = resultSet.getTimestamp("modified_at").toLocalDateTime();
