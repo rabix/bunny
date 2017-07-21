@@ -37,12 +37,11 @@ public interface JDBIEventRepository extends EventRepository {
 
   public static class EventMapper implements ResultSetMapper<EventRecord> {
     public EventRecord map(int index, ResultSet r, StatementContext ctx) throws SQLException {
-      UUID groupId = r.getObject("event", UUID.class);
       EventRecord.PersistentType type = EventRecord.PersistentType.valueOf(r.getString("type"));
       EventRecord.Status status = EventRecord.Status.valueOf(r.getString("status"));
       Map<String, ?> event = JSONHelper.readMap(r.getString("event"));
 
-      return new EventRecord(groupId, type, status, event);
+      return new EventRecord(UUID.fromString((String) event.get("eventGroupId")), type, status, event);
     }
   }
 

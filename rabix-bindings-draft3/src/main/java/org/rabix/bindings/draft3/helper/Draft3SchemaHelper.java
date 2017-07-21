@@ -570,13 +570,17 @@ public class Draft3SchemaHelper extends Draft3BeanHelper {
     // UNION
     if (schema instanceof List) {
       List<?> schemaList = (List<?>) schema;
-      int numberOfTypes = schemaList.size() - (schemaList.contains(SCHEMA_NULL) ? 1 : 0);
-      if (numberOfTypes > 1 ) {
-        Set<DataType> types = new HashSet<>();
-        for (Object subschema : schemaList) {
-          types.add(readDataType(subschema));
+      if (schemaList.size() == 1) {
+        schema = schemaList.get(0);
+      } else {
+        int numberOfTypes = schemaList.size() - (schemaList.contains(SCHEMA_NULL) ? 1 : 0);
+        if (numberOfTypes > 1) {
+          Set<DataType> types = new HashSet<>();
+          for (Object subschema : schemaList) {
+            types.add(readDataType(subschema));
+          }
+          return new DataType(DataType.Type.UNION, types, !isRequired(schema));
         }
-        return new DataType(DataType.Type.UNION, types, !isRequired(schema));
       }
     }
 
