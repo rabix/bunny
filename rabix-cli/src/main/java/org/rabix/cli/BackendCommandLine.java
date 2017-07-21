@@ -290,7 +290,7 @@ public class BackendCommandLine {
       Map<String, Object> inputs;
       if (inputsFile != null) {
         String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
-        inputs = JSONHelper.readMap(JSONHelper.readJsonNode(inputsText));
+        inputs = (Map<String, Object>) JSONHelper.transform(JSONHelper.readJsonNode(inputsText), true);
       } else {
         inputs = new HashMap<>();
         // No inputs file. If we didn't provide -- at the end, just print app help and exit
@@ -421,7 +421,7 @@ public class BackendCommandLine {
             try {
               try {
                 Map<String, Object> outputs = (Map<String, Object>) finalBindings.translateToSpecific(rootJob.getOutputs());
-                System.out.println(JSONHelper.mapperWithoutNulls.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
+                System.out.println(JSONHelper.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
                 System.exit(0);
               } catch (BindingException e) {
                 logger.error("Failed to translate common outputs to native", e);
