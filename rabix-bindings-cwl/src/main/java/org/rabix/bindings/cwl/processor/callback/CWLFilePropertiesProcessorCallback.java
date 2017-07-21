@@ -31,7 +31,7 @@ public class CWLFilePropertiesProcessorCallback implements CWLPortProcessorCallb
       
       int dotIndex = file.getName().lastIndexOf(".");
       if (dotIndex != -1) {
-        CWLFileValueHelper.setNameext(file.getName().substring(dotIndex - 1), clonedValue);
+        CWLFileValueHelper.setNameext(file.getName().substring(dotIndex), clonedValue);
         CWLFileValueHelper.setNameroot(file.getName().substring(0, dotIndex), clonedValue);
       }
       
