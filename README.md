@@ -6,6 +6,7 @@
 Rabix is an open-source development kit for the [Common Workflow Language](http://www.commonwl.org/) from [Seven Bridges](https://sbgenomics.com). 
 One of its components is the Rabix executor Bunny, which can be used to execute apps locally from the command line.
 
+You can read the full documentation on [wiki pages](https://github.com/rabix/bunny/wiki).
 
 # Installing
 
