@@ -123,7 +123,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       ScatterStrategy scatterStrategy = sourceJob.getScatterStrategy();
       
       boolean isValueFromScatterStrategy = false;
-      if (scatterStrategy.isBlocking()) {
+      if (scatterStrategy.isBlocking() || scatterStrategy.isEmptyListDetected()) {
         if (sourceJob.isOutputPortReady(event.getPortId())) {
           isValueFromScatterStrategy = true;
 
