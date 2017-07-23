@@ -15,10 +15,10 @@ import org.rabix.bindings.model.ScatterMethod;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
+import org.rabix.engine.store.model.scatter.PortMapping;
 import org.rabix.engine.store.model.scatter.RowMapping;
 import org.rabix.engine.store.model.scatter.ScatterStrategy;
 import org.rabix.engine.store.model.scatter.ScatterStrategyException;
-import org.rabix.engine.store.model.scatter.PortMapping;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -101,7 +101,12 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<Object> valueStructure(String jobId, String portId, UUID rootId) {
+    if (emptyListDetected) {
+      return (List<Object>) generateOutputsForEmptyList();
+    }
+    
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {
@@ -294,7 +299,13 @@ public class ScatterCartesianStrategy implements ScatterStrategy {
     if (scatterMethod.equals(ScatterMethod.flat_crossproduct)) {
       return new ArrayList<>();  
     }
-    return new ArrayList<>(); // TODO implement outputs for nested_crossproduct
+    
+    Integer numberOfEmptyLists = values.values().stream().map(l -> l.size() != 0? l.size() : 1).reduce((x,y) -> x*y).get();
+    List<List<?>> result = new ArrayList<>();
+    for (int i = 0; i < numberOfEmptyLists; i++) {
+      result.add(new ArrayList<>());
+    }
+    return result;
   }
 
   @Override
