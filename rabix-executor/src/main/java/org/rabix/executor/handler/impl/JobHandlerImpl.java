@@ -130,6 +130,24 @@ public class JobHandlerImpl implements JobHandler {
     logger.info("Start command line tool for id={}", job.getId());
     try {
       job = statusCallback.onJobReady(job);
+      /*
+       * If cache service and mock worker are enabled,
+       * executor will simply pass the results before binding
+       * or checking on inputs.
+       */
+      if(cacheService.isCacheEnabled() && cacheService.isMockWorkerEnabled()) {
+        cachedJob = (Job) CloneHelper.deepCopy(job);
+
+        if (cacheService.isCacheEnabled()) {
+          Map<String, Object> results = cacheService.find(job);
+          if (results != null) {
+            logger.info("Job {} is successfully copied from cache by mocking", job.getName());
+            containerHandler = new CompletedContainerHandler(job);
+            containerHandler.start();
+            return;
+          }
+        }
+      }
 
       Bindings bindings = BindingsFactory.create(job);
       statusCallback.onInputFilesDownloadStarted(job);
@@ -144,10 +162,14 @@ public class JobHandlerImpl implements JobHandler {
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
 
-      if (cacheService.isCacheEnabled()) {
+      /*
+       * Cache service is enabled but mocking is not.
+       * Inputs will be thoroughly scanned after binding.
+       */
+      if (cacheService.isCacheEnabled() && !cacheService.isMockWorkerEnabled()) {
         Map<String, Object> results = cacheService.find(job);
         if (results != null) {
-          logger.info("Job {} is successfully copied from cache", job.getName());
+          logger.info("Job {} is successfully copied from cache without mocking", job.getName());
           containerHandler = new CompletedContainerHandler(job);
           containerHandler.start();
           return;
