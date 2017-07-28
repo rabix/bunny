@@ -1,0 +1,56 @@
+{
+  "app" : {
+    "contributor" : [ ],
+    "owner" : [ ],
+    "cwlVersion" : "sbg:draft-2",
+    "inputs" : [ {
+      "id" : "#x",
+      "type" : "int"
+    } ],
+    "outputs" : [ {
+      "id" : "#cpu",
+      "type" : "int",
+      "outputBinding" : {
+        "outputEval" : {
+          "class" : "Expression",
+          "engine" : "#cwl-js-engine",
+          "script" : "$job.allocatedResources.cpu >= $job.inputs.x"
+        }
+      }
+    }, {
+      "id" : "#mem",
+      "type" : "int",
+      "outputBinding" : {
+        "outputEval" : {
+          "class" : "Expression",
+          "engine" : "#cwl-js-engine",
+          "script" : "$job.allocatedResources.mem >= $job.inputs.x * 100"
+        }
+      }
+    } ],
+    "hints" : [ ],
+    "requirements" : [ {
+      "class" : "sbg:CPURequirement",
+      "value" : {
+        "class" : "Expression",
+        "engine" : "#cwl-js-engine",
+        "script" : "$job.inputs.x"
+      }
+    }, {
+      "class" : "sbg:MemRequirement",
+      "value" : {
+        "class" : "Expression",
+        "engine" : "#cwl-js-engine",
+        "script" : "$job.inputs.x * 100"
+      }
+    } ],
+    "successCodes" : [ ],
+    "baseCommand" : [ "ls" ],
+    "arguments" : [ ],
+    "class" : "CommandLineTool"
+  },
+  "inputs" : {
+    "x" : 1
+  },
+  "id" : "root"
+}

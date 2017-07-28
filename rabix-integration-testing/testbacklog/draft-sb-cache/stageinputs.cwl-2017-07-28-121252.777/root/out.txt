@@ -1,0 +1,5 @@
+hello.txt
+job.json
+out.txt
+stageinputs.cwl.yml
+stageinputs.inputs.yaml

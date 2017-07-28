@@ -1,0 +1,34 @@
+{
+  "app" : {
+    "contributor" : [ ],
+    "owner" : [ ],
+    "cwlVersion" : "sbg:draft-2",
+    "inputs" : [ {
+      "id" : "#echostring",
+      "type" : "string",
+      "inputBinding" : {
+        "position" : 1,
+        "sbg:cmdInclude" : true,
+        "separate" : true
+      }
+    } ],
+    "outputs" : [ {
+      "id" : "#output",
+      "type" : "File",
+      "outputBinding" : {
+        "glob" : "out.txt"
+      }
+    } ],
+    "hints" : [ ],
+    "requirements" : [ ],
+    "successCodes" : [ ],
+    "stdout" : "out.txt",
+    "baseCommand" : "echo",
+    "arguments" : [ ],
+    "class" : "CommandLineTool"
+  },
+  "inputs" : {
+    "echostring" : "jamaica"
+  },
+  "id" : "root"
+}

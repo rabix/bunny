@@ -1,0 +1,51 @@
+{
+  "id" : "205819eb-8cd3-49e7-93a4-e67fd76836d8",
+  "rootId" : "205819eb-8cd3-49e7-93a4-e67fd76836d8",
+  "name" : "root",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNpbnB1dGZpbGUiLAogICAgInR5cGUiIDogIkZpbGUiCiAgfSBdLAogICJvdXRwdXRzIiA6IFsgewogICAgImlkIiA6ICIjb3V0cHV0IiwKICAgICJ0eXBlIiA6ICJGaWxlIiwKICAgICJvdXRwdXRCaW5kaW5nIiA6IHsKICAgICAgImdsb2IiIDogIm91dC50eHQiLAogICAgICAic2JnOmluaGVyaXRNZXRhZGF0YUZyb20iIDogIiNpbnB1dGZpbGUiLAogICAgICAic2JnOm1ldGFkYXRhIiA6IHsKICAgICAgICAia2V5MSIgOiAidmFsdWUxIiwKICAgICAgICAia2V5MiIgOiAidmFsdWUyIgogICAgICB9CiAgICB9CiAgfSBdLAogICJoaW50cyIgOiBbIF0sCiAgInJlcXVpcmVtZW50cyIgOiBbIF0sCiAgInN1Y2Nlc3NDb2RlcyIgOiBbIF0sCiAgImJhc2VDb21tYW5kIiA6IFsgInRvdWNoIiwgIm91dC50eHQiIF0sCiAgImFyZ3VtZW50cyIgOiBbIF0sCiAgImxhYmVsIiA6ICJpbmhlcml0dG9vbCIsCiAgImNsYXNzIiA6ICJDb21tYW5kTGluZVRvb2wiCn0=",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "inputfile" : [ {
+      "size" : 0,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/bplib.fa",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/bplib.fa",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "key0" : "value0",
+          "key1" : "overrideme"
+        }
+      },
+      "$type" : "File"
+    } ]
+  },
+  "outputs" : {
+    "output" : {
+      "size" : 0,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/inheritmeta.cwl-2017-07-28-121205.701/root/out.txt",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/inheritmeta.cwl-2017-07-28-121205.701/root/out.txt",
+      "name" : "out.txt",
+      "checksum" : "sha1$da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "key0" : "value0",
+          "key1" : "value1",
+          "key2" : "value2"
+        }
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 4,
+    "memMB" : 12466,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ ]
+}

@@ -1,0 +1,35 @@
+{
+  "id" : "9f3428ea-06df-4739-8c30-8f232ef37fa6",
+  "rootId" : "9f3428ea-06df-4739-8c30-8f232ef37fa6",
+  "name" : "root",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNlY2hvc3RyaW5nIiwKICAgICJ0eXBlIiA6ICJzdHJpbmciLAogICAgImlucHV0QmluZGluZyIgOiB7CiAgICAgICJwb3NpdGlvbiIgOiAxLAogICAgICAic2JnOmNtZEluY2x1ZGUiIDogdHJ1ZSwKICAgICAgInNlcGFyYXRlIiA6IHRydWUKICAgIH0KICB9IF0sCiAgIm91dHB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNvdXRwdXQiLAogICAgInR5cGUiIDogIkZpbGUiLAogICAgIm91dHB1dEJpbmRpbmciIDogewogICAgICAiZ2xvYiIgOiAib3V0LnR4dCIKICAgIH0KICB9IF0sCiAgImhpbnRzIiA6IFsgXSwKICAicmVxdWlyZW1lbnRzIiA6IFsgXSwKICAic3VjY2Vzc0NvZGVzIiA6IFsgXSwKICAic3Rkb3V0IiA6ICJvdXQudHh0IiwKICAiYmFzZUNvbW1hbmQiIDogImVjaG8iLAogICJhcmd1bWVudHMiIDogWyBdLAogICJjbGFzcyIgOiAiQ29tbWFuZExpbmVUb29sIgp9",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "echostring" : "jamaica"
+  },
+  "outputs" : {
+    "output" : {
+      "size" : 8,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echotool-2017-07-28-121002.171/root/out.txt",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echotool-2017-07-28-121002.171/root/out.txt",
+      "name" : "out.txt",
+      "checksum" : "sha1$2065a80811f78fd782586a160e8f05115992c32b",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 4,
+    "memMB" : 12466,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ ]
+}

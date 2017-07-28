@@ -246,7 +246,7 @@ public class CacheServiceImpl implements CacheService {
         return null;
       }
 
-      if (mockWorker) {
+      if (!mockWorker) {
         job = fillCacheProperties(job);
       }
 

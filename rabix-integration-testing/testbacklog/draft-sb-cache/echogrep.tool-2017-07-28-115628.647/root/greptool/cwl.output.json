@@ -1,0 +1,9 @@
+{
+  "output" : {
+    "checksum" : "sha1$416e67232de2b79ef0283b3600605de92355d1c8",
+    "class" : "File",
+    "name" : "out.txt",
+    "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echogrep.tool-2017-07-28-115628.647/root/greptool/out.txt",
+    "size" : 10
+  }
+}

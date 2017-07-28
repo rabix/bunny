@@ -1,0 +1,48 @@
+{
+  "id" : "a3931079-e1a8-4a62-804a-b504c883384d",
+  "parentId" : "6b95f527-706f-4457-bf05-70c69b9c708a",
+  "rootId" : "6b95f527-706f-4457-bf05-70c69b9c708a",
+  "name" : "root.greptool",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNncmVwU3RyaW5nIiwKICAgICJ0eXBlIiA6ICJzdHJpbmciLAogICAgImlucHV0QmluZGluZyIgOiB7CiAgICAgICJwb3NpdGlvbiIgOiAxLAogICAgICAic2VwYXJhdGUiIDogdHJ1ZQogICAgfQogIH0sIHsKICAgICJpZCIgOiAiI2dyZXBGaWxlIiwKICAgICJ0eXBlIiA6ICJGaWxlIiwKICAgICJpbnB1dEJpbmRpbmciIDogewogICAgICAicG9zaXRpb24iIDogMiwKICAgICAgInNlcGFyYXRlIiA6IHRydWUKICAgIH0KICB9IF0sCiAgIm91dHB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNvdXRwdXQiLAogICAgInR5cGUiIDogIkZpbGUiLAogICAgIm91dHB1dEJpbmRpbmciIDogewogICAgICAiZ2xvYiIgOiAib3V0LnR4dCIKICAgIH0KICB9IF0sCiAgImhpbnRzIiA6IFsgXSwKICAicmVxdWlyZW1lbnRzIiA6IFsgXSwKICAic3VjY2Vzc0NvZGVzIiA6IFsgXSwKICAic3Rkb3V0IiA6ICJvdXQudHh0IiwKICAiYmFzZUNvbW1hbmQiIDogImdyZXAiLAogICJhcmd1bWVudHMiIDogWyBdLAogICJjbGFzcyIgOiAiQ29tbWFuZExpbmVUb29sIgp9",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "grepFile" : [ {
+      "size" : 10,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echogrep.tool-2017-07-28-115628.647/root/echotool/out.txt",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echogrep.tool-2017-07-28-115628.647/root/echotool/out.txt",
+      "name" : "out.txt",
+      "checksum" : "sha1$416e67232de2b79ef0283b3600605de92355d1c8",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    } ],
+    "grepString" : "orangeees"
+  },
+  "outputs" : {
+    "output" : {
+      "size" : 10,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echogrep.tool-2017-07-28-115628.647/root/greptool/out.txt",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echogrep.tool-2017-07-28-115628.647/root/greptool/out.txt",
+      "name" : "out.txt",
+      "checksum" : "sha1$416e67232de2b79ef0283b3600605de92355d1c8",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 4,
+    "memMB" : 12466,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ "output" ]
+}

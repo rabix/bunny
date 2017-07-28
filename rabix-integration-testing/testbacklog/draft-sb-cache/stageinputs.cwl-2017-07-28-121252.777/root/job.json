@@ -1,0 +1,71 @@
+{
+  "app" : {
+    "contributor" : [ ],
+    "owner" : [ ],
+    "cwlVersion" : "sbg:draft-2",
+    "inputs" : [ {
+      "id" : "#infile",
+      "type" : [ "null", "File" ],
+      "sbg:stageInput" : "copy"
+    }, {
+      "id" : "#infile_list",
+      "type" : [ "null", {
+        "items" : "File",
+        "type" : "array"
+      } ],
+      "sbg:stageInput" : "link"
+    } ],
+    "outputs" : [ {
+      "id" : "#output",
+      "type" : "File",
+      "outputBinding" : {
+        "glob" : "out.txt"
+      }
+    } ],
+    "hints" : [ ],
+    "requirements" : [ ],
+    "successCodes" : [ ],
+    "stdout" : "out.txt",
+    "baseCommand" : [ "ls" ],
+    "arguments" : [ ],
+    "class" : "CommandLineTool"
+  },
+  "inputs" : {
+    "infile" : {
+      "checksum" : null,
+      "class" : "File",
+      "contents" : null,
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/hello.txt",
+      "metadata" : null,
+      "name" : null,
+      "originalPath" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/hello.txt",
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/hello.txt",
+      "secondaryFiles" : [ ],
+      "size" : 36
+    },
+    "infile_list" : [ {
+      "checksum" : null,
+      "class" : "File",
+      "contents" : null,
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.inputs.yaml",
+      "metadata" : null,
+      "name" : null,
+      "originalPath" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.inputs.yaml",
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/stageinputs.inputs.yaml",
+      "secondaryFiles" : [ ],
+      "size" : 148
+    }, {
+      "checksum" : null,
+      "class" : "File",
+      "contents" : null,
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl.yml",
+      "metadata" : null,
+      "name" : null,
+      "originalPath" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl.yml",
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/stageinputs.cwl.yml",
+      "secondaryFiles" : [ ],
+      "size" : 347
+    } ]
+  },
+  "id" : "root"
+}

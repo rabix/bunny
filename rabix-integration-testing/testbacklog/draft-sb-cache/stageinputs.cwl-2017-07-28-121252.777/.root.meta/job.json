@@ -1,0 +1,66 @@
+{
+  "id" : "496f643d-88f8-4eff-b1c6-a19df5603b52",
+  "rootId" : "496f643d-88f8-4eff-b1c6-a19df5603b52",
+  "name" : "root",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNpbmZpbGUiLAogICAgInR5cGUiIDogWyAibnVsbCIsICJGaWxlIiBdLAogICAgInNiZzpzdGFnZUlucHV0IiA6ICJjb3B5IgogIH0sIHsKICAgICJpZCIgOiAiI2luZmlsZV9saXN0IiwKICAgICJ0eXBlIiA6IFsgIm51bGwiLCB7CiAgICAgICJpdGVtcyIgOiAiRmlsZSIsCiAgICAgICJ0eXBlIiA6ICJhcnJheSIKICAgIH0gXSwKICAgICJzYmc6c3RhZ2VJbnB1dCIgOiAibGluayIKICB9IF0sCiAgIm91dHB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNvdXRwdXQiLAogICAgInR5cGUiIDogIkZpbGUiLAogICAgIm91dHB1dEJpbmRpbmciIDogewogICAgICAiZ2xvYiIgOiAib3V0LnR4dCIKICAgIH0KICB9IF0sCiAgImhpbnRzIiA6IFsgXSwKICAicmVxdWlyZW1lbnRzIiA6IFsgXSwKICAic3VjY2Vzc0NvZGVzIiA6IFsgXSwKICAic3Rkb3V0IiA6ICJvdXQudHh0IiwKICAiYmFzZUNvbW1hbmQiIDogWyAibHMiIF0sCiAgImFyZ3VtZW50cyIgOiBbIF0sCiAgImNsYXNzIiA6ICJDb21tYW5kTGluZVRvb2wiCn0=",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "infile" : [ {
+      "size" : 36,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/hello.txt",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/hello.txt",
+      "checksum" : "sha1$63053c41b7735219ce5ff8ef87d0541f6689b867",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    } ],
+    "infile_list" : [ {
+      "size" : 148,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/stageinputs.inputs.yaml",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.inputs.yaml",
+      "checksum" : "sha1$78e1eddd69db9f842eb0e250256d74a06aab5ec0",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    }, {
+      "size" : 347,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/stageinputs.cwl.yml",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl.yml",
+      "checksum" : "sha1$af47bdcd8efb90c0e51cb38de016ada1cb0c43b3",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    } ]
+  },
+  "outputs" : {
+    "output" : {
+      "size" : 71,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/out.txt",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/out.txt",
+      "name" : "out.txt",
+      "checksum" : "sha1$9beb2e850a179252904a466279d5dab0c9b8fa03",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 4,
+    "memMB" : 12466,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ ]
+}

@@ -1,0 +1,8 @@
+infile:
+  class: File
+  path: hello.txt
+infile_list:
+  - class: File
+    path: stageinputs.inputs.yaml
+  - class: File
+    path: stageinputs.cwl.yml

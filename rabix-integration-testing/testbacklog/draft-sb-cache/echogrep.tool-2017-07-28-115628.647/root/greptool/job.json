@@ -1,0 +1,51 @@
+{
+  "app" : {
+    "contributor" : [ ],
+    "owner" : [ ],
+    "cwlVersion" : "sbg:draft-2",
+    "inputs" : [ {
+      "id" : "#grepString",
+      "type" : "string",
+      "inputBinding" : {
+        "position" : 1,
+        "separate" : true
+      }
+    }, {
+      "id" : "#grepFile",
+      "type" : "File",
+      "inputBinding" : {
+        "position" : 2,
+        "separate" : true
+      }
+    } ],
+    "outputs" : [ {
+      "id" : "#output",
+      "type" : "File",
+      "outputBinding" : {
+        "glob" : "out.txt"
+      }
+    } ],
+    "hints" : [ ],
+    "requirements" : [ ],
+    "successCodes" : [ ],
+    "stdout" : "out.txt",
+    "baseCommand" : "grep",
+    "arguments" : [ ],
+    "class" : "CommandLineTool"
+  },
+  "inputs" : {
+    "grepFile" : {
+      "checksum" : "sha1$416e67232de2b79ef0283b3600605de92355d1c8",
+      "class" : "File",
+      "contents" : null,
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echogrep.tool-2017-07-28-115628.647/root/echotool/out.txt",
+      "metadata" : null,
+      "name" : "out.txt",
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/echogrep.tool-2017-07-28-115628.647/root/echotool/out.txt",
+      "secondaryFiles" : [ ],
+      "size" : 10
+    },
+    "grepString" : "orangeees"
+  },
+  "id" : "root.greptool"
+}
