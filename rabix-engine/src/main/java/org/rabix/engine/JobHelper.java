@@ -174,6 +174,9 @@ public class JobHelper {
           if (port == null) {
             continue;
           }
+          if (value == null && node.getDefaults() != null) {
+            value = node.getDefaults().get(port.getId());
+          }
           for (DAGLinkPort p : node.getInputPorts()) {
             if (p.getId().equals(inputVariable.getPortId())) {
               if (p.getTransform() != null) {

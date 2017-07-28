@@ -2,12 +2,7 @@ package org.rabix.bindings.cwl.service.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,13 +21,13 @@ import com.google.common.base.Preconditions;
 public class CWLGlobServiceImpl implements CWLGlobService {
 
   /**
-   * Find all files that match GLOB inside the working directory 
+   * Find all files that match GLOB inside the working directory
    */
   @SuppressWarnings("unchecked")
   public Set<File> glob(CWLJob job, File workingDir, Object glob) throws CWLGlobException {
     Preconditions.checkNotNull(job);
     Preconditions.checkNotNull(workingDir);
-    
+
     try {
       glob = CWLExpressionResolver.resolve(glob, job, null);
     } catch (CWLExpressionException e) {
@@ -47,8 +42,9 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     } else {
       globs.add((String) glob);
     }
-    
+
     final Set<File> files = new LinkedHashSet<>();
+    final Path workingDirPath = Paths.get(workingDir.getAbsolutePath());
     for (String singleGlob : globs) {
       if (singleGlob.equals(".")) {
         files.add(workingDir);
@@ -60,15 +56,24 @@ public class CWLGlobServiceImpl implements CWLGlobService {
         Files.walkFileTree(workingDir.toPath(), new SimpleFileVisitor<Path>() {
           @Override
           public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            if (matcher.matches(file.getFileName())) {
+            if(!file.startsWith(workingDirPath))
+              return FileVisitResult.CONTINUE;
+
+            Path pathRelativeToWorkingDir = file.subpath(workingDirPath.getNameCount(), file.getNameCount());
+
+            if (matcher.matches(pathRelativeToWorkingDir)) {
               files.add(file.toFile());
             }
             return FileVisitResult.CONTINUE;
           }
           @Override
           public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            if (matcher.matches(dir.getFileName()) &&
-                !startDir.equals(dir)) {
+            if(!dir.startsWith(workingDirPath) || startDir.equals(dir))
+              return FileVisitResult.CONTINUE;
+
+            Path pathRelativeToWorkingDir = dir.subpath(workingDirPath.getNameCount(), dir.getNameCount());
+
+            if (matcher.matches(pathRelativeToWorkingDir)) {
               files.add(dir.toFile());
             }
             return super.preVisitDirectory(dir, attrs);

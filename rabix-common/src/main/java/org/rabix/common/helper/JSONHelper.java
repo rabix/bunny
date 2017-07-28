@@ -200,7 +200,7 @@ public class JSONHelper {
   /**
    * Use Jackson for transformation
    */
-  public static Object transform(JsonNode node) {
+  public static Object transform(JsonNode node, boolean skipNull) {
     if (node instanceof NullNode) {
       return null;
     }
@@ -240,69 +240,10 @@ public class JSONHelper {
     if (node instanceof ArrayNode) {
       List<Object> resultList = new ArrayList<>();
       for (JsonNode subnode : node) {
-        resultList.add(transform(subnode));
-      }
-      return resultList;
-    }
-    if (node instanceof ObjectNode) {
-      Map<String, Object> resultMap = new HashMap<String, Object>();
-      Iterator<Map.Entry<String, JsonNode>> iterator = node.fields();
-
-      while (iterator.hasNext()) {
-        Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
-        Object result = transform(subnodeEntry.getValue());
-        resultMap.put(subnodeEntry.getKey(), result);
-      }
-      return resultMap;
-    }
-    return null;
-  }
-  
-  /**
-   * Use Jackson for transformation
-   */
-  public static Object transformPreserveNull(JsonNode node) {
-    if (node instanceof NullNode) {
-      return null;
-    }
-    if (node instanceof MissingNode) {
-      return null;
-    }
-    if (node instanceof IntNode) {
-      return ((IntNode) node).intValue();
-    }
-    if (node instanceof BigIntegerNode) {
-      return ((BigIntegerNode) node).bigIntegerValue();
-    }
-    if (node instanceof BinaryNode) {
-      return ((BinaryNode) node).binaryValue();
-    }
-    if (node instanceof BooleanNode) {
-      return ((BooleanNode) node).booleanValue();
-    }
-    if (node instanceof DecimalNode) {
-      return ((DecimalNode) node).decimalValue();
-    }
-    if (node instanceof DoubleNode) {
-      return ((DoubleNode) node).doubleValue();
-    }
-    if (node instanceof LongNode) {
-      return ((LongNode) node).longValue();
-    }
-    if (node instanceof NumericNode) {
-      return ((NumericNode) node).numberValue();
-    }
-    if (node instanceof POJONode) {
-      return ((POJONode) node).getPojo();
-    }
-    if (node instanceof TextNode) {
-      return ((TextNode) node).textValue();
-    }
-    if (node instanceof ArrayNode) {
-      List<Object> resultList = new ArrayList<>();
-      for (JsonNode subnode : node) {
-        Object result = transformPreserveNull(subnode);
-        if (result != null) {
+        Object result = transform(subnode, skipNull);
+        if (skipNull && result == null) {
+          return resultList;  
+        } else {
           resultList.add(result);
         }
       }
@@ -314,12 +255,16 @@ public class JSONHelper {
 
       while (iterator.hasNext()) {
         Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
-        Object result = transformPreserveNull(subnodeEntry.getValue());
-        resultMap.put(subnodeEntry.getKey(), result);
+        Object result = transform(subnodeEntry.getValue(), skipNull);
+        if (skipNull && result == null) {
+          return resultMap;
+        } else {
+          resultMap.put(subnodeEntry.getKey(), result);         
+        }
       }
       return resultMap;
     }
     return null;
   }
-
+  
 }
