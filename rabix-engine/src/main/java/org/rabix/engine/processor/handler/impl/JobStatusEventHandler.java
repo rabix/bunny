@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.BindingException;
@@ -110,8 +111,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
 
     JobStatsRecord jobStatsRecord = null;
-    if ((jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId())) ||
-        (jobRecord.isRoot() && !jobRecord.isContainer() && !jobRecord.isScatterWrapper()))
+    if ((jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId())) || (jobRecord.isRoot()))
       jobStatsRecord = jobStatsRecordService.findOrCreate(jobRecord.getRootId());
     try {
       JobStateValidator.checkState(jobRecord, event.getState());
@@ -164,29 +164,47 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
+      jobRecord.setState(JobRecord.JobState.COMPLETED);
+      jobRecordService.update(jobRecord);
       if (jobStatsRecord != null) {
         jobStatsRecord.increaseCompleted();
         jobStatsRecordService.update(jobStatsRecord);
       }
-      if (jobRecord.isRoot()) {
-        try {
-          if(!jobRecord.isContainer()) {
-            // if root is CommandLineTool create OutputUpdateEvents
-            for (PortCounter portCounter : jobRecord.getOutputCounters()) {
-              Object output = event.getResult().get(portCounter.getPort());
-              eventProcessor.send(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId(), event.getProducedByNode()));
-            }
-          }
-          eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
-          Job rootJob = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
-          jobService.handleJobRootCompleted(rootJob);
-        } catch (Exception e) {
-          throw new EventHandlerException("Failed to call onRootCompleted callback for Job " + jobRecord.getRootId(), e);
-        }
-      } else {
+
+      if ((!jobRecord.isScatterWrapper() || jobRecord.isRoot()) && !jobRecord.isContainer()) {
         for (PortCounter portCounter : jobRecord.getOutputCounters()) {
           Object output = event.getResult().get(portCounter.getPort());
-          eventProcessor.addToQueue(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output, 1, event.getEventGroupId(), event.getProducedByNode()));
+          eventProcessor.send(new OutputUpdateEvent(jobRecord.getRootId(), jobRecord.getId(), portCounter.getPort(), output,
+              jobRecord.getNumberOfGlobalOutputs(), 1, event.getEventGroupId(), event.getProducedByNode()));
+        }
+      }
+      if (jobRecord.isRoot()) {
+        eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
+        try {
+          Job rootJob = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
+          if(!jobRecord.isContainer())
+            jobService.handleJobRootPartiallyCompleted(jobRecord.getRootId(), rootJob.getOutputs(), jobRecord.getId());
+          jobService.handleJobRootCompleted(rootJob);
+        } catch (BindingException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      } else {
+        if (!jobRecord.isScattered()) {
+          List<LinkRecord> rootLinks = linkRecordService.findBySourceAndSourceType(jobRecord.getId(), LinkPortType.OUTPUT, jobRecord.getRootId()).stream()
+              .filter(p -> p.getDestinationJobId().equals(InternalSchemaHelper.ROOT_NAME)).collect(Collectors.toList());
+          Map<String, Object> outs = new HashMap<>();
+          rootLinks.stream().forEach(link -> {
+            outs.put(link.getDestinationJobPort(), variableRecordService
+                .find(InternalSchemaHelper.ROOT_NAME, link.getDestinationJobPort(), LinkPortType.OUTPUT, jobRecord.getRootId()).getValue());
+          });
+          if (!outs.isEmpty()) {
+            jobService.handleJobRootPartiallyCompleted(jobRecord.getRootId(), outs, jobRecord.getId());
+          }
+          try {
+            jobService.handleJobCompleted(jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult()));
+          } catch (BindingException e) {
+          }
         }
       }
       break;
