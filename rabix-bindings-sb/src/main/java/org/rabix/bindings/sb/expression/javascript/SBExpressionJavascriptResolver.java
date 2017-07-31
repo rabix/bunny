@@ -124,7 +124,7 @@ public class SBExpressionJavascriptResolver {
       return null;
     }
     JsonNode node = JSONHelper.readJsonNode(result.toString());
-    return JSONHelper.transform(node.get("result"));
+    return JSONHelper.transform(node.get("result"), false);
   }
 
 }

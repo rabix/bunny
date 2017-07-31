@@ -46,7 +46,7 @@
   "hints": [
     {
       "class": "DockerRequirement",
-      "dockerPull": "rfranklin/pythondev"
+      "dockerPull": "python:2-alpine"
     }
   ],
   "baseCommand": [

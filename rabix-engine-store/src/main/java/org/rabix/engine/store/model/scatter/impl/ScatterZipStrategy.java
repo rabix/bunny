@@ -196,6 +196,9 @@ public class ScatterZipStrategy implements ScatterStrategy {
 
   @Override
   public List<Object> valueStructure(String jobId, String portId, UUID rootId) {
+    if (combinations.isEmpty()) {
+      return new LinkedList<>();
+    }
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
       public int compare(Combination o1, Combination o2) {

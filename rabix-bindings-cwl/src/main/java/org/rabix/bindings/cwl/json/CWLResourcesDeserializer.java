@@ -38,7 +38,7 @@ public class CWLResourcesDeserializer extends JsonDeserializer<List<CWLResource>
       
       while (iterator.hasNext()) {
         Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
-        Map<String, Object> resourceValue = (Map<String, Object>) JSONHelper.transform(subnodeEntry.getValue());
+        Map<String, Object> resourceValue = (Map<String, Object>) JSONHelper.transform(subnodeEntry.getValue(), false);
         resourceValue.put(CWLSchemaHelper.KEY_JOB_TYPE, subnodeEntry.getKey());
         
         CWLResource resource = BeanSerializer.deserialize(JSONHelper.writeObject(resourceValue), CWLResource.class);

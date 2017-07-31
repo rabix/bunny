@@ -346,10 +346,10 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
   
   private static String getNameext(String filename) {
-    String[] parts = StringUtils.split(filename, ".");
-    if(parts.length < 2) {
-      return null;
+    int dotIndex = filename.lastIndexOf(".");
+    if (dotIndex != -1) {
+      return filename.substring(dotIndex);
     }
-    return parts[parts.length-1];
+    return null;
   }
 }

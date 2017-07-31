@@ -160,7 +160,7 @@ public class CWLDocumentResolver {
       clearReferenceCache(appUrl);
 
       removeFragmentIdentifier(appUrl, root, file, null, root, fragment);
-
+      
       for (CWLDocumentResolverReplacement replacement : getReplacements(appUrl)) {
         if (replacement.getParentNode().isArray()) {
           replaceArrayItem(appUrl, root, replacement);
@@ -168,9 +168,11 @@ public class CWLDocumentResolver {
           replaceObjectItem(appUrl, root, replacement);
         }
       }
-
+      
+      removeFragmentIdentifierIDs(appUrl, root, file, null, root);
+      
       for (final JsonNode elem : root.get(GRAPH_KEY)) {
-        if (elem.get("id").asText().equals(fragment)) {
+        if (CWLSchemaHelper.normalizeId(elem.get(ID_KEY).asText()).equals(fragment)) {
           Map<String, Object> result = JSONHelper.readMap(elem);
           result.put(CWL_VERSION_KEY, cwlVersion);
           root = JSONHelper.convertToJsonNode(result);
@@ -294,7 +296,7 @@ public class CWLDocumentResolver {
         }
       }
     }
-
+    
     if (isReference || isJsonPointer || typeReference || appReference || typeReplace) {
       if (isReference) {
         referencePath = currentNode.get(RESOLVER_REFERENCE_KEY).textValue();
@@ -328,8 +330,7 @@ public class CWLDocumentResolver {
         getReferenceCache(appUrl).put(referencePath, reference);
       }
       if (appReference) {
-        getReplacements(appUrl)
-            .add(new CWLDocumentResolverReplacement(currentNode, currentNode.get(APP_STEP_KEY), referencePath));
+        getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get(APP_STEP_KEY), referencePath));
       } else if (typeReference) {
         getReplacements(appUrl).add(new CWLDocumentResolverReplacement(currentNode, currentNode.get(TYPE_KEY), referencePath));
       } else if (typeReplace && !(isReference || isJsonPointer || typeReference || appReference)) {
@@ -521,7 +522,8 @@ public class CWLDocumentResolver {
       JsonNode child = null;
       JsonNode parent = objects;
       for (final JsonNode elem : objects) {
-        if (elem.get(ID_KEY).asText().equals(parts[0])) {
+        String id = CWLSchemaHelper.normalizeId(elem.get(ID_KEY).asText());
+        if (id.equals(parts[0])) {
           child = elem;
           break;
         }
@@ -554,6 +556,7 @@ public class CWLDocumentResolver {
   private static JsonNode removeFragmentIdentifier(String appUrl, JsonNode root, File file, JsonNode parentNode,
       JsonNode currentNode, String fragment) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
+    
     if (currentNode.isTextual() && currentNode.asText().startsWith(DOCUMENT_FRAGMENT_SEPARATOR)) {
       CWLDocumentResolverReference reference = new CWLDocumentResolverReference();
       reference.setResolvedNode(JsonNodeFactory.instance.textNode(currentNode.asText().replace(fragment + "/", "")));
@@ -565,6 +568,38 @@ public class CWLDocumentResolver {
       }
     }
     return currentNode;
+  }
+  
+  private static JsonNode removeFragmentIdentifierIDs(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
+    Preconditions.checkNotNull(currentNode, "current node id is null");
+    if (currentNode.isTextual() && parentNode.has(ID_KEY) && currentNode.asText().equals(parentNode.get(ID_KEY).textValue()) && currentNode.asText().contains("/")) {
+      Iterator<Entry<String, JsonNode>> fieldIterator = parentNode.fields();
+      String fieldName = null;
+      String newValue = null;
+      while (fieldIterator.hasNext()) {
+        Entry<String, JsonNode> fieldEntry = fieldIterator.next();
+        if (fieldEntry.getValue().equals(currentNode)) {
+          fieldName = fieldEntry.getKey();
+          newValue = normalizeId(currentNode.textValue());
+          fieldIterator.remove();
+          break;
+        }
+      }
+      ((ObjectNode) parentNode).put(fieldName, newValue);
+    } else if (currentNode.isContainerNode()) {
+      for (JsonNode subnode : currentNode) {
+        removeFragmentIdentifierIDs(appUrl, root, file, currentNode, subnode);
+      }
+    }
+    return currentNode;
+  }
+  
+  private static String normalizeId(String id) {
+    id = CWLSchemaHelper.normalizeId(id);
+    if(id.contains("/")) {
+      id = StringUtils.substringAfterLast(id, "/");
+    }
+    return id;
   }
 
   private synchronized static List<CWLDocumentResolverReplacement> getReplacements(String url) {

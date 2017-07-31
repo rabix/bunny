@@ -6,6 +6,7 @@
 Rabix is an open-source development kit for the [Common Workflow Language](http://www.commonwl.org/) from [Seven Bridges](https://sbgenomics.com). 
 One of its components is the Rabix executor Bunny, which can be used to execute apps locally from the command line.
 
+You can read the full documentation on [wiki pages](https://github.com/rabix/bunny/wiki).
 
 # Installing
 
@@ -17,7 +18,7 @@ Once the download has been completed, unpack the downloaded archive.
 The following command will automatically download and unpack the archive in the newly created `rabix` directory:
 
 ```sh
-wget https://github.com/rabix/bunny/releases/download/v1.0.0-rc5/rabix-1.0.0-rc5.tar.gz && tar -xvf rabix-1.0.0-rc5.tar.gz
+wget https://github.com/rabix/bunny/releases/download/v1.0.1/rabix-1.0.1.tar.gz && tar -xvf rabix-1.0.1.tar.gz
 ```
 
 
