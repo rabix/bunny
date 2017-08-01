@@ -4,60 +4,127 @@ test1:
   cache: testbacklog/draft-sb-cache/greptool-2017-07-28-121030.415
   runtime: 60
   expected:
-    outfile:
+    output:
       class: File
       name: out.txt
       size: 6
       checksum: sha1$4f0ecdd7b27486665fecea299e9a01b0a8245766
       metadata: null
 test2:
-  app: testbacklog/draft-sb/inheritmeta.cwl.yaml
-  inputs: testbacklog/draft-sb/inheritmeta.inputs.yaml
-  cache: testbacklog/draft-sb-cache/inheritmeta.cwl-2017-07-28-121205.701
-  runtime: 60
+  app: testbacklog/draft-sb-cache/wholegenome.cwl
+  inputs: testbacklog/draft-sb-cache/wholegenome.inputs.json
+  cache: testbacklog/draft-sb-cache/output_1_whole_genome_analz_239_sampleid_hcc1l
+  runtime: 180
   expected:
-    outfile:
+    annotated:
       class: File
-      name: out.txt
-      size: 0
-      checksum: sha1$da39a3ee5e6b4b0d3255bfef95601890afd80709
+      name: Sample_HCC1143BL.Library_Unknown.Platform_Unit_Unknown.combined.recalibrated.recalibrated.snpEff_annotated.vcf
+      size: 126776752
+      checksum: sha1$c51ac3ef8624839327e5a572aaba3029eed0c269
       metadata:
-        key0: value0
-        key1: value1
-        key2: value2
-test3:
-  app: testbacklog/draft-sb/echogrep.tool.yml
-  inputs: testbacklog/draft-sb/echogrep.inputs.yml
-  cache: testbacklog/draft-sb-cache/echogrep.tool-2017-07-28-115628.647
-  runtime: 60
-  expected:
-    outfile:
+        case_id: CCLE-HCC1143BL
+        experimental_strategy: WXS
+        investigation: CCLE-BRCA
+        platform: Illumina
+        quality_scale: sanger
+        reference_genome: human_g1k_v37_decoy
+        sample_id: HCC1143BL
+        sample_type: EBV Immortalized Normal
+        species: Homo sapiens
+    b64html:
+      - class: File
+        name: C835.HCC1143_BL.4.converted.pe_2_fastqc.b64html
+        size: 426394
+        checksum: sha1$fb96859a48c351ca9097673a9088f8c0e60111b6
+        metadata:
+          __inherit__: input_fastq
+          case_id: CCLE-HCC1143BL
+          experimental_strategy: WXS
+          investigation: CCLE-BRCA
+          platform: Illumina
+          reference_genome: HG19_Broad_variant
+          sample_id: HCC1143BL
+          sample_type: EBV Immortalized Normal
+          species: Homo sapiens
+      - class: File
+        name: C835.HCC1143_BL.4.converted.pe_1_fastqc.b64html
+        size: 461506
+        checksum: sha1$2b1c41511ee67e8eacdd83f16be1e146c153bb3e
+        metadata:
+          __inherit__: input_fastq
+          case_id: CCLE-HCC1143BL
+          experimental_strategy: WXS
+          investigation: CCLE-BRCA
+          platform: Illumina
+          reference_genome: HG19_Broad_variant
+          sample_id: HCC1143BL
+          sample_type: EBV Immortalized Normal
+          species: Homo sapiens
+    combined_vcf:
       class: File
-      name: out.txt
-      size: 10
-      checksum: sha1$416e67232de2b79ef0283b3600605de92355d1c8
-      metadata: null
-test4:
-  app: testbacklog/draft-sb/stageinputs.cwl.yml
-  inputs: testbacklog/draft-sb/stageinputs.inputs.yaml
-  cache: testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777
-  runtime: 60
-  expected:
-    outfile:
+      name: Sample_HCC1143BL.Library_Unknown.Platform_Unit_Unknown.combined.vcf
+      size: 24976122
+      checksum: sha1$c2c8c113595f64905e136b9add79b8599bd9a9f5
+      metadata:
+        case_id: CCLE-HCC1143BL
+        experimental_strategy: WXS
+        investigation: CCLE-BRCA
+        platform: Illumina
+        quality_scale: sanger
+        reference_genome: human_g1k_v37_decoy
+        sample_id: HCC1143BL
+        sample_type: EBV Immortalized Normal
+        species: Homo sapiens
+    per_interval:
       class: File
-      name: out.txt
-      size: 71
-      checksum: sha1$9beb2e850a179252904a466279d5dab0c9b8fa03
-      metadata: null
-test5:
-  app: testbacklog/draft-sb/echotool.yml
-  inputs: testbacklog/draft-sb/echotool.inputs.yml
-  cache: testbacklog/draft-sb-cache/echotool-2017-07-28-121002.171
-  runtime: 60
-  expected:
-    outfile:
+      name: HCC1143BL_ed.merged.bam.bed.per_interval.bed
+      size: 1143979
+      checksum: sha1$95532991bf9bd9f67857d5789e865aea0278a9dd
+      metadata:
+        case_id: CCLE-HCC1143BL
+        experimental_strategy: WXS
+        file_format: BED
+        investigation: CCLE-BRCA
+        platform: Illumina
+        quality_scale: sanger
+        reference_genome: human_g1k_v37_decoy
+        sample_id: HCC1143BL
+        sample_type: EBV Immortalized Normal
+        species: Homo sapiens
+    plot_pdf:
       class: File
-      name: out.txt
-      size: 8
-      checksum: sha1$2065a80811f78fd782586a160e8f05115992c32b
-      metadata: null
+      checksum: sha1$de979652c58226c0ad298f41ceb38e29e4bfe867
+      name: C835.HCC1143_BL.4.converted.realigned.pdf
+      size: 47989
+    summary: null
+    summary_1:
+      checksum: sha1$29741d9502565221f81c73372d889e99d1181277
+      class: File
+      name: HCC1143BL_ed.merged.bam.bed.summary
+      size: 109093
+      metadata:
+        case_id: CCLE-HCC1143BL
+        experimental_strategy: WXS
+        file_format: TEXT
+        investigation: CCLE-BRCA
+        platform: Illumina
+        quality_scale: sanger
+        reference_genome: human_g1k_v37_decoy
+        sample_id: HCC1143BL
+        sample_type: EBV Immortalized Normal
+        species: Homo sapiens
+    summary_metrics:
+      class: File
+      checksum: sha1$f7af75ee6a93ccbbd28ece656d49011317b8c5a2
+      name: HCC1143BL_ed.merged.summary_metrics.txt
+      size: 2131
+      metadata:
+        case_id: CCLE-HCC1143BL
+        experimental_strategy: WXS
+        investigation: CCLE-BRCA
+        platform: Illumina
+        quality_scale: sanger
+        reference_genome: human_g1k_v37_decoy
+        sample_id: HCC1143BL
+        sample_type: EBV Immortalized Normal
+        species: Homo sapiens

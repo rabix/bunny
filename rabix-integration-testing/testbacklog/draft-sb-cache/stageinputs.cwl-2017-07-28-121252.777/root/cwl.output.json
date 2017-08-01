@@ -1,9 +1,0 @@
-{
-  "output" : {
-    "checksum" : "sha1$9beb2e850a179252904a466279d5dab0c9b8fa03",
-    "class" : "File",
-    "name" : "out.txt",
-    "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/stageinputs.cwl-2017-07-28-121252.777/root/out.txt",
-    "size" : 71
-  }
-}

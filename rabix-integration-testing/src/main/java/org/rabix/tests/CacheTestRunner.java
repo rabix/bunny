@@ -200,92 +200,67 @@ public class CacheTestRunner {
 
   private static boolean validateTestCase(Map<String, Map<String, LinkedHashMap>> mapTest, Map<String, Object> resultData) {
 
-    String resultFileName;
-    int resultFileSize;
-    String resultFileClass;
-    String resultFileChecksum;
-    LinkedHashMap resultMetadata;
-    LinkedHashMap expectedMetadata;
-
-    Map<String, Object> resultValues = null;
-
-    resultValues = ((Map<String, Object>) resultData.get("output"));
-
-    resultFileName = resultValues.get("path").toString();
-    resultFileName = resultFileName.split("/")[resultFileName.split("/").length - 1];
-    resultFileSize = (int) resultValues.get("size");
-    resultFileClass = resultValues.get("class").toString();
-    resultFileChecksum = (String) resultValues.get("checksum");
-    resultMetadata = (LinkedHashMap) resultValues.get("metadata");
-    expectedMetadata = (LinkedHashMap) mapTest.get("expected").get("outfile").get("metadata");
-    boolean fileMetadataEqual = true;
-
-    boolean fileNamesEqual = resultFileName.equals(mapTest.get("expected").get("outfile").get("name"));
-    boolean fileSizesEqual = resultFileSize == (int) mapTest.get("expected").get("outfile").get("size");
-    boolean fileClassesEqual = resultFileClass.equals(mapTest.get("expected").get("outfile").get("class"));
-    boolean fileChecksumsEqual = resultFileChecksum.equals(mapTest.get("expected").get("outfile").get("checksum"));
-
-    logger.info("Test validation:");
-    logger.info("result file name: " + resultFileName + ", expected file name: "
-        + mapTest.get("expected").get("outfile").get("name"));
-    logger.info("result file size: " + resultFileSize + ", expected file size: "
-        + mapTest.get("expected").get("outfile").get("size"));
-    logger.info("result file class: " + resultFileClass + ", expected file class: "
-        + mapTest.get("expected").get("outfile").get("class"));
-    logger.info("result file checksum: " + resultFileChecksum + ", expected file checksum: "
-        + mapTest.get("expected").get("outfile").get("checksum"));
-
-    if (expectedMetadata != null) {
-      fileMetadataEqual = expectedMetadata.equals(resultMetadata);
-
-      logger.info("result file metadata: " + resultMetadata.entrySet() + ", expected file metadata: "
-          + expectedMetadata.entrySet());
-      validateMetadata(fileMetadataEqual);
+    ArrayList<String> validationResult = mapContainsMap(mapTest.get("expected"), resultData);
+    if(validationResult.size() == 0) {
+      return true;
     }
-
-    validateName(fileNamesEqual);
-    validateSize(fileSizesEqual);
-    validateClass(fileClassesEqual);
-    validateChecksum(fileChecksumsEqual);
-
-    boolean validationResult = fileNamesEqual && fileSizesEqual && fileClassesEqual && fileChecksumsEqual
-        && fileMetadataEqual;
-
-    return validationResult;
+    else {
+      StringBuilder keyMapToFault = new StringBuilder();
+      for(int i=validationResult.size()-1; i>=0; i--) {
+        keyMapToFault.append(validationResult.get(i));
+        if(i!=0) {
+          keyMapToFault.append(" => ");
+        }
+      }
+      logger.error("Could not validate results! Problem with key: " + keyMapToFault.toString());
+      return false;
+    }
   }
 
-  private static void validateMetadata(boolean fileMetadataEqual) {
-    if (!fileMetadataEqual) {
-      logger.error("result and expected file metadata are not equal!");
+  /**
+   * Check whether a1 is included in a2.
+   * a1 and a2 can be recursive String, Object maps.
+   *
+   * @param a1
+   * @param a2
+   * @return true if a1 completely is inside of a2
+   */
+  private static <T, R> ArrayList<String> mapContainsMap(Map<String, T> a1, Map<String, R> a2) {
+    ArrayList<String> result = new ArrayList<>();
+    for(String key:a1.keySet()) {
+      if(a2.containsKey(key)) {
+        if(a1.get(key) == null && a2.get(key) == null) {
+          continue;
+        }
+        else if(a1.get(key) instanceof Map && a2.get(key) instanceof Map) {
+          try {
+            ArrayList<String> recursiveResult = mapContainsMap(
+                    (Map<String, Object>) a1.get(key),
+                    (Map<String, Object>) a2.get(key));
+            if(recursiveResult.size() == 0) {
+              return recursiveResult;
+            }
+            else {
+              result.addAll(recursiveResult);
+              result.add(key);
+              return result;
+            }
+          } catch(Exception e) {
+            result.add(key);
+            return result;
+          }
+        }
+        else if(!a1.get(key).equals(a2.get(key))){
+          result.add(key);
+          return result;
+        }
+      }
+      else{
+        result.add(key);
+        return result;
+      }
     }
-
-  }
-
-  private static void validateChecksum(boolean fileChecksumsEqual) {
-    if (!fileChecksumsEqual) {
-      logger.error("result and expected file checksums are not equal!");
-    }
-
-  }
-
-  private static void validateClass(boolean fileClassesEqual) {
-    if (!fileClassesEqual) {
-      logger.error("result and expected file class are not equal!");
-    }
-
-  }
-
-  private static void validateSize(boolean fileSizesEqual) {
-    if (!fileSizesEqual) {
-      logger.error("result and expected file size are not equal!");
-    }
-
-  }
-
-  private static void validateName(boolean fileNamesEqual) {
-    if (!fileNamesEqual) {
-      logger.error("result and expected file name are not equal!");
-    }
+    return result;
   }
 
   public static void command(final String cmdline, final String directory) throws RabixTestException {
