@@ -177,8 +177,8 @@ public class CacheTestRunner {
       }
     }
 
-    logger.info("Make rabix executable");
-    command("chmod +x " + workingdir + "/rabix", buildFileDirPath);
+    // logger.info("Make rabix executable");
+    // command("chmod +x " + workingdir + "/rabix", buildFileDirPath);
     logger.info("Create rabix symlink");
     command("ln -s " + workingdir + "/rabix .", buildFileDirPath);
 
