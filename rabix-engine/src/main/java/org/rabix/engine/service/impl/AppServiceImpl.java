@@ -42,7 +42,7 @@ public class AppServiceImpl implements AppService {
   @Override
   public void loadApp(DAGNode node) {
     String id = hashDagNode(node.getApp());
-    appRepository.insert(id, BeanSerializer.serializeFull(node.getApp()));
+    appRepository.insert(id, node.getApp().serialize());
     node.setAppHash(id);
     node.setApp(null);
     if(node instanceof DAGContainer) {

@@ -9,6 +9,7 @@ import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -62,5 +63,9 @@ public class Draft3EmbeddedApp extends Draft3JobApp {
   public Draft3JobAppType getType() {
     return Draft3JobAppType.EMBEDDED;
   }
-
+  
+  @JsonProperty("class")
+  public String getClazz() {
+    return (String) application.getRaw().get("class");
+  }
 }
