@@ -33,6 +33,7 @@ public class CacheTestRunner {
     PropertiesConfiguration configuration = getConfig();
     setupIntegrationCommandPrefix(configuration);
     setupBuildFiles();
+    copyCacheConfig();
 
     for (String draft : drafts) {
       draftName = draft + "-cache";
@@ -163,6 +164,14 @@ public class CacheTestRunner {
       }
     }
 
+  }
+
+  private static void copyCacheConfig() throws RabixTestException {
+    String commandCopyTestbacklog = "cp " + System.getProperty("user.dir") + "/rabix-integration-testing/config/test/test.core.properties config/core.properties";
+    logger.info("Working dir user in copy method: " + workingdir);
+    command(commandCopyTestbacklog, workingdir);
+    logger.info("Copying testbacklog command: " + commandCopyTestbacklog);
+    logger.info("Copying testbacklog dir: done ");
   }
 
   private static void setupBuildFilePath(PropertiesConfiguration configuration) {
