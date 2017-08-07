@@ -179,7 +179,7 @@ public class CacheTestRunner {
 
   private static boolean validateTestCase(Map<String, Map<String, LinkedHashMap>> mapTest, Map<String, Object> resultData) {
 
-    ArrayList<String> validationResult = mapContainsMap(mapTest.get("expected"), resultData);
+    ArrayList<String> validationResult = objectContainsObject(mapTest.get("expected"), resultData);
     if(validationResult.size() == 0) {
       return true;
     }
@@ -198,44 +198,56 @@ public class CacheTestRunner {
 
   /**
    * Check whether a1 is included in a2.
-   * a1 and a2 can be recursive String, Object maps.
+   * a1 and a2 can be or include lists and maps that have string keys.
    *
    * @param a1
    * @param a2
    * @return true if a1 completely is inside of a2
    */
-  private static <T, R> ArrayList<String> mapContainsMap(Map<String, T> a1, Map<String, R> a2) {
+  private static <T, R> ArrayList<String> objectContainsObject(T a1, R a2) {
     ArrayList<String> result = new ArrayList<>();
-    for(String key:a1.keySet()) {
-      if(a2.containsKey(key)) {
-        if(a1.get(key) == null && a2.get(key) == null) {
-          continue;
-        }
-        else if(a1.get(key) instanceof Map && a2.get(key) instanceof Map) {
-          try {
-            ArrayList<String> recursiveResult = mapContainsMap(
-                    (Map<String, Object>) a1.get(key),
-                    (Map<String, Object>) a2.get(key));
-            if(recursiveResult.size() == 0) {
-              return recursiveResult;
-            }
-            else {
-              result.addAll(recursiveResult);
-              result.add(key);
-              return result;
-            }
-          } catch(Exception e) {
+    if(a1 == null && a2 == null) {
+      return result;
+    }
+    else if(a1 instanceof Map && a2 instanceof Map) {
+      try {
+        Map<String, ?> a1Map = ((Map<String, ?>) a1);
+        Map<String, ?> a2Map = ((Map<String, ?>) a2);
+
+        for(String key:a1Map.keySet()) {
+          if(!a2Map.containsKey(key)) {
             result.add(key);
             return result;
           }
+          ArrayList<String> comparison = objectContainsObject(a1Map.get(key), a2Map.get(key));
+          if(comparison.size() != 0) {
+            comparison.add(key);
+            return comparison;
+          }
         }
-        else if(!a1.get(key).equals(a2.get(key))){
-          result.add(key);
-          return result;
+      }catch (Exception e) {
+        result.add("exception");
+        return result;
+      }
+    }
+    else if(a1 instanceof List && a2 instanceof List) {
+      List a1List = (List) a1;
+      List a2List = (List) a2;
+      if(a1List.size() != a2List.size()) {
+        result.add("list size");
+        return result;
+      }
+      for(int i=0; i<a1List.size(); i++) {
+        ArrayList<String> comparison = objectContainsObject(a1List.get(i), a2List.get(i));
+        if(comparison.size() != 0) {
+          comparison.add(String.valueOf(i));
+          return comparison;
         }
       }
-      else{
-        result.add(key);
+    }
+    else{
+      if(!a1.equals(a2)) {
+        result.add("Comp failed");
         return result;
       }
     }

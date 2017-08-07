@@ -13,7 +13,7 @@ test1:
 test2:
   app: testbacklog/draft-sb-cache/wholegenome.cwl
   inputs: testbacklog/draft-sb-cache/wholegenome.inputs.json
-  cache: testbacklog/draft-sb-cache/output_1_whole_genome_analz_239_sampleid_hcc1l
+  cache: testbacklog/draft-sb-cache/whole_genome/cachedir
   runtime: 180
   expected:
     annotated:
@@ -128,3 +128,107 @@ test2:
         sample_id: HCC1143BL
         sample_type: EBV Immortalized Normal
         species: Homo sapiens
+test3:
+  app: testbacklog/draft-sb-cache/fastqc-analysis.cwl
+  inputs: testbacklog/draft-sb-cache/fastqc-analysis.inputs.json
+  cache: testbacklog/draft-sb-cache/fastqc-analysis/cachedir
+  runtime: 60
+  expected:
+    b64html:
+      - class: File
+        name: NA12878-Garvan-Vial1_R2_fastqc.b64html
+        size: 350438
+        checksum: sha1$070dad0cadc3b0af9e743a9473b00ee477f3282a
+        metadata:
+          NUM_READS : 481514412
+          READ_COUNT : 481514412
+          __inherit__ : input_fastq
+          experimental_strategy : WGS
+          investigation : FDA Consistency Challenge
+          library_id : FDA_GARVAN
+          platform : Illumina-HiSeq-XTen
+          quality_scale : sanger
+          sample_id : NA12878
+          sample_type : Cell Line
+          species : Homo sapiens
+      - class: File
+        name: NA12878-Garvan-Vial1_R1_fastqc.b64html
+        size: 312494
+        checksum: sha1$297ae4f001a003d3457ab46c0a158fcc4b7c37ea
+        metadata:
+          NUM_READS : 481514412
+          READ_COUNT : 481514412
+          __inherit__ : input_fastq
+          experimental_strategy : WGS
+          investigation : FDA Consistency Challenge
+          library_id : FDA_GARVAN
+          platform : Illumina-HiSeq-XTen
+          quality_scale : sanger
+          sample_id : NA12878
+          sample_type : Cell Line
+          species : Homo sapiens
+    report_zip:
+      - class: File
+        name: NA12878-Garvan-Vial1_R2_fastqc.zip
+        size: 317703
+        checksum: sha1$7157cc0aa185bac2a9303d8fe705204e43985ae9
+        metadata:
+          NUM_READS : 481514412
+          READ_COUNT : 481514412
+          __inherit__ : input_fastq
+          experimental_strategy : WGS
+          investigation : FDA Consistency Challenge
+          library_id : FDA_GARVAN
+          platform : Illumina-HiSeq-XTen
+          quality_scale : sanger
+          sample_id : NA12878
+          sample_type : Cell Line
+          species : Homo sapiens
+      - class: File
+        name: NA12878-Garvan-Vial1_R1_fastqc.zip
+        size: 278747
+        checksum: sha1$c38fb54b7617285068b3c8d4f7301ae19a5402b4
+        metadata:
+          NUM_READS : 481514412
+          READ_COUNT : 481514412
+          __inherit__ : input_fastq
+          experimental_strategy : WGS
+          investigation : FDA Consistency Challenge
+          library_id : FDA_GARVAN
+          platform : Illumina-HiSeq-XTen
+          quality_scale : sanger
+          sample_id : NA12878
+          sample_type : Cell Line
+          species : Homo sapiens
+test4:
+  app: testbacklog/draft-sb-cache/delly2.cwl
+  inputs: testbacklog/draft-sb-cache/delly2.inputs.json
+  cache: testbacklog/draft-sb-cache/delly2/cachedir
+  runtime: 60
+  expected:
+    output:
+      class: File
+      name: merged-tumor.sorted.vcf
+      size: 25277
+      checksum: sha1$048b2435c0a4500fa13a48651c0cdea6122b2b6f
+      metadata:
+        __inherit__ : input_bam
+        case_id : CCLE-HCC1143
+        experimental_strategy : WXS
+        investigation : CCLE-BRCA
+        platform : Illumina
+        reference_genome : human_g1k_v37_decoy
+        sample_id : HCC1143
+        sample_type : Cell Line
+        species : Homo sapiens
+test5:
+  app: testbacklog/draft-sb-cache/mpileup.cwl
+  inputs: testbacklog/draft-sb-cache/mpileup.inputs.json
+  cache: testbacklog/draft-sb-cache/mpileup/cachedir
+  runtime: 60
+  expected:
+    output_file:
+      - class: File
+        name: C835.HCC1143.2.converted.realigned.base_recalibrated_1.merged.pileup
+        size: 9961782170
+        checksum: sha1$3905aa99ccbbf35b4682578a32575888d769d850
