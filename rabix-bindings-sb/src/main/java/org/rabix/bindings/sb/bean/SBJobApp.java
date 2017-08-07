@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.bindings.model.ValidationReport;
 import org.rabix.bindings.sb.bean.resource.SBCpuResource;
 import org.rabix.bindings.sb.bean.resource.SBMemoryResource;
@@ -264,22 +265,22 @@ public abstract class SBJobApp extends Application {
 
   @JsonIgnore
   public boolean isWorkflow() {
-    return SBJobAppType.WORKFLOW.equals(getType());
+    return JobAppType.WORKFLOW.equals(getType());
   }
 
   @JsonIgnore
   public boolean isCommandLineTool() {
-    return SBJobAppType.COMMAND_LINE_TOOL.equals(getType());
+    return JobAppType.COMMAND_LINE_TOOL.equals(getType());
   }
   
   @JsonIgnore
   public boolean isEmbedded() {
-    return SBJobAppType.EMBEDDED.equals(getType());
+    return JobAppType.EMBEDDED.equals(getType());
   }
   
   @JsonIgnore
   public boolean isExpressionTool() {
-    return SBJobAppType.EXPRESSION_TOOL.equals(getType());
+    return JobAppType.EXPRESSION_TOOL.equals(getType());
   }
   
   @Override
@@ -287,7 +288,7 @@ public abstract class SBJobApp extends Application {
     return BeanSerializer.serializePartial(this);
   }
   
-  public abstract SBJobAppType getType();
+  public abstract JobAppType getType();
 
   @Override
   public int hashCode() {

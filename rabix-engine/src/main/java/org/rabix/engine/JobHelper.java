@@ -12,6 +12,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.URIHelper;
+import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -155,22 +156,19 @@ public class JobHelper {
     }
     
     ContextRecord contextRecord = contextRecordService.find(job.getRootId());
-    String encodedApp = URIHelper.createDataURI(appService.get(node.getAppHash()).serialize());
+    Application application = appService.get(node.getAppHash());
+    String encodedApp = URIHelper.createDataURI(application.serialize());
     
     Set<String> visiblePorts = findVisiblePorts(job, jobRecordService, linkRecordService, variableRecordService);
     Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, preprocesedInputs, null, contextRecord.getConfig(), null, visiblePorts);
     try {
       if (processVariables) {
-        Bindings bindings = null;
-        if (node.getProtocolType() != null) {
-          bindings = BindingsFactory.create(node.getProtocolType());
-        } else {
-          bindings = BindingsFactory.create(encodedApp);
-        }
+        Bindings bindings = BindingsFactory.create(application.serialize());
+        
         
         for (VariableRecord inputVariable : inputVariables) {
           Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
-          ApplicationPort port = appService.get(node.getAppHash()).getInput(inputVariable.getPortId());
+          ApplicationPort port = application.getInput(inputVariable.getPortId());
           if (port == null) {
             continue;
           }

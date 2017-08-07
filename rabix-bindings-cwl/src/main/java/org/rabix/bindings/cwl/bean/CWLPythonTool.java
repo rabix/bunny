@@ -1,9 +1,11 @@
 package org.rabix.bindings.cwl.bean;
 
+import org.rabix.bindings.model.JobAppType;
+import org.rabix.bindings.model.ValidationReport;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.rabix.bindings.model.ValidationReport;
 
 @JsonDeserialize(as = CWLPythonTool.class)
 public class CWLPythonTool extends CWLJobApp {
@@ -17,8 +19,8 @@ public class CWLPythonTool extends CWLJobApp {
 
   @Override
   @JsonIgnore
-  public CWLJobAppType getType() {
-    return CWLJobAppType.PYTHON_TOOL;
+  public JobAppType getType() {
+    return JobAppType.PYTHON_TOOL;
   }
 
   @Override

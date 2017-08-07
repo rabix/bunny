@@ -1,5 +1,7 @@
 package org.rabix.bindings.sb.bean;
 
+import org.rabix.bindings.model.JobAppType;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -16,8 +18,8 @@ public class SBExpressionTool extends SBJobApp {
 
   @Override
   @JsonIgnore
-  public SBJobAppType getType() {
-    return SBJobAppType.EXPRESSION_TOOL;
+  public JobAppType getType() {
+    return JobAppType.EXPRESSION_TOOL;
   }
 
   @Override

@@ -3,6 +3,7 @@ package org.rabix.bindings.sb.bean;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.common.json.BeanPropertyView;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -58,8 +59,8 @@ public class SBWorkflow extends SBJobApp {
 
   @Override
   @JsonIgnore
-  public SBJobAppType getType() {
-    return SBJobAppType.WORKFLOW;
+  public JobAppType getType() {
+    return JobAppType.WORKFLOW;
   }
 
 }

@@ -7,6 +7,7 @@ import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.JobAppType;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -62,8 +63,8 @@ public class Draft2EmbeddedApp extends Draft2JobApp {
   }
   
   @Override
-  public Draft2JobAppType getType() {
-    return Draft2JobAppType.EMBEDDED;
+  public JobAppType getType() {
+    return JobAppType.EMBEDDED;
   }
   
   @JsonProperty("class")

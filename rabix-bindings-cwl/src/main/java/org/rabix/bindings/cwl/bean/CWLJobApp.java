@@ -22,8 +22,10 @@ import org.rabix.bindings.cwl.json.CWLOutputPortsDeserializer;
 import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.JobAppType;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanPropertyView;
-import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.json.BeanPropertyView.Partial;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -31,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(using=CWLJobAppDeserializer.class)
@@ -310,30 +314,38 @@ public abstract class CWLJobApp extends Application {
 
   @JsonIgnore
   public boolean isWorkflow() {
-    return CWLJobAppType.WORKFLOW.equals(getType());
+    return JobAppType.WORKFLOW.equals(getType());
   }
 
   @JsonIgnore
   public boolean isCommandLineTool() {
-    return CWLJobAppType.COMMAND_LINE_TOOL.equals(getType());
+    return JobAppType.COMMAND_LINE_TOOL.equals(getType());
   }
   
   @JsonIgnore
   public boolean isEmbedded() {
-    return CWLJobAppType.EMBEDDED.equals(getType());
+    return JobAppType.EMBEDDED.equals(getType());
   }
   
   @JsonIgnore
   public boolean isExpressionTool() {
-    return CWLJobAppType.EXPRESSION_TOOL.equals(getType());
+    return JobAppType.EXPRESSION_TOOL.equals(getType());
   }
   
   @Override
+  @JsonIgnore
   public String serialize() {
-    return BeanSerializer.serializePartial(this);
+    ObjectWriter writer = JSONHelper.mapper.writerWithView(Partial.class);
+    try {
+      return writer.withDefaultPrettyPrinter().writeValueAsString(this);
+    } catch (JsonProcessingException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
   }
   
-  public abstract CWLJobAppType getType();
+  public abstract JobAppType getType();
 
   @Override
   public int hashCode() {

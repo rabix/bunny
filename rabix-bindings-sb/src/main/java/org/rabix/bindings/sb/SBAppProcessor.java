@@ -4,10 +4,10 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.bindings.sb.bean.SBInputPort;
 import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.bean.SBJobApp;
-import org.rabix.bindings.sb.bean.SBJobAppType;
 import org.rabix.bindings.sb.helper.SBJobHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.rabix.bindings.sb.resolver.SBDocumentResolver;
@@ -28,7 +28,7 @@ public class SBAppProcessor implements ProtocolAppProcessor {
   @Override
   public boolean isSelfExecutable(Job job) throws BindingException {
     SBJobApp app = (SBJobApp) loadAppObject(job.getApp());
-    return app.getType().equals(SBJobAppType.EXPRESSION_TOOL);
+    return app.getType().equals(JobAppType.EXPRESSION_TOOL);
   }
 
   @Override

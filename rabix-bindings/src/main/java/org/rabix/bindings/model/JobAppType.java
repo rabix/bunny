@@ -1,6 +1,6 @@
-package org.rabix.bindings.sb.bean;
+package org.rabix.bindings.model;
 
-public enum SBJobAppType {
+public enum JobAppType {
 
   WORKFLOW,
   COMMAND_LINE_TOOL,
@@ -9,3 +9,4 @@ public enum SBJobAppType {
   EMBEDDED
 
 }
+

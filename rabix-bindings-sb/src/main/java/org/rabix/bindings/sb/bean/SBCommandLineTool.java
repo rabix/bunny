@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.bindings.sb.expression.SBExpressionException;
 import org.rabix.bindings.sb.expression.helper.SBExpressionBeanHelper;
 
@@ -117,8 +118,8 @@ public class SBCommandLineTool extends SBJobApp {
 
   @Override
   @JsonIgnore
-  public SBJobAppType getType() {
-    return SBJobAppType.COMMAND_LINE_TOOL;
+  public JobAppType getType() {
+    return JobAppType.COMMAND_LINE_TOOL;
   }
 
   @Override

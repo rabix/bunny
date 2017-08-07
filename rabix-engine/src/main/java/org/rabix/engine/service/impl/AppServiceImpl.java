@@ -53,7 +53,7 @@ public class AppServiceImpl implements AppService {
   }
   
   public static String hashDagNode(Application app) {
-    String appText = BeanSerializer.serializeFull(app);
+    String appText = app.serialize();
     String cachedSortedAppText = JSONHelper.writeSortedWithoutIdentation(JSONHelper.readJsonNode(appText));
     String cachedAppHash = ChecksumHelper.checksum(cachedSortedAppText, HashAlgorithm.SHA1);
     return cachedAppHash;

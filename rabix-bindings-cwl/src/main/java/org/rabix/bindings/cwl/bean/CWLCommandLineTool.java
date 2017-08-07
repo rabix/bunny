@@ -9,6 +9,7 @@ import org.rabix.bindings.cwl.bean.resource.CWLResourceType;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
 import org.rabix.bindings.cwl.expression.CWLExpressionException;
 import org.rabix.bindings.cwl.expression.CWLExpressionResolver;
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.bindings.model.ValidationReport;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -111,8 +112,8 @@ public class CWLCommandLineTool extends CWLJobApp {
   
   @Override
   @JsonIgnore
-  public CWLJobAppType getType() {
-    return CWLJobAppType.COMMAND_LINE_TOOL;
+  public JobAppType getType() {
+    return JobAppType.COMMAND_LINE_TOOL;
   }
 
   @Override
