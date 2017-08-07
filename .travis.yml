@@ -18,8 +18,8 @@ before_install:
 
 script:
   - mvn clean install package -P all
-  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.CacheTestRunner" -e -X
   - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.TestRunner" -e -X
+  - mvn org.codehaus.mojo:exec-maven-plugin:1.5.0:java -pl rabix-integration-testing -Dexec.mainClass="org.rabix.tests.CacheTestRunner" -e -X
 
 cache:
   directories:

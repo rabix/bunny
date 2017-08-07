@@ -32,8 +32,7 @@ public class CacheTestRunner {
   public static void main(String[] commandLineArguments) throws Exception {
     PropertiesConfiguration configuration = getConfig();
     setupIntegrationCommandPrefix(configuration);
-    extractBuildFile();
-    copyTestsInWorkingDir();
+    setupBuildFiles();
 
     for (String draft : drafts) {
       draftName = draft + "-cache";
@@ -94,7 +93,7 @@ public class CacheTestRunner {
 
           String cmd = cmdPrefix + " --cache-dir " + currentTestDetails.get("cache") + " " +
                   currentTestDetails.get("app") + " " + currentTestDetails.get("inputs")
-              + " > result.yaml";
+                  + " > result.yaml";
 
           logger.info("->Running cmd: " + cmd);
           command(cmd, workingdir);
@@ -138,15 +137,7 @@ public class CacheTestRunner {
     logger.info("Integration tests finished:  " + draftName);
   }
 
-  private static void copyTestsInWorkingDir() throws RabixTestException {
-    String commandCopyTestbacklog = "cp -a " + System.getProperty("user.dir") + "/rabix-integration-testing/testbacklog .";
-    logger.info("Working dir user in copy method: " + workingdir);
-    command(commandCopyTestbacklog, workingdir);
-    logger.info("Copying testbacklog command: " + commandCopyTestbacklog);
-    logger.info("Copying testbacklog dir: done ");
-  }
-
-  private static void extractBuildFile() throws RabixTestException {
+  private static void setupBuildFiles() throws RabixTestException {
     File buildFileDir = new File(buildFileDirPath);
     buildFileDirPath = buildFileDir.getAbsolutePath();
     File[] directoryListing = buildFileDir.listFiles();
@@ -161,11 +152,6 @@ public class CacheTestRunner {
     } else {
       throw new RabixTestException("Build folder is empty. Check build status.");
     }
-    logger.info("Extracting build file: started");
-
-    String commandUntarBuildFile = "tar -zxvf " + buildFilePath;
-    logger.info("Extracting build file command: " + commandUntarBuildFile);
-    command(commandUntarBuildFile, buildFileDirPath);
 
     File[] dirListingAfterUnpac = buildFileDir.listFiles();
     for (File child : dirListingAfterUnpac) {
@@ -177,13 +163,6 @@ public class CacheTestRunner {
       }
     }
 
-    // logger.info("Make rabix executable");
-    // command("chmod +x " + workingdir + "/rabix", buildFileDirPath);
-    logger.info("Create rabix symlink");
-    command("ln -s " + workingdir + "/rabix .", buildFileDirPath);
-
-    logger.info("Extracting build file: ended");
-  
   }
 
   private static void setupBuildFilePath(PropertiesConfiguration configuration) {
@@ -267,7 +246,7 @@ public class CacheTestRunner {
     logger.debug("Executing " + cmdline);
     try {
       Process process = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
-          .directory(new File(directory)).start();
+              .directory(new File(directory)).start();
 
       int exitCode = process.waitFor();
 
@@ -286,20 +265,20 @@ public class CacheTestRunner {
 
   public static void executeConformanceSuite(final String cmdline, final String directory) throws Exception {
     ProcessBuilder processBuilder = new ProcessBuilder(new String[] { "bash", "-c", cmdline }).inheritIO()
-          .directory(new File(directory));
+            .directory(new File(directory));
 
-      Map<String, String> env = processBuilder.environment();
-      env.put("LC_ALL", "C");
-      env.put("buildFileDirPath", buildFileDirPath);
+    Map<String, String> env = processBuilder.environment();
+    env.put("LC_ALL", "C");
+    env.put("buildFileDirPath", buildFileDirPath);
 
-      Process process = processBuilder.start();
+    Process process = processBuilder.start();
 
-      int exitCode = process.waitFor();
+    int exitCode = process.waitFor();
 
-      if (0 != exitCode) {
-        logger.error("Error while executing command: Non zero exit code " + exitCode);
-        System.exit(exitCode);
-      }
+    if (0 != exitCode) {
+      logger.error("Error while executing command: Non zero exit code " + exitCode);
+      System.exit(exitCode);
+    }
 
   }
 
