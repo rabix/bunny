@@ -23,7 +23,6 @@ import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.common.json.BeanPropertyView;
-import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -328,11 +327,7 @@ public abstract class CWLJobApp extends Application {
     return CWLJobAppType.EXPRESSION_TOOL.equals(getType());
   }
   
-  @Override
-  public String serialize() {
-    return BeanSerializer.serializePartial(this);
-  }
-  
+  @JsonIgnore
   public abstract CWLJobAppType getType();
 
   @Override

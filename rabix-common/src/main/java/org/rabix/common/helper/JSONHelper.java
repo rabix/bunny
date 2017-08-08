@@ -11,10 +11,8 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -32,6 +30,7 @@ import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 public class JSONHelper {
 
@@ -149,7 +148,7 @@ public class JSONHelper {
   private static String getDetailedMessage(Exception e) {
     String message = e.getMessage();
     if (e instanceof JsonProcessingException) {
-      JsonParseException jpe = (JsonParseException) e;
+      JsonProcessingException jpe = (JsonProcessingException) e;
       message = jpe.getOriginalMessage() + ". Line: " + jpe.getLocation().getLineNr() + ", column: " + jpe.getLocation().getColumnNr();
     }
     return message;
