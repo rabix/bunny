@@ -256,9 +256,7 @@ public class JSONHelper {
       while (iterator.hasNext()) {
         Map.Entry<String, JsonNode> subnodeEntry = iterator.next();
         Object result = transform(subnodeEntry.getValue(), skipNull);
-        if (skipNull && result == null) {
-          return resultMap;
-        } else {
+        if (!skipNull || result != null) {
           resultMap.put(subnodeEntry.getKey(), result);         
         }
       }
