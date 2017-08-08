@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonDeserialize(using=Application.ApplicationDeserializer.class)
 public abstract class Application {
@@ -61,7 +62,8 @@ public abstract class Application {
   public Object getProperty(String key) {
     return raw.get(key);
   }
-
+  @JsonIgnore
+  public abstract JobAppType getType();
   /**
    * Checks if provided inputs are valid for this app.
    * Also checks if all required inputs are present

@@ -5,13 +5,13 @@ import org.rabix.bindings.ProtocolAppProcessor;
 import org.rabix.bindings.cwl.bean.CWLInputPort;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
-import org.rabix.bindings.cwl.bean.CWLJobAppType;
 import org.rabix.bindings.cwl.helper.CWLJobHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.cwl.resolver.CWLDocumentResolver;
 import org.rabix.bindings.model.Application;
-import org.rabix.bindings.model.ValidationReport;
 import org.rabix.bindings.model.Job;
+import org.rabix.bindings.model.JobAppType;
+import org.rabix.bindings.model.ValidationReport;
 import org.rabix.common.json.BeanSerializer;
 
 public class CWLAppProcessor implements ProtocolAppProcessor {
@@ -29,7 +29,7 @@ public class CWLAppProcessor implements ProtocolAppProcessor {
   @Override
   public boolean isSelfExecutable(Job job) throws BindingException {
     CWLJobApp app = (CWLJobApp) loadAppObject(job.getApp());
-    return app.getType().equals(CWLJobAppType.EXPRESSION_TOOL);
+    return app.getType().equals(JobAppType.EXPRESSION_TOOL);
   }
 
   @Override

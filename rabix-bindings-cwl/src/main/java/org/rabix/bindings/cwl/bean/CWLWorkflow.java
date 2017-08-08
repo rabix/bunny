@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.rabix.bindings.cwl.json.CWLStepsDeserializer;
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.bindings.model.ValidationReport;
 import org.rabix.common.json.BeanPropertyView;
 
@@ -62,8 +63,8 @@ public class CWLWorkflow extends CWLJobApp {
 
   @Override
   @JsonIgnore
-  public CWLJobAppType getType() {
-    return CWLJobAppType.WORKFLOW;
+  public JobAppType getType() {
+    return JobAppType.WORKFLOW;
   }
 
   private Set<String> checkStepDuplicates() {

@@ -1,5 +1,7 @@
 package org.rabix.bindings.draft3.bean;
 
+import org.rabix.bindings.model.JobAppType;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -16,8 +18,8 @@ public class Draft3PythonTool extends Draft3JobApp {
 
   @Override
   @JsonIgnore
-  public Draft3JobAppType getType() {
-    return Draft3JobAppType.PYTHON_TOOL;
+  public JobAppType getType() {
+    return JobAppType.PYTHON_TOOL;
   }
 
   @Override

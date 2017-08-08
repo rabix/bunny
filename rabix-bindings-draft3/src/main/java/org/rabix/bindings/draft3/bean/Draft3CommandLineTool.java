@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.rabix.bindings.draft3.expression.Draft3ExpressionException;
 import org.rabix.bindings.draft3.expression.Draft3ExpressionResolver;
+import org.rabix.bindings.model.JobAppType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -112,8 +113,8 @@ public class Draft3CommandLineTool extends Draft3JobApp {
 
   @Override
   @JsonIgnore
-  public Draft3JobAppType getType() {
-    return Draft3JobAppType.COMMAND_LINE_TOOL;
+  public JobAppType getType() {
+    return JobAppType.COMMAND_LINE_TOOL;
   }
 
   @Override

@@ -3,6 +3,7 @@ package org.rabix.bindings.draft3.bean;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.common.json.BeanPropertyView;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -57,8 +58,8 @@ public class Draft3Workflow extends Draft3JobApp {
 
   @Override
   @JsonIgnore
-  public Draft3JobAppType getType() {
-    return Draft3JobAppType.WORKFLOW;
+  public JobAppType getType() {
+    return JobAppType.WORKFLOW;
   }
 
 }

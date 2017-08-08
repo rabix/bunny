@@ -42,7 +42,7 @@ public class AppServiceImpl implements AppService {
   @Override
   public void loadApp(DAGNode node) {
     String id = hashDagNode(node.getApp());
-    appRepository.insert(id, BeanSerializer.serializeFull(node.getApp()));
+    appRepository.insert(id, node.getApp().serialize());
     node.setAppHash(id);
     node.setApp(null);
     if(node instanceof DAGContainer) {
@@ -53,7 +53,7 @@ public class AppServiceImpl implements AppService {
   }
   
   public static String hashDagNode(Application app) {
-    String appText = BeanSerializer.serializeFull(app);
+    String appText = app.serialize();
     String cachedSortedAppText = JSONHelper.writeSortedWithoutIdentation(JSONHelper.readJsonNode(appText));
     String cachedAppHash = ChecksumHelper.checksum(cachedSortedAppText, HashAlgorithm.SHA1);
     return cachedAppHash;

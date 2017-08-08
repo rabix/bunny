@@ -17,6 +17,7 @@ import org.rabix.bindings.draft3.bean.resource.requirement.Draft3ShellCommandReq
 import org.rabix.bindings.draft3.json.Draft3JobAppDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.bindings.model.ValidationReport;
 import org.rabix.common.json.BeanSerializer;
 
@@ -307,22 +308,22 @@ public abstract class Draft3JobApp extends Application {
 
   @JsonIgnore
   public boolean isWorkflow() {
-    return Draft3JobAppType.WORKFLOW.equals(getType());
+    return JobAppType.WORKFLOW.equals(getType());
   }
 
   @JsonIgnore
   public boolean isCommandLineTool() {
-    return Draft3JobAppType.COMMAND_LINE_TOOL.equals(getType());
+    return JobAppType.COMMAND_LINE_TOOL.equals(getType());
   }
   
   @JsonIgnore
   public boolean isEmbedded() {
-    return Draft3JobAppType.EMBEDDED.equals(getType());
+    return JobAppType.EMBEDDED.equals(getType());
   }
   
   @JsonIgnore
   public boolean isExpressionTool() {
-    return Draft3JobAppType.EXPRESSION_TOOL.equals(getType());
+    return JobAppType.EXPRESSION_TOOL.equals(getType());
   }
   
   @Override
@@ -330,7 +331,7 @@ public abstract class Draft3JobApp extends Application {
     return BeanSerializer.serializePartial(this);
   }
   
-  public abstract Draft3JobAppType getType();
+  public abstract JobAppType getType();
 
   @Override
   public int hashCode() {

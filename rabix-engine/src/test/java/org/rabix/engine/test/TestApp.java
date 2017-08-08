@@ -3,6 +3,7 @@ package org.rabix.engine.test;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.bindings.model.ValidationReport;
 import org.rabix.bindings.model.ScatterMethod;
 import org.rabix.bindings.model.dag.DAGNode;
@@ -62,5 +63,11 @@ public class TestApp extends Application {
         inputs.stream().map(in -> in.toInputPort(id)).collect(Collectors.toList()),
         outputs.stream().map(out -> out.toOutputPort(id)).collect(Collectors.toList()),
         scatterMethod, this, new HashMap<>(), ProtocolType.CWL);
+  }
+
+  @Override
+  public JobAppType getType() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

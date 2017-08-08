@@ -22,6 +22,7 @@ import org.rabix.bindings.cwl.json.CWLOutputPortsDeserializer;
 import org.rabix.bindings.cwl.json.CWLResourcesDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.model.JobAppType;
 import org.rabix.common.json.BeanPropertyView;
 import org.rabix.common.json.BeanSerializer;
 
@@ -310,30 +311,31 @@ public abstract class CWLJobApp extends Application {
 
   @JsonIgnore
   public boolean isWorkflow() {
-    return CWLJobAppType.WORKFLOW.equals(getType());
+    return JobAppType.WORKFLOW.equals(getType());
   }
 
   @JsonIgnore
   public boolean isCommandLineTool() {
-    return CWLJobAppType.COMMAND_LINE_TOOL.equals(getType());
+    return JobAppType.COMMAND_LINE_TOOL.equals(getType());
   }
   
   @JsonIgnore
   public boolean isEmbedded() {
-    return CWLJobAppType.EMBEDDED.equals(getType());
+    return JobAppType.EMBEDDED.equals(getType());
   }
   
   @JsonIgnore
   public boolean isExpressionTool() {
-    return CWLJobAppType.EXPRESSION_TOOL.equals(getType());
+    return JobAppType.EXPRESSION_TOOL.equals(getType());
   }
   
   @Override
+  @JsonIgnore
   public String serialize() {
     return BeanSerializer.serializePartial(this);
   }
   
-  public abstract CWLJobAppType getType();
+  public abstract JobAppType getType();
 
   @Override
   public int hashCode() {

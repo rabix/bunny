@@ -1,12 +1,14 @@
 package org.rabix.bindings.cwl.bean;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.rabix.bindings.model.JobAppType;
+import org.rabix.bindings.model.ValidationReport;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.rabix.bindings.model.ValidationReport;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @JsonDeserialize(as = CWLExpressionTool.class)
 public class CWLExpressionTool extends CWLJobApp {
@@ -20,8 +22,8 @@ public class CWLExpressionTool extends CWLJobApp {
 
   @Override
   @JsonIgnore
-  public CWLJobAppType getType() {
-    return CWLJobAppType.EXPRESSION_TOOL;
+  public JobAppType getType() {
+    return JobAppType.EXPRESSION_TOOL;
   }
 
   @Override
