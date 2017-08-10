@@ -381,8 +381,9 @@ public class SBProcessor implements ProtocolProcessor {
         SBFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
         if (hashAlgorithm != null && secondaryFile.exists()) {
           SBFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
+          secondaryFileMaps.add(secondaryFileMap);
         }
-        secondaryFileMaps.add(secondaryFileMap);
+        
     }
     return secondaryFileMaps;
   }
