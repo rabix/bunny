@@ -241,9 +241,7 @@ public class JSONHelper {
       List<Object> resultList = new ArrayList<>();
       for (JsonNode subnode : node) {
         Object result = transform(subnode, skipNull);
-        if (skipNull && result == null) {
-          return resultList;  
-        } else {
+        if (!skipNull || result != null) {
           resultList.add(result);
         }
       }
