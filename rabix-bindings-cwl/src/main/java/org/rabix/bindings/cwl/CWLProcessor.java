@@ -434,7 +434,7 @@ public class CWLProcessor implements ProtocolProcessor {
     }
     else {
       CWLFileValueHelper.setFileType(fileData);
-      if (hashAlgorithm != null) {
+      if (hashAlgorithm != null && file.exists()) {
         CWLFileValueHelper.setChecksum(file, fileData, hashAlgorithm);
       }
     }
