@@ -438,11 +438,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       }
     } else {
+      jobRecordService.increaseOutputPortIncoming(job, linkPort.getId());
       jobRecordService.incrementPortCounter(job, linkPort, LinkPortType.OUTPUT);
       if (isSource) {
         job.getOutputCounter(linkPort.getId()).updatedAsSource(1);
       }
-      jobRecordService.increaseOutputPortIncoming(job, linkPort.getId());
     }
     jobRecordService.update(job);
   }
