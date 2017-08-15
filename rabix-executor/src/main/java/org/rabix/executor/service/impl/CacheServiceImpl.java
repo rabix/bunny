@@ -116,7 +116,7 @@ public class CacheServiceImpl implements CacheService {
           continue;
         }
 
-        if (mockWorker && !cacheValuesEqual(value, cachedValue)) {
+        if (!cacheValuesEqual(value, cachedValue)) {
           return false;
         }
       }
