@@ -2,6 +2,7 @@ package org.rabix.bindings.cwl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
@@ -382,44 +384,10 @@ public class CWLProcessor implements ProtocolProcessor {
   }
   
   public Map<String, Object> formFileValue(File file, CWLJob job, Object outputBinding, CWLOutputPort outputPort, HashAlgorithm hashAlgorithm, File workingDir) throws CWLExpressionException, IOException {
+    Map<String, Object> fileData = fileToData(file, hashAlgorithm); 
     if (file.isDirectory()) {
-      logger.info("Processing directory {}.", file);
-      
-      Map<String, Object> directory = new HashMap<>();
-      CWLDirectoryValueHelper.setDirectoryType(directory);
-      CWLDirectoryValueHelper.setSize(file.length(), directory);
-      CWLDirectoryValueHelper.setName(file.getName(), directory);
-      CWLDirectoryValueHelper.setPath(file.getAbsolutePath(), directory);
-      
-      File[] list = file.listFiles();
-      
-      List<Object> listing = new ArrayList<>();
-      for (File subfile : list) {
-        switch (subfile.getName()) {
-        case JOB_FILE:
-        case RESULT_FILENAME:
-        case RESERVED_EXECUTOR_CMD_LOG_FILE_NAME:
-        case RESERVED_EXECUTOR_ERROR_LOG_FILE_NAME:
-          continue;
-        default:
-          break;
-        }
-        listing.add(formFileValue(subfile, job, outputBinding, outputPort, hashAlgorithm, workingDir));
-      }
-      CWLDirectoryValueHelper.setListing(listing, directory);
-      return directory;
+      return fileData;
     }
-
-    Map<String, Object> fileData = new HashMap<>();
-    CWLFileValueHelper.setFileType(fileData);
-    if (hashAlgorithm != null) {
-      CWLFileValueHelper.setChecksum(file, fileData, hashAlgorithm);
-    }
-    CWLFileValueHelper.setSize(file.length(), fileData);
-    CWLFileValueHelper.setName(file.getName(), fileData);
-    CWLFileValueHelper.setDirname(file.getParentFile().getAbsolutePath(), fileData);
-    CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
-
     List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputPort.getSecondaryFiles(), workingDir);
     if (secondaryFiles != null) {
       CWLFileValueHelper.setSecondaryFiles(secondaryFiles, fileData);
@@ -444,6 +412,43 @@ public class CWLProcessor implements ProtocolProcessor {
     return fileData;
   }
 
+  private static Map<String, Object> fileToData(File file, HashAlgorithm hashAlgorithm) {
+    Map<String, Object> fileData = new HashMap<>();
+    if(file.isDirectory()){
+      File[] list = file.listFiles();
+      List<Object> listing = new ArrayList<>();
+      for (File subfile : list) {
+        switch (subfile.getName()) {
+        case JOB_FILE:
+        case RESULT_FILENAME:
+        case RESERVED_EXECUTOR_CMD_LOG_FILE_NAME:
+        case RESERVED_EXECUTOR_ERROR_LOG_FILE_NAME:
+          continue;
+        default:
+          break;
+        }
+        listing.add(fileToData(subfile, hashAlgorithm));
+      }
+      CWLDirectoryValueHelper.setListing(listing, fileData);
+      CWLFileValueHelper.setDirType(fileData);
+    }
+    else {
+      CWLFileValueHelper.setFileType(fileData);
+      if (hashAlgorithm != null && file.exists()) {
+        CWLFileValueHelper.setChecksum(file, fileData, hashAlgorithm);
+      }
+    }
+    CWLFileValueHelper.setSize(file.length(), fileData);
+    CWLFileValueHelper.setName(file.getName(), fileData);
+    CWLFileValueHelper.setDirname(file.getParentFile().getAbsolutePath(), fileData);
+    CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
+    CWLFileValueHelper.setNameroot(FilenameUtils.getBaseName(file.getName()), fileData);
+    String extension = FilenameUtils.getExtension(file.getName());
+    if(!StringUtils.isEmpty(extension))
+      CWLFileValueHelper.setNameext("." + extension, fileData);
+    return fileData;
+  }
+
   /**
    * Gets secondary files (absolute paths)
    */
@@ -453,58 +458,62 @@ public class CWLProcessor implements ProtocolProcessor {
     if (secondaryFilesObj == null) {
       return null;
     }
-    if(secondaryFilesObj instanceof String || CWLExpressionResolver.isExpressionObject(secondaryFilesObj)){
+    if (secondaryFilesObj instanceof String || CWLExpressionResolver.isExpressionObject(secondaryFilesObj)) {
       secondaryFilesObj = CWLExpressionResolver.resolve(secondaryFilesObj, job, fileValue);
     }
-    
+
     List<Object> secondaryFilesList = new ArrayList<>();
     if (secondaryFilesObj instanceof List<?>) {
       secondaryFilesList.addAll((Collection<? extends Object>) secondaryFilesObj);
     }
-    
+
     List<Map<String, Object>> secondaryFileMaps = new ArrayList<>();
     for (Object suffixObj : secondaryFilesList) {
-      Object expr = CWLExpressionResolver.resolve(suffixObj, job, fileValue);
-      Map<String, Object> secondaryFileMap = new HashMap<>();
-      if(expr instanceof String) {
-        String secondaryFilePath;
-        String suffix = (String) expr;
-        if((suffix).startsWith("^") || suffix.startsWith(".")) {
-          secondaryFilePath = filePath.toString();
-          while (suffix.startsWith("^")) {
-            int extensionIndex = secondaryFilePath.lastIndexOf(".");
-            if (extensionIndex != -1) {
-              secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
-              suffix = suffix.substring(1);
-            } else {
-              break;
-            }
-          }
-          secondaryFilePath += ((String) suffix).startsWith(".") ? suffix : "." + suffix;
-        } else {
-          secondaryFilePath = suffix;
-        }
-        File secondaryFile = new File(secondaryFilePath);
-          if (secondaryFile.isDirectory()) {
-            CWLFileValueHelper.setDirType(secondaryFileMap);
-          } else {
-            CWLFileValueHelper.setFileType(secondaryFileMap);
-          }
-          CWLFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
-          CWLFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
-          CWLFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-          if (hashAlgorithm != null && secondaryFile.exists() && !secondaryFile.isDirectory()) {
-            CWLFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
-          }
-      } else if (expr instanceof Map) {
-        secondaryFileMap = (Map<String, Object>) expr;
-        postprocessCreatedResults(secondaryFileMap, hashAlgorithm, workingDir);
+      Object expr = suffixObj;
+      boolean append = true;
+      if (CWLExpressionResolver.isExpressionObject(suffixObj) || ((String) suffixObj).contains("$")) {
+        expr = CWLExpressionResolver.resolve(suffixObj, job, fileValue);
+        append = false;
       }
-      if(!secondaryFileMap.isEmpty()) {
-        secondaryFileMaps.add(secondaryFileMap);
+      if (expr instanceof List) {
+        for (Object e2 : ((List) expr)) {
+          secondaryFileMaps.add(getSecondaryFile(hashAlgorithm, filePath, workingDir, e2, append));
+        }
+      } else {
+        secondaryFileMaps.add(getSecondaryFile(hashAlgorithm, filePath, workingDir, expr, append));
       }
     }
     return secondaryFileMaps.isEmpty() ? null : secondaryFileMaps;
+  }
+
+  private static Map<String, Object> getSecondaryFile(HashAlgorithm hashAlgorithm, String filePath, File workingDir, Object expr, boolean append)
+      throws IOException {
+    Map<String, Object> secondaryFileMap = new HashMap<>();
+    if(expr instanceof String) {
+      String secondaryFilePath = null;
+      String suffix = (String) expr;
+      if (append) {
+        secondaryFilePath = filePath.toString();
+        while (suffix.startsWith("^")) {
+          int extensionIndex = secondaryFilePath.lastIndexOf(".");
+          if (extensionIndex != -1) {
+            secondaryFilePath = secondaryFilePath.substring(0, extensionIndex);
+            suffix = suffix.substring(1);
+          } else {
+            break;
+          }
+        }
+        secondaryFilePath += suffix;
+      } else {
+        secondaryFilePath = Paths.get(filePath).getParent().resolve(suffix).toString();
+      }
+      File secondaryFile = new File(secondaryFilePath);
+      secondaryFileMap = fileToData(secondaryFile, hashAlgorithm);
+    } else if (expr instanceof Map) {//also string
+      secondaryFileMap = (Map<String, Object>) expr;
+      postprocessCreatedResults(secondaryFileMap, hashAlgorithm, workingDir);
+    }
+    return secondaryFileMap;
   }
 
   @Override
