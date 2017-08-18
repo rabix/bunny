@@ -1,9 +1,6 @@
 package org.rabix.executor.service.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
+import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
@@ -23,7 +20,10 @@ import org.rabix.executor.service.CacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public class CacheServiceImpl implements CacheService {
 
@@ -120,6 +120,20 @@ public class CacheServiceImpl implements CacheService {
           return false;
         }
       }
+
+      /*
+       * Integrity check is necessary for output files.
+       * Cache directory might be corrupted
+       */
+      Map<String, Object> cachedOutputs = cachedJob.getOutputs();
+      for (String outputPortKey : cachedOutputs.keySet()) {
+        Object cachedValue = cachedOutputs.get(outputPortKey);
+        if(cachedValue instanceof FileValue &&
+                !checkFileIntegrity((FileValue) cachedValue)) {
+          return false;
+        }
+      }
+
     }
     return true;
   }
@@ -178,6 +192,36 @@ public class CacheServiceImpl implements CacheService {
         }
       }
     } catch (Exception e) {
+      return false;
+    }
+    return true;
+  }
+
+  private boolean checkFileIntegrity(FileValue value) {
+    try {
+      File file = new File(value.getPath());
+      if (file.exists() && file.isFile()) {
+        if (value.getSize() != 0 &&
+                !value.getSize().equals(file.length())) {
+          return false;
+        }
+        if (value.getChecksum() != null) {
+          String checksumValue = ChecksumHelper.checksum(file, fileConfiguration.checksumAlgorithm());
+          if (!checksumValue.equals(value.getChecksum())) {
+            return false;
+          }
+        }
+        if (value.getSecondaryFiles() != null) {
+          for (int i = 0; i < value.getSecondaryFiles().size(); i++) {
+            if (!checkFileIntegrity(value.getSecondaryFiles().get(i))) {
+              return false;
+            }
+          }
+        }
+      } else {
+        return false;
+      }
+    } catch(Exception e) {
       return false;
     }
     return true;
