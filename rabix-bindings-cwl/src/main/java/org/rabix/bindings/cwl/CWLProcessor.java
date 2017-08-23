@@ -269,7 +269,7 @@ public class CWLProcessor implements ProtocolProcessor {
         return null;
       }
 
-      if (itemSchema.equals(CWLSchemaHelper.TYPE_JOB_FILE) || CWLSchemaHelper.isFileFromSchema(itemSchema)) {
+      if (binding != null || itemSchema.equals(CWLSchemaHelper.TYPE_JOB_FILE) || CWLSchemaHelper.isFileFromSchema(itemSchema)) {
         Object itemBinding = CWLSchemaHelper.getOutputBinding(itemSchema);
         if (itemBinding != null) {
           binding = itemBinding;
