@@ -61,9 +61,10 @@ public class SBJobProcessor implements BeanProcessor<SBJob> {
   }
   
   private void processHints(SBJob job, SBJob stepJob) {
-    List<SBResource> hints = job.getApp().getHints();
+    List<SBResource> hints = new ArrayList<>();
+    hints.addAll(stepJob.getApp().getHints());
     List<String> types = hints.stream().map(h->h.getType()).collect(Collectors.toList());
-    for(SBResource resource: stepJob.getApp().getHints()){
+    for(SBResource resource: job.getApp().getHints()){
       if(!types.contains(resource.getType())){
         hints.add(resource);
       }
