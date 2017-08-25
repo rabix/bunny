@@ -1,0 +1,67 @@
+{
+  "id" : "144e46ec-8ae7-4f42-9c9c-b63df9b10153",
+  "parentId" : "90b35201-c1f1-4b80-95b6-23b450c2850c",
+  "rootId" : "1a4fd24b-5bec-4e9e-b3f2-5fd1312ea058",
+  "name" : "root.SBG_Html2b64.1",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNpbnB1dF9maWxlIiwKICAgICJ0eXBlIiA6IFsgIm51bGwiLCAiRmlsZSIgXSwKICAgICJpbnB1dEJpbmRpbmciIDogewogICAgICAicHJlZml4IiA6ICItLWlucHV0IiwKICAgICAgInNiZzpjbWRJbmNsdWRlIiA6IHRydWUsCiAgICAgICJzZXBhcmF0ZSIgOiB0cnVlCiAgICB9LAogICAgInNjYXR0ZXIiIDogdHJ1ZSwKICAgICJkZXNjcmlwdGlvbiIgOiAiQ29tcHJlc3NlZCBhcmNoaXZlLiIsCiAgICAic2JnOmNhdGVnb3J5IiA6ICJGaWxlIGlucHV0LiIsCiAgICAibGFiZWwiIDogIklucHV0IGZpbGUiLAogICAgInNiZzpmaWxlVHlwZXMiIDogIlpJUCIsCiAgICAicmVxdWlyZWQiIDogZmFsc2UKICB9IF0sCiAgIm91dHB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNiNjRodG1sIiwKICAgICJ0eXBlIiA6IFsgIm51bGwiLCAiRmlsZSIgXSwKICAgICJvdXRwdXRCaW5kaW5nIiA6IHsKICAgICAgImdsb2IiIDogIipiNjRodG1sIiwKICAgICAgInNiZzppbmhlcml0TWV0YWRhdGFGcm9tIiA6ICIjaW5wdXRfZmlsZSIsCiAgICAgICJzYmc6bWV0YWRhdGEiIDogeyB9CiAgICB9LAogICAgImRlc2NyaXB0aW9uIiA6ICJPdXRwdXQgZmlsZSwgYjY0aHRtbC4iLAogICAgImxhYmVsIiA6ICJCNjRodG1sIiwKICAgICJzYmc6ZmlsZVR5cGVzIiA6ICJIVE1MLCBCNjRIVE1MIgogIH0gXSwKICAiaGludHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkRvY2tlclJlcXVpcmVtZW50IiwKICAgICJkb2NrZXJQdWxsIiA6ICJpbWFnZXMuc2JnZW5vbWljcy5jb20vbWxhZGVubHNiZy9zYmctaHRtbC10by1iNjQ6MS4wLjEiLAogICAgImRvY2tlckltYWdlSWQiIDogIjhjMzVkMmEyZDhkMSIKICB9LCB7CiAgICAiY2xhc3MiIDogInNiZzpDUFVSZXF1aXJlbWVudCIsCiAgICAidmFsdWUiIDogMQogIH0sIHsKICAgICJjbGFzcyIgOiAic2JnOk1lbVJlcXVpcmVtZW50IiwKICAgICJ2YWx1ZSIgOiAxMDAwCiAgfSBdLAogICJyZXF1aXJlbWVudHMiIDogWyBdLAogICJzdWNjZXNzQ29kZXMiIDogWyBdLAogICJzdGRpbiIgOiAiIiwKICAic3Rkb3V0IiA6ICIiLAogICJiYXNlQ29tbWFuZCIgOiBbICJweXRob24iLCAiL29wdC9zYmdfaHRtbF90b19iNjQucHkiIF0sCiAgImFyZ3VtZW50cyIgOiBbIF0sCiAgInNiZzpyZXZpc2lvbiIgOiAyLAogICJzYmc6Y2F0ZWdvcmllcyIgOiBbICJDb252ZXJ0ZXJzIiwgIlBsb3R0aW5nLWFuZC1SZW5kZXJpbmciIF0sCiAgImRlc2NyaXB0aW9uIiA6ICJUb29sIGZvciBjb252ZXJ0aW5nIGFyY2hpdmVkIGh0bWwgb3V0cHV0IG9mIEZhc3RRQyBhbmQgc2ltaWxhciB0b29scyB0byBiNjRodG1sIHNvIGl0IGNhbiBlYXNpbHkgYmUgZGlzcGxheWVkIGluIHdlYiBicm93c2VycyBvciBvbiBTQkcgcGxhdGZvcm0uIiwKICAic2JnOmNyZWF0ZWRPbiIgOiAxNDUwOTExMjk0LAogICJzYmc6Y29udHJpYnV0b3JzIiA6IFsgImJpeC1kZW1vIiBdLAogICJzYmc6dG9vbGtpdCIgOiAiU0JHVG9vbHMiLAogICJzYmc6aWQiIDogImJpeC1kZW1vL3NiZ3Rvb2xzLWRlbW8vc2JnLWh0bWwyYjY0LzIiLAogICJzYmc6am9iIiA6IHsKICAgICJhbGxvY2F0ZWRSZXNvdXJjZXMiIDogewogICAgICAiY3B1IiA6IDEsCiAgICAgICJtZW0iIDogMTAwMAogICAgfSwKICAgICJpbnB1dHMiIDogewogICAgICAiaW5wdXRfZmlsZSIgOiB7CiAgICAgICAgImNsYXNzIiA6ICJGaWxlIiwKICAgICAgICAicGF0aCIgOiAiaW5wdXRfZmlsZS5leHQiLAogICAgICAgICJzZWNvbmRhcnlGaWxlcyIgOiBbIF0sCiAgICAgICAgInNpemUiIDogMAogICAgICB9CiAgICB9CiAgfSwKICAic2JnOnNiZ01haW50YWluZWQiIDogZmFsc2UsCiAgInRlbXBvcmFyeUZhaWxDb2RlcyIgOiBbIF0sCiAgInNiZzp0b29sQXV0aG9yIiA6ICJTZXZlbiBCcmlkZ2VzIiwKICAiaWQiIDogImJpeC1kZW1vL3NiZ3Rvb2xzLWRlbW8vc2JnLWh0bWwyYjY0LzIiLAogICJjbGFzcyIgOiAiQ29tbWFuZExpbmVUb29sIiwKICAic2JnOnByb2plY3QiIDogImJpeC1kZW1vL3NiZ3Rvb2xzLWRlbW8iLAogICJzYmc6bW9kaWZpZWRPbiIgOiAxNDU5OTYzNTcxLAogICJzYmc6Y21kUHJldmlldyIgOiAicHl0aG9uIC9vcHQvc2JnX2h0bWxfdG9fYjY0LnB5IiwKICAic2JnOmxpY2Vuc2UiIDogIkFwYWNoZSBMaWNlbnNlIDIuMCIsCiAgImxhYmVsIiA6ICJTQkcgSHRtbDJiNjQiLAogICJzYmc6bW9kaWZpZWRCeSIgOiAiYml4LWRlbW8iLAogICJzYmc6bGF0ZXN0UmV2aXNpb24iIDogMiwKICAic2JnOmNyZWF0ZWRCeSIgOiAiYml4LWRlbW8iLAogICJ4IiA6IDM0OS4zMzMzNTczODcxMTk0NiwKICAieSIgOiA0NDIuMzMzMzYxMjgxMjg5NywKICAic2JnOmltYWdlX3VybCIgOiBudWxsLAogICJzYmc6cmV2aXNpb25zSW5mbyIgOiBbIHsKICAgICJzYmc6bW9kaWZpZWRCeSIgOiAiYml4LWRlbW8iLAogICAgInNiZzptb2RpZmllZE9uIiA6IDE0NTA5MTEyOTQsCiAgICAic2JnOnJldmlzaW9uIiA6IDAKICB9LCB7CiAgICAic2JnOm1vZGlmaWVkQnkiIDogImJpeC1kZW1vIiwKICAgICJzYmc6bW9kaWZpZWRPbiIgOiAxNDUwOTExMjk0LAogICAgInNiZzpyZXZpc2lvbiIgOiAxCiAgfSwgewogICAgInNiZzptb2RpZmllZEJ5IiA6ICJiaXgtZGVtbyIsCiAgICAic2JnOm1vZGlmaWVkT24iIDogMTQ1OTk2MzU3MSwKICAgICJzYmc6cmV2aXNpb24iIDogMgogIH0gXSwKICAic2JnOnRvb2xraXRWZXJzaW9uIiA6ICIxLjAiLAogICJzYmc6dmFsaWRhdGlvbkVycm9ycyIgOiBbIF0KfQ==",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "input_file" : [ {
+      "size" : 375157,
+      "path" : "/media/storage/workdir/LocalRerun20170721110425/app-2017-07-21-114527.26/root/FastQC/C835.HCC1143_BL.4.converted.pe_2_fastqc.zip",
+      "location" : "/media/storage/workdir/LocalRerun20170721110425/app-2017-07-21-114527.26/root/FastQC/C835.HCC1143_BL.4.converted.pe_2_fastqc.zip",
+      "name" : "C835.HCC1143_BL.4.converted.pe_2_fastqc.zip",
+      "checksum" : "sha1$70091d84c4888ae5947fd13c8cd8378fcb78629d",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_fastq",
+          "case_id" : "CCLE-HCC1143BL",
+          "experimental_strategy" : "WXS",
+          "investigation" : "CCLE-BRCA",
+          "platform" : "Illumina",
+          "reference_genome" : "HG19_Broad_variant",
+          "sample_id" : "HCC1143BL",
+          "sample_type" : "EBV Immortalized Normal",
+          "species" : "Homo sapiens"
+        }
+      },
+      "$type" : "File"
+    } ]
+  },
+  "outputs" : {
+    "b64html" : {
+      "size" : 426394,
+      "path" : "/media/storage/workdir/LocalRerun20170721110425/app-2017-07-21-114527.26/root/SBG_Html2b64/1/C835.HCC1143_BL.4.converted.pe_2_fastqc.b64html",
+      "location" : "/media/storage/workdir/LocalRerun20170721110425/app-2017-07-21-114527.26/root/SBG_Html2b64/1/C835.HCC1143_BL.4.converted.pe_2_fastqc.b64html",
+      "name" : "C835.HCC1143_BL.4.converted.pe_2_fastqc.b64html",
+      "checksum" : "sha1$fb96859a48c351ca9097673a9088f8c0e60111b6",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_fastq",
+          "case_id" : "CCLE-HCC1143BL",
+          "experimental_strategy" : "WXS",
+          "investigation" : "CCLE-BRCA",
+          "platform" : "Illumina",
+          "reference_genome" : "HG19_Broad_variant",
+          "sample_id" : "HCC1143BL",
+          "sample_type" : "EBV Immortalized Normal",
+          "species" : "Homo sapiens"
+        }
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 32,
+    "memMB" : 46967,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ "b64html" ]
+}

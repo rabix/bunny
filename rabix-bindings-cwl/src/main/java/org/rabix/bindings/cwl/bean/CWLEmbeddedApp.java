@@ -1,20 +1,29 @@
 package org.rabix.bindings.cwl.bean;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.cwl.bean.CWLEmbeddedApp.CWLEmbededAppSerializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import org.rabix.bindings.model.ValidationReport;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+
 @JsonDeserialize(as = CWLEmbeddedApp.class)
+@JsonSerialize(using = CWLEmbededAppSerializer.class)
 public class CWLEmbeddedApp extends CWLJobApp {
 
   private Application application;
@@ -61,13 +70,15 @@ public class CWLEmbeddedApp extends CWLJobApp {
   }
 
   @Override
-  public String serialize() {
-    return application.serialize();
-  }
-
-  @Override
+  @JsonIgnore
   public CWLJobAppType getType() {
     return CWLJobAppType.EMBEDDED;
   }
 
+  public static class CWLEmbededAppSerializer extends JsonSerializer<CWLEmbeddedApp> {
+    @Override
+    public void serialize(CWLEmbeddedApp value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
+      gen.writeObject(value.application);
+    }
+  }
 }
