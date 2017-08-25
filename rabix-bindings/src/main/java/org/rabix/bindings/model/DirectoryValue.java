@@ -33,18 +33,6 @@ public class DirectoryValue extends FileValue {
     super(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, format);
     this.listing = listing;
   }
-
-  public static DirectoryValue cloneWithPath(DirectoryValue fileValue, String path) {
-    return new DirectoryValue(fileValue.size, path, fileValue.location, fileValue.name, fileValue.dirname,
-        fileValue.nameroot, fileValue.nameext, fileValue.contents, fileValue.checksum, fileValue.secondaryFiles,
-        fileValue.properties, fileValue.listing, fileValue.format);
-  }
-
-  public static DirectoryValue cloneWithSecondaryFiles(DirectoryValue fileValue, List<FileValue> secondaryFiles) {
-    return new DirectoryValue(fileValue.size, fileValue.path, fileValue.location, fileValue.name, fileValue.dirname,
-        fileValue.nameroot, fileValue.nameext, fileValue.contents, fileValue.checksum, secondaryFiles,
-        fileValue.properties, fileValue.listing, fileValue.format);
-  }
   
   public List<FileValue> getListing() {
     return listing;

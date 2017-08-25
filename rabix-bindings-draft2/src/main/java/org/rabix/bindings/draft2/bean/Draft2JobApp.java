@@ -19,7 +19,6 @@ import org.rabix.bindings.draft2.json.Draft2JobAppDeserializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.ValidationReport;
-import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -305,11 +304,6 @@ public abstract class Draft2JobApp extends Application {
   @JsonIgnore
   public boolean isExpressionTool() {
     return Draft2JobAppType.EXPRESSION_TOOL.equals(getType());
-  }
-  
-  @Override
-  public String serialize() {
-    return BeanSerializer.serializePartial(this);
   }
   
   public abstract Draft2JobAppType getType();
