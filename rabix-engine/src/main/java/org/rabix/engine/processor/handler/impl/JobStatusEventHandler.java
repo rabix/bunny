@@ -24,6 +24,7 @@ import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.DebugAppender;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.event.Event;
@@ -316,7 +317,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       if (node.getProtocolType() != null) {
         bindings = BindingsFactory.create(node.getProtocolType());
       } else {
-        String encodedApp = URIHelper.createDataURI(appService.get(node.getAppHash()).serialize());
+        String encodedApp = URIHelper.createDataURI(JSONHelper.writeObject(appService.get(node.getAppHash())));
         bindings = BindingsFactory.create(encodedApp);
       }
       
@@ -334,7 +335,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             if (p.getTransform() != null) {
               Object transform = p.getTransform();
               if (transform != null) {
-                value = bindings.transformInputs(value, new Job(app.serialize(), preprocesedInputs), transform);
+                value = bindings.transformInputs(value, new Job(JSONHelper.writeObject(app), preprocesedInputs), transform);
                 inputVariable.setValue(value);
                 variableRecordService.update(inputVariable);
               }
