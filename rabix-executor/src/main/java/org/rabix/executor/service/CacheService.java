@@ -12,4 +12,5 @@ public interface CacheService {
   
   boolean isCacheEnabled();
 
+  boolean isMockWorkerEnabled();
 }
