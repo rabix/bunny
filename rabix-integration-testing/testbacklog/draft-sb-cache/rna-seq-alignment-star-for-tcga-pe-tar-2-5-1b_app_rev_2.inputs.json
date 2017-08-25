@@ -1,0 +1,36 @@
+{
+        "sjdbGTFfile": [
+            {
+                "class": "File",
+                "path": "rna-seq-alignment-star-for-tcga-pe-tar-2-5-1b_app_rev_2/Homo_sapiens.GRCh37.75.gtf",
+                "size": 847928511,
+                "name": "Homo_sapiens.GRCh37.75.gtf",
+                "metadata": {}
+            }
+        ],
+        "input_archive_file": {
+            "class": "File",
+            "path": "rna-seq-alignment-star-for-tcga-pe-tar-2-5-1b_app_rev_2/G20479.HCC1143.2.tar.gz",
+            "size": 9741325700,
+            "name": "G20479.HCC1143.2.tar.gz",
+            "metadata": {
+                "investigation": "CCLE-BRCA",
+                "experimental_strategy": "RNA-Seq",
+                "sample_id": "HCC1143",
+                "platform": "Illumina",
+                "sample_type": "Cell Line",
+                "case_id": "CCLE-HCC1143",
+                "reference_genome": "HG19_Broad_variant"
+            }
+        },
+        "reference_or_index": {
+            "class": "File",
+            "path": "rna-seq-alignment-star-for-tcga-pe-tar-2-5-1b_app_rev_2/human_g1k_v37_decoy.phiX174_Homo_sapiens.GRCh37.75_star-2.5.1b.tar",
+            "size": 29381038080,
+            "name": "human_g1k_v37_decoy.phiX174_Homo_sapiens.GRCh37.75_star-2.5.1b.tar",
+            "metadata": {
+                "species": "Homo sapiens",
+                "reference_genome": "human_g1k_v37_decoy.phiX174"
+            }
+        }
+}
