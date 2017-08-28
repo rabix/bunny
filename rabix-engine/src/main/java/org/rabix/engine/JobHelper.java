@@ -12,6 +12,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.URIHelper;
+import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -22,6 +23,7 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.SystemEnvironmentHelper;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
+import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.logging.DebugAppender;
 import org.rabix.engine.service.AppService;
 import org.rabix.engine.service.ContextRecordService;
@@ -161,7 +163,7 @@ public class JobHelper {
     }
     
     ContextRecord contextRecord = contextRecordService.find(job.getRootId());
-    String encodedApp = URIHelper.createDataURI(appService.get(node.getAppHash()).serialize());
+    String encodedApp = URIHelper.createDataURI(JSONHelper.writeObject(appService.get(node.getAppHash())));
     
     Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, preprocesedInputs, null, contextRecord.getConfig(), null, null);
     if (processVariables) {
@@ -176,19 +178,16 @@ public class JobHelper {
   private Map<String, Object> processVariables(DAGNode node, List<VariableRecord> inputVariables, String encodedApp, Job newJob) throws BindingException {
 
     boolean autoBoxingEnabled = false;   // get from configuration
+    
+    Application application = appService.get(node.getAppHash());
 
     Map<String, Object> inputs = new HashMap<>();
     try {
-        Bindings bindings = null;
-        if (node.getProtocolType() != null) {
-          bindings = BindingsFactory.create(node.getProtocolType());
-        } else {
-          bindings = BindingsFactory.create(encodedApp);
-        }
+        Bindings bindings = BindingsFactory.create(encodedApp);
         
         for (VariableRecord inputVariable : inputVariables) {
           Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
-          ApplicationPort port = appService.get(node.getAppHash()).getInput(inputVariable.getPortId());
+          ApplicationPort port = application.getInput(inputVariable.getPortId());
           if (port == null) {
             continue;
           }
