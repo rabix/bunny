@@ -15,20 +15,7 @@
     "sbg:createdOn": 1459775882,
     "sbg:revisionNotes": "Tool updates.\nChanged inputs to VQSR INDELS to Mills and dbSNP per recommendations on GATK best practices:\nhttps://software.broadinstitute.org/gatk/documentation/article.php?id=1259\n\nhttps://software.broadinstitute.org/gatk/documentation/article?id=2805",
     "sbg:createdBy": "mladenlSBG",
-    "hints": [
-        {
-            "value": "c3.8xlarge",
-            "class": "sbg:AWSInstanceType"
-        },
-        {
-            "value": "n1-standard-32",
-            "class": "sbg:GoogleInstanceType"
-        },
-        {
-            "value": "true",
-            "class": "sbg:useSbgFS"
-        }
-    ],
+    "hints": [],
     "label": "Whole Genome Analysis - BWA + GATK 2.3.9-Lite (with Metrics)",
     "sbg:canvas_zoom": 0.5999999999999996,
     "sbg:canvas_x": -10,

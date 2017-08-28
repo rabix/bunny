@@ -4714,16 +4714,7 @@
     "sbg:canvas_y": -66,
     "label": "RNA-seq Alignment - STAR 2.5.1b for TCGA PE tar",
     "sbg:modifiedBy": "bixqa",
-    "hints": [
-        {
-            "value": "c3.8xlarge",
-            "class": "sbg:AWSInstanceType"
-        },
-        {
-            "value": "n1-standard-32;pd-ssd;4096",
-            "class": "sbg:GoogleInstanceType"
-        }
-    ],
+    "hints": [],
     "sbg:revisionsInfo": [
         {
             "sbg:modifiedBy": "bixqa",
