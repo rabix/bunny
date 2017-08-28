@@ -1,0 +1,4 @@
+grepString: bacon
+grepFile:
+  class: File
+  path: hello.txt

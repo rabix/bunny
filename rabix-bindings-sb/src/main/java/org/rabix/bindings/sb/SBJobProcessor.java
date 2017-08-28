@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.rabix.bindings.model.ApplicationPort;
@@ -14,6 +15,7 @@ import org.rabix.bindings.sb.bean.SBJobApp;
 import org.rabix.bindings.sb.bean.SBOutputPort;
 import org.rabix.bindings.sb.bean.SBStep;
 import org.rabix.bindings.sb.bean.SBWorkflow;
+import org.rabix.bindings.sb.bean.resource.SBResource;
 import org.rabix.bindings.sb.helper.SBBindingHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
@@ -50,6 +52,7 @@ public class SBJobProcessor implements BeanProcessor<SBJob> {
         SBJob stepJob = step.getJob();
         String stepId = job.getId() + SBSchemaHelper.PORT_ID_SEPARATOR + SBSchemaHelper.normalizeId(step.getId());
         stepJob.setId(stepId);
+        processHints(job, stepJob);
         processElements(job, stepJob);
         process(job, stepJob);
       }
@@ -57,6 +60,19 @@ public class SBJobProcessor implements BeanProcessor<SBJob> {
     return job;
   }
   
+  private void processHints(SBJob job, SBJob stepJob) {
+    List<SBResource> hints = new ArrayList<>();
+    hints.addAll(stepJob.getApp().getHints());
+    List<String> types = hints.stream().map(h->h.getType()).collect(Collectors.toList());
+    for(SBResource resource: job.getApp().getHints()){
+      if(!types.contains(resource.getType())){
+        hints.add(resource);
+      }
+    }
+    stepJob.getApp().getHints().clear();
+    stepJob.getApp().getHints().addAll(hints); 
+  }
+
   /**
    * Process Job inputs, outputs and data links
    */

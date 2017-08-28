@@ -69,15 +69,17 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageC
   private final ErrorCallback errorCallback;
 
   private final SchedulerMessageCreator messageCreator;
+  private final SchedulerJobBackendAssigner assigner;
   
   @Inject
   public SchedulerServiceImpl(Configuration configuration, JobService jobService, BackendService backendService,
       TransactionHelper repositoriesFactory, SchedulerMessageCreator messageCreator, ReceiveCallback<Job> jobReceiver,
-      BackendRepository backendRepository) {
+      BackendRepository backendRepository, SchedulerJobBackendAssigner assigner) {
     this.jobService = jobService;
     this.backendService = backendService;
     this.transactionHelper = repositoriesFactory;
     this.messageCreator = messageCreator;
+    this.assigner = assigner;
     this.heartbeatPeriod = configuration.getLong("cleaner.backend.period", DEFAULT_HEARTBEAT_PERIOD);
 
     this.jobReceiver = jobReceiver;
@@ -111,12 +113,12 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageC
           return null;
         }
         
-        Set<JobBackendAssignment> assignments = assign(entities.stream().map(e -> e.getJob()).collect(Collectors.toSet()), getBackends());
+        Set<JobEntity> assignments = assigner.assign(entities, getBackends());
         entities.stream().forEach(e -> {
-          e.setBackendId(assignments.stream().filter(a -> e.getJob().getId().equals(a.getJob().getId())).findFirst().get().getBackend().getId());
+          e.setBackendId(assignments.stream().filter(a -> e.getJob().getId().equals(a.getJob().getId())).findFirst().get().getBackendId());
         });
         jobService.updateBackends(entities);
-        messages.set(messageCreator.create(assignments, getBackendIds()));
+        messages.set(messageCreator.create(assignments));
         return null;
       });
       send(messages.getAndSet(Collections.<SchedulerMessage>emptySet()));
@@ -128,13 +130,14 @@ public class SchedulerServiceImpl implements SchedulerService, SchedulerMessageC
   }
   
   @Override
-  public Set<JobBackendAssignment> assign(Set<Job> jobs, Set<Backend> backends) {
-    return jobs.stream().map(j -> new JobBackendAssignment(j, nextBackend().getBackend())).collect(Collectors.toSet());
+  public Set<JobEntity> assign(Set<JobEntity> jobs, Set<Backend> backends) {
+     jobs.stream().forEach(j->j.setBackendId(backends.iterator().next().getId()));
+     return jobs;
   }
   
   @Override
-  public Set<SchedulerMessage> create(final Set<JobBackendAssignment> assignments, final Set<UUID> backendIDs) {
-    return assignments.stream().map(a -> new SchedulerMessage(a.getBackend().getId(), a.getJob())).collect(Collectors.toSet());
+  public Set<SchedulerMessage> create(final Set<JobEntity> assignments) {
+    return assignments.stream().map(a -> new SchedulerMessage(a.getBackendId(), a.getJob())).collect(Collectors.toSet());
   }
   
   @Override

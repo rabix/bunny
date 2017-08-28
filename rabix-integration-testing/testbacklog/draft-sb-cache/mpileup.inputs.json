@@ -1,0 +1,41 @@
+{
+    "reference_fasta": {
+        "class": "File",
+        "name": "human_g1k_v37_decoy.fasta",
+        "metadata": {
+            "species": "Homo sapiens"
+        },
+        "size": 3189750467,
+        "path": "mpileup/reference.fasta"
+    },
+    "fai_file": {
+        "class": "File",
+        "name": "human_g1k_v37_decoy.fasta.fai",
+        "metadata": {
+            "species": "Homo sapiens"
+        },
+        "size": 2813,
+        "path": "mpileup/reference.fasta.fai"
+    },
+    "output_format": "PILEUP",
+    "output_state": "Merge",
+    "bams": [
+        {
+            "class": "File",
+            "name": "C835.HCC1143.2.converted.realigned.base_recalibrated.bam",
+            "metadata": {
+                "sample_id": "HCC1143",
+                "sample_type": "Cell Line",
+                "quality_scale": "sanger",
+                "case_id": "CCLE-HCC1143",
+                "platform": "Illumina",
+                "investigation": "CCLE-BRCA",
+                "experimental_strategy": "WXS",
+                "reference_genome": "human_g1k_v37_decoy"
+            },
+            "size": 5645361631,
+            "path": "mpileup/bam"
+        }
+    ],
+    "app": "mpileup.cwl"
+}

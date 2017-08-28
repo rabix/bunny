@@ -19,7 +19,6 @@ import org.rabix.bindings.sb.bean.resource.requirement.SBExpressionEngineRequire
 import org.rabix.bindings.sb.bean.resource.requirement.SBIORequirement;
 import org.rabix.bindings.sb.bean.resource.requirement.SBSchemaDefRequirement;
 import org.rabix.bindings.sb.json.SBJobAppDeserializer;
-import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -282,11 +281,7 @@ public abstract class SBJobApp extends Application {
     return SBJobAppType.EXPRESSION_TOOL.equals(getType());
   }
   
-  @Override
-  public String serialize() {
-    return BeanSerializer.serializePartial(this);
-  }
-  
+  @JsonIgnore
   public abstract SBJobAppType getType();
 
   @Override
