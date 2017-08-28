@@ -1,0 +1,261 @@
+{
+  "id" : "aa3edfa2-9c14-48a6-b905-982e8e75d786",
+  "parentId" : "9f1dff12-c79b-4dbd-9b71-b2610b2b3bc9",
+  "rootId" : "9f1dff12-c79b-4dbd-9b71-b2610b2b3bc9",
+  "name" : "root.SBG_Scatter_Prepare_3",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNmaWxlcyIsCiAgICAidHlwZSIgOiBbICJudWxsIiwgewogICAgICAiaXRlbXMiIDogIkZpbGUiLAogICAgICAidHlwZSIgOiAiYXJyYXkiCiAgICB9IF0sCiAgICAiZGVzY3JpcHRpb24iIDogIklucHV0IGZpbGVzLiIsCiAgICAic2JnOmNhdGVnb3J5IiA6ICJJbnB1dCIsCiAgICAibGFiZWwiIDogIklucHV0IGZpbGVzIiwKICAgICJyZXF1aXJlZCIgOiBmYWxzZQogIH0gXSwKICAib3V0cHV0cyIgOiBbIHsKICAgICJpZCIgOiAiI2dyb3VwZWRfZmlsZXMiLAogICAgInR5cGUiIDogWyAibnVsbCIsIHsKICAgICAgIml0ZW1zIiA6ICJGaWxlIiwKICAgICAgInR5cGUiIDogImFycmF5IgogICAgfSBdLAogICAgIm91dHB1dEJpbmRpbmciIDogewogICAgICAiZ2xvYiIgOiAiKi4qIgogICAgfSwKICAgICJkZXNjcmlwdGlvbiIgOiAiR3JvdXBlZCBmaWxlcy4iLAogICAgImxhYmVsIiA6ICJHcm91cGVkIGZpbGVzIgogIH0gXSwKICAiaGludHMiIDogWyB7CiAgICAiY2xhc3MiIDogInNiZzpDUFVSZXF1aXJlbWVudCIsCiAgICAidmFsdWUiIDogMQogIH0sIHsKICAgICJjbGFzcyIgOiAic2JnOk1lbVJlcXVpcmVtZW50IiwKICAgICJ2YWx1ZSIgOiAxMDAwCiAgfSwgewogICAgImNsYXNzIiA6ICJEb2NrZXJSZXF1aXJlbWVudCIsCiAgICAiZG9ja2VyUHVsbCIgOiAiaW1hZ2VzLnNiZ2Vub21pY3MuY29tL21pbG9zX2pvcmRhbnNraS9weXRob246Mi43IiwKICAgICJkb2NrZXJJbWFnZUlkIiA6ICIiCiAgfSBdLAogICJyZXF1aXJlbWVudHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkNyZWF0ZUZpbGVSZXF1aXJlbWVudCIsCiAgICAiZmlsZURlZiIgOiBbIHsKICAgICAgImZpbGVDb250ZW50IiA6ICJcIlwiXCJcblVzYWdlOlxuICAgIGdyb3VwX2J5X21ldGFkYXRhLnB5XG5cbkRlc2NyaXB0aW9uOlxuICAgIFByZXBhcmUgSW5wdXQgRmlsZXMgbWFuaXB1bGF0ZXMgLyBjcmVhdGVzIGFuIG91dHB1dCBsaXN0IGFzIGdyb3VwIG9mIGZpbGVzIHdpdGggdGhlIHNhbWUgbWV0YWRhdGEuXG5cbk9wdGlvbnM6XG5cbiAgICAtaCwgLS1oZWxwICAgICAgICAgICAgU2hvdyB0aGlzIG1lc3NhZ2UuXG5cbiAgICAtdiwgLVYsIC0tdmVyc2lvbiAgICAgVG9vbCB2ZXJzaW9uLlxuXCJcIlwiXG5cbmltcG9ydCBqc29uXG5cblxuam9iID0gXCJcIlxud2l0aCBvcGVuKCdqb2IuanNvbicpIGFzIGRhdGFfZmlsZTpcbiAgICBqb2IgPSBqc29uLmxvYWQoZGF0YV9maWxlKVxuZmlsZXMgPSBqb2JbXCJpbnB1dHNcIl1bXCJmaWxlc1wiXVxuXG5jb250cm9sX2ZpbGVzID0gW11cbnJlYWxfc2FtcGxlcyA9IFtdXG5cblxuZm9yIGZpbGVfbGlzdCBpbiBmaWxlczpcbiAgICBpZiBmaWxlX2xpc3Q6XG4gICAgICAgIGZvciBmIGluIGZpbGVfbGlzdDpcbiAgICAgICAgICAgIHByaW50KGYpXG4gICAgICAgICAgICBkID0geydjbGFzcyc6ICdGaWxlJ31cbiAgICAgICAgICAgIGRbJ3BhdGgnXSA9IGZbXCJwYXRoXCJdXG5cbiAgICAgICAgICAgIGlmIFwic2l6ZVwiIGluIGY6XG4gICAgICAgICAgICAgICAgZFsnc2l6ZSddID0gZltcInNpemVcIl1cblxuICAgICAgICAgICAgaWYgXCJjb250ZW50c1wiIGluIGY6XG4gICAgICAgICAgICAgICAgZFsnY29udGVudHMnXSA9IGZbXCJjb250ZW50c1wiXVxuXG4gICAgICAgICAgICBpZiBcIm5hbWVcIiBpbiBmOlxuICAgICAgICAgICAgICAgIGRbJ25hbWUnXSA9IGZbXCJuYW1lXCJdXG5cbiAgICAgICAgICAgIGlmIFwiY2hlY2tzdW1cIiBpbiBmOlxuICAgICAgICAgICAgICAgIGRbJ2NoZWNrc3VtJ10gPSBmW1wiY2hlY2tzdW1cIl1cblxuICAgICAgICAgICAgaWYgXCJsb2NhdGlvblwiIGluIGY6XG4gICAgICAgICAgICAgICAgZFsnbG9jYXRpb24nXSA9IGZbXCJsb2NhdGlvblwiXVxuXG4gICAgICAgICAgICBpZiBcIm1ldGFkYXRhXCIgaW4gZjpcbiAgICAgICAgICAgICAgICBkWydtZXRhZGF0YSddID0gZltcIm1ldGFkYXRhXCJdXG5cbiAgICAgICAgICAgIGlmIFwic2Vjb25kYXJ5RmlsZXNcIiBpbiBmOlxuICAgICAgICAgICAgICAgIGRbJ3NlY29uZGFyeUZpbGVzJ10gPSBmW1wic2Vjb25kYXJ5RmlsZXNcIl1cblxuICAgICAgICAgICAgaWYgXCJtZXRhZGF0YVwiIGluIGYgYW5kIFwiY2hpcC1zZXFcIiBpbiBmW1wibWV0YWRhdGFcIl0gYW5kIGZbXCJtZXRhZGF0YVwiXVtcImNoaXAtc2VxXCJdPT1cInNhbXBsZVwiOlxuICAgICAgICAgICAgICAgIHJlYWxfc2FtcGxlcy5hcHBlbmQoZClcbiAgICAgICAgICAgIGVsc2U6XG4gICAgICAgICAgICAgICAgY29udHJvbF9maWxlcy5hcHBlbmQoZClcblxuaWYgbm90IGNvbnRyb2xfZmlsZXM6XG4gICAgZ3JvdXBzPVtyZWFsX3NhbXBsZXNdXG5lbGlmIG5vdCByZWFsX3NhbXBsZXM6XG4gICAgZ3JvdXBzID0gW2NvbnRyb2xfZmlsZXNdXG5lbHNlOlxuICAgIGdyb3VwcyA9IFtjb250cm9sX2ZpbGVzLCByZWFsX3NhbXBsZXNdXG4gICAgICAgICAgICBcbmRhdGEgPSB7fVxuZGF0YVsnZ3JvdXBlZF9maWxlcyddID0gZ3JvdXBzXG53aXRoIG9wZW4oJ2N3bC5vdXRwdXQuanNvbicsICd3JykgYXMgdzpcbiAgICBqc29uLmR1bXAoZGF0YSwgdykiLAogICAgICAiZmlsZW5hbWUiIDogImdyb3VwX2J5X21ldGFkYXRhLnB5IgogICAgfSBdCiAgfSBdLAogICJzdWNjZXNzQ29kZXMiIDogWyBdLAogICJzdGRpbiIgOiAiIiwKICAic3Rkb3V0IiA6ICIiLAogICJiYXNlQ29tbWFuZCIgOiBbICJweXRob24iLCAiZ3JvdXBfYnlfbWV0YWRhdGEucHkiIF0sCiAgImFyZ3VtZW50cyIgOiBbIF0sCiAgInNiZzpwcm9qZWN0IiA6ICJiaXgtZGVtby9zYmd0b29scy1kZW1vIiwKICAic2JnOnJldmlzaW9uIiA6IDEsCiAgInNiZzptb2RpZmllZE9uIiA6IDE0OTk0MTk4NjYsCiAgInNiZzpjbWRQcmV2aWV3IiA6ICJweXRob24gZ3JvdXBfYnlfbWV0YWRhdGEucHkiLAogICJzYmc6cHJvamVjdE5hbWUiIDogIlNCR1Rvb2xzIC0gRGVtbyBOZXciLAogICJkZXNjcmlwdGlvbiIgOiAiU0JHIFNjYXR0ZXIgUHJlcGFyZSBwcmVwYXJlcyBpbnB1dHMgZm9yIHNjYXR0ZXJpbmcuIiwKICAic2JnOmNyZWF0ZWRPbiIgOiAxNDk5NDE5ODMxLAogICJsYWJlbCIgOiAiU0JHIFNjYXR0ZXIgUHJlcGFyZSIsCiAgInNiZzptb2RpZmllZEJ5IiA6ICJuZW1hbmphLnZ1Y2ljIiwKICAic2JnOmNvbnRyaWJ1dG9ycyIgOiBbICJuZW1hbmphLnZ1Y2ljIiBdLAogICJzYmc6aWQiIDogImFkbWluL3NiZy1wdWJsaWMtZGF0YS9zYmctc2NhdHRlci1wcmVwYXJlLzEiLAogICJzYmc6YXBwVmVyc2lvbiIgOiBbICJzYmc6ZHJhZnQtMiIgXSwKICAic2JnOmxhdGVzdFJldmlzaW9uIiA6IDEsCiAgInNiZzpjcmVhdGVkQnkiIDogIm5lbWFuamEudnVjaWMiLAogICJzYmc6am9iIiA6IHsKICAgICJhbGxvY2F0ZWRSZXNvdXJjZXMiIDogewogICAgICAiY3B1IiA6IDEsCiAgICAgICJtZW0iIDogMTAwMAogICAgfSwKICAgICJpbnB1dHMiIDogewogICAgICAiZmlsZXMiIDogWyB7CiAgICAgICAgImNsYXNzIiA6ICJGaWxlIiwKICAgICAgICAicGF0aCIgOiAiL3BhdGgvdG8vaW5wdXRfYmFtLTEuZXh0IiwKICAgICAgICAic2Vjb25kYXJ5RmlsZXMiIDogWyBdLAogICAgICAgICJzaXplIiA6IDAKICAgICAgfSwgewogICAgICAgICJjbGFzcyIgOiAiRmlsZSIsCiAgICAgICAgInBhdGgiIDogIi9wYXRoL3RvL2lucHV0X2JhbS0yLmV4dCIsCiAgICAgICAgInNlY29uZGFyeUZpbGVzIiA6IFsgXSwKICAgICAgICAic2l6ZSIgOiAwCiAgICAgIH0gXQogICAgfQogIH0sCiAgInNiZzpzYmdNYWludGFpbmVkIiA6IGZhbHNlLAogICJ0ZW1wb3JhcnlGYWlsQ29kZXMiIDogWyBdLAogICJ4IiA6IDk0Ni42NjY3NTEwMDA2MTg0LAogICJ5IiA6IDEwOC4zMzMzMzE3NTcxMjE0OCwKICAiaWQiIDogImJpeC1kZW1vL3NiZ3Rvb2xzLWRlbW8vc2JnLXNjYXR0ZXItcHJlcGFyZS8xIiwKICAic2JnOnJldmlzaW9uc0luZm8iIDogWyB7CiAgICAic2JnOm1vZGlmaWVkQnkiIDogIm5lbWFuamEudnVjaWMiLAogICAgInNiZzptb2RpZmllZE9uIiA6IDE0OTk0MTk4MzEsCiAgICAic2JnOnJldmlzaW9uIiA6IDAsCiAgICAic2JnOnJldmlzaW9uTm90ZXMiIDogbnVsbAogIH0sIHsKICAgICJzYmc6bW9kaWZpZWRCeSIgOiAibmVtYW5qYS52dWNpYyIsCiAgICAic2JnOm1vZGlmaWVkT24iIDogMTQ5OTQxOTg2NiwKICAgICJzYmc6cmV2aXNpb24iIDogMSwKICAgICJzYmc6cmV2aXNpb25Ob3RlcyIgOiBudWxsCiAgfSBdLAogICJzYmc6aW1hZ2VfdXJsIiA6IG51bGwsCiAgImNsYXNzIiA6ICJDb21tYW5kTGluZVRvb2wiLAogICJzYmc6dmFsaWRhdGlvbkVycm9ycyIgOiBbIF0KfQ==",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "files" : [ {
+      "size" : 404996387,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bam",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bam",
+      "name" : "NRSF_K562_control_rep1.deduped.bam",
+      "checksum" : "sha1$a3cf37bd9d512091020155fd7b664e9afe1132e7",
+      "secondaryFiles" : [ {
+        "$type" : "File",
+        "size" : 0,
+        "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bai",
+        "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bai",
+        "name" : "NRSF_K562_control_rep1.deduped.bai",
+        "secondaryFiles" : [ ],
+        "properties" : {
+          "sbg:metadata" : null
+        },
+        "$type" : "File"
+      }, {
+        "$type" : "File",
+        "size" : 0,
+        "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bam.bai",
+        "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bam.bai",
+        "name" : "NRSF_K562_control_rep1.deduped.bam.bai",
+        "secondaryFiles" : [ ],
+        "properties" : {
+          "sbg:metadata" : null
+        },
+        "$type" : "File"
+      } ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 828817090,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bam",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bam",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.bam",
+      "checksum" : "sha1$75ae88ae19df93ab542d2c21c496513c5a712edf",
+      "secondaryFiles" : [ {
+        "$type" : "File",
+        "size" : 0,
+        "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bai",
+        "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bai",
+        "name" : "NRSF_K562_benchmark_rep1.deduped.bai",
+        "secondaryFiles" : [ ],
+        "properties" : {
+          "sbg:metadata" : null
+        },
+        "$type" : "File"
+      }, {
+        "$type" : "File",
+        "size" : 0,
+        "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bam.bai",
+        "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bam.bai",
+        "name" : "NRSF_K562_benchmark_rep1.deduped.bam.bai",
+        "secondaryFiles" : [ ],
+        "properties" : {
+          "sbg:metadata" : null
+        },
+        "$type" : "File"
+      } ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 1251,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.metrics",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.metrics",
+      "name" : "NRSF_K562_control_rep1.metrics",
+      "checksum" : "sha1$86072d5bd845ab14081405aa6cf9cf6bd2fd570f",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 1257,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.metrics",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.metrics",
+      "name" : "NRSF_K562_benchmark_rep1.metrics",
+      "checksum" : "sha1$a28b492946cad32a9cefe129a2b7c1c3379fceb8",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    } ]
+  },
+  "outputs" : {
+    "grouped_files" : [ [ {
+      "size" : 404996387,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bam",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bam",
+      "name" : "NRSF_K562_control_rep1.deduped.bam",
+      "checksum" : "sha1$a3cf37bd9d512091020155fd7b664e9afe1132e7",
+      "secondaryFiles" : [ {
+        "$type" : "File",
+        "size" : 0,
+        "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bai",
+        "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bai",
+        "name" : "NRSF_K562_control_rep1.deduped.bai",
+        "secondaryFiles" : [ ],
+        "properties" : {
+          "sbg:metadata" : {
+            "__inherit__" : "input_bam",
+            "case_id" : "1",
+            "chip-seq" : "control",
+            "sample_id" : "NRSF_K562_control_rep1"
+          }
+        },
+        "$type" : "File"
+      }, {
+        "$type" : "File",
+        "size" : 0,
+        "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bam.bai",
+        "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.deduped.bam.bai",
+        "name" : "NRSF_K562_control_rep1.deduped.bam.bai",
+        "secondaryFiles" : [ ],
+        "properties" : {
+          "sbg:metadata" : {
+            "__inherit__" : "input_bam",
+            "case_id" : "1",
+            "chip-seq" : "control",
+            "sample_id" : "NRSF_K562_control_rep1"
+          }
+        },
+        "$type" : "File"
+      } ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 1251,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.metrics",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/1/NRSF_K562_control_rep1.metrics",
+      "name" : "NRSF_K562_control_rep1.metrics",
+      "checksum" : "sha1$86072d5bd845ab14081405aa6cf9cf6bd2fd570f",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    } ], [ {
+      "size" : 828817090,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bam",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bam",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.bam",
+      "checksum" : "sha1$75ae88ae19df93ab542d2c21c496513c5a712edf",
+      "secondaryFiles" : [ {
+        "$type" : "File",
+        "size" : 0,
+        "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bai",
+        "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bai",
+        "name" : "NRSF_K562_benchmark_rep1.deduped.bai",
+        "secondaryFiles" : [ ],
+        "properties" : {
+          "sbg:metadata" : {
+            "__inherit__" : "input_bam",
+            "case_id" : "1",
+            "chip-seq" : "sample",
+            "sample_id" : "NRSF_K562_benchmark_rep1"
+          }
+        },
+        "$type" : "File"
+      }, {
+        "$type" : "File",
+        "size" : 0,
+        "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bam.bai",
+        "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.deduped.bam.bai",
+        "name" : "NRSF_K562_benchmark_rep1.deduped.bam.bai",
+        "secondaryFiles" : [ ],
+        "properties" : {
+          "sbg:metadata" : {
+            "__inherit__" : "input_bam",
+            "case_id" : "1",
+            "chip-seq" : "sample",
+            "sample_id" : "NRSF_K562_benchmark_rep1"
+          }
+        },
+        "$type" : "File"
+      } ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 1257,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.metrics",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/Picard_MarkDuplicates_1/2/NRSF_K562_benchmark_rep1.metrics",
+      "name" : "NRSF_K562_benchmark_rep1.metrics",
+      "checksum" : "sha1$a28b492946cad32a9cefe129a2b7c1c3379fceb8",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    } ] ]
+  },
+  "resources" : {
+    "cpu" : 32,
+    "memMB" : 46967,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ ]
+}

@@ -470,4 +470,70 @@ test7:
     report_zip_1:
         - [{checksum: sha1$72e152130f3db24951c889f01f830574853cbd98, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_FastQC_1/1/NRSF_K562_control_rep1_fastqc.zip, metadata: {__inherit__: input_fastq, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1_fastqc.zip, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_FastQC_1/1/NRSF_K562_control_rep1_fastqc.zip, secondaryFiles: [], size: 316467}]
         - [{checksum: sha1$f28a9fd7288b4b0a8dfa0d9a0e74d3245bba3042, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_FastQC_1/2/NRSF_K562_benchmark_rep1_fastqc.zip, metadata: {__inherit__: input_fastq, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1_fastqc.zip, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_FastQC_1/2/NRSF_K562_benchmark_rep1_fastqc.zip, secondaryFiles: [], size: 336214}]
-          
+test8:
+  app: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3.cwl
+  inputs: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3.inputs.json
+  cache: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3/cachedir
+  runtime: 60
+  expected:
+    aligned_reads_1:
+    - {checksum: sha1$d463e95b3c091046f09af0a1a764bbef8888fe4b, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Filter_ChIP_seq_BAM_1/1/NRSF_K562_control_rep1.deduped.filter.srt.bam, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1.deduped.filter.srt.bam, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Filter_ChIP_seq_BAM_1/1/NRSF_K562_control_rep1.deduped.filter.srt.bam, secondaryFiles: [], size: 336857172}
+    - {checksum: sha1$f1d981d5595e5a6a9efd300a7025565653f48f9c, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Filter_ChIP_seq_BAM_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Filter_ChIP_seq_BAM_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, secondaryFiles: [], size: 586250712}
+    b64html_1:
+        - {checksum: sha1$9715c7982d778119fd70c55262ea8e55e3b8216e, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.b64html, metadata: null, name: NRSF_K562_control_rep1.qc.b64html, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.b64html, secondaryFiles: [], size: 377298}
+        - {checksum: sha1$f431701df2537cbb287f98df396f3ccc02525645, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.b64html, metadata: null, name: NRSF_K562_benchmark_rep1.qc.b64html, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.b64html, secondaryFiles: [], size: 332542}
+    generated_index:
+        - {checksum: sha1$5d68b7df6a188980df6eae8db652d46ead78d1a1, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SAMtools_Index_BAM/1/NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SAMtools_Index_BAM/1/NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, secondaryFiles: [], size: 5957304}
+        - {checksum: sha1$1a3ab48a23a36f32feca48e3cace9373e91cdc13, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SAMtools_Index_BAM/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SAMtools_Index_BAM/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, secondaryFiles: [], size: 6104688}
+    out_crosscorr_pdf:
+        checksum: sha1$7284fe0c48652c83601042236f8372d9f4ffe425
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPxcorplot.pdf
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_SPPxcorplot.pdf
+        path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPxcorplot.pdf
+        secondaryFiles: []
+        size: 7134
+    output_NarrowPeak:
+        checksum: sha1$cbf570097c26f3074c3b4800318dfba595bf8cc2
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPpeaks.narrowPeak.gz
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_SPPpeaks.narrowPeak.gz
+        path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPpeaks.narrowPeak.gz
+        secondaryFiles: []
+        size: 493848
+    output_Rdata:
+        checksum: sha1$1ce09e310697cdc4f90d392b1d214b24ef16377b
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPmodel.Rdata
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_SPPmodel.Rdata
+        path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPmodel.Rdata
+        secondaryFiles: []
+        size: 3504687
+    output_file_1:
+        checksum: sha1$cc468840b2b94acee42ee94edef63857fd80464d
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_BEDTools_intersect_1/NRSF_K562_benchmark_rep1_SPPpeaks.blacklisted.narrowPeak
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_SPPpeaks.blacklisted.narrowPeak
+        path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_BEDTools_intersect_1/NRSF_K562_benchmark_rep1_SPPpeaks.blacklisted.narrowPeak
+        secondaryFiles: []
+        size: 1668746
+    output_json_1:
+        - {checksum: sha1$7dccff71e9c781dc1d27b51a2f476b1c2833d329, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.json, metadata: null, name: NRSF_K562_control_rep1.qc.json, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.json, secondaryFiles: [], size: 1212}
+        - {checksum: sha1$6ca980577406c18ae19c7f5ac7fa2a3079b23d72, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.json, metadata: null, name: NRSF_K562_benchmark_rep1.qc.json, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.json, secondaryFiles: [], size: 1218}
+    report_zip_1:
+        - [{checksum: sha1$398e2f71e5cced6ddb553451412afaa744f3a39f, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_FastQC_1/1/NRSF_K562_control_rep1_fastqc.zip, metadata: {__inherit__: input_fastq, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1_fastqc.zip, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_FastQC_1/1/NRSF_K562_control_rep1_fastqc.zip, secondaryFiles: [], size: 316467}]
+        - [{checksum: sha1$f45092c9f53f6639a08f79b371edbaf5a997df19, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_FastQC_1/2/NRSF_K562_benchmark_rep1_fastqc.zip, metadata: {__inherit__: input_fastq, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1_fastqc.zip, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_FastQC_1/2/NRSF_K562_benchmark_rep1_fastqc.zip, secondaryFiles: [], size: 336214}]
+                
+            
