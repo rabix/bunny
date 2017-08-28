@@ -132,7 +132,7 @@ public class JobRecordServiceImpl implements JobRecordService {
             if (type.equals(LinkPortType.OUTPUT)) {
               if (jobRecord.isScatterWrapper()) {
                 pc.counter = pc.counter + 1;
-              } else if (jobRecord.isContainer() && pc.incoming > 1) {
+              } else if (jobRecord.isContainer()) {
                 pc.counter = pc.counter + 1;
               }
             }

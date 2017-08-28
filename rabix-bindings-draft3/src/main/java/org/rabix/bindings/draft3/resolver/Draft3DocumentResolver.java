@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.BindingWrongVersionException;
@@ -121,6 +122,10 @@ public static Set<String> types = new HashSet<String>();
       } else if (replacement.getParentNode().isObject()) {
         replaceObjectItem(appUrl, root, replacement);
       }
+    }
+    
+    if (root.has(SCHEMA_KEY)) {
+      throw new NotImplementedException("Feature not implemented");
     }
     
     if(graphResolve) {

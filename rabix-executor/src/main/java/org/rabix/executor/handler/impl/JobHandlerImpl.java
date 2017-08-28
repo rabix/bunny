@@ -3,11 +3,7 @@ package org.rabix.executor.handler.impl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.inject.Inject;
 
@@ -130,6 +126,24 @@ public class JobHandlerImpl implements JobHandler {
     logger.info("Start command line tool for id={}", job.getId());
     try {
       job = statusCallback.onJobReady(job);
+      /*
+       * If cache service and mock worker are enabled,
+       * executor will simply pass the results before binding
+       * or checking on inputs.
+       */
+      if(cacheService.isCacheEnabled() && cacheService.isMockWorkerEnabled()) {
+        cachedJob = (Job) CloneHelper.deepCopy(job);
+
+        if (cacheService.isCacheEnabled()) {
+          Map<String, Object> results = cacheService.find(job);
+          if (results != null) {
+            logger.info("Job {} is successfully copied from cache by mocking", job.getName());
+            containerHandler = new CompletedContainerHandler(job);
+            containerHandler.start();
+            return;
+          }
+        }
+      }
 
       Bindings bindings = BindingsFactory.create(job);
       statusCallback.onInputFilesDownloadStarted(job);
@@ -144,10 +158,14 @@ public class JobHandlerImpl implements JobHandler {
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
 
-      if (cacheService.isCacheEnabled()) {
+      /*
+       * Cache service is enabled but mocking is not.
+       * Inputs will be thoroughly scanned after binding.
+       */
+      if (cacheService.isCacheEnabled() && !cacheService.isMockWorkerEnabled()) {
         Map<String, Object> results = cacheService.find(job);
         if (results != null) {
-          logger.info("Job {} is successfully copied from cache", job.getName());
+          logger.info("Job {} is successfully copied from cache without mocking", job.getName());
           containerHandler = new CompletedContainerHandler(job);
           containerHandler.start();
           return;
@@ -251,6 +269,9 @@ public class JobHandlerImpl implements JobHandler {
       if (fileRequirements == null) {
         return;
       }
+
+      Map<String, String> stagedFiles = new HashMap<>();
+
       for (SingleFileRequirement fileRequirement : fileRequirements) {
         logger.info("Process file requirement {}", fileRequirement);
 
@@ -272,7 +293,9 @@ public class JobHandlerImpl implements JobHandler {
           
           String path = ((SingleInputFileRequirement) fileRequirement).getContent().getPath();
           String mappedPath = inputFileMapper.map(path, job.getConfig());
+          stagedFiles.put(path, destinationFile.getPath());
           File file = new File(mappedPath);
+
           if (!file.exists()) {
             continue;
           }
@@ -288,6 +311,19 @@ public class JobHandlerImpl implements JobHandler {
           }
         }
       }
+
+      try {
+        job = FileValueHelper.updateInputFiles(job, fileValue -> {
+          if (stagedFiles.containsKey(fileValue.getPath())) {
+            fileValue.setPath(stagedFiles.get(fileValue.getPath()));
+          }
+
+          return fileValue;
+        });
+      } catch (BindingException e) {
+        throw new FileMappingException(e);
+      }
+
     } catch (IOException e) {
       throw new ExecutorException("Failed to process file requirements.", e);
     }

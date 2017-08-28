@@ -29,7 +29,7 @@ public class CWLStepPortsDeserializer extends JsonDeserializer<List<Map<String, 
     List<Map<String, Object>> stepPorts = new ArrayList<>();
     
     if (tree.isArray()) {
-      List<Object> list = (List<Object>) JSONHelper.transform(tree);
+      List<Object> list = (List<Object>) JSONHelper.transform(tree, false);
       for (Object listObj : list) {
         if (listObj instanceof String) {
           Map<String, Object> single = new HashMap<>();
@@ -53,7 +53,7 @@ public class CWLStepPortsDeserializer extends JsonDeserializer<List<Map<String, 
           stepPort = JSONHelper.readMap(subnodeEntry.getValue());
         } else {
           stepPort = new HashMap<>();
-          stepPort.put(CWLBindingHelper.KEY_SOURCE, JSONHelper.transform(subnodeEntry.getValue()));
+          stepPort.put(CWLBindingHelper.KEY_SOURCE, JSONHelper.transform(subnodeEntry.getValue(), false));
         }
         stepPort.put(CWLSchemaHelper.STEP_PORT_ID, subnodeEntry.getKey());        
         stepPorts.add(stepPort);

@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.api.BackendModule;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
-import org.rabix.cli.service.LocalDownloadServiceImpl;
 import org.rabix.backend.tes.TESModule;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
@@ -43,6 +42,7 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.Resources;
+import org.rabix.cli.service.LocalDownloadServiceImpl;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
@@ -96,6 +96,7 @@ public class BackendCommandLine {
   private static String configDir = "/.bunny/config";
   
 
+  @SuppressWarnings("unchecked")
   public static void main(String[] commandLineArguments) {
     final CommandLineParser commandLineParser = new DefaultParser();
     final Options posixOptions = createOptions();
@@ -290,7 +291,7 @@ public class BackendCommandLine {
       Map<String, Object> inputs;
       if (inputsFile != null) {
         String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
-        inputs = JSONHelper.readMap(JSONHelper.readJsonNode(inputsText));
+        inputs = (Map<String, Object>) JSONHelper.transform(JSONHelper.readJsonNode(inputsText), true);
       } else {
         inputs = new HashMap<>();
         // No inputs file. If we didn't provide -- at the end, just print app help and exit
@@ -421,7 +422,7 @@ public class BackendCommandLine {
             try {
               try {
                 Map<String, Object> outputs = (Map<String, Object>) finalBindings.translateToSpecific(rootJob.getOutputs());
-                System.out.println(JSONHelper.mapperWithoutNulls.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
+                System.out.println(JSONHelper.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
                 System.exit(0);
               } catch (BindingException e) {
                 logger.error("Failed to translate common outputs to native", e);
@@ -554,7 +555,7 @@ public class BackendCommandLine {
   }
   
   private static void printVersionAndExit(Options posixOptions) {
-    System.out.println("Rabix 1.0.0-RC5");
+    System.out.println("Rabix 1.0.1");
     System.exit(0);
   }
 

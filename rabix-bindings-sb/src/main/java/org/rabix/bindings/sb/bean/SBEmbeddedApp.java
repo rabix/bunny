@@ -1,5 +1,6 @@
 package org.rabix.bindings.sb.bean;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.rabix.bindings.BindingException;
@@ -7,13 +8,21 @@ import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
+import org.rabix.bindings.sb.bean.SBEmbeddedApp.SBEmbeddedAppSerializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 @JsonDeserialize(as = SBEmbeddedApp.class)
+@JsonSerialize(using = SBEmbeddedAppSerializer.class)
 public class SBEmbeddedApp extends SBJobApp {
 
   private Application application;
@@ -56,13 +65,15 @@ public class SBEmbeddedApp extends SBJobApp {
   }
   
   @Override
-  public String serialize() {
-    return application.serialize();
-  }
-  
-  @Override
+  @JsonIgnore
   public SBJobAppType getType() {
     return SBJobAppType.EMBEDDED;
   }
 
+  public static class SBEmbeddedAppSerializer extends JsonSerializer<SBEmbeddedApp> {
+    @Override
+    public void serialize(SBEmbeddedApp value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
+      gen.writeObject(value.application);
+    }
+  }
 }

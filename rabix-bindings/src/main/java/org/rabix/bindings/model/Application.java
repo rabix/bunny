@@ -25,9 +25,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public abstract class Application {
 
   @JsonIgnore
-  public abstract String serialize();
-
-  @JsonIgnore
   public abstract ApplicationPort getInput(String name);
   
   @JsonIgnore
@@ -141,8 +138,7 @@ public abstract class Application {
       if (value == null) {
         gen.writeNull();
       } else {
-        JsonNode node = JSONHelper.readJsonNode(value.serialize());
-        gen.writeTree(node);
+        gen.writeObject(value);
       }
     }
   }

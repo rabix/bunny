@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.rabix</groupId>
 	<artifactId>rabix</artifactId>
-	<version>1.0.0-rc6-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<packaging>pom</packaging>
 	<name>Rabix Executor</name>
 	<description>

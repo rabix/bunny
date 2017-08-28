@@ -1,0 +1,29 @@
+{
+    "type": "DEL",
+    "input_bam": {
+        "class": "File",
+        "path": "delly2/merged-tumor.bam",
+        "metadata": {
+            "species": "Homo sapiens",
+            "case_id": "CCLE-HCC1143",
+            "sample_id": "HCC1143",
+            "experimental_strategy": "WXS",
+            "reference_genome": "human_g1k_v37_decoy",
+            "sample_type": "Cell Line",
+            "investigation": "CCLE-BRCA",
+            "platform": "Illumina"
+        },
+        "name": "merged-tumor.bam",
+        "size": 229145631
+    },
+    "genome": {
+        "class": "File",
+        "path": "delly2/reference.fasta",
+        "metadata": {
+            "species": "Homo sapiens"
+        },
+        "name": "human_g1k_v37_decoy.fasta",
+        "size": 3189750467
+    },
+    "app": "delly2.cwl"
+}
