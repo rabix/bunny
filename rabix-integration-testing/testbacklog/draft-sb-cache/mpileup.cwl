@@ -1766,16 +1766,7 @@
     "sbg:revisionNotes": "fix metadata issue when there is no metadata at inputs",
     "sbg:modifiedBy": "bixqa",
     "sbg:toolkitVersion": "1.3",
-    "hints": [
-        {
-            "class": "sbg:forceAmazonInstance",
-            "value": "cc2.8xlarge"
-        },
-        {
-            "class": "sbg:forceGoogleInstance",
-            "value": "n1-standard-32"
-        }
-    ],
+    "hints": [],
     "sbg:modifiedOn": 1501518694,
     "sbg:revisionsInfo": [
         {
