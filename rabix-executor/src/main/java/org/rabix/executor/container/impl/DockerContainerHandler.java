@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,7 +19,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -53,7 +51,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -168,11 +165,12 @@ public class DockerContainerHandler implements ContainerHandler {
   @Override
   public void start() throws ContainerException {
     String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
+    
     try {
       pull(dockerPull);
       
-      Set<Path> volumes = new HashSet<>();
-      Path physicalPath = storageConfig.getPhysicalExecutionBaseDir().toPath().toAbsolutePath();
+      Set<String> volumes = new HashSet<>();
+      String physicalPath = storageConfig.getPhysicalExecutionBaseDir().getAbsolutePath();
       volumes.add(physicalPath);
 
       ContainerConfig.Builder builder = ContainerConfig.builder();
@@ -181,20 +179,23 @@ public class DockerContainerHandler implements ContainerHandler {
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
       volumes = normalizeVolumes(job, volumes);
       
-      Set<Path> toBindSet = new HashSet<>();
+      Set<String> toBindSet = new HashSet<>();
       toBindSet.addAll(volumes);
       if(dockerResource.getDockerOutputDirectory() != null) {
-        volumes.add(Paths.get(dockerResource.getDockerOutputDirectory()));
+        volumes.add(dockerResource.getDockerOutputDirectory());
         hostConfigBuilder.binds(workingDir + ":" + dockerResource.getDockerOutputDirectory() + ":" + DIRECTORY_MAP_MODE);
         toBindSet.remove(workingDir);
         toBindSet.remove(dockerResource.getDockerOutputDirectory());
         toBindSet.remove(physicalPath);
       }
       
-      List<String> transformed = toBindSet.stream().map(path->{
-          return path.toString() + ":" + path.toUri().getPath() + ":" + DIRECTORY_MAP_MODE;
-      }).collect(Collectors.toList());
-      hostConfigBuilder.binds(transformed);
+      toBindSet = FluentIterable.from(toBindSet).transform(new Function<String, String>() {
+        @Override
+        public String apply(String input) {
+          return input + ":" + URI.create(input).getPath() + ":" + DIRECTORY_MAP_MODE;
+        }
+      }).toSet();
+      hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
       
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
@@ -228,7 +229,7 @@ public class DockerContainerHandler implements ContainerHandler {
         return;
       }
 
-      builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes.stream().map(path->path.toString()).collect(Collectors.toSet())).cmd("-c", commandLine);
+      builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("-c", commandLine);
         
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -295,18 +296,18 @@ public class DockerContainerHandler implements ContainerHandler {
     return commandLine;
   }
   
-  private Set<Path> normalizeVolumes(Job job, Set<Path> volumes) throws BindingException {
-    Set<Path> paths = new HashSet<>();
+  private Set<String> normalizeVolumes(Job job, Set<String> volumes) throws BindingException {
+    Set<String> paths = new HashSet<>();
     Set<FileValue> files = flattenFiles(FileValueHelper.getInputFiles(job));
     
     for (FileValue fileValue : files) {
-      paths.add(Paths.get(fileValue.getPath()).getParent().toAbsolutePath());
+      paths.add(Paths.get(fileValue.getPath()).getParent().toAbsolutePath().toString());
     }
     paths.addAll(volumes);
     
-    List<Path> toRemove = new ArrayList<>();
-    for (Path pathA : paths) {
-      for (Path pathB : paths) {
+    List<String> toRemove = new ArrayList<>();
+    for (String pathA : paths) {
+      for (String pathB : paths) {
         if (pathA.equals(pathB)) {
           continue;
         }
@@ -315,7 +316,7 @@ public class DockerContainerHandler implements ContainerHandler {
         }
       }
     }
-    for (Path path : toRemove) {
+    for (String path : toRemove) {
       paths.remove(path);
     }
     return paths;
