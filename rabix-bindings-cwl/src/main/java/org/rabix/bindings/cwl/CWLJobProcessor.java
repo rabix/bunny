@@ -1,6 +1,7 @@
 package org.rabix.bindings.cwl;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -89,13 +90,13 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
     }
     if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       String location = CWLFileValueHelper.getLocation(value);
-      if (location != null && !location.startsWith("/")) {
+      if (location != null && !!Paths.get(location).isAbsolute()) {
         File appFile = new File(appLocation);
         String newLocation = new File(appFile.getParentFile(), location).getAbsolutePath();
         CWLFileValueHelper.setLocation(newLocation, value);
       }
       String path = CWLFileValueHelper.getPath(value);
-      if (path != null && !path.startsWith("/")) {
+      if (path != null && !Paths.get(path).isAbsolute()) {
         File appFile = new File(appLocation);
         String newPath = new File(appFile.getParentFile(), path).getAbsolutePath();
         CWLFileValueHelper.setPath(newPath, value);
