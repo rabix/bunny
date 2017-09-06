@@ -106,7 +106,7 @@ public class DockerContainerHandler implements ContainerHandler {
   private String commandLine;
   
   FilePathMapper mapper = (String path, Map<String, Object> config) -> {
-    return path.startsWith("/") ? path.replaceAll(":", "") : "/" + path.replaceAll(":", "");
+    return path.startsWith("/") ? path : "/" + path.replaceAll(":", "");
   };
   
   public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
