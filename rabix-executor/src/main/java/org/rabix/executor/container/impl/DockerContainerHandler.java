@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.bindings.BindingException;
@@ -106,9 +106,7 @@ public class DockerContainerHandler implements ContainerHandler {
   
   private String commandLine;
   
-  FilePathMapper mapper = (String path, Map<String, Object> config) -> {
-    return path.startsWith("/") ? path : "/" + path.replaceAll(":", "");
-  };
+  private FilePathMapper mapper;
   
   public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
@@ -119,6 +117,13 @@ public class DockerContainerHandler implements ContainerHandler {
     this.workingDir = storageConfig.getWorkingDir(job);
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
     this.removeContainers = dockerConfig.removeContainers();
+    if (SystemUtils.IS_OS_WINDOWS) {
+      mapper = (String path, Map<String, Object> config) -> {
+        return path.startsWith("/") ? path : "/" + path.replace(":", "").replace("\\", "/");
+      };
+    }else{
+      mapper = (String path, Map<String, Object> config) -> {return path;};
+    }
   }
 
   private void pull(String image) throws ContainerException {
@@ -194,13 +199,20 @@ public class DockerContainerHandler implements ContainerHandler {
       
 
       toBindSet = toBindSet.stream().map(input -> {
-        try {
-          return input + ":" + mapper.map(input, null) + ":" + DIRECTORY_MAP_MODE;
-        } catch (FileMappingException e1) {
-        }
-        return null;
+          String out = input + ":";
+          if (SystemUtils.IS_OS_WINDOWS) {
+            out = out + "/" + input.replace(":", "");
+            out = out.replace("\\", "/");
+          } else {
+            out += input;
+          }
+          return out + ":" + DIRECTORY_MAP_MODE;
       }).collect(Collectors.toSet());
 
+      if (SystemUtils.IS_OS_WINDOWS) {
+        volumes = volumes.stream().map(input -> input.replace("\\","/")).collect(Collectors.toSet());
+      }
+      
       hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
       
       HostConfig hostConfig = hostConfigBuilder.build();
