@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -48,9 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -106,6 +105,10 @@ public class DockerContainerHandler implements ContainerHandler {
   private WorkerStatusCallback statusCallback;
   
   private String commandLine;
+  
+  FilePathMapper mapper = (String path, Map<String, Object> config) -> {
+    return path.startsWith("/") ? path : "/" + path.replaceAll(":", "");
+  };
   
   public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
@@ -189,24 +192,22 @@ public class DockerContainerHandler implements ContainerHandler {
         toBindSet.remove(physicalPath);
       }
       
-      toBindSet = FluentIterable.from(toBindSet).transform(new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-          return input + ":" + URI.create(input).getPath() + ":" + DIRECTORY_MAP_MODE;
+
+      toBindSet = toBindSet.stream().map(input -> {
+        try {
+          return input + ":" + mapper.map(input, null) + ":" + DIRECTORY_MAP_MODE;
+        } catch (FileMappingException e1) {
         }
-      }).toSet();
+        return null;
+      }).collect(Collectors.toSet());
+
       hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
       
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
       
       Bindings bindings = BindingsFactory.create(job);
-      commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
-        @Override
-        public String map(String path, Map<String, Object> config) throws FileMappingException {
-          return path;
-        }
-      }).build();
+      commandLine = bindings.buildCommandLineObject(job, workingDir, mapper).build();
       
       if (commandLine.startsWith("/bin/bash -c")) {
         commandLine = normalizeCommandLine(commandLine.replace("/bin/bash -c", ""));
@@ -229,7 +230,7 @@ public class DockerContainerHandler implements ContainerHandler {
         return;
       }
 
-      builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("-c", commandLine);
+      builder.workingDir(mapper.map(workingDir.getAbsolutePath(), null)).volumes(volumes).cmd("-c", commandLine);
         
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));

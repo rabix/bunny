@@ -172,7 +172,7 @@ public class FileValueHelper {
       FileValue fileValue = (FileValue) value;
       if (fileValue.getPath() != null) {
         fileValue.setPath(fileMapper.map(fileValue.getPath(), config));
-        fileValue.setLocation(fileMapper.map(fileValue.getPath(), config));
+        fileValue.setLocation(fileValue.getPath());
       }
       if (fileValue.getDirname() != null) {
         fileValue.setDirname(fileMapper.map(fileValue.getDirname(), config));
