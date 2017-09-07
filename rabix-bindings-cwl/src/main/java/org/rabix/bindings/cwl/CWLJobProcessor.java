@@ -85,18 +85,18 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
   
   @SuppressWarnings("unchecked")
   private void rewriteDefaultPaths(Object value, String appLocation) {
-    Path app = Paths.get(appLocation);
+    Path appFolder = Paths.get(appLocation).getParent().toAbsolutePath();
     if (value instanceof CWLStepInputs) {
       value = ((CWLStepInputs) value).getDefaultValue();
     }
     if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       String location = CWLFileValueHelper.getLocation(value);
       if (location != null && !!Paths.get(location).isAbsolute()) {
-        CWLFileValueHelper.setLocation(app.resolve(Paths.get(location)).toString(), value);
+        CWLFileValueHelper.setLocation(appFolder.resolve(location).toString(), value);
       }
       String path = CWLFileValueHelper.getPath(value);
       if (path != null && !Paths.get(path).isAbsolute()) {
-        CWLFileValueHelper.setPath(app.resolve(Paths.get(path)).toString(), value);
+        CWLFileValueHelper.setPath(appFolder.resolve(path).toString(), value);
       }
       List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {
