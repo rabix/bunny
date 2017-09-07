@@ -1,0 +1,42 @@
+{
+        "FASTQ_Reads": [
+            {
+                "name": "NA12878-Garvan-Vial1_R2.fastq.gz",
+                "metadata": {
+                    "sample_type": "Cell Line",
+                    "paired_end": "2",
+                    "library_id": "FDA_GARVAN",
+                    "species": "Homo sapiens",
+                    "investigation": "FDA Consistency Challenge",
+                    "quality_scale": "sanger",
+                    "sample_id": "NA12878",
+                    "platform": "Illumina-HiSeq-XTen",
+                    "experimental_strategy": "WGS",
+                    "READ_COUNT": 481514412,
+                    "NUM_READS": 481514412
+                },
+                "class": "File",
+                "size": 46872038669,
+                "path": "fastqc-analysis_app_rev_8/NA12878-Garvan-Vial1_R2.fastq.gz"
+            },
+            {
+                "name": "NA12878-Garvan-Vial1_R1.fastq.gz",
+                "metadata": {
+                    "sample_type": "Cell Line",
+                    "paired_end": "1",
+                    "library_id": "FDA_GARVAN",
+                    "species": "Homo sapiens",
+                    "investigation": "FDA Consistency Challenge",
+                    "quality_scale": "sanger",
+                    "sample_id": "NA12878",
+                    "platform": "Illumina-HiSeq-XTen",
+                    "experimental_strategy": "WGS",
+                    "READ_COUNT": 481514412,
+                    "NUM_READS": 481514412
+                },
+                "class": "File",
+                "size": 40512932230,
+                "path": "fastqc-analysis_app_rev_8/NA12878-Garvan-Vial1_R1.fastq.gz"
+            }
+        ]
+}

@@ -109,7 +109,7 @@ public class CWLPortProcessor {
 
       for (Object item : ((List<?>) value)) {
         Object arrayItemSchema = CWLSchemaHelper.getSchemaForArrayItem(item, job.getApp().getSchemaDefs(), schema);
-        Object fieldBinding = port instanceof CWLInputPort ? CWLSchemaHelper.getInputBinding(item) : CWLSchemaHelper.getOutputBinding(item);
+        Object fieldBinding = port instanceof CWLInputPort ? CWLSchemaHelper.getInputBinding(schema) : CWLSchemaHelper.getOutputBinding(schema);
         Object singleResult = processValue(item, port, arrayItemSchema, fieldBinding == null ? binding : fieldBinding, key, portProcessor);
         result.add(singleResult);
       }

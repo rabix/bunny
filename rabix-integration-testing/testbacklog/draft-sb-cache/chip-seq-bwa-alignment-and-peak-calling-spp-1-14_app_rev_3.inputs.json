@@ -1,0 +1,48 @@
+{
+	"app": "file:///media/storage2/workdir/LocalRerun20170816150257/app.cwl",
+	"sample_files": [{
+		"name": "NRSF_K562_benchmark_rep1.fastq.gz",
+		"size": 1033479208,
+		"metadata": {
+			"sample_id": "NRSF_K562_benchmark_rep1",
+			"case_id": "1"
+		},
+		"path": "chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3/NRSF_K562_benchmark_rep1.fastq.gz",
+		"class": "File",
+		"secondaryFiles": []
+	}],
+	"run_spp_nodups": true,
+	"reference_index_tar": {
+		"name": "GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz.tar",
+		"size": 6297866240,
+		"metadata": {
+			"species": "Homo sapiens",
+			"reference_genome": "GRCh38"
+		},
+		"path": "chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz.tar",
+		"class": "File"
+	},
+	"input_files_b_1": {
+		"name": "hg38.blacklist.bed.gz",
+		"size": 310,
+		"metadata": {
+			"species": "Homo sapiens",
+			"reference_genome": "hg38"
+		},
+		"path": "chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3/hg38.blacklist.bed.gz",
+		"class": "File"
+	},
+	"fdr": "0.01",
+	"threads": 16,
+	"control_files": [{
+		"name": "NRSF_K562_control_rep1.fastq.gz",
+		"size": 440333001,
+		"metadata": {
+			"sample_id": "NRSF_K562_control_rep1",
+			"case_id": "1"
+		},
+		"path": "chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3/NRSF_K562_control_rep1.fastq.gz",
+		"class": "File"
+	}],
+	"call_narrowPeaks": true
+}

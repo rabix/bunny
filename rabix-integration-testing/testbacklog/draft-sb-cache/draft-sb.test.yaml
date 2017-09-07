@@ -414,4 +414,256 @@ test6:
       path: "/media/storage/workdir/LocalRerun20170801163935/app-2017-08-02-115623.231/root/STAR_1/G20479.HCC1143.2.converted.pe.Unmapped.out.mate2.fastq"
       secondaryFiles: []
       size: 574639500
-    
+test7:
+  app: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-macs2_app_rev_3.cwl
+  inputs: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-macs2_app_rev_3.inputs.json
+  cache: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-macs2_app_rev_3/cachedir
+  runtime: 60
+  expected:
+    BROAD_PEAK: null
+    EXCEL_FILE:
+        checksum: sha1$43152fc06d7eef38565a8631d04567466ef4467b
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/MACS2/NRSF_K562_benchmark_rep1_peaks.xls
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_peaks.xls
+        path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/MACS2/NRSF_K562_benchmark_rep1_peaks.xls
+        secondaryFiles: []
+        size: 2263660
+    NARROW_PEAK:
+        checksum: sha1$9a2b75fa64186867854ee88dd47ad531d3900e37
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/MACS2/NRSF_K562_benchmark_rep1_peaks.narrowPeak
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_peaks.narrowPeak
+        path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/MACS2/NRSF_K562_benchmark_rep1_peaks.narrowPeak
+        secondaryFiles: []
+        size: 2039719
+    Rmodel: null
+    aligned_reads_1:
+        - {checksum: sha1$5a9f8ea67f6c06ce150386b1a4e98210e9333e26, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Filter_ChIP_seq_BAM_1/1/NRSF_K562_control_rep1.deduped.filter.srt.bam, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1.deduped.filter.srt.bam, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Filter_ChIP_seq_BAM_1/1/NRSF_K562_control_rep1.deduped.filter.srt.bam, secondaryFiles: [], size: 336857173}
+        - {checksum: sha1$80ee1aba49713931335118e52622f6320357ff9d, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Filter_ChIP_seq_BAM_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Filter_ChIP_seq_BAM_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, secondaryFiles: [], size: 586250713}
+    b64html_1:
+        - {checksum: sha1$9715c7982d778119fd70c55262ea8e55e3b8216e, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.b64html, metadata: null, name: NRSF_K562_control_rep1.qc.b64html, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.b64html, secondaryFiles: [], size: 377298}
+        - {checksum: sha1$f431701df2537cbb287f98df396f3ccc02525645, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.b64html, metadata: null, name: NRSF_K562_benchmark_rep1.qc.b64html, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.b64html, secondaryFiles: [], size: 332542}
+    generated_index:
+        - {checksum: sha1$a9a1d0c3c175f6bdc360815c6ee9c59934f8a162, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SAMtools_Index_BAM/1/NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SAMtools_Index_BAM/1/NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, secondaryFiles: [], size: 5957304}
+        - {checksum: sha1$6a622fe5f00c75395dd2beca16b29092abda6cfb, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SAMtools_Index_BAM/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SAMtools_Index_BAM/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, secondaryFiles: [], size: 6104688}
+    output_file_1:
+        checksum: sha1$9a2b75fa64186867854ee88dd47ad531d3900e37
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_BEDTools_intersect_1/NRSF_K562_benchmark_rep1_peaks.blacklisted.narrowPeak
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_peaks.blacklisted.narrowPeak
+        path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_BEDTools_intersect_1/NRSF_K562_benchmark_rep1_peaks.blacklisted.narrowPeak
+        secondaryFiles: []
+        size: 2039719
+    output_json_1:
+        - {checksum: sha1$7dccff71e9c781dc1d27b51a2f476b1c2833d329, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.json, metadata: null, name: NRSF_K562_control_rep1.qc.json, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.json, secondaryFiles: [], size: 1212}
+        - {checksum: sha1$6ca980577406c18ae19c7f5ac7fa2a3079b23d72, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.json, metadata: null, name: NRSF_K562_benchmark_rep1.qc.json, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.json, secondaryFiles: [], size: 1218}
+    report_zip_1:
+        - [{checksum: sha1$72e152130f3db24951c889f01f830574853cbd98, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_FastQC_1/1/NRSF_K562_control_rep1_fastqc.zip, metadata: {__inherit__: input_fastq, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1_fastqc.zip, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_FastQC_1/1/NRSF_K562_control_rep1_fastqc.zip, secondaryFiles: [], size: 316467}]
+        - [{checksum: sha1$f28a9fd7288b4b0a8dfa0d9a0e74d3245bba3042, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_FastQC_1/2/NRSF_K562_benchmark_rep1_fastqc.zip, metadata: {__inherit__: input_fastq, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1_fastqc.zip, path: /media/storage2/workdir/LocalRerun20170816123552/app-2017-08-16-130232.236/root/ChIP_seq_FastQC_1/2/NRSF_K562_benchmark_rep1_fastqc.zip, secondaryFiles: [], size: 336214}]
+test8:
+  app: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3.cwl
+  inputs: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3.inputs.json
+  cache: testbacklog/draft-sb-cache/chip-seq-bwa-alignment-and-peak-calling-spp-1-14_app_rev_3/cachedir
+  runtime: 60
+  expected:
+    aligned_reads_1:
+    - {checksum: sha1$d463e95b3c091046f09af0a1a764bbef8888fe4b, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Filter_ChIP_seq_BAM_1/1/NRSF_K562_control_rep1.deduped.filter.srt.bam, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1.deduped.filter.srt.bam, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Filter_ChIP_seq_BAM_1/1/NRSF_K562_control_rep1.deduped.filter.srt.bam, secondaryFiles: [], size: 336857172}
+    - {checksum: sha1$f1d981d5595e5a6a9efd300a7025565653f48f9c, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Filter_ChIP_seq_BAM_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Filter_ChIP_seq_BAM_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam, secondaryFiles: [], size: 586250712}
+    b64html_1:
+        - {checksum: sha1$9715c7982d778119fd70c55262ea8e55e3b8216e, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.b64html, metadata: null, name: NRSF_K562_control_rep1.qc.b64html, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.b64html, secondaryFiles: [], size: 377298}
+        - {checksum: sha1$f431701df2537cbb287f98df396f3ccc02525645, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.b64html, metadata: null, name: NRSF_K562_benchmark_rep1.qc.b64html, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.b64html, secondaryFiles: [], size: 332542}
+    generated_index:
+        - {checksum: sha1$5d68b7df6a188980df6eae8db652d46ead78d1a1, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SAMtools_Index_BAM/1/NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SAMtools_Index_BAM/1/NRSF_K562_control_rep1.deduped.filter.srt.bam.bai, secondaryFiles: [], size: 5957304}
+        - {checksum: sha1$1a3ab48a23a36f32feca48e3cace9373e91cdc13, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SAMtools_Index_BAM/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, metadata: {__inherit__: input_bam, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SAMtools_Index_BAM/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.bam.bai, secondaryFiles: [], size: 6104688}
+    out_crosscorr_pdf:
+        checksum: sha1$7284fe0c48652c83601042236f8372d9f4ffe425
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPxcorplot.pdf
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_SPPxcorplot.pdf
+        path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPxcorplot.pdf
+        secondaryFiles: []
+        size: 7134
+    output_NarrowPeak:
+        checksum: sha1$cbf570097c26f3074c3b4800318dfba595bf8cc2
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPpeaks.narrowPeak.gz
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_SPPpeaks.narrowPeak.gz
+        path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPpeaks.narrowPeak.gz
+        secondaryFiles: []
+        size: 493848
+    output_Rdata:
+        checksum: sha1$1ce09e310697cdc4f90d392b1d214b24ef16377b
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPmodel.Rdata
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_SPPmodel.Rdata
+        path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SPP_1_14/NRSF_K562_benchmark_rep1_SPPmodel.Rdata
+        secondaryFiles: []
+        size: 3504687
+    output_file_1:
+        checksum: sha1$cc468840b2b94acee42ee94edef63857fd80464d
+        class: File
+        contents: null
+        dirname: null
+        location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_BEDTools_intersect_1/NRSF_K562_benchmark_rep1_SPPpeaks.blacklisted.narrowPeak
+        metadata: null
+        name: NRSF_K562_benchmark_rep1_SPPpeaks.blacklisted.narrowPeak
+        path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_BEDTools_intersect_1/NRSF_K562_benchmark_rep1_SPPpeaks.blacklisted.narrowPeak
+        secondaryFiles: []
+        size: 1668746
+    output_json_1:
+        - {checksum: sha1$7dccff71e9c781dc1d27b51a2f476b1c2833d329, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.json, metadata: null, name: NRSF_K562_control_rep1.qc.json, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/1/NRSF_K562_control_rep1.qc.json, secondaryFiles: [], size: 1212}
+        - {checksum: sha1$6ca980577406c18ae19c7f5ac7fa2a3079b23d72, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.json, metadata: null, name: NRSF_K562_benchmark_rep1.qc.json, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_Merge_ChIP_seq_QC_metrics_1/2/NRSF_K562_benchmark_rep1.qc.json, secondaryFiles: [], size: 1218}
+    report_zip_1:
+        - [{checksum: sha1$398e2f71e5cced6ddb553451412afaa744f3a39f, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_FastQC_1/1/NRSF_K562_control_rep1_fastqc.zip, metadata: {__inherit__: input_fastq, case_id: '1', chip-seq: control, sample_id: NRSF_K562_control_rep1}, name: NRSF_K562_control_rep1_fastqc.zip, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_FastQC_1/1/NRSF_K562_control_rep1_fastqc.zip, secondaryFiles: [], size: 316467}]
+        - [{checksum: sha1$f45092c9f53f6639a08f79b371edbaf5a997df19, class: File, contents: null, dirname: null, location: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_FastQC_1/2/NRSF_K562_benchmark_rep1_fastqc.zip, metadata: {__inherit__: input_fastq, case_id: '1', chip-seq: sample, sample_id: NRSF_K562_benchmark_rep1}, name: NRSF_K562_benchmark_rep1_fastqc.zip, path: /media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_FastQC_1/2/NRSF_K562_benchmark_rep1_fastqc.zip, secondaryFiles: [], size: 336214}]
+test9:
+  app: testbacklog/draft-sb-cache/fastqc-analysis_app_rev_8.cwl
+  inputs: testbacklog/draft-sb-cache/fastqc-analysis_app_rev_8.inputs.json
+  cache: testbacklog/draft-sb-cache/fastqc-analysis_app_rev_8/cachedir
+  runtime: 60
+  expected:
+    b64html:
+    - {checksum: sha1$070dad0cadc3b0af9e743a9473b00ee477f3282a, class: File, contents: null, dirname: null, location: /media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/SBG_Html2b64_1/1/NA12878-Garvan-Vial1_R2_fastqc.b64html, metadata: {NUM_READS: 481514412, READ_COUNT: 481514412, __inherit__: input_fastq, experimental_strategy: WGS, investigation: 'FDA Consistency Challenge', library_id: FDA_GARVAN, platform: Illumina-HiSeq-XTen, quality_scale: sanger, sample_id: NA12878, sample_type: 'Cell Line', species: 'Homo sapiens'}, name: NA12878-Garvan-Vial1_R2_fastqc.b64html, path: /media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/SBG_Html2b64_1/1/NA12878-Garvan-Vial1_R2_fastqc.b64html, secondaryFiles: [], size: 350438}
+    - {checksum: sha1$297ae4f001a003d3457ab46c0a158fcc4b7c37ea, class: File, contents: null, dirname: null, location: /media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/SBG_Html2b64_1/2/NA12878-Garvan-Vial1_R1_fastqc.b64html, metadata: {NUM_READS: 481514412, READ_COUNT: 481514412, __inherit__: input_fastq, experimental_strategy: WGS, investigation: 'FDA Consistency Challenge', library_id: FDA_GARVAN, platform: Illumina-HiSeq-XTen, quality_scale: sanger, sample_id: NA12878, sample_type: 'Cell Line', species: 'Homo sapiens'}, name: NA12878-Garvan-Vial1_R1_fastqc.b64html, path: /media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/SBG_Html2b64_1/2/NA12878-Garvan-Vial1_R1_fastqc.b64html, secondaryFiles: [], size: 312494}
+    report_zip:
+    - {checksum: sha1$7157cc0aa185bac2a9303d8fe705204e43985ae9, class: File, contents: null, dirname: null, location: /media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/FastQC/NA12878-Garvan-Vial1_R2_fastqc.zip, metadata: {NUM_READS: 481514412, READ_COUNT: 481514412, __inherit__: input_fastq, experimental_strategy: WGS, investigation: 'FDA Consistency Challenge', library_id: FDA_GARVAN, platform: Illumina-HiSeq-XTen, quality_scale: sanger, sample_id: NA12878, sample_type: 'Cell Line', species: 'Homo sapiens'}, name: NA12878-Garvan-Vial1_R2_fastqc.zip, path: /media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/FastQC/NA12878-Garvan-Vial1_R2_fastqc.zip, secondaryFiles: [], size: 317703}
+    - {checksum: sha1$c38fb54b7617285068b3c8d4f7301ae19a5402b4, class: File, contents: null, dirname: null, location: /media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/FastQC/NA12878-Garvan-Vial1_R1_fastqc.zip, metadata: {NUM_READS: 481514412, READ_COUNT: 481514412, __inherit__: input_fastq, experimental_strategy: WGS, investigation: 'FDA Consistency Challenge', library_id: FDA_GARVAN, platform: Illumina-HiSeq-XTen, quality_scale: sanger, sample_id: NA12878, sample_type: 'Cell Line', species: 'Homo sapiens'}, name: NA12878-Garvan-Vial1_R1_fastqc.zip, path: /media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/FastQC/NA12878-Garvan-Vial1_R1_fastqc.zip, secondaryFiles: [], size: 278747}
+test10:
+  app: testbacklog/draft-sb-cache/fusion-transcript-detection-chimerascan_app_rev_29.cwl
+  inputs: testbacklog/draft-sb-cache/fusion-transcript-detection-chimerascan_app_rev_29.inputs.json
+  cache: testbacklog/draft-sb-cache/fusion-transcript-detection-chimerascan_app_rev_29/cachedir
+  runtime: 60
+  expected:
+    b64html:
+      checksum: sha1$cfc46019cf8d4394342c74f3c6ddddf3051f1a4e
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/SBG_Html2b64/output_archive.b64html
+      metadata: {case_id: CCLE-HCC1143, experimental_strategy: RNA-Seq, investigation: CCLE-BRCA, platform: Illumina, reference_genome: HG19_Broad_variant, sample_id: HCC1143, sample_type: 'Cell Line'}
+      name: output_archive.b64html
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/SBG_Html2b64/output_archive.b64html
+      secondaryFiles: []
+      size: 2378190
+    chimeras_bedpe:
+      checksum: sha1$e7f940c6e46b8faeb608db2a38e7475a07e1e93b
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/ChimeraScan_Run/chimeras_out/G20479.chimeras.bedpe
+      metadata: {case_id: CCLE-HCC1143, experimental_strategy: RNA-Seq, investigation: CCLE-BRCA, platform: Illumina, reference_genome: HG19_Broad_variant, sample_id: HCC1143, sample_type: 'Cell Line'}
+      name: G20479.chimeras.bedpe
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/ChimeraScan_Run/chimeras_out/G20479.chimeras.bedpe
+      secondaryFiles: []
+      size: 448345
+    circos_pdf:
+      checksum: sha1$9f83f4a4cc7508ff015f524a37f8bb0af8e46ffc
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Circos/G20479.chimerascan.chimera.filteredfusions4circoslinks.pdf
+      metadata: {case_id: CCLE-HCC1143, experimental_strategy: RNA-Seq, investigation: CCLE-BRCA, platform: Illumina, reference_genome: HG19_Broad_variant, sample_id: HCC1143, sample_type: 'Cell Line'}
+      name: G20479.chimerascan.chimera.filteredfusions4circoslinks.pdf
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Circos/G20479.chimerascan.chimera.filteredfusions4circoslinks.pdf
+      secondaryFiles: []
+      size: 73283
+    circos_pdf_1:
+      checksum: sha1$8187d64c8fc44ad4a5f5b2f743d4862e096e6c25
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Circos_1/G20479.oncofuse.circos.links.pdf
+      metadata: {case_id: CCLE-HCC1143, experimental_strategy: RNA-Seq, investigation: CCLE-BRCA, platform: Illumina, reference_genome: HG19_Broad_variant, sample_id: HCC1143, sample_type: 'Cell Line'}
+      name: G20479.oncofuse.circos.links.pdf
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Circos_1/G20479.oncofuse.circos.links.pdf
+      secondaryFiles: []
+      size: 162397
+    detected_fusions:
+      checksum: sha1$f34a47920387811ccc63d97f4c57eb9a6df583d3
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Chimera/G20479.chimerascan.chimera.detectedfusions.txt
+      metadata: {__inherit__: fusion_data, case_id: CCLE-HCC1143, experimental_strategy: RNA-Seq, investigation: CCLE-BRCA, platform: Illumina, reference_genome: HG19_Broad_variant, sample_id: HCC1143, sample_type: 'Cell Line'}
+      name: G20479.chimerascan.chimera.detectedfusions.txt
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Chimera/G20479.chimerascan.chimera.detectedfusions.txt
+      secondaryFiles: []
+      size: 3395
+    filtered_annotated_fusions:
+      checksum: sha1$b8957cabafde18d0267f8a55e3802ccbf97fddac
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Chimera/G20479.chimerascan.chimera.filteredfusions_annotated.txt
+      metadata: null
+      name: G20479.chimerascan.chimera.filteredfusions_annotated.txt
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Chimera/G20479.chimerascan.chimera.filteredfusions_annotated.txt
+      secondaryFiles: []
+      size: 273
+    filtered_fusions:
+      checksum: sha1$e5762c24c30556fa32dd0ac82d4c75997db920e1
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Chimera/G20479.chimerascan.chimera.filteredfusions.txt
+      metadata: {__inherit__: fusion_data, case_id: CCLE-HCC1143, experimental_strategy: RNA-Seq, investigation: CCLE-BRCA, platform: Illumina, reference_genome: HG19_Broad_variant, sample_id: HCC1143, sample_type: 'Cell Line'}
+      name: G20479.chimerascan.chimera.filteredfusions.txt
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Chimera/G20479.chimerascan.chimera.filteredfusions.txt
+      secondaryFiles: []
+      size: 255
+    html_file:
+      checksum: sha1$1a5442e63cafcc4eab2fd13c590b3bb99350b33f
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/SBG_Text2Html/G20479.oncofuse.txt_oncofuse.html
+      metadata: null
+      name: G20479.oncofuse.txt_oncofuse.html
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/SBG_Text2Html/G20479.oncofuse.txt_oncofuse.html
+      secondaryFiles: []
+      size: 1678161
+    index:
+      checksum: sha1$d08d0f98e57d77bc414302e812a0257dc64b1681
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/ChimeraScan_Index/ucsc.hg19_human_hg19_genes_2015.genePred_index-archive.tar
+      metadata: {file_type: archive, reference_genome: hg19}
+      name: ucsc.hg19_human_hg19_genes_2015.genePred_index-archive.tar
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/ChimeraScan_Index/ucsc.hg19_human_hg19_genes_2015.genePred_index-archive.tar
+      secondaryFiles: []
+      size: 6670387200
+    oncofuse_out:
+      checksum: sha1$3d5f3d7d581c66757726b1217b4c04b71b5a2071
+      class: File
+      contents: null
+      dirname: null
+      location: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Oncofuse/G20479.oncofuse.txt_oncofuse
+      metadata: {case_id: CCLE-HCC1143, experimental_strategy: RNA-Seq, investigation: CCLE-BRCA, platform: Illumina, reference_genome: HG19_Broad_variant, sample_id: HCC1143, sample_type: 'Cell Line'}
+      name: G20479.oncofuse.txt_oncofuse
+      path: /media/storage2/workdir/LocalRerun20170815095410/app-2017-08-15-105247.45/root/Oncofuse/G20479.oncofuse.txt_oncofuse
+      secondaryFiles: []
+      size: 175323
+        
+            
+                
+            

@@ -1,0 +1,341 @@
+{
+  "id" : "3e4567b6-bf94-41bb-b70a-55df87ec5924",
+  "parentId" : "9f1dff12-c79b-4dbd-9b71-b2610b2b3bc9",
+  "rootId" : "9f1dff12-c79b-4dbd-9b71-b2610b2b3bc9",
+  "name" : "root.SBG_Scatter_Prepare_1",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNmaWxlcyIsCiAgICAidHlwZSIgOiBbICJudWxsIiwgewogICAgICAiaXRlbXMiIDogIkZpbGUiLAogICAgICAidHlwZSIgOiAiYXJyYXkiCiAgICB9IF0sCiAgICAiZGVzY3JpcHRpb24iIDogIklucHV0IGZpbGVzLiIsCiAgICAic2JnOmNhdGVnb3J5IiA6ICJJbnB1dCIsCiAgICAibGFiZWwiIDogIklucHV0IGZpbGVzIiwKICAgICJyZXF1aXJlZCIgOiBmYWxzZQogIH0gXSwKICAib3V0cHV0cyIgOiBbIHsKICAgICJpZCIgOiAiI2dyb3VwZWRfZmlsZXMiLAogICAgInR5cGUiIDogWyAibnVsbCIsIHsKICAgICAgIml0ZW1zIiA6ICJGaWxlIiwKICAgICAgInR5cGUiIDogImFycmF5IgogICAgfSBdLAogICAgIm91dHB1dEJpbmRpbmciIDogewogICAgICAiZ2xvYiIgOiAiKi4qIgogICAgfSwKICAgICJkZXNjcmlwdGlvbiIgOiAiR3JvdXBlZCBmaWxlcy4iLAogICAgImxhYmVsIiA6ICJHcm91cGVkIGZpbGVzIgogIH0gXSwKICAiaGludHMiIDogWyB7CiAgICAiY2xhc3MiIDogInNiZzpDUFVSZXF1aXJlbWVudCIsCiAgICAidmFsdWUiIDogMQogIH0sIHsKICAgICJjbGFzcyIgOiAic2JnOk1lbVJlcXVpcmVtZW50IiwKICAgICJ2YWx1ZSIgOiAxMDAwCiAgfSwgewogICAgImNsYXNzIiA6ICJEb2NrZXJSZXF1aXJlbWVudCIsCiAgICAiZG9ja2VyUHVsbCIgOiAiaW1hZ2VzLnNiZ2Vub21pY3MuY29tL21pbG9zX2pvcmRhbnNraS9weXRob246Mi43IiwKICAgICJkb2NrZXJJbWFnZUlkIiA6ICIiCiAgfSBdLAogICJyZXF1aXJlbWVudHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkNyZWF0ZUZpbGVSZXF1aXJlbWVudCIsCiAgICAiZmlsZURlZiIgOiBbIHsKICAgICAgImZpbGVDb250ZW50IiA6ICJcIlwiXCJcblVzYWdlOlxuICAgIGdyb3VwX2J5X21ldGFkYXRhLnB5XG5cbkRlc2NyaXB0aW9uOlxuICAgIFByZXBhcmUgSW5wdXQgRmlsZXMgbWFuaXB1bGF0ZXMgLyBjcmVhdGVzIGFuIG91dHB1dCBsaXN0IGFzIGdyb3VwIG9mIGZpbGVzIHdpdGggdGhlIHNhbWUgbWV0YWRhdGEuXG5cbk9wdGlvbnM6XG5cbiAgICAtaCwgLS1oZWxwICAgICAgICAgICAgU2hvdyB0aGlzIG1lc3NhZ2UuXG5cbiAgICAtdiwgLVYsIC0tdmVyc2lvbiAgICAgVG9vbCB2ZXJzaW9uLlxuXCJcIlwiXG5cbmltcG9ydCBqc29uXG5cblxuam9iID0gXCJcIlxud2l0aCBvcGVuKCdqb2IuanNvbicpIGFzIGRhdGFfZmlsZTpcbiAgICBqb2IgPSBqc29uLmxvYWQoZGF0YV9maWxlKVxuZmlsZXMgPSBqb2JbXCJpbnB1dHNcIl1bXCJmaWxlc1wiXVxuXG5jb250cm9sX2ZpbGVzID0gW11cbnJlYWxfc2FtcGxlcyA9IFtdXG5cblxuZm9yIGZpbGVfbGlzdCBpbiBmaWxlczpcbiAgICBpZiBmaWxlX2xpc3Q6XG4gICAgICAgIGZvciBmIGluIGZpbGVfbGlzdDpcbiAgICAgICAgICAgIHByaW50KGYpXG4gICAgICAgICAgICBkID0geydjbGFzcyc6ICdGaWxlJ31cbiAgICAgICAgICAgIGRbJ3BhdGgnXSA9IGZbXCJwYXRoXCJdXG5cbiAgICAgICAgICAgIGlmIFwic2l6ZVwiIGluIGY6XG4gICAgICAgICAgICAgICAgZFsnc2l6ZSddID0gZltcInNpemVcIl1cblxuICAgICAgICAgICAgaWYgXCJjb250ZW50c1wiIGluIGY6XG4gICAgICAgICAgICAgICAgZFsnY29udGVudHMnXSA9IGZbXCJjb250ZW50c1wiXVxuXG4gICAgICAgICAgICBpZiBcIm5hbWVcIiBpbiBmOlxuICAgICAgICAgICAgICAgIGRbJ25hbWUnXSA9IGZbXCJuYW1lXCJdXG5cbiAgICAgICAgICAgIGlmIFwiY2hlY2tzdW1cIiBpbiBmOlxuICAgICAgICAgICAgICAgIGRbJ2NoZWNrc3VtJ10gPSBmW1wiY2hlY2tzdW1cIl1cblxuICAgICAgICAgICAgaWYgXCJsb2NhdGlvblwiIGluIGY6XG4gICAgICAgICAgICAgICAgZFsnbG9jYXRpb24nXSA9IGZbXCJsb2NhdGlvblwiXVxuXG4gICAgICAgICAgICBpZiBcIm1ldGFkYXRhXCIgaW4gZjpcbiAgICAgICAgICAgICAgICBkWydtZXRhZGF0YSddID0gZltcIm1ldGFkYXRhXCJdXG5cbiAgICAgICAgICAgIGlmIFwic2Vjb25kYXJ5RmlsZXNcIiBpbiBmOlxuICAgICAgICAgICAgICAgIGRbJ3NlY29uZGFyeUZpbGVzJ10gPSBmW1wic2Vjb25kYXJ5RmlsZXNcIl1cblxuICAgICAgICAgICAgaWYgXCJtZXRhZGF0YVwiIGluIGYgYW5kIFwiY2hpcC1zZXFcIiBpbiBmW1wibWV0YWRhdGFcIl0gYW5kIGZbXCJtZXRhZGF0YVwiXVtcImNoaXAtc2VxXCJdPT1cInNhbXBsZVwiOlxuICAgICAgICAgICAgICAgIHJlYWxfc2FtcGxlcy5hcHBlbmQoZClcbiAgICAgICAgICAgIGVsc2U6XG4gICAgICAgICAgICAgICAgY29udHJvbF9maWxlcy5hcHBlbmQoZClcblxuaWYgbm90IGNvbnRyb2xfZmlsZXM6XG4gICAgZ3JvdXBzPVtyZWFsX3NhbXBsZXNdXG5lbGlmIG5vdCByZWFsX3NhbXBsZXM6XG4gICAgZ3JvdXBzID0gW2NvbnRyb2xfZmlsZXNdXG5lbHNlOlxuICAgIGdyb3VwcyA9IFtjb250cm9sX2ZpbGVzLCByZWFsX3NhbXBsZXNdXG4gICAgICAgICAgICBcbmRhdGEgPSB7fVxuZGF0YVsnZ3JvdXBlZF9maWxlcyddID0gZ3JvdXBzXG53aXRoIG9wZW4oJ2N3bC5vdXRwdXQuanNvbicsICd3JykgYXMgdzpcbiAgICBqc29uLmR1bXAoZGF0YSwgdykiLAogICAgICAiZmlsZW5hbWUiIDogImdyb3VwX2J5X21ldGFkYXRhLnB5IgogICAgfSBdCiAgfSBdLAogICJzdWNjZXNzQ29kZXMiIDogWyBdLAogICJzdGRpbiIgOiAiIiwKICAic3Rkb3V0IiA6ICIiLAogICJiYXNlQ29tbWFuZCIgOiBbICJweXRob24iLCAiZ3JvdXBfYnlfbWV0YWRhdGEucHkiIF0sCiAgImFyZ3VtZW50cyIgOiBbIF0sCiAgInNiZzpwcm9qZWN0IiA6ICJiaXgtZGVtby9zYmd0b29scy1kZW1vIiwKICAic2JnOnJldmlzaW9uIiA6IDEsCiAgInNiZzptb2RpZmllZE9uIiA6IDE0OTk0MTk4NjYsCiAgInNiZzpjbWRQcmV2aWV3IiA6ICJweXRob24gZ3JvdXBfYnlfbWV0YWRhdGEucHkiLAogICJzYmc6cHJvamVjdE5hbWUiIDogIlNCR1Rvb2xzIC0gRGVtbyBOZXciLAogICJkZXNjcmlwdGlvbiIgOiAiU0JHIFNjYXR0ZXIgUHJlcGFyZSBwcmVwYXJlcyBpbnB1dHMgZm9yIHNjYXR0ZXJpbmcuIiwKICAic2JnOmNyZWF0ZWRPbiIgOiAxNDk5NDE5ODMxLAogICJsYWJlbCIgOiAiU0JHIFNjYXR0ZXIgUHJlcGFyZSIsCiAgInNiZzptb2RpZmllZEJ5IiA6ICJuZW1hbmphLnZ1Y2ljIiwKICAic2JnOmNvbnRyaWJ1dG9ycyIgOiBbICJuZW1hbmphLnZ1Y2ljIiBdLAogICJzYmc6aWQiIDogImFkbWluL3NiZy1wdWJsaWMtZGF0YS9zYmctc2NhdHRlci1wcmVwYXJlLzEiLAogICJzYmc6YXBwVmVyc2lvbiIgOiBbICJzYmc6ZHJhZnQtMiIgXSwKICAic2JnOmxhdGVzdFJldmlzaW9uIiA6IDEsCiAgInNiZzpjcmVhdGVkQnkiIDogIm5lbWFuamEudnVjaWMiLAogICJzYmc6am9iIiA6IHsKICAgICJhbGxvY2F0ZWRSZXNvdXJjZXMiIDogewogICAgICAiY3B1IiA6IDEsCiAgICAgICJtZW0iIDogMTAwMAogICAgfSwKICAgICJpbnB1dHMiIDogewogICAgICAiZmlsZXMiIDogWyB7CiAgICAgICAgImNsYXNzIiA6ICJGaWxlIiwKICAgICAgICAicGF0aCIgOiAiL3BhdGgvdG8vaW5wdXRfYmFtLTEuZXh0IiwKICAgICAgICAic2Vjb25kYXJ5RmlsZXMiIDogWyBdLAogICAgICAgICJzaXplIiA6IDAKICAgICAgfSwgewogICAgICAgICJjbGFzcyIgOiAiRmlsZSIsCiAgICAgICAgInBhdGgiIDogIi9wYXRoL3RvL2lucHV0X2JhbS0yLmV4dCIsCiAgICAgICAgInNlY29uZGFyeUZpbGVzIiA6IFsgXSwKICAgICAgICAic2l6ZSIgOiAwCiAgICAgIH0gXQogICAgfQogIH0sCiAgInNiZzpzYmdNYWludGFpbmVkIiA6IGZhbHNlLAogICJ0ZW1wb3JhcnlGYWlsQ29kZXMiIDogWyBdLAogICJ4IiA6IDEzNjguMzMzOTk3MjI5NzU5LAogICJ5IiA6IDIwNC4xNjY2ODQ5MTg5MzM4NCwKICAiaWQiIDogImJpeC1kZW1vL3NiZ3Rvb2xzLWRlbW8vc2JnLXNjYXR0ZXItcHJlcGFyZS8xIiwKICAic2JnOnJldmlzaW9uc0luZm8iIDogWyB7CiAgICAic2JnOm1vZGlmaWVkQnkiIDogIm5lbWFuamEudnVjaWMiLAogICAgInNiZzptb2RpZmllZE9uIiA6IDE0OTk0MTk4MzEsCiAgICAic2JnOnJldmlzaW9uIiA6IDAsCiAgICAic2JnOnJldmlzaW9uTm90ZXMiIDogbnVsbAogIH0sIHsKICAgICJzYmc6bW9kaWZpZWRCeSIgOiAibmVtYW5qYS52dWNpYyIsCiAgICAic2JnOm1vZGlmaWVkT24iIDogMTQ5OTQxOTg2NiwKICAgICJzYmc6cmV2aXNpb24iIDogMSwKICAgICJzYmc6cmV2aXNpb25Ob3RlcyIgOiBudWxsCiAgfSBdLAogICJzYmc6aW1hZ2VfdXJsIiA6IG51bGwsCiAgImNsYXNzIiA6ICJDb21tYW5kTGluZVRvb2wiLAogICJzYmc6dmFsaWRhdGlvbkVycm9ycyIgOiBbIF0KfQ==",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "files" : [ {
+      "size" : 307,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/1/NRSF_K562_control_rep1.deduped.filter.srt.xcor.qc.json",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/1/NRSF_K562_control_rep1.deduped.filter.srt.xcor.qc.json",
+      "name" : "NRSF_K562_control_rep1.deduped.filter.srt.xcor.qc.json",
+      "checksum" : "sha1$103eae38f154593ca96a45236ab66bf11e9bf2b3",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 309,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.qc.json",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.qc.json",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.qc.json",
+      "checksum" : "sha1$d139217f5280a7dc1db01ee1316d20836371c1c3",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 387,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_SAMtools_flagstat_1/1/NRSF_K562_control_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_SAMtools_flagstat_1/1/NRSF_K562_control_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "name" : "NRSF_K562_control_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "checksum" : "sha1$9ccdb70ea29d5b65e7404ccdd3dc1b5dfa9c4c82",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 389,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_SAMtools_flagstat_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_SAMtools_flagstat_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "checksum" : "sha1$cd61ca89fc3c05c47019732c6549eb2a0bc72e5e",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 388,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/BWA_Alignment_and_Filtering_1/1/NRSF_K562_control_rep1.qc_flagstats.txt",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/BWA_Alignment_and_Filtering_1/1/NRSF_K562_control_rep1.qc_flagstats.txt",
+      "name" : "NRSF_K562_control_rep1.qc_flagstats.txt",
+      "checksum" : "sha1$0cd7694e1ce5e98d49838a94b86db6745cb006d4",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 388,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/BWA_Alignment_and_Filtering_1/2/NRSF_K562_benchmark_rep1.qc_flagstats.txt",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/BWA_Alignment_and_Filtering_1/2/NRSF_K562_benchmark_rep1.qc_flagstats.txt",
+      "name" : "NRSF_K562_benchmark_rep1.qc_flagstats.txt",
+      "checksum" : "sha1$c57945ec43be01890c697f1a599fc189854a2e3a",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 205225,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/1/NRSF_K562_control_rep1.deduped.filter.srt.xcor.png",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/1/NRSF_K562_control_rep1.deduped.filter.srt.xcor.png",
+      "name" : "NRSF_K562_control_rep1.deduped.filter.srt.xcor.png",
+      "checksum" : "sha1$75aa34e2f3f56b29fd7dadeac5e5b3aea495e6e6",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 180375,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.png",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.png",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.png",
+      "checksum" : "sha1$88ea870240d8bd6766d342627728fdb5fa96b98b",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 209,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_ChIP_seq_Library_Complexity/1/NRSF_K562_control_rep1.deduped.libcomp.qc.json",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_ChIP_seq_Library_Complexity/1/NRSF_K562_control_rep1.deduped.libcomp.qc.json",
+      "name" : "NRSF_K562_control_rep1.deduped.libcomp.qc.json",
+      "checksum" : "sha1$d25147de80e8ce893c24fd605ade8fe24e20e035",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 211,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_ChIP_seq_Library_Complexity/2/NRSF_K562_benchmark_rep1.deduped.libcomp.qc.json",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_ChIP_seq_Library_Complexity/2/NRSF_K562_benchmark_rep1.deduped.libcomp.qc.json",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.libcomp.qc.json",
+      "checksum" : "sha1$6d2af61339945006b9a688bb99fc0dd419850365",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    } ]
+  },
+  "outputs" : {
+    "grouped_files" : [ [ {
+      "size" : 307,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/1/NRSF_K562_control_rep1.deduped.filter.srt.xcor.qc.json",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/1/NRSF_K562_control_rep1.deduped.filter.srt.xcor.qc.json",
+      "name" : "NRSF_K562_control_rep1.deduped.filter.srt.xcor.qc.json",
+      "checksum" : "sha1$103eae38f154593ca96a45236ab66bf11e9bf2b3",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 387,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_SAMtools_flagstat_1/1/NRSF_K562_control_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_SAMtools_flagstat_1/1/NRSF_K562_control_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "name" : "NRSF_K562_control_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "checksum" : "sha1$9ccdb70ea29d5b65e7404ccdd3dc1b5dfa9c4c82",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 388,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/BWA_Alignment_and_Filtering_1/1/NRSF_K562_control_rep1.qc_flagstats.txt",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/BWA_Alignment_and_Filtering_1/1/NRSF_K562_control_rep1.qc_flagstats.txt",
+      "name" : "NRSF_K562_control_rep1.qc_flagstats.txt",
+      "checksum" : "sha1$0cd7694e1ce5e98d49838a94b86db6745cb006d4",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 205225,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/1/NRSF_K562_control_rep1.deduped.filter.srt.xcor.png",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/1/NRSF_K562_control_rep1.deduped.filter.srt.xcor.png",
+      "name" : "NRSF_K562_control_rep1.deduped.filter.srt.xcor.png",
+      "checksum" : "sha1$75aa34e2f3f56b29fd7dadeac5e5b3aea495e6e6",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 209,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_ChIP_seq_Library_Complexity/1/NRSF_K562_control_rep1.deduped.libcomp.qc.json",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_ChIP_seq_Library_Complexity/1/NRSF_K562_control_rep1.deduped.libcomp.qc.json",
+      "name" : "NRSF_K562_control_rep1.deduped.libcomp.qc.json",
+      "checksum" : "sha1$d25147de80e8ce893c24fd605ade8fe24e20e035",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "control",
+          "sample_id" : "NRSF_K562_control_rep1"
+        }
+      },
+      "$type" : "File"
+    } ], [ {
+      "size" : 309,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.qc.json",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.qc.json",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.qc.json",
+      "checksum" : "sha1$d139217f5280a7dc1db01ee1316d20836371c1c3",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 389,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_SAMtools_flagstat_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_SAMtools_flagstat_1/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.filter.srt.qc_flagstats.txt",
+      "checksum" : "sha1$cd61ca89fc3c05c47019732c6549eb2a0bc72e5e",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 388,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/BWA_Alignment_and_Filtering_1/2/NRSF_K562_benchmark_rep1.qc_flagstats.txt",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/BWA_Alignment_and_Filtering_1/2/NRSF_K562_benchmark_rep1.qc_flagstats.txt",
+      "name" : "NRSF_K562_benchmark_rep1.qc_flagstats.txt",
+      "checksum" : "sha1$c57945ec43be01890c697f1a599fc189854a2e3a",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 180375,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.png",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/ChIP_seq_Cross_Correlation/2/NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.png",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.filter.srt.xcor.png",
+      "checksum" : "sha1$88ea870240d8bd6766d342627728fdb5fa96b98b",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    }, {
+      "size" : 211,
+      "path" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_ChIP_seq_Library_Complexity/2/NRSF_K562_benchmark_rep1.deduped.libcomp.qc.json",
+      "location" : "/media/storage2/workdir/LocalRerun20170816150257/app-2017-08-16-151652.488/root/SBG_ChIP_seq_Library_Complexity/2/NRSF_K562_benchmark_rep1.deduped.libcomp.qc.json",
+      "name" : "NRSF_K562_benchmark_rep1.deduped.libcomp.qc.json",
+      "checksum" : "sha1$6d2af61339945006b9a688bb99fc0dd419850365",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "__inherit__" : "input_bam",
+          "case_id" : "1",
+          "chip-seq" : "sample",
+          "sample_id" : "NRSF_K562_benchmark_rep1"
+        }
+      },
+      "$type" : "File"
+    } ] ]
+  },
+  "resources" : {
+    "cpu" : 32,
+    "memMB" : 46967,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ ]
+}

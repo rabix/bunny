@@ -1,0 +1,71 @@
+{
+  "id" : "7912d5af-315f-4859-83e3-ba6875290d40",
+  "parentId" : "6fc7a6ed-041b-4a08-b440-a49a335bd263",
+  "rootId" : "3fe2580f-9163-4b0d-8145-c8a660534ccc",
+  "name" : "root.SBG_Html2b64_1.2",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNpbnB1dF9maWxlIiwKICAgICJ0eXBlIiA6IFsgIm51bGwiLCAiRmlsZSIgXSwKICAgICJpbnB1dEJpbmRpbmciIDogewogICAgICAicHJlZml4IiA6ICItLWlucHV0IiwKICAgICAgInNiZzpjbWRJbmNsdWRlIiA6IHRydWUsCiAgICAgICJzZXBhcmF0ZSIgOiB0cnVlCiAgICB9LAogICAgInNjYXR0ZXIiIDogdHJ1ZSwKICAgICJkZXNjcmlwdGlvbiIgOiAiQ29tcHJlc3NlZCBhcmNoaXZlLiIsCiAgICAic2JnOmNhdGVnb3J5IiA6ICJGaWxlIGlucHV0LiIsCiAgICAibGFiZWwiIDogIklucHV0IGZpbGUiLAogICAgInNiZzpmaWxlVHlwZXMiIDogIlpJUCIsCiAgICAicmVxdWlyZWQiIDogZmFsc2UKICB9IF0sCiAgIm91dHB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNiNjRodG1sIiwKICAgICJ0eXBlIiA6IFsgIm51bGwiLCAiRmlsZSIgXSwKICAgICJvdXRwdXRCaW5kaW5nIiA6IHsKICAgICAgImdsb2IiIDogIipiNjRodG1sIiwKICAgICAgInNiZzppbmhlcml0TWV0YWRhdGFGcm9tIiA6ICIjaW5wdXRfZmlsZSIsCiAgICAgICJzYmc6bWV0YWRhdGEiIDogeyB9CiAgICB9LAogICAgImRlc2NyaXB0aW9uIiA6ICJPdXRwdXQgZmlsZSwgYjY0aHRtbC4iLAogICAgImxhYmVsIiA6ICJCNjRodG1sIiwKICAgICJzYmc6ZmlsZVR5cGVzIiA6ICJIVE1MLCBCNjRIVE1MIgogIH0gXSwKICAiaGludHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkRvY2tlclJlcXVpcmVtZW50IiwKICAgICJkb2NrZXJQdWxsIiA6ICJpbWFnZXMuc2JnZW5vbWljcy5jb20vbWxhZGVubHNiZy9zYmctaHRtbC10by1iNjQ6MS4wLjEiLAogICAgImRvY2tlckltYWdlSWQiIDogIjhjMzVkMmEyZDhkMSIKICB9LCB7CiAgICAiY2xhc3MiIDogInNiZzpDUFVSZXF1aXJlbWVudCIsCiAgICAidmFsdWUiIDogMQogIH0sIHsKICAgICJjbGFzcyIgOiAic2JnOk1lbVJlcXVpcmVtZW50IiwKICAgICJ2YWx1ZSIgOiAxMDAwCiAgfSBdLAogICJyZXF1aXJlbWVudHMiIDogWyBdLAogICJzdWNjZXNzQ29kZXMiIDogWyBdLAogICJzdGRpbiIgOiAiIiwKICAic3Rkb3V0IiA6ICIiLAogICJiYXNlQ29tbWFuZCIgOiBbICJweXRob24iLCAiL29wdC9zYmdfaHRtbF90b19iNjQucHkiIF0sCiAgImFyZ3VtZW50cyIgOiBbIF0sCiAgInNiZzpyZXZpc2lvbiIgOiAyLAogICJzYmc6Y2F0ZWdvcmllcyIgOiBbICJDb252ZXJ0ZXJzIiwgIlBsb3R0aW5nLWFuZC1SZW5kZXJpbmciIF0sCiAgImRlc2NyaXB0aW9uIiA6ICJUb29sIGZvciBjb252ZXJ0aW5nIGFyY2hpdmVkIGh0bWwgb3V0cHV0IG9mIEZhc3RRQyBhbmQgc2ltaWxhciB0b29scyB0byBiNjRodG1sIHNvIGl0IGNhbiBlYXNpbHkgYmUgZGlzcGxheWVkIGluIHdlYiBicm93c2VycyBvciBvbiBTQkcgcGxhdGZvcm0uIiwKICAic2JnOmNyZWF0ZWRPbiIgOiAxNDUwOTExMjk0LAogICJzYmc6Y29udHJpYnV0b3JzIiA6IFsgImJpeC1kZW1vIiBdLAogICJzYmc6dG9vbGtpdCIgOiAiU0JHVG9vbHMiLAogICJzYmc6aWQiIDogImFkbWluL3NiZy1wdWJsaWMtZGF0YS9zYmctaHRtbDJiNjQvNSIsCiAgInNiZzpqb2IiIDogewogICAgImFsbG9jYXRlZFJlc291cmNlcyIgOiB7CiAgICAgICJjcHUiIDogMSwKICAgICAgIm1lbSIgOiAxMDAwCiAgICB9LAogICAgImlucHV0cyIgOiB7CiAgICAgICJpbnB1dF9maWxlIiA6IHsKICAgICAgICAiY2xhc3MiIDogIkZpbGUiLAogICAgICAgICJwYXRoIiA6ICJpbnB1dF9maWxlLmV4dCIsCiAgICAgICAgInNlY29uZGFyeUZpbGVzIiA6IFsgXSwKICAgICAgICAic2l6ZSIgOiAwCiAgICAgIH0KICAgIH0KICB9LAogICJzYmc6c2JnTWFpbnRhaW5lZCIgOiBmYWxzZSwKICAidGVtcG9yYXJ5RmFpbENvZGVzIiA6IFsgXSwKICAic2JnOnRvb2xBdXRob3IiIDogIlNldmVuIEJyaWRnZXMiLAogICJpZCIgOiAiYml4LWRlbW8vc2JndG9vbHMtZGVtby9zYmctaHRtbDJiNjQvMiIsCiAgImNsYXNzIiA6ICJDb21tYW5kTGluZVRvb2wiLAogICJzYmc6cHJvamVjdCIgOiAiYml4LWRlbW8vc2JndG9vbHMtZGVtbyIsCiAgInNiZzptb2RpZmllZE9uIiA6IDE0NTk5NjM1NzEsCiAgInNiZzpjbWRQcmV2aWV3IiA6ICJweXRob24gL29wdC9zYmdfaHRtbF90b19iNjQucHkiLAogICJzYmc6bGljZW5zZSIgOiAiQXBhY2hlIExpY2Vuc2UgMi4wIiwKICAibGFiZWwiIDogIlNCRyBIdG1sMmI2NCIsCiAgInNiZzptb2RpZmllZEJ5IiA6ICJiaXgtZGVtbyIsCiAgInNiZzpsYXRlc3RSZXZpc2lvbiIgOiAyLAogICJzYmc6Y3JlYXRlZEJ5IiA6ICJiaXgtZGVtbyIsCiAgIngiIDogNTcxLjY2Njc1MDE1MjkwODUsCiAgInkiIDogMjcxLjY2NjczODgyODAyNTg3LAogICJzYmc6cmV2aXNpb25zSW5mbyIgOiBbIHsKICAgICJzYmc6bW9kaWZpZWRCeSIgOiAiYml4LWRlbW8iLAogICAgInNiZzptb2RpZmllZE9uIiA6IDE0NTA5MTEyOTQsCiAgICAic2JnOnJldmlzaW9uIiA6IDAsCiAgICAic2JnOnJldmlzaW9uTm90ZXMiIDogbnVsbAogIH0sIHsKICAgICJzYmc6bW9kaWZpZWRCeSIgOiAiYml4LWRlbW8iLAogICAgInNiZzptb2RpZmllZE9uIiA6IDE0NTA5MTEyOTQsCiAgICAic2JnOnJldmlzaW9uIiA6IDEsCiAgICAic2JnOnJldmlzaW9uTm90ZXMiIDogbnVsbAogIH0sIHsKICAgICJzYmc6bW9kaWZpZWRCeSIgOiAiYml4LWRlbW8iLAogICAgInNiZzptb2RpZmllZE9uIiA6IDE0NTk5NjM1NzEsCiAgICAic2JnOnJldmlzaW9uIiA6IDIsCiAgICAic2JnOnJldmlzaW9uTm90ZXMiIDogbnVsbAogIH0gXSwKICAic2JnOmltYWdlX3VybCIgOiBudWxsLAogICJzYmc6dG9vbGtpdFZlcnNpb24iIDogIjEuMCIsCiAgInNiZzp2YWxpZGF0aW9uRXJyb3JzIiA6IFsgXQp9",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "input_file" : [ {
+      "size" : 278747,
+      "path" : "/media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/FastQC/NA12878-Garvan-Vial1_R1_fastqc.zip",
+      "location" : "/media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/FastQC/NA12878-Garvan-Vial1_R1_fastqc.zip",
+      "name" : "NA12878-Garvan-Vial1_R1_fastqc.zip",
+      "checksum" : "sha1$c38fb54b7617285068b3c8d4f7301ae19a5402b4",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "NUM_READS" : 481514412,
+          "READ_COUNT" : 481514412,
+          "__inherit__" : "input_fastq",
+          "experimental_strategy" : "WGS",
+          "investigation" : "FDA Consistency Challenge",
+          "library_id" : "FDA_GARVAN",
+          "platform" : "Illumina-HiSeq-XTen",
+          "quality_scale" : "sanger",
+          "sample_id" : "NA12878",
+          "sample_type" : "Cell Line",
+          "species" : "Homo sapiens"
+        }
+      },
+      "$type" : "File"
+    } ]
+  },
+  "outputs" : {
+    "b64html" : {
+      "size" : 312494,
+      "path" : "/media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/SBG_Html2b64_1/2/NA12878-Garvan-Vial1_R1_fastqc.b64html",
+      "location" : "/media/storage/workdir/LocalRerun20170803143523/app-2017-08-03-152101.873/root/SBG_Html2b64_1/2/NA12878-Garvan-Vial1_R1_fastqc.b64html",
+      "name" : "NA12878-Garvan-Vial1_R1_fastqc.b64html",
+      "checksum" : "sha1$297ae4f001a003d3457ab46c0a158fcc4b7c37ea",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "NUM_READS" : 481514412,
+          "READ_COUNT" : 481514412,
+          "__inherit__" : "input_fastq",
+          "experimental_strategy" : "WGS",
+          "investigation" : "FDA Consistency Challenge",
+          "library_id" : "FDA_GARVAN",
+          "platform" : "Illumina-HiSeq-XTen",
+          "quality_scale" : "sanger",
+          "sample_id" : "NA12878",
+          "sample_type" : "Cell Line",
+          "species" : "Homo sapiens"
+        }
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 32,
+    "memMB" : 46967,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ "b64html" ]
+}
