@@ -1,0 +1,1 @@
+java -jar %CD%\lib\rabix-cli.jar %*

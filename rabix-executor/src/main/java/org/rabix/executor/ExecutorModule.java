@@ -19,6 +19,7 @@ import org.rabix.executor.service.impl.FilePermissionServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
 import org.rabix.executor.service.impl.MockWorkerServiceImpl;
+import org.rabix.executor.service.impl.NoOpFilePermissionServiceImpl;
 import org.rabix.executor.service.impl.WorkerServiceImpl;
 import org.rabix.executor.service.impl.WorkerServiceImpl.LocalWorker;
 
@@ -61,7 +62,11 @@ public class ExecutorModule extends BackendModule {
     bind(JobDataService.class).to(JobDataServiceImpl.class).in(Scopes.SINGLETON);
     bind(JobHandlerCommandDispatcher.class).in(Scopes.SINGLETON);
 
-    bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
+    if (configuration.getBoolean("executor.set_permissions", false)) {
+      bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
+    } else {
+      bind(FilePermissionService.class).to(NoOpFilePermissionServiceImpl.class).in(Scopes.SINGLETON);
+    }
     bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
   }
 
