@@ -508,7 +508,8 @@ public class CWLProcessor implements ProtocolProcessor {
         secondaryFilePath = Paths.get(filePath).getParent().resolve(suffix).toString();
       }
       File secondaryFile = new File(secondaryFilePath);
-      secondaryFileMap = fileToData(secondaryFile, hashAlgorithm);
+      if(secondaryFile.exists())
+        secondaryFileMap = fileToData(secondaryFile, hashAlgorithm);
     } else if (expr instanceof Map) {//also string
       secondaryFileMap = (Map<String, Object>) expr;
       postprocessCreatedResults(secondaryFileMap, hashAlgorithm, workingDir);
