@@ -49,7 +49,7 @@ public class CWLInputSecondaryFilesProcessor implements CWLPortProcessorCallback
       }
 
       Map<String, Object> clonedValue = (Map<String, Object>) CloneHelper.deepCopy(value);
-      List<Map<String, Object>> outs = CWLProcessor.getSecondaryFiles(job, hashAlgorithm, clonedValue,  CWLFileValueHelper.getPath(clonedValue), secondaryFiles, workingDir);
+      List<Map<String, Object>> outs = CWLProcessor.getSecondaryFiles(job, hashAlgorithm, clonedValue,  CWLFileValueHelper.getPath(clonedValue), secondaryFiles, workingDir, false);
       if (secondaryFiles != null) {
         CWLFileValueHelper.setSecondaryFiles(outs, clonedValue);
         return new CWLPortProcessorResult(clonedValue, true);
