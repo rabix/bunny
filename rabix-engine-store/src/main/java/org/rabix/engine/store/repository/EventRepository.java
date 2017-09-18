@@ -10,8 +10,6 @@ public interface EventRepository {
 
   void insert(EventRecord event);
   
-  void updateStatus(EventRecord event);
-  
   void deleteGroup(UUID groupId);
   
   List<EventRecord> findUnprocessed();

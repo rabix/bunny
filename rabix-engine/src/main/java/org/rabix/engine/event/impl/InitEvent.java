@@ -117,11 +117,4 @@ public class InitEvent implements Event {
   public String toString() {
     return "InitEvent [value=" + value + ", rootId=" + rootId + ", config=" + config + "]";
   }
-
-  @Override
-  public EventRecord.PersistentType getPersistentType() {
-    return EventRecord.PersistentType.INIT;
-  }
-
-
 }
