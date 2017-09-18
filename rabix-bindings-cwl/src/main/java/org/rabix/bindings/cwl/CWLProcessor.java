@@ -522,7 +522,6 @@ public class CWLProcessor implements ProtocolProcessor {
         secondaryFilePath = Paths.get(filePath).getParent().resolve(suffix).toString();
       }
       File secondaryFile = new File(secondaryFilePath);
-      
       if (secondaryFile.exists() || !onlyExisting) {
         secondaryFileMap = fileToData(secondaryFile, hashAlgorithm);
       }
