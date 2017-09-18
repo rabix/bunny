@@ -4,11 +4,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.rabix.engine.event.Event;
+import org.rabix.engine.store.model.JobRecord;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.rabix.engine.store.model.EventRecord;
-import org.rabix.engine.store.model.JobRecord;
 
 public class JobStatusEvent implements Event {
 
@@ -172,18 +171,4 @@ public class JobStatusEvent implements Event {
     return "JobStatusEvent [jobId=" + jobId + ", state=" + state + ", contextId=" + contextId + ", result=" + result + ", message=" + message
         + ", eventGroupId=" + eventGroupId + ", producedByNode=" + producedByNode + "]";
   }
-
-  @Override
-  public EventRecord.PersistentType getPersistentType() {
-    switch (state) {
-    case RUNNING:
-      return EventRecord.PersistentType.JOB_STATUS_UPDATE_RUNNING;
-    case COMPLETED:
-      return EventRecord.PersistentType.JOB_STATUS_UPDATE_COMPLETED;
-    default:
-      break;
-    }
-    return null;
-  }
-
 }

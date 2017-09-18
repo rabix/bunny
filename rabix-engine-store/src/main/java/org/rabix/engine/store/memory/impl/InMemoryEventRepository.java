@@ -1,7 +1,9 @@
 package org.rabix.engine.store.memory.impl;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.rabix.engine.store.model.EventRecord;
@@ -11,59 +13,26 @@ import com.google.inject.Inject;
 
 public class InMemoryEventRepository implements EventRepository {
 
-  private class Key {
-    UUID id;
-    EventRecord.PersistentType type;
-
-    public Key(UUID id, EventRecord.PersistentType type) {
-      this.id = id;
-      this.type = type;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Key key = (Key) o;
-      return Objects.equals(id, key.id) &&
-          type == key.type;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(id, type);
-    }
-  }
-
-  private Key key(EventRecord event) {
-    return new Key(event.getGroupId(), event.getType());
-  }
-
-  private Map<Key, EventRecord> eventRepository;
+  private Set<EventRecord> eventRepository;
   
   @Inject
   public InMemoryEventRepository() {
-    this.eventRepository = new ConcurrentHashMap<>();
+    this.eventRepository = new HashSet<>();
   }
 
   @Override
   public synchronized void insert(EventRecord event) {
-    eventRepository.put(key(event), event);
-  }
-
-  @Override
-  public synchronized void updateStatus(EventRecord event) {
-    eventRepository.get(key(event)).setStatus(event.getStatus());
+    eventRepository.add(event);
   }
 
   @Override
   public synchronized void deleteGroup(UUID id) {
-    eventRepository.entrySet().removeIf(e -> e.getKey().id == id);
+    eventRepository.removeIf(e -> e.getGroupId().equals(id));
   }
 
   @Override
   public synchronized List<EventRecord> findUnprocessed() {
-    return eventRepository.values().stream()
+    return eventRepository.stream()
         .filter(event -> event.getStatus() == EventRecord.Status.UNPROCESSED)
         .collect(Collectors.toList());
   }
