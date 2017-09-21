@@ -5,17 +5,16 @@ import org.rabix.backend.api.BackendModule;
 import org.rabix.backend.api.WorkerService;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.common.retry.RetryInterceptorModule;
+import org.rabix.executor.container.ContainerHandlerFactory;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.execution.JobHandlerCommandDispatcher;
 import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.handler.JobHandlerFactory;
 import org.rabix.executor.handler.impl.JobHandlerImpl;
 import org.rabix.executor.service.CacheService;
-import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
 import org.rabix.executor.service.JobFitter;
 import org.rabix.executor.service.impl.CacheServiceImpl;
-import org.rabix.executor.service.impl.FilePermissionServiceImpl;
 import org.rabix.executor.service.impl.JobDataServiceImpl;
 import org.rabix.executor.service.impl.JobFitterImpl;
 import org.rabix.executor.service.impl.MockWorkerServiceImpl;
@@ -60,8 +59,7 @@ public class ExecutorModule extends BackendModule {
     bind(JobFitter.class).to(JobFitterImpl.class).in(Scopes.SINGLETON);
     bind(JobDataService.class).to(JobDataServiceImpl.class).in(Scopes.SINGLETON);
     bind(JobHandlerCommandDispatcher.class).in(Scopes.SINGLETON);
-
-    bind(FilePermissionService.class).to(FilePermissionServiceImpl.class).in(Scopes.SINGLETON);
+    bind(ContainerHandlerFactory.class).in(Scopes.SINGLETON);
     bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
   }
 

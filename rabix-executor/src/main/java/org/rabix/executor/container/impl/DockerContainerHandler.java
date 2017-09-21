@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
@@ -21,7 +22,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.bindings.BindingException;
@@ -105,8 +108,10 @@ public class DockerContainerHandler implements ContainerHandler {
   private WorkerStatusCallback statusCallback;
   
   private String commandLine;
+
+  private boolean setPermissions;
   
-  public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
+  public DockerContainerHandler(Job job, Configuration configuration, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
     this.dockerClient = dockerClient;
     this.dockerResource = dockerResource;
@@ -115,6 +120,8 @@ public class DockerContainerHandler implements ContainerHandler {
     this.workingDir = storageConfig.getWorkingDir(job);
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
     this.removeContainers = dockerConfig.removeContainers();
+
+    this.setPermissions = configuration.getBoolean("executor.set_permissions", false);
   }
 
   private void pull(String image) throws ContainerException {
@@ -161,6 +168,11 @@ public class DockerContainerHandler implements ContainerHandler {
     return image.contains(TAG_SEPARATOR) ? image : image + TAG_SEPARATOR + LATEST;
   }
 
+  private String getUid() throws IOException{
+    InputStream stream = Runtime.getRuntime().exec("id -u "+System.getProperty("user.name")).getInputStream();
+    return IOUtils.readLines(stream).get(0).toString();
+  }
+  
   @Override
   public void start() throws ContainerException {
     String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
@@ -178,6 +190,10 @@ public class DockerContainerHandler implements ContainerHandler {
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
       volumes = normalizeVolumes(job, volumes);
       
+      if(setPermissions && !SystemUtils.IS_OS_WINDOWS){
+        builder.user(getUid());
+        hostConfigBuilder.capAdd("DAC_OVERRIDE");
+      }
       Set<String> toBindSet = new HashSet<>();
       toBindSet.addAll(volumes);
       if(dockerResource.getDockerOutputDirectory() != null) {
