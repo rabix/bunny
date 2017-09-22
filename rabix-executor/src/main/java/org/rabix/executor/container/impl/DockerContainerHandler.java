@@ -110,6 +110,7 @@ public class DockerContainerHandler implements ContainerHandler {
   private String commandLine;
 
   private boolean setPermissions;
+  private String user;
   
   public DockerContainerHandler(Job job, Configuration configuration, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
@@ -122,6 +123,13 @@ public class DockerContainerHandler implements ContainerHandler {
     this.removeContainers = dockerConfig.removeContainers();
 
     this.setPermissions = configuration.getBoolean("executor.set_permissions", false);
+    
+    if (setPermissions) {
+      user = configuration.getString("executor.permission.uid");
+      String gid = configuration.getString("executor.permission.gid");
+      if (gid != null)
+        user = user + ":" + gid;
+    }
   }
 
   private void pull(String image) throws ContainerException {
@@ -168,9 +176,22 @@ public class DockerContainerHandler implements ContainerHandler {
     return image.contains(TAG_SEPARATOR) ? image : image + TAG_SEPARATOR + LATEST;
   }
 
-  private String getUid() throws IOException{
-    InputStream stream = Runtime.getRuntime().exec("id -u "+System.getProperty("user.name")).getInputStream();
-    return IOUtils.readLines(stream).get(0).toString();
+  private String getUser() throws IOException {
+    if (user == null) {
+      user = getId("u");
+      String gid = getId("g");
+      if (gid != null) {
+        user = user + ":" + gid;
+      }
+    }
+    return user;
+  }
+
+  private String getId(String param) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    InputStream stream = Runtime.getRuntime().exec(sb.append("id -").append(param).append(" ").append(System.getProperty("user.name")).toString()).getInputStream();
+    List<String> readLines = IOUtils.readLines(stream);
+    return readLines.get(0);
   }
   
   @Override
@@ -191,9 +212,10 @@ public class DockerContainerHandler implements ContainerHandler {
       volumes = normalizeVolumes(job, volumes);
       
       if(setPermissions && !SystemUtils.IS_OS_WINDOWS){
-        builder.user(getUid());
+        builder.user(getUser());
         hostConfigBuilder.capAdd("DAC_OVERRIDE");
       }
+      
       Set<String> toBindSet = new HashSet<>();
       toBindSet.addAll(volumes);
       if(dockerResource.getDockerOutputDirectory() != null) {
