@@ -459,7 +459,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       return tesJob.getState().equals(TESState.CANCELED) || 
           tesJob.getState().equals(TESState.COMPLETE) || 
           tesJob.getState().equals(TESState.ERROR) || 
-          tesJob.getState().equals(TESState.SYSTEMERROR);
+          tesJob.getState().equals(TESState.SYSTEM_ERROR);
     }
   }
   
