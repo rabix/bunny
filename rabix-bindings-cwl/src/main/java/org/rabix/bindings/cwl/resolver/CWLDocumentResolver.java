@@ -53,6 +53,7 @@ public class CWLDocumentResolver {
     types.add("stdin");
     types.add("stdout");
     types.add("stderr");
+    types.add("map");
   }
 
   public static final String ID_KEY = "id";
