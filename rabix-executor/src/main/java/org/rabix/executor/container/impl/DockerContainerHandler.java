@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
@@ -30,7 +31,6 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.FileValueHelper;
-import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
@@ -121,8 +121,10 @@ public class DockerContainerHandler implements ContainerHandler {
       mapper = (String path, Map<String, Object> config) -> {
         return path.startsWith("/") ? path : "/" + path.replace(":", "").replace("\\", "/");
       };
-    }else{
-      mapper = (String path, Map<String, Object> config) -> {return path;};
+    } else {
+      mapper = (String path, Map<String, Object> config) -> {
+        return path;
+      };
     }
   }
 
@@ -198,19 +200,12 @@ public class DockerContainerHandler implements ContainerHandler {
       }
       
 
-      toBindSet = toBindSet.stream().map(input -> {
-          String out = input + ":";
-          if (SystemUtils.IS_OS_WINDOWS) {
-            out = out + "/" + input.replace(":", "");
-            out = out.replace("\\", "/");
-          } else {
-            out += input;
-          }
-          return out + ":" + DIRECTORY_MAP_MODE;
-      }).collect(Collectors.toSet());
-
       if (SystemUtils.IS_OS_WINDOWS) {
-        volumes = volumes.stream().map(input -> input.replace("\\","/")).collect(Collectors.toSet());
+        Function<? super String, ? extends String> mapper2 = input -> input.replace("\\", "/");
+        toBindSet = toBindSet.stream().map(input -> input + ":/" + input.replace(":", "") + ":" + DIRECTORY_MAP_MODE).map(mapper2).collect(Collectors.toSet());
+        volumes = volumes.stream().map(mapper2).collect(Collectors.toSet());
+      } else {
+        toBindSet = toBindSet.stream().map(input -> input + ":" + input + ":" + DIRECTORY_MAP_MODE).collect(Collectors.toSet());
       }
       
       hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
