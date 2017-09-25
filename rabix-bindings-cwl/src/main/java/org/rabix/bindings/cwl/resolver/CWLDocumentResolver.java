@@ -350,7 +350,7 @@ public class CWLDocumentResolver {
 
   private static boolean checkIsItInputsOrOutputs(JsonNode currentNode, JsonNode subnode, boolean previous) {
     boolean result = false;
-    if(!currentNode.has(APP_STEP_KEY)) {
+    if(!currentNode.has(APP_STEP_KEY) && currentNode.has(CLASS_KEY)) {
       if (currentNode.has(INPUTS_KEY_LONG) && currentNode.get(INPUTS_KEY_LONG).equals(subnode)) {
         result = true;
       } else if (currentNode.has(INPUTS_KEY_SHORT) && currentNode.get(INPUTS_KEY_SHORT).equals(subnode)) {
