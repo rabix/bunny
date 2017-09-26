@@ -1,5 +1,6 @@
 package org.rabix.bindings.cwl;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -53,8 +54,12 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
     if(job.getApp().getCwlVersion() == null && parentJob != null) {
       job.getApp().setCwlVersion(parentJob.getApp().getCwlVersion());
     }
+
+    if(job.getApp().getAppFileLocation() == null && parentJob != null) {
+      job.getApp().setAppFileLocation(parentJob.getApp().getAppFileLocation());
+    }
+    
     processElements(null, job);
-    rewriteDefaultPaths(job);
     
     if (job.getApp().isWorkflow()) {
       CWLWorkflow workflow = (CWLWorkflow) job.getApp();
@@ -71,62 +76,7 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
     }
     return job;
   }
-  
-  /**
-   * Rewrite default file location if application is loaded from elsewhere 
-   */
-  private void rewriteDefaultPaths(CWLJob job) {
-    CWLJobApp app = job.getApp();
-    String appLocation = app.getAppFileLocation();
-    if (appLocation != null) {
-      rewriteDefaultPaths(job.getInputs(), appLocation);
-    }
-  }
-  
-  @SuppressWarnings("unchecked")
-  private void rewriteDefaultPaths(Object value, String appLocation) {
-    Path appFolder = Paths.get(appLocation).getParent().toAbsolutePath();
-    if (value instanceof CWLStepInputs) {
-      value = ((CWLStepInputs) value).getDefaultValue();
-    }
-    if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
-      String location = CWLFileValueHelper.getLocation(value);
-      if (location != null && !!Paths.get(location).isAbsolute()) {
-        CWLFileValueHelper.setLocation(appFolder.resolve(location).toString(), value);
-      }
-      String path = CWLFileValueHelper.getPath(value);
-      if (path != null && !Paths.get(path).isAbsolute()) {
-        CWLFileValueHelper.setPath(appFolder.resolve(path).toString(), value);
-      }
-      List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
-      if (secondaryFiles != null) {
-        for (Map<String, Object> secondaryFile : secondaryFiles) {
-          rewriteDefaultPaths(secondaryFile, appLocation);
-        }
-      }
-      if (CWLSchemaHelper.isDirectoryFromValue(value)) {
-        List<Object> listing = CWLDirectoryValueHelper.getListing(value);
-        if (listing != null) {
-          for (Object listingObj : listing) {
-            rewriteDefaultPaths(listingObj, appLocation);
-          }
-        }
-      }
-      return;
-    }
-    if (value instanceof Map<?, ?>) {
-      for (Object mapValue : ((Map<String, Object>) value).values()) {
-        rewriteDefaultPaths(mapValue, appLocation);
-      }
-      return;
-    }
-    if (value instanceof List<?>) {
-      for (Object listValue : ((List<Object>) value)) {
-        rewriteDefaultPaths(listValue, appLocation);
-      }
-    }
-  }
-  
+ 
   /**
    * @param step
    * @param parentJob

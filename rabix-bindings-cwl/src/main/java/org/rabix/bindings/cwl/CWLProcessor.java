@@ -2,6 +2,9 @@ package org.rabix.bindings.cwl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
@@ -74,9 +76,14 @@ public class CWLProcessor implements ProtocolProcessor {
 
   @Override
   public Job preprocess(final Job job, final File workingDir, FilePathMapper filesPathMapper) throws BindingException {
+    return this.preprocess(job, workingDir.toPath(), filesPathMapper);
+  }
+
+  @Override
+  public Job preprocess(final Job job, final Path workingDir, FilePathMapper filesPathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     CWLRuntime runtime = cwlJob.getRuntime();
-    String path = workingDir.getAbsolutePath();
+    String path = workingDir.toAbsolutePath().toString();
     try {
       path = filesPathMapper == null ? path : filesPathMapper.map(path, Collections.EMPTY_MAP);
     } catch (FileMappingException e1) {
@@ -90,12 +97,12 @@ public class CWLProcessor implements ProtocolProcessor {
     try {
       Map<String, Object> inputs = cwlJob.getInputs();
 
+//      inputs = portProcessorHelper.setPathsToInputs(inputs);
       inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
-      inputs = portProcessorHelper.setPathsToInputs(inputs);
       inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-//      inputs = portProcessorHelper.setInputSecondaryFiles(inputs, workingDir, null);
+      inputs = portProcessorHelper.setInputSecondaryFiles(inputs, workingDir, null);
       Job newJob = Job.cloneWithResources(job, CWLRuntimeHelper.convertToResources(runtime));
       
       @SuppressWarnings("unchecked")
@@ -125,9 +132,8 @@ public class CWLProcessor implements ProtocolProcessor {
     return false;
   }
 
-  @Override
   @SuppressWarnings("unchecked")
-  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+  public Job postprocess(Job job, Path workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     try {
       Map<String, Object> outputs = null;
@@ -149,11 +155,16 @@ public class CWLProcessor implements ProtocolProcessor {
     }
   }
   
-  private Map<String, Object> collectOutputs(CWLJob job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper, Map<String, Object> config) throws CWLGlobException, CWLExpressionException, IOException, BindingException {
-    File resultFile = new File(workingDir, RESULT_FILENAME);
+  @Override
+  public Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+    return this.postprocess(job, workingDir.toPath(), hashAlgorithm, logFilePathMapper);
+  }
+  
+  private Map<String, Object> collectOutputs(CWLJob job, Path workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper, Map<String, Object> config) throws CWLGlobException, CWLExpressionException, IOException, BindingException {
+    Path resultFile = workingDir.resolve(RESULT_FILENAME);
     
-    if (resultFile.exists()) {
-      String resultStr = FileUtils.readFileToString(resultFile);
+    if (Files.exists(resultFile)) {
+      String resultStr = new String(Files.readAllBytes(resultFile));
       Map<String, Object> result = JSONHelper.readMap(resultStr);
       postprocessCreatedResults(result, hashAlgorithm, workingDir);
       BeanSerializer.serializePartial(resultFile, result);
@@ -179,8 +190,12 @@ public class CWLProcessor implements ProtocolProcessor {
     }
     return result;
   }
-  
+
   public static void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, File workingDir) throws IOException {
+    postprocessCreatedResults(value, hashAlgorithm, workingDir.toPath());
+  }
+
+  public static void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, Path workingDir) throws IOException {
     if (value == null) {
       return;
     }
@@ -190,54 +205,45 @@ public class CWLProcessor implements ProtocolProcessor {
         String contents = CWLFileValueHelper.getContents(value);
         CWLFileValueHelper.setSize(new Long(contents.length()), value);
 
-        File file = new File(workingDir, CWLFileValueHelper.getName(value));
-        FileUtils.writeStringToFile(file, contents);
+        Path file = workingDir.resolve(CWLFileValueHelper.getName(value));
+        Files.createDirectories(file.getParent());
+        Files.write(file, contents.getBytes());
         String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
         CWLFileValueHelper.setChecksum(checksum, value);
-        CWLFileValueHelper.setLocation(file.getAbsolutePath(), value);
+        CWLFileValueHelper.setLocation(file.toUri().toString(), value);
+        CWLFileValueHelper.setPath(file.toString(), value);
         return;
       }
       
       // TODO discuss Directory literal processing
       if (CWLDirectoryValueHelper.isDirectoryLiteral(value)) {
-        File directory = new File(workingDir, CWLDirectoryValueHelper.getName(value));
-        directory.mkdirs();
-        CWLDirectoryValueHelper.setLocation(directory.getAbsolutePath(), value);
+        Path directory = workingDir.resolve(CWLDirectoryValueHelper.getName(value));
+        Files.createDirectories(directory);
+        CWLDirectoryValueHelper.setLocation(directory.toUri().toString(), value);
+        CWLFileValueHelper.setPath(directory.toString(), value);
         CWLFileValueHelper.setDirType(value);
         
         List<Object> listing = CWLDirectoryValueHelper.getListing(value);
         if (listing != null) {
           for (Object listingObj : listing) {
+            Path destinationFile = workingDir.resolve(CWLFileValueHelper.getName(listingObj));
+            Path source = Paths.get(CWLFileValueHelper.getPath(listingObj));
+            Files.copy(source, destinationFile);
             if (CWLSchemaHelper.isFileFromValue(listingObj)) {
-              File destinationFile = new File(workingDir, CWLFileValueHelper.getName(listingObj));
-              FileUtils.copyFile(new File(CWLFileValueHelper.getPath(listingObj)), destinationFile);
               String checksum = ChecksumHelper.checksum(destinationFile, hashAlgorithm);
               CWLFileValueHelper.setChecksum(checksum, listingObj);
-              CWLFileValueHelper.setLocation(destinationFile.getAbsolutePath(), listingObj);
+              CWLFileValueHelper.setLocation(destinationFile.toUri().toString(), listingObj);
             } else {
-              FileUtils.copyDirectory(new File(CWLDirectoryValueHelper.getPath(listingObj)), new File(workingDir, CWLDirectoryValueHelper.getName(listingObj)));
             }
           }
         }
         return;
       }
-      
-      String path = CWLFileValueHelper.getPath(value);
-      if (StringUtils.isEmpty(CWLFileValueHelper.getLocation(value))) {
-        CWLFileValueHelper.setLocation(path, value);
-      }
-      
-      File file = new File(path);
-      if (!file.exists()) {
-        return;
-      }
-      CWLFileValueHelper.setSize(file.length(), value);
-      
-      if (hashAlgorithm != null) {
-        String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
-        if (checksum != null) {
-          CWLFileValueHelper.setChecksum(checksum, value);
-        }
+      try {
+        CWLFileValueHelper.buildMissingInfo(value, hashAlgorithm, workingDir);
+      } catch (URISyntaxException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
       
       List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
@@ -258,7 +264,7 @@ public class CWLProcessor implements ProtocolProcessor {
   }
   
   @SuppressWarnings("unchecked")
-  private Object collectOutput(CWLJob job, File workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, CWLOutputPort outputPort) throws CWLGlobException, CWLExpressionException, BindingException {
+  private Object collectOutput(CWLJob job, Path workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, CWLOutputPort outputPort) throws CWLGlobException, CWLExpressionException, BindingException {
     if (binding == null) {
       binding = CWLSchemaHelper.getOutputBinding(schema);
     }
@@ -357,7 +363,7 @@ public class CWLProcessor implements ProtocolProcessor {
   /**
    * Extracts files from a directory based on GLOB expression
    */
-  private List<Map<String, Object>> globFiles(final CWLJob job, final File workingDir, HashAlgorithm hashAlgorithm, final CWLOutputPort outputPort, Object outputBinding) throws CWLGlobException {
+  private List<Map<String, Object>> globFiles(final CWLJob job, final Path workingDir, HashAlgorithm hashAlgorithm, final CWLOutputPort outputPort, Object outputBinding) throws CWLGlobException {
     if (outputPort.getOutputBinding() != null) {
       outputBinding = outputPort.getOutputBinding(); // override
     }
@@ -372,7 +378,7 @@ public class CWLProcessor implements ProtocolProcessor {
       return null;
     }
 
-    Set<File> files = globService.glob(job, workingDir, glob);
+    Set<Path> files = globService.glob(job, workingDir, glob);
     if (files == null) {
       logger.info("Glob service didn't find any files.");
       return null;
@@ -380,7 +386,7 @@ public class CWLProcessor implements ProtocolProcessor {
     logger.debug("Glob service returned result {}", files);
 
     final List<Map<String, Object>> result = new ArrayList<>();
-    for (File file : files) {
+    for (Path file : files) {
       try {
         result.add(formFileValue(file, job, outputBinding, outputPort, hashAlgorithm, workingDir));
       } catch (Exception e) {
@@ -390,12 +396,12 @@ public class CWLProcessor implements ProtocolProcessor {
     return result;
   }
   
-  public Map<String, Object> formFileValue(File file, CWLJob job, Object outputBinding, CWLOutputPort outputPort, HashAlgorithm hashAlgorithm, File workingDir) throws CWLExpressionException, IOException {
+  public Map<String, Object> formFileValue(Path file, CWLJob job, Object outputBinding, CWLOutputPort outputPort, HashAlgorithm hashAlgorithm, Path workingDir) throws CWLExpressionException, IOException {
     Map<String, Object> fileData = fileToData(file, hashAlgorithm); 
-    if (file.isDirectory()) {
+    if (Files.isDirectory(file)) {
       return fileData;
     }
-    List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file.getAbsolutePath(), outputPort.getSecondaryFiles(), workingDir, true);
+    List<?> secondaryFiles = getSecondaryFiles(job, hashAlgorithm, fileData, file, outputPort.getSecondaryFiles(), workingDir, true);
     if (secondaryFiles != null) {
       CWLFileValueHelper.setSecondaryFiles(secondaryFiles, fileData);
     }
@@ -419,13 +425,19 @@ public class CWLProcessor implements ProtocolProcessor {
     return fileData;
   }
 
-  private static Map<String, Object> fileToData(File file, HashAlgorithm hashAlgorithm) {
+  private static Map<String, Object> fileToData(Path file, HashAlgorithm hashAlgorithm) {
     Map<String, Object> fileData = new HashMap<>();
-    if(file.isDirectory()){
-      File[] list = file.listFiles();
+    if(Files.isDirectory(file)){
+      Path[] list = new Path[]{};
+      try {
+        list = Files.list(file).toArray(Path[]::new);
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
       List<Object> listing = new ArrayList<>();
-      for (File subfile : list) {
-        switch (subfile.getName()) {
+      for (Path subfile : list) {
+        switch (subfile.getFileName().toString()) {
         case JOB_FILE:
         case RESULT_FILENAME:
         case RESERVED_EXECUTOR_CMD_LOG_FILE_NAME:
@@ -441,16 +453,23 @@ public class CWLProcessor implements ProtocolProcessor {
     }
     else {
       CWLFileValueHelper.setFileType(fileData);
-      if (hashAlgorithm != null && file.exists()) {
+      if (hashAlgorithm != null && Files.exists(file)) {
         CWLFileValueHelper.setChecksum(file, fileData, hashAlgorithm);
       }
     }
-    CWLFileValueHelper.setSize(file.length(), fileData);
-    CWLFileValueHelper.setName(file.getName(), fileData);
-    CWLFileValueHelper.setDirname(file.getParentFile().getAbsolutePath(), fileData);
-    CWLFileValueHelper.setPath(file.getAbsolutePath(), fileData);
-    CWLFileValueHelper.setNameroot(FilenameUtils.getBaseName(file.getName()), fileData);
-    String extension = FilenameUtils.getExtension(file.getName());
+    try {
+      CWLFileValueHelper.setSize(Files.size(file), fileData);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    String filename = file.getFileName().toString();
+    CWLFileValueHelper.setName(filename, fileData);
+    CWLFileValueHelper.setDirname(file.getParent().toAbsolutePath().toString(), fileData);
+    CWLFileValueHelper.setPath(file.toAbsolutePath().toString(), fileData);
+    CWLFileValueHelper.setLocation(file.toAbsolutePath().toUri().toString(), fileData);
+    CWLFileValueHelper.setNameroot(FilenameUtils.getBaseName(filename), fileData);
+    String extension = FilenameUtils.getExtension(filename);
     if(!StringUtils.isEmpty(extension))
       CWLFileValueHelper.setNameext("." + extension, fileData);
     return fileData;
@@ -459,8 +478,16 @@ public class CWLProcessor implements ProtocolProcessor {
   /**
    * Gets secondary files (absolute paths)
    */
-  @SuppressWarnings("unchecked")
   public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String filePath, Object secs, File workingDir, boolean onlyExisting) throws CWLExpressionException, IOException {
+    return getSecondaryFiles(job, hashAlgorithm, fileValue, Paths.get(filePath), secs, workingDir.toPath(), onlyExisting);
+  }
+  
+  
+  /**
+   * Gets secondary files (absolute paths)
+   */
+  @SuppressWarnings("unchecked")
+  public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, Path filePath, Object secs, Path workingDir, boolean onlyExisting) throws CWLExpressionException, IOException {
     Object secondaryFilesObj = secs;
     if (secondaryFilesObj == null) {
       return null;
@@ -492,22 +519,23 @@ public class CWLProcessor implements ProtocolProcessor {
     }
     return secondaryFileMaps.isEmpty() ? null : secondaryFileMaps;
   }
-
-  private static void addSecondaryFile(HashAlgorithm hashAlgorithm, String filePath, File workingDir, boolean onlyExisting,
+  
+  private static void addSecondaryFile(HashAlgorithm hashAlgorithm, Path filePath, Path workingDir, boolean onlyExisting,
       List<Map<String, Object>> secondaryFileMaps, Object expr, boolean append) throws IOException {
     Map<String, Object> secondaryFile = getSecondaryFile(hashAlgorithm, filePath, workingDir, expr, append, onlyExisting);
     if (secondaryFile != null && !secondaryFile.isEmpty())
       secondaryFileMaps.add(secondaryFile);
   }
 
-  private static Map<String, Object> getSecondaryFile(HashAlgorithm hashAlgorithm, String filePath, File workingDir, Object expr, boolean append, boolean onlyExisting)
+  private static Map<String, Object> getSecondaryFile(HashAlgorithm hashAlgorithm, Path filePath, Path workingDir, Object expr, boolean append, boolean onlyExisting)
       throws IOException {
     Map<String, Object> secondaryFileMap = new HashMap<>();
-    if(expr instanceof String) {
-      String secondaryFilePath = null;
+    Path path;
+    if (expr instanceof String) {
+      String secondaryFilePath = "";
       String suffix = (String) expr;
       if (append) {
-        secondaryFilePath = filePath.toString();
+        secondaryFilePath = filePath.getFileName().toString();
         while (suffix.startsWith("^")) {
           int extensionIndex = secondaryFilePath.lastIndexOf(".");
           if (extensionIndex != -1) {
@@ -517,14 +545,16 @@ public class CWLProcessor implements ProtocolProcessor {
             break;
           }
         }
-        secondaryFilePath += suffix;
-      } else {
-        secondaryFilePath = Paths.get(filePath).getParent().resolve(suffix).toString();
       }
-      File secondaryFile = new File(secondaryFilePath);
-      
-      if (secondaryFile.exists() || !onlyExisting) {
-        secondaryFileMap = fileToData(secondaryFile, hashAlgorithm);
+      secondaryFilePath += suffix;
+      path = filePath.getParent().resolve(secondaryFilePath);
+      if (Files.exists(path) || !onlyExisting) {
+        secondaryFileMap = fileToData(path, hashAlgorithm);
+      } else {
+        path = path.resolve(".").normalize();
+        if (Files.exists(path) || !onlyExisting) {
+          secondaryFileMap = fileToData(path, hashAlgorithm);
+        }
       }
     } else if (expr instanceof Map) {//also string
       secondaryFileMap = (Map<String, Object>) expr;
@@ -545,5 +575,4 @@ public class CWLProcessor implements ProtocolProcessor {
       throw new BindingException(e);
     }
   }
-
 }

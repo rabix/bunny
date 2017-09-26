@@ -29,7 +29,7 @@ public class URIHelper {
   public final static String FTP_URI_SCHEME = "ftp://";
   public final static String HTTP_URI_SCHEME = "http";
   public final static String DATA_URI_SCHEME = "data";
-  public final static String FILE_URI_SCHEME = "file://";
+  public final static String FILE_URI_SCHEME = "file:";
   
   private final static String DATA_URI_BASE_64 = "base64";
   private final static String DATA_URI_PAYLOAD_SEPARATOR = ",";

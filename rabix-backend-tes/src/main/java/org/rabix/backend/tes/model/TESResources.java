@@ -1,32 +1,38 @@
 package org.rabix.backend.tes.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TESResources {
 
-  @JsonProperty("minimumCpuCores")
+  @JsonProperty("cpu_cores")
   private Integer minimumCpuCores;
   @JsonProperty("preemptible")
   private boolean preemptible;
-  @JsonProperty("minimumRamGb")
+  @JsonProperty("ram_gb")
   private Double minimumRamGb;
-  @JsonProperty("volumes")
-  private List<TESVolume> volumes;
+  @JsonProperty("size_gb")
+  private Double disk;
+  // @JsonProperty("volumes")
+  // private List<TESVolume> volumes;
   @JsonProperty("zones")
   private String zones;
 
   @JsonCreator
-  public TESResources(@JsonProperty("minimumCpuCores") Integer minimumCpuCores,
-      @JsonProperty("preemptible") boolean preemptible, @JsonProperty("minimumRamGb") Double minimumRamGb,
-      @JsonProperty("volumes") List<TESVolume> volumes, @JsonProperty("zones") String zones) {
+  public TESResources(@JsonProperty("cpu_cores") Integer minimumCpuCores, @JsonProperty("preemptible") boolean preemptible,
+      @JsonProperty("ram_gb") Double minimumRamGb, @JsonProperty("size_gb") Double disk, @JsonProperty("zones") String zones) {
     this.minimumCpuCores = minimumCpuCores;
     this.preemptible = preemptible;
     this.minimumRamGb = minimumRamGb;
-    this.volumes = volumes;
     this.zones = zones;
+  }
+
+  public Double getDisk() {
+    return disk;
+  }
+
+  public void setDisk(Double disk) {
+    this.disk = disk;
   }
 
   public Integer getMinimumCpuCores() {
@@ -53,14 +59,6 @@ public class TESResources {
     this.minimumRamGb = minimumRamGb;
   }
 
-  public List<TESVolume> getVolumes() {
-    return volumes;
-  }
-
-  public void setVolumes(List<TESVolume> volumes) {
-    this.volumes = volumes;
-  }
-
   public String getZones() {
     return zones;
   }
@@ -71,7 +69,7 @@ public class TESResources {
 
   @Override
   public String toString() {
-    return "TESResources [minimumCpuCores=" + minimumCpuCores + ", preemptible=" + preemptible + ", minimumRamGb=" + minimumRamGb + ", volumes=" + volumes + ", zones=" + zones + "]";
+    return "TESResources [minimumCpuCores=" + minimumCpuCores + ", preemptible=" + preemptible + ", minimumRamGb=" + minimumRamGb + ", zones=" + zones + "]";
   }
 
 }

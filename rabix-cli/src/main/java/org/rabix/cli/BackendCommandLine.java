@@ -3,9 +3,12 @@ package org.rabix.cli;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -34,7 +37,6 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.DataType;
@@ -122,24 +124,37 @@ public class BackendCommandLine {
         printUsageAndExit(posixOptions);
       }
       
-      final String appPath = commandLine.getArgList().get(0);
-      File appFile = new File(URIHelper.extractBase(appPath));
-      if (!appFile.exists()) {
-        VerboseLogger.log(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));
+      final String app = commandLine.getArgList().get(0);
+
+      Path filePath = null;
+      URI appUri = URI.create(app);
+      if (appUri.getScheme() == null) {
+        appUri = new URI("file", appUri.getSchemeSpecificPart(), appUri.getFragment());
+      }
+
+      if (appUri.getScheme().equals("file")) {
+        filePath = Paths.get("").toAbsolutePath().resolve(appUri.getSchemeSpecificPart());
+      } else {
+        filePath = Paths.get(new URI(appUri.getScheme(), appUri.getSchemeSpecificPart(), null)).toAbsolutePath();
+      }
+      
+      if (!Files.exists(filePath)) {
+        VerboseLogger.log(String.format("Application file %s does not exist.", appUri.toString()));
         printUsageAndExit(posixOptions);
       }
       
-      String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
+
+      String fullUri = appUri.toString();
       if (commandLine.hasOption("resolve-app")) {
-        printResolvedAppAndExit(appUrl);
+        printResolvedAppAndExit(fullUri);
       }
 
-      File inputsFile = null;
+      Path inputsFile = null;
       if (commandLine.getArgList().size() > 1) {
         String inputsPath = commandLine.getArgList().get(1);
-        inputsFile = new File(inputsPath);
-        if (!inputsFile.exists()) {
-          VerboseLogger.log(String.format("Inputs file %s does not exist.", inputsFile.getCanonicalPath()));
+        inputsFile = Paths.get(".").resolve(inputsPath).toAbsolutePath().normalize();
+        if (!Files.exists(inputsFile)) {
+          VerboseLogger.log(String.format("Inputs file %s does not exist.", inputsFile.toString()));
           printUsageAndExit(posixOptions);
         }
       }
@@ -154,7 +169,7 @@ public class BackendCommandLine {
       Map<String, Object> configOverrides = new HashMap<>();
       configOverrides.put("cleaner.backend.period", 5000L);
       
-      String directoryName = generateDirectoryName(appPath);
+      String directoryName = generateDirectoryName(app);
       configOverrides.put("backend.execution.directory.name", directoryName);
           
       String executionDirPath = commandLine.getOptionValue("basedir");
@@ -169,7 +184,7 @@ public class BackendCommandLine {
       } else {
         String workingDir = null;
         try {
-          workingDir = inputsFile.getParentFile().getCanonicalPath();
+          workingDir = inputsFile.getParent().toString();
         } catch (Exception e) {
           workingDir = new File(".").getCanonicalPath();
         }
@@ -264,13 +279,13 @@ public class BackendCommandLine {
       Application application = null;
       
       try {
-        bindings = BindingsFactory.create(appUrl);
-        application = bindings.loadAppObject(appUrl);
+        bindings = BindingsFactory.create(appUri.toString());
+        application = bindings.loadAppObject(fullUri);
       } catch (NotImplementedException e) {
         logger.error("Not implemented feature");
         System.exit(33);
       } catch (BindingException e) {
-        logger.error("Error: " + appUrl + " is not a valid app! {}", e.getMessage());
+        logger.error("Error: " + appUri.toString() + " is not a valid app! {}", e.getMessage());
         System.exit(10);
       }
       if (application == null) {
@@ -290,7 +305,7 @@ public class BackendCommandLine {
 
       Map<String, Object> inputs;
       if (inputsFile != null) {
-        String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
+        String inputsText = readFile(inputsFile.toAbsolutePath().toString(), Charset.defaultCharset());
         inputs = (Map<String, Object>) JSONHelper.transform(JSONHelper.readJsonNode(inputsText), true);
       } else {
         inputs = new HashMap<>();
@@ -391,7 +406,8 @@ public class BackendCommandLine {
       
       bootstrapService.start();
       Object commonInputs = null;
-      try {
+      try {       
+        inputs = (Map<String, Object>) processInputs(inputs, filePath.getParent());
         commonInputs = bindings.translateToCommon(inputs);
       } catch (BindingException e1) {
         VerboseLogger.log("Failed to translate inputs to the common Rabix format");
@@ -399,7 +415,7 @@ public class BackendCommandLine {
       }
       
       @SuppressWarnings("unchecked")
-      final Job job = jobService.start(new Job(appUrl, (Map<String, Object>) commonInputs), contextConfig);
+      final Job job = jobService.start(new Job(fullUri, (Map<String, Object>) commonInputs), contextConfig);
 
       final Bindings finalBindings = bindings;
       Thread checker = new Thread(new Runnable() {
@@ -452,7 +468,50 @@ public class BackendCommandLine {
     } catch (BootstrapServiceException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
+    } catch (URISyntaxException e2) {
+      // TODO Auto-generated catch block
+      e2.printStackTrace();
     }
+  }
+  static String keyPath = "path";
+  static String keyLocation = "location";
+  
+  private static Object processInputs(Object value, Path appLocation) {
+    if (value instanceof FileValue) {
+      FileValue file = ((FileValue) value);
+      Path resolved = appLocation.resolve((String) file.getPath());
+      file.setPath(resolved.toString());
+      file.setLocation(resolved.toUri().toString());
+    }
+
+    if (value instanceof Map<?, ?>) {
+      Map<String, Object> map = (Map<String, Object>) value;
+      if (map.containsKey(keyPath)) {
+        String pathValue = (String) map.get(keyPath);
+        Path resolved = appLocation.resolve(pathValue);
+        map.put(keyPath, resolved.toString());
+      }
+      if (map.containsKey(keyLocation)) {
+        String pathValue = (String) map.get(keyPath);
+        Path resolved;
+        if (pathValue == null) {
+          resolved = appLocation.resolve((String) map.get(keyLocation));
+          map.put(keyPath, resolved.toString());
+        } else {
+          resolved = appLocation.resolve((String) map.get(keyLocation));
+        }
+        map.put(keyLocation, resolved.toUri().toString());
+      }
+      for (Object mapValue : map.values()) {
+        processInputs(mapValue, appLocation);
+      }
+    }
+    if (value instanceof List<?>) {
+      for (Object listValue : ((List<Object>) value)) {
+        processInputs(listValue, appLocation);
+      }
+    }
+    return value;
   }
 
   /**

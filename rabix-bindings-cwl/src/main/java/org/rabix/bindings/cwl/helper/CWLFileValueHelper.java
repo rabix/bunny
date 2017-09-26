@@ -1,9 +1,13 @@
 package org.rabix.bindings.cwl.helper;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.rabix.bindings.helper.URIHelper;
+import org.rabix.bindings.cwl.CWLProcessor;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.ChecksumHelper;
@@ -101,7 +105,17 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   public static void setChecksum(File file, Object raw, HashAlgorithm hashAlgorithm) {
+    
     if (!file.exists()) {
+      throw new RuntimeException("Missing file " + file);
+    }
+    String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+    if (checksum != null) {
+      setValue(KEY_CHECKSUM, checksum, raw);
+    }
+  }
+  public static void setChecksum(Path file, Object raw, HashAlgorithm hashAlgorithm) {
+    if (!Files.exists(file)) {
       throw new RuntimeException("Missing file " + file);
     }
     String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
@@ -132,20 +146,11 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   public static String getPath(Object raw) {
-    String path = getValue(KEY_PATH, raw);
-    if (path == null) {
-      path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
-      if (path == null) {
-        path = getValue(KEY_LOCATION, raw);
-      }
-      setPath(path, raw);
-    }
-    return path;
+    return getValue(KEY_PATH, raw);
   }
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
-    setLocation(path, raw);
   }
   
   public static String getLocation(Object raw) {
@@ -212,16 +217,14 @@ public class CWLFileValueHelper extends CWLBeanHelper {
    * Load first CONTENTS_NUMBER_OF_BYTES bytes from file
    */
   private static String loadContents(Object fileData) throws IOException {
-    String path = CWLFileValueHelper.getPath(fileData);
-
+    String path = getPath(fileData);
+    Path pathP = Paths.get(path);
+    if (!Files.exists(pathP)) {
+      return new String(Files.readAllBytes(Paths.get(URI.create(getLocation(fileData)))), "UTF-8");
+    }
     InputStream is = null;
     try {
-      File file = new File(path);
-      is = new FileInputStream(file);
-      int bufferSize = file.length() > 0 && file.length() < CONTENTS_NUMBER_OF_BYTES ? (int) file.length(): CONTENTS_NUMBER_OF_BYTES;
-      byte[] buffer = new byte[bufferSize];
-      is.read(buffer);
-      return new String(buffer, "UTF-8");
+      return new String(Files.readAllBytes(pathP), "UTF-8");
     } finally {
       if (is != null) {
         try {
@@ -234,25 +237,18 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
   
   public static FileValue createFileValue(Object value) {
-    String path = CWLFileValueHelper.getPath(value);
-    String name = CWLFileValueHelper.getName(value);
-    String format = CWLFileValueHelper.getFormat(value);
-    String location = CWLFileValueHelper.getLocation(value);
-    String checksum = CWLFileValueHelper.getChecksum(value);
-    String dirname = CWLFileValueHelper.getDirname(value);
-    String nameroot = CWLFileValueHelper.getNameroot(value);
-    String nameext = CWLFileValueHelper.getNameext(value);
-    String contents = CWLFileValueHelper.getContents(value);
+    String path = getPath(value);
+    String name = getName(value);
+    String format = getFormat(value);
+    String location = getLocation(value);
+    String checksum = getChecksum(value);
+    String dirname = getDirname(value);
+    String nameroot = getNameroot(value);
+    String nameext = getNameext(value);
+    String contents = getContents(value);
     
-    Long size = CWLFileValueHelper.getSize(value);
-    
-    if (path == null) { // TODO remove
-      setPath(getLocation(value), value);
-    }
-    if (location == null) { // TODO remove
-      setLocation(getPath(value), value);
-    }
-    
+    Long size = getSize(value);
+
     if(path != null) {
       File file = new File(path);
       if(name == null) {
@@ -271,10 +267,10 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
     
     Map<String, Object> properties = new HashMap<>();
-    properties.put(CWLBindingHelper.KEY_SBG_METADATA, CWLFileValueHelper.getMetadata(value));
+    properties.put(CWLBindingHelper.KEY_SBG_METADATA, getMetadata(value));
 
     List<FileValue> secondaryFiles = new ArrayList<>();
-    List<Map<String, Object>> secondaryFileValues = CWLFileValueHelper.getSecondaryFiles(value);
+    List<Map<String, Object>> secondaryFileValues = getSecondaryFiles(value);
     if (secondaryFileValues != null) {
       for (Map<String, Object> secondaryFileValue : secondaryFileValues) {
         if (CWLSchemaHelper.isFileFromValue(secondaryFileValue)) {
@@ -351,5 +347,115 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       return filename.substring(dotIndex);
     }
     return null;
+  }
+  
+  public static void buildMissingInfo(Object value, HashAlgorithm alg, Path workDir) throws IOException, URISyntaxException{
+    String path = getPath(value);
+    String location = getLocation(value);
+    Path pPath;
+    if (path == null) {
+      if (location == null)
+        return;
+      URI uri = URI.create(location);
+      if (uri.getScheme() == null) {
+        uri = new URI("file", uri.getSchemeSpecificPart(), null);
+      }
+      if (uri.isOpaque()) {
+        pPath = workDir.resolve(location).toAbsolutePath();
+        location = pPath.toUri().toString();
+      } else {
+        location = uri.toString();
+        pPath = Paths.get(uri).toAbsolutePath();
+      }
+    } else {
+      pPath = Paths.get(path);
+    }
+
+    if (location == null) {
+      location = pPath.toUri().toString();
+    }
+
+    if (!pPath.isAbsolute()) {
+      pPath = workDir.resolve(pPath).toAbsolutePath().normalize();
+    }
+
+    setPath(pPath.toString(), value);
+    setLocation(location, value);
+    setNames(pPath, value);
+
+    if (CWLSchemaHelper.isDirectoryFromValue(value)) {
+      setListing(pPath, value);
+    }else{
+      if(alg!=null){
+        setChecksum(pPath, value, alg);
+      }
+    }
+    
+    List<Map<String, Object>> secondaryFiles = getSecondaryFiles(value);
+    if (secondaryFiles != null) {
+      for (Map<String, Object> secondaryFileValue : secondaryFiles) {
+        buildMissingInfo(secondaryFileValue, alg, workDir);
+      }
+    }
+  }
+  
+  private static void setNames(Path path, Object value) throws IOException {
+    String name = path.getFileName().toString();
+    setSize(Files.size(path), value);
+    setName(name, value);
+
+    int dotIndex = name.lastIndexOf(".");
+    if (dotIndex != -1) {
+      setNameext(name.substring(dotIndex), value);
+      setNameroot(name.substring(0, dotIndex), value);
+    }
+
+    setDirname(path.getParent().toString(), value);
+  }
+
+  private static void setListing(Path path, Object value) throws IOException {
+    List<Object> listing = new ArrayList<>();
+    for (Path childFile : Files.list(path).toArray(Path[]::new)) {
+      listing.add(pathToRawFile(childFile));
+    }
+    CWLDirectoryValueHelper.setListing(listing, value);
+  }
+
+  public static Map<String, Object> pathToRawFile(Path file) throws IOException {
+    if (Files.isDirectory(file)) {
+      Map<String, Object> directory = new HashMap<>();
+      CWLDirectoryValueHelper.setDirectoryType(directory);
+      CWLDirectoryValueHelper.setSize(Files.size(file), directory);
+      CWLDirectoryValueHelper.setName(file.getFileName().toString(), directory);
+      CWLDirectoryValueHelper.setPath(file.toString(), directory);
+      setLocation(file.toUri().toString(), directory);
+
+      Path[] list = Files.list(file).toArray(Path[]::new);
+
+      List<Object> listing = new ArrayList<>();
+      for (Path subfile : list) {
+        switch (subfile.getFileName().toString()) {
+          case CWLProcessor.JOB_FILE:
+          case CWLProcessor.RESULT_FILENAME:
+          case CWLProcessor.RESERVED_EXECUTOR_CMD_LOG_FILE_NAME:
+          case CWLProcessor.RESERVED_EXECUTOR_ERROR_LOG_FILE_NAME:
+            continue;
+          default:
+            break;
+        }
+        listing.add(pathToRawFile(subfile));
+      }
+      CWLDirectoryValueHelper.setListing(listing, directory);
+      return directory;
+    }
+
+    Map<String, Object> fileData = new HashMap<>();
+    setFileType(fileData);
+    setSize(Files.size(file), fileData);
+    setName(file.getFileName().toString(), fileData);
+    setPath(file.toString(), fileData);
+    setLocation(file.toUri().toString(), fileData);
+    setDirname(file.getParent().toString(), fileData);
+    return fileData;
   }
 }
