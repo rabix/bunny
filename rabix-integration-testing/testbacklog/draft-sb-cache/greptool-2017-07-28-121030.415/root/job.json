@@ -1,0 +1,51 @@
+{
+  "app" : {
+    "contributor" : [ ],
+    "owner" : [ ],
+    "cwlVersion" : "sbg:draft-2",
+    "inputs" : [ {
+      "id" : "#grepString",
+      "type" : "string",
+      "inputBinding" : {
+        "position" : 1,
+        "separate" : true
+      }
+    }, {
+      "id" : "#grepFile",
+      "type" : "File",
+      "inputBinding" : {
+        "position" : 2,
+        "separate" : true
+      }
+    } ],
+    "outputs" : [ {
+      "id" : "#output",
+      "type" : "File",
+      "outputBinding" : {
+        "glob" : "out.txt"
+      }
+    } ],
+    "hints" : [ ],
+    "requirements" : [ ],
+    "successCodes" : [ ],
+    "stdout" : "out.txt",
+    "baseCommand" : "grep",
+    "arguments" : [ ],
+    "class" : "CommandLineTool"
+  },
+  "inputs" : {
+    "grepFile" : {
+      "checksum" : null,
+      "class" : "File",
+      "contents" : null,
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/hello.txt",
+      "metadata" : null,
+      "name" : null,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/hello.txt",
+      "secondaryFiles" : [ ],
+      "size" : 36
+    },
+    "grepString" : "bacon"
+  },
+  "id" : "root"
+}

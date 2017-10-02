@@ -383,7 +383,6 @@ public class SBProcessor implements ProtocolProcessor {
           SBFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
           secondaryFileMaps.add(secondaryFileMap);
         }
-        
     }
     return secondaryFileMaps;
   }

@@ -69,3 +69,5 @@ rabix-integration-testing/config/test/localcore.properties
 
 logs
 
+#private tests
+rabix-integration-testing/testbacklog/draft-sb-cache/private-tests

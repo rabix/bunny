@@ -1,0 +1,46 @@
+{
+  "id" : "7d835139-ad8b-40f3-b53e-3ff0dd417e64",
+  "rootId" : "7d835139-ad8b-40f3-b53e-3ff0dd417e64",
+  "name" : "root",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNncmVwU3RyaW5nIiwKICAgICJ0eXBlIiA6ICJzdHJpbmciLAogICAgImlucHV0QmluZGluZyIgOiB7CiAgICAgICJwb3NpdGlvbiIgOiAxLAogICAgICAic2VwYXJhdGUiIDogdHJ1ZQogICAgfQogIH0sIHsKICAgICJpZCIgOiAiI2dyZXBGaWxlIiwKICAgICJ0eXBlIiA6ICJGaWxlIiwKICAgICJpbnB1dEJpbmRpbmciIDogewogICAgICAicG9zaXRpb24iIDogMiwKICAgICAgInNlcGFyYXRlIiA6IHRydWUKICAgIH0KICB9IF0sCiAgIm91dHB1dHMiIDogWyB7CiAgICAiaWQiIDogIiNvdXRwdXQiLAogICAgInR5cGUiIDogIkZpbGUiLAogICAgIm91dHB1dEJpbmRpbmciIDogewogICAgICAiZ2xvYiIgOiAib3V0LnR4dCIKICAgIH0KICB9IF0sCiAgImhpbnRzIiA6IFsgXSwKICAicmVxdWlyZW1lbnRzIiA6IFsgXSwKICAic3VjY2Vzc0NvZGVzIiA6IFsgXSwKICAic3Rkb3V0IiA6ICJvdXQudHh0IiwKICAiYmFzZUNvbW1hbmQiIDogImdyZXAiLAogICJhcmd1bWVudHMiIDogWyBdLAogICJjbGFzcyIgOiAiQ29tbWFuZExpbmVUb29sIgp9",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "grepFile" : [ {
+      "size" : 36,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/hello.txt",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/hello.txt",
+      "checksum" : "sha1$63053c41b7735219ce5ff8ef87d0541f6689b867",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    } ],
+    "grepString" : "bacon"
+  },
+  "outputs" : {
+    "output" : {
+      "size" : 6,
+      "path" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/greptool-2017-07-28-121030.415/root/out.txt",
+      "location" : "/home/intern-sdk/bunny/rabix-integration-testing/testbacklog/draft-sb-cache/greptool-2017-07-28-121030.415/root/out.txt",
+      "name" : "out.txt",
+      "checksum" : "sha1$4f0ecdd7b27486665fecea299e9a01b0a8245766",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 4,
+    "memMB" : 12466,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ ]
+}

@@ -164,10 +164,4 @@ public class InputUpdateEvent implements Event {
   public String toString() {
     return "InputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", portId=" + portId + ", value=" + value + ", numberOfScattered=" + numberOfScattered + ", isLookAhead=" + isLookAhead + "]";
   }
-
-  @Override
-  public EventRecord.PersistentType getPersistentType() {
-    return null;
-  }
-
 }

@@ -41,33 +41,28 @@ import com.google.inject.Inject;
  */
 public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
+  @Inject
   private JobRecordService jobRecordService;
+  @Inject
   private LinkRecordService linkService;
+  @Inject
   private VariableRecordService variableService;
+  @Inject
   private ContextRecordService contextService;
+  @Inject
   private JobStatsRecordService jobStatsRecordService;
-  private final EventProcessor eventProcessor;
-  
-  private DAGNodeService dagNodeService;
-  private AppService appService;
-  private JobService jobService;
+  @Inject
+  private EventProcessor eventProcessor;
   
   @Inject
-  public OutputEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService,
-      VariableRecordService variableService, LinkRecordService linkService, ContextRecordService contextService,
-      DAGNodeService dagNodeService, AppService appService, JobService jobService,
-      JobStatsRecordService jobStatsRecordService) {
-    this.dagNodeService = dagNodeService;
-    this.appService = appService;
-    this.jobRecordService = jobRecordService;
-    this.linkService = linkService;
-    this.contextService = contextService;
-    this.variableService = variableService;
-    this.eventProcessor = eventProcessor;
-    this.jobService = jobService;
-    this.jobStatsRecordService = jobStatsRecordService;
-  }
-
+  private DAGNodeService dagNodeService;
+  @Inject
+  private AppService appService;
+  @Inject
+  private JobService jobService;
+  @Inject
+  private JobHelper jobHelper;
+  
   public void handle(final OutputUpdateEvent event) throws EventHandlerException {
     JobRecord sourceJob = jobRecordService.find(event.getJobId(), event.getContextId());
     if (sourceJob.getState().equals(JobRecord.JobState.COMPLETED)) {
@@ -93,7 +88,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
 
         if (sourceJob.isRoot()) {
-          Job rootJob = createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
+          Job rootJob = createJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
           if (!event.isFromScatter() || (event.getNumberOfScattered() == sourceVariable.getNumberOfTimesUpdated())) {
             jobService.handleJobRootPartiallyCompleted(rootJob, event.isFromScatter() ? InternalSchemaHelper.getJobIdFromScatteredId(event.getProducedByNode()) : event.getProducedByNode());
           }
@@ -104,17 +99,14 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
           return;
         }
         else {
-          try {
-            Job completedJob = JobHelper.createCompletedJob(sourceJob, JobStatus.COMPLETED, jobRecordService, variableService, linkService, contextService, dagNodeService, appService);
+            Job completedJob = createJob(sourceJob, JobStatus.COMPLETED);
             jobService.handleJobCompleted(completedJob);
-          } catch (BindingException e) {
-          }
         }
       }
     }
 
     if(sourceJob.isRoot() && (!event.isFromScatter() || (event.getNumberOfScattered()==sourceVariable.getNumberOfTimesUpdated()))){
-        jobService.handleJobRootPartiallyCompleted(createRootJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.isFromScatter() ? InternalSchemaHelper.getJobIdFromScatteredId(event.getProducedByNode()) : event.getProducedByNode());
+        jobService.handleJobRootPartiallyCompleted(createJob(sourceJob, JobHelper.transformStatus(sourceJob.getState())), event.isFromScatter() ? InternalSchemaHelper.getJobIdFromScatteredId(event.getProducedByNode()) : event.getProducedByNode());
     }
     
     Object value = null;
@@ -214,16 +206,14 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
         }
       }
     }
-  }
-  
-  private Job createRootJob(JobRecord jobRecord, JobStatus status) {
-    Map<String, Object> outputs = new HashMap<>();
-    List<VariableRecord> outputVariables = variableService.find(jobRecord.getId(), LinkPortType.OUTPUT, jobRecord.getRootId());
-    for (VariableRecord outputVariable : outputVariables) {
-      Object value = CloneHelper.deepCopy(variableService.getValue(outputVariable));
-      outputs.put(outputVariable.getPortId(), value);
+  }  
+  private Job createJob(JobRecord record, JobStatus status){
+    try {
+      return jobHelper.createJob(record, status);
+    } catch (BindingException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
-    return JobHelper.createRootJob(jobRecord, status, jobRecordService, variableService, linkService, contextService, dagNodeService, appService, outputs);
+    return null;
   }
-  
 }

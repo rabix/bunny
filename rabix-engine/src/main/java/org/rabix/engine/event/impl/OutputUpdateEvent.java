@@ -166,10 +166,4 @@ public class OutputUpdateEvent implements Event {
   public String toString() {
     return "OutputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", portId=" + portId + ", value=" + value + ", fromScatter=" + fromScatter + ", numberOfScattered=" + numberOfScattered + "]";
   }
-
-  @Override
-  public EventRecord.PersistentType getPersistentType() {
-    return null;
-  }
-  
 }

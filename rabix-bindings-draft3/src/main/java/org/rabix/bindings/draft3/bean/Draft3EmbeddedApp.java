@@ -1,19 +1,27 @@
 package org.rabix.bindings.draft3.bean;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.draft3.bean.Draft3EmbeddedApp.Draft3EmbededAppSerializer;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 @JsonDeserialize(as = Draft3EmbeddedApp.class)
+@JsonSerialize(using = Draft3EmbededAppSerializer.class)
 public class Draft3EmbeddedApp extends Draft3JobApp {
 
   private Application application;
@@ -54,13 +62,14 @@ public class Draft3EmbeddedApp extends Draft3JobApp {
   }
 
   @Override
-  public String serialize() {
-    return application.serialize();
-  }
-
-  @Override
   public Draft3JobAppType getType() {
     return Draft3JobAppType.EMBEDDED;
   }
 
+  public static class Draft3EmbededAppSerializer extends JsonSerializer<Draft3EmbeddedApp> {
+    @Override
+    public void serialize(Draft3EmbeddedApp value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
+      gen.writeObject(value.application);
+    }
+  }
 }

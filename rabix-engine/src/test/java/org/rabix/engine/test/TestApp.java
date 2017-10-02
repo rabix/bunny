@@ -20,10 +20,10 @@ public class TestApp extends Application {
   public List<TestPort> inputs = new ArrayList<>();
   public List<TestPort> outputs = new ArrayList<>();
 
-  @Override
-  public String serialize() {
-    return "";
-  }
+//  @Override
+//  public String serialize() {
+//    return "";
+//  }
 
   @Override
   public ApplicationPort getInput(String name) {

@@ -14,12 +14,14 @@ import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.Event.EventType;
 import org.rabix.engine.event.impl.ContextStatusEvent;
+import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.store.model.ContextRecord;
 import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.store.model.EventRecord;
+import org.rabix.engine.store.model.JobRecord.JobState;
 import org.rabix.engine.store.repository.EventRepository;
 import org.rabix.engine.store.repository.JobRepository;
 import org.rabix.engine.store.repository.TransactionHelper;
@@ -117,8 +119,8 @@ public class EventProcessorImpl implements EventProcessor {
             try {
               cacheService.clear(eventReference.get().getContextId());
               Event event = eventReference.get();
-              EventRecord er = new EventRecord(event.getEventGroupId(), event.getPersistentType(), EventRecord.Status.FAILED, JSONHelper.convertToMap(e));
-              eventRepository.updateStatus(er);
+              EventRecord er = new EventRecord(event.getEventGroupId(), EventRecord.Status.FAILED, JSONHelper.convertToMap(e));
+              eventRepository.insert(er);
               invalidateContext(eventReference.get().getContextId());
             } catch (Exception ehe) {
               logger.error("Failed to invalidate Context {}.", eventReference.get().getContextId(), ehe);
@@ -130,18 +132,7 @@ public class EventProcessorImpl implements EventProcessor {
   }
   
   private boolean checkForReadyJobs(Event event) {
-    switch (event.getType()) {
-    case INIT:
-      return true;
-    case JOB_STATUS_UPDATE:
-      if (EventRecord.PersistentType.JOB_STATUS_UPDATE_COMPLETED.equals(event.getPersistentType())) {
-        return true;
-      }
-      return false;
-    default:
-      break;
-    }
-    return false;
+    return (event instanceof JobStatusEvent && ((JobStatusEvent) event).getState().equals(JobState.COMPLETED));
   }
   
   private boolean handle(Event event) throws TransactionException {
@@ -201,7 +192,7 @@ public class EventProcessorImpl implements EventProcessor {
     if (stop.get()) {
       return;
     }
-    EventRecord er = new EventRecord(event.getEventGroupId(), event.getPersistentType(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
+    EventRecord er = new EventRecord(event.getEventGroupId(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
     eventRepository.insert(er);
   }
   

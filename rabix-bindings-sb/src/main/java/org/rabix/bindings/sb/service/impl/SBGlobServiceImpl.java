@@ -196,7 +196,8 @@ public class SBGlobServiceImpl implements SBGlobService {
     }
   }
   
-  public void resolveSimpleGlob(String glob, List<File> globDirs, Set<File> result) throws SBGlobException {
+  public void resolveSimpleGlob(String globb, List<File> globDirs, Set<File> result) throws SBGlobException {
+    String glob = globb.trim();
     Set<File> dirs = listDir(glob, true, globDirs);
     for(File dir: dirs) {
       List<File> globDir = new ArrayList<File>();

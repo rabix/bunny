@@ -1,15 +1,21 @@
 package org.rabix.bindings.model;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.common.json.BeanSerializer;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -23,9 +29,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(using=Application.ApplicationDeserializer.class)
 public abstract class Application {
-
-  @JsonIgnore
-  public abstract String serialize();
 
   @JsonIgnore
   public abstract ApplicationPort getInput(String name);
@@ -61,7 +64,11 @@ public abstract class Application {
   public Object getProperty(String key) {
     return raw.get(key);
   }
-
+  
+  @JsonIgnore
+  public String serialize() { 
+    return BeanSerializer.serializePartial(this);
+  }
   /**
    * Checks if provided inputs are valid for this app.
    * Also checks if all required inputs are present
@@ -141,8 +148,7 @@ public abstract class Application {
       if (value == null) {
         gen.writeNull();
       } else {
-        JsonNode node = JSONHelper.readJsonNode(value.serialize());
-        gen.writeTree(node);
+        gen.writeObject(value);
       }
     }
   }

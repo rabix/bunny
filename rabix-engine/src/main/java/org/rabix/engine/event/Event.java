@@ -14,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.rabix.engine.store.model.EventRecord;
 
 /**
  * Describes event interface used in the algorithm 
@@ -42,9 +41,7 @@ public interface Event {
    * Gets type of the event 
    */
   EventType getType();
-  
-  EventRecord.PersistentType getPersistentType();
-  
+
   UUID getContextId();
   
   UUID getEventGroupId();

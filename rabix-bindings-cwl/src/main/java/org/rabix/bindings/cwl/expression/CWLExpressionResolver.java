@@ -218,6 +218,8 @@ public class CWLExpressionResolver {
         else if (c == '{') {
           start = i - 1;
           stack.push(BRACE);
+        } else {
+          stack.pop();
         }
       }
       else if (state == PAREN) {
