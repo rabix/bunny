@@ -248,6 +248,9 @@ public abstract class SBJobApp extends Application {
     return hints;
   }
 
+  public void setHints(List<SBResource> hints) {
+    this.hints = hints;
+  }
   @JsonIgnore
   public String getLabel() {
     return (String) getProperty("label");
