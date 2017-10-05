@@ -40,13 +40,9 @@ public class LocalDownloadServiceImpl implements DownloadService {
       } else {
         locationPath = path;
       }
-      try {
         Path resolved = path.getParent().resolve(name);
         downloadFile(locationPath, resolved);
         downloadResource.setPath(resolved.toString());
-      } catch (IOException e) {
-        throw new DownloadServiceException(e);
-      }
     }
   }
 
