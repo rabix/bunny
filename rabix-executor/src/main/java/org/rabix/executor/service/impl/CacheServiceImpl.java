@@ -1,6 +1,10 @@
 package org.rabix.executor.service.impl;
 
-import com.google.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
@@ -11,8 +15,6 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.common.helper.ChecksumHelper;
-import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.executor.config.FileConfiguration;
 import org.rabix.executor.config.StorageConfiguration;
@@ -20,10 +22,7 @@ import org.rabix.executor.service.CacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import com.google.inject.Inject;
 
 public class CacheServiceImpl implements CacheService {
 
@@ -88,15 +87,7 @@ public class CacheServiceImpl implements CacheService {
    * @return true if jobs are equal
    */
   private boolean jobsEqual(Job job, Job cachedJob, Bindings bindings) throws BindingException {
-    String appText = BeanSerializer.serializePartial(bindings.loadAppObject(job.getApp()));
-    String sortedAppText = JSONHelper.writeSortedWithoutIdentation(JSONHelper.readJsonNode(appText));
-    String appHash = ChecksumHelper.checksum(sortedAppText, HashAlgorithm.SHA1);
-
-    String cachedAppText = BeanSerializer.serializePartial(bindings.loadAppObject(cachedJob.getApp()));
-    String cachedSortedAppText = JSONHelper.writeSortedWithoutIdentation(JSONHelper.readJsonNode(cachedAppText));
-    String cachedAppHash = ChecksumHelper.checksum(cachedSortedAppText, HashAlgorithm.SHA1);
-
-    if (!cachedAppHash.equals(appHash)) {
+    if (!BindingsFactory.create(job).loadAppObject(job.getApp()).equals(BindingsFactory.create(cachedJob).loadAppObject(cachedJob.getApp()))) {
       return false;
     }
 

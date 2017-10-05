@@ -320,14 +320,39 @@ public abstract class SBJobApp extends Application {
     if (hints == null) {
       if (other.hints != null)
         return false;
-    } else if (!hints.equals(other.hints))
+    } else if (compareLists(hints, other.hints))
       return false;
+    if (inputs == null) {
+      if (other.inputs != null)
+        return false;
+    } else if (compareLists(inputs, other.inputs))
+      return false;
+    if (outputs == null) {
+      if (other.outputs != null)
+        return false;
+    } else if (compareLists(outputs, other.outputs))
+      return false;
+    if (requirements == null) {
+      if (other.requirements != null)
+        return false;
+    } else if (compareLists(requirements, other.requirements))
+      return false;
+    if (successCodes == null) {
+      if (other.successCodes != null)
+        return false;
+    } else if (compareLists(successCodes, other.successCodes))
+      return false; 
     if (getId() == null) {
       if (other.getId() != null)
         return false;
     } else if (!getId().equals(other.getId()))
       return false;
     return true;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static boolean compareLists(List a, List b) {
+    return a.size()==b.size() && !a.stream().allMatch(hint->b.contains(hint)) && b.stream().allMatch(hint->a.contains(hint));
   }
 
   @Override
