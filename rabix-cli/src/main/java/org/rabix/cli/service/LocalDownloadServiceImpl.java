@@ -7,8 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.service.download.DownloadService;
@@ -40,28 +42,32 @@ public class LocalDownloadServiceImpl implements DownloadService {
       } else {
         locationPath = path;
       }
-        Path resolved = path.getParent().resolve(name);
-        downloadFile(locationPath, resolved);
-        downloadResource.setPath(resolved.toString());
+      Path resolved = path.getParent().resolve(name);
+      if(!downloadFile(locationPath, resolved)){
+        throw new DownloadServiceException("Failed to download resource: " + downloadResource.toString());
+      }
+      downloadResource.setPath(resolved.toString());
     }
   }
 
-  private void downloadFile(Path locationPath, Path resolved) {
+  private boolean downloadFile(Path locationPath, Path resolved) {
     if (!Files.isDirectory(locationPath)) {
       try {
+        if (!Files.exists(resolved.getParent()))
+          Files.createDirectories(resolved);
         Files.copy(locationPath, resolved, StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        return false;
       }
     } else {
       try {
-        Files.list(locationPath).forEach(f -> downloadFile(f, resolved.resolve(locationPath.relativize(f))));
+        List<Boolean> all = Files.list(locationPath).map(f -> downloadFile(f, resolved.resolve(locationPath.relativize(f)))).collect(Collectors.toList());
+        return all.stream().reduce(true, (x, y) -> x && y);
       } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        return false;
       }
     }
+    return true;
   }
 
   @Override

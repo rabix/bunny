@@ -2,6 +2,7 @@ package org.rabix.executor.handler.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -293,7 +294,7 @@ public class JobHandlerImpl implements JobHandler {
             return;
           }
           
-          String path = ((SingleInputFileRequirement) fileRequirement).getContent().getPath();
+          String path = URI.create(((SingleInputFileRequirement) fileRequirement).getContent().getLocation()).getSchemeSpecificPart();
           String mappedPath = inputFileMapper.map(path, job.getConfig());
           stagedFiles.put(path, destinationFile.getPath());
           File file = new File(mappedPath);

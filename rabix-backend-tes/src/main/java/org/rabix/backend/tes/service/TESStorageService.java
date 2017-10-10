@@ -1,32 +1,23 @@
 package org.rabix.backend.tes.service;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.rabix.bindings.BindingException;
+import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 
 public interface TESStorageService {
-  
-  enum StorageType {
-    Local
-  }
 
   Job transformInputFiles(Job job) throws BindingException;
    
   Path workDir(Job job);
 
-  public static class LocalFileStorage {
-    private final String baseDir;
-
-    public LocalFileStorage(String baseDir) {
-      this.baseDir = baseDir;
-    }
-
-    public String getBaseDir() {
-      return baseDir;
-    }
-  }
-
   Path localDir(Job job);
 
+  List<FileValue> stageFile(Path workDir, FileValue fileValue) throws TESStorageException;
+
+  void downloadDirectory(Path localDir, Path outDir) throws TESStorageException;
+
+  void stageFile(Path workDir, FileValue content, List<FileValue> createdFiles) throws TESStorageException;
 }
