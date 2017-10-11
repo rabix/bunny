@@ -369,7 +369,10 @@ public class JobHandlerImpl implements JobHandler {
       
       job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
       
-      containerHandler.dumpContainerLogs(new File(workingDir, DEFAULT_ERROR_FILE));
+      if (standardErrorLog == null) {
+        containerHandler.dumpContainerLogs(new File(workingDir, DEFAULT_ERROR_FILE));
+      }
+      
       containerHandler.dumpCommandLine();
       
       statusCallback.onOutputFilesUploadStarted(job);
