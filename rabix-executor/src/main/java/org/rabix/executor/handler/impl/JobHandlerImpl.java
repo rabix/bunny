@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -202,63 +206,56 @@ public class JobHandlerImpl implements JobHandler {
 
   private void downloadInputFiles(final Job job, final Bindings bindings) throws BindingException, DownloadServiceException {
     Set<FileValue> fileValues = flattenFiles(FileValueHelper.getInputFiles(job));
-    
-    final Set<DownloadResource> downloadRecources = new HashSet<>();
-    for (FileValue fileValue : fileValues) {
-      downloadRecources.add(new DownloadResource(fileValue.getLocation(), fileValue.getPath(), fileValue.getName(), fileValue instanceof DirectoryValue));
-      if (fileValue.getSecondaryFiles() != null) {
-        for (FileValue secondaryFileValue : fileValue.getSecondaryFiles()) {
-          downloadRecources.add(new DownloadResource(secondaryFileValue.getLocation(), secondaryFileValue.getPath(), secondaryFileValue.getName(), secondaryFileValue instanceof DirectoryValue));
-        }
+    fileValues.forEach(file->download(file, job.getConfig()));
+  }
+  
+  private void download(FileValue file, Map<String, Object> config) {
+    String path2 = file.getPath();
+    if (path2 == null)
+      return;
+
+    Path path = Paths.get(path2);
+
+    String location = file.getLocation();
+    String name = file.getName();
+    if (name == null)
+      name = path.getFileName().toString();
+    if (!Files.exists(path) || !path.endsWith(name)) {
+      Path locationPath;
+      if (location != null) {
+        locationPath = Paths.get(URI.create(location));
+      } else {
+        locationPath = path;
+      }
+      if(!path.isAbsolute())
+        return;
+      
+      Path resolved = path.getParent().resolve(name);
+      if(!downloadFile(locationPath, resolved)){
+        return;
+      }
+      file.setPath(resolved.toString());
+    }
+  }
+
+  private boolean downloadFile(Path locationPath, Path resolved) {
+    if (!Files.isDirectory(locationPath)) {
+      try {
+        if (!Files.exists(resolved.getParent()))
+          Files.createDirectories(resolved);
+        Files.copy(locationPath, resolved, StandardCopyOption.REPLACE_EXISTING);
+      } catch (IOException e) {
+        return false;
+      }
+    } else {
+      try {
+        List<Boolean> all = Files.list(locationPath).map(f -> downloadFile(f, resolved.resolve(locationPath.relativize(f)))).collect(Collectors.toList());
+        return all.stream().reduce(true, (x, y) -> x && y);
+      } catch (IOException e) {
+        return false;
       }
     }
-    downloadService.download(workingDir, downloadRecources, job.getConfig());
-    
-    // TODO refactor ASAP
-    FileValueHelper.updateInputFiles(job, new FileTransformer() {
-      @Override
-      public FileValue transform(FileValue fileValue) {
-        FileValue newFileValue = fileValue;
-        if (fileValue.getLocation() != null) {
-          DownloadResource downloadResource = findByLocation(fileValue.getLocation(), downloadRecources);
-          if (downloadResource != null) {
-            newFileValue = cloneWithPath(downloadResource.getPath(), newFileValue);
-          }
-          if (fileValue.getSecondaryFiles() != null) {
-            List<FileValue> secondaryFiles = new ArrayList<>();
-            for (FileValue secondaryFile : fileValue.getSecondaryFiles()) {
-              FileValue newSecondaryFile = transform(secondaryFile);
-              secondaryFiles.add(newSecondaryFile);
-            }
-            newFileValue = cloneWithSecondaryFiles(secondaryFiles, newFileValue);
-          }
-        }
-        return newFileValue;
-      }
-      
-      private DownloadResource findByLocation(String location, Set<DownloadResource> downloadResources) {
-        for (DownloadResource downloadResource : downloadRecources) {
-          if (location.equals(downloadResource.getLocation())) {
-            return downloadResource;
-          }
-        }
-        return null;
-      }
-
-      private FileValue cloneWithPath(String path, FileValue fileValue) {
-        if (fileValue instanceof DirectoryValue) {
-          return DirectoryValue.cloneWithPath((DirectoryValue) fileValue, path);
-        }
-        return FileValue.cloneWithPath(fileValue, path);
-      }
-
-      private FileValue cloneWithSecondaryFiles(List<FileValue> secondaryFiles, FileValue fileValue) {
-        if (fileValue instanceof DirectoryValue) {
-          return DirectoryValue.cloneWithSecondaryFiles((DirectoryValue) fileValue, secondaryFiles);
-        }
-        return FileValue.cloneWithSecondaryFiles(fileValue, secondaryFiles);
-      }
-    });
+    return true;
   }
   
   private void stageFileRequirements(List<Requirement> requirements) throws ExecutorException, FileMappingException {
