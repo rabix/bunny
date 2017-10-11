@@ -17,6 +17,7 @@ import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InputUpdateEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
+import org.rabix.engine.event.impl.OutputUpdateEvent;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.DAGNodeService;
@@ -121,15 +122,9 @@ public class ScatterHandler {
       scatterStrategy.skipScatter(true);
 
       List<VariableRecord> outputVariableRecords = variableRecordService.find(job.getId(), LinkPortType.OUTPUT, job.getRootId());
-
-      Map<String, Object> outputs = new HashMap<>();
       for (VariableRecord outputVariableRecord : outputVariableRecords) {
-        outputVariableRecord.setValue(output);
-        variableRecordService.update(outputVariableRecord);
-        outputs.put(outputVariableRecord.getPortId(), output);
+        eventProcessor.addToQueue(new OutputUpdateEvent(job.getRootId(), job.getId(), outputVariableRecord.getPortId(), output, 1, 1, event.getEventGroupId(), event.getProducedByNode()));
       }
-      jobRecordService.update(job);
-      eventProcessor.send(new JobStatusEvent(job.getId(), job.getRootId(), JobRecord.JobState.COMPLETED,  outputs, event.getEventGroupId(), event.getProducedByNode()));
       return;
     }
   }
