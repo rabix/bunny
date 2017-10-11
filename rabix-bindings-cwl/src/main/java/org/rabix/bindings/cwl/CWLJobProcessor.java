@@ -85,7 +85,9 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
   
   @SuppressWarnings("unchecked")
   private void rewriteDefaultPaths(Object value, String appLocation) {
-    Path appFolder = Paths.get(appLocation).getParent().toAbsolutePath();
+
+    Path appFolder = Paths.get(appLocation).getParent() != null ?
+        Paths.get(appLocation).getParent().toAbsolutePath() : Paths.get(".").toAbsolutePath();
     if (value instanceof CWLStepInputs) {
       value = ((CWLStepInputs) value).getDefaultValue();
     }
