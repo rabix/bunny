@@ -1,9 +1,12 @@
 package org.rabix.bindings.sb.bean;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.rabix.bindings.sb.bean.resource.SBResource;
+import org.rabix.bindings.sb.bean.resource.SBResourceType;
 import org.rabix.bindings.sb.helper.SBBindingHelper;
 import org.rabix.bindings.sb.helper.SBSchemaHelper;
 
@@ -39,17 +42,25 @@ public class SBStep {
   
   @JsonIgnore
   private SBJob job;
+  
+  @JsonProperty("hints")
+  private List<SBResource> hints = new ArrayList<>();
+  @JsonProperty("requirements")
+  private List<SBResource> requirements = new ArrayList<>();
 
   @JsonCreator
-  public SBStep(@JsonProperty("id") String id, @JsonProperty("run") SBJobApp app,
-      @JsonProperty("scatter") Object scatter, @JsonProperty("scatterMethod") String scatterMethod, @JsonProperty("linkMerge") String linkMerge,
-      @JsonProperty("inputs") List<Map<String, Object>> inputs, @JsonProperty("outputs") List<Map<String, Object>> outputs) {
+  public SBStep(@JsonProperty("id") String id, @JsonProperty("run") SBJobApp app, @JsonProperty("scatter") Object scatter,
+      @JsonProperty("scatterMethod") String scatterMethod, @JsonProperty("linkMerge") String linkMerge,
+      @JsonProperty("inputs") List<Map<String, Object>> inputs, @JsonProperty("outputs") List<Map<String, Object>> outputs,
+      @JsonProperty("hints") List<SBResource> hints, @JsonProperty("requirements") List<SBResource> requirements) {
     this.id = id;
     this.app = app;
     this.scatter = scatter;
     this.scatterMethod = scatterMethod;
     this.inputs = inputs;
     this.outputs = outputs;
+    this.hints = hints;
+    this.requirements = requirements;
     this.job = constructJob();
   }
 
@@ -121,7 +132,19 @@ public class SBStep {
   public SBJob getJob() {
     return job;
   }
+  
+  public List<SBResource> getRequirements() {
+    return requirements;
+  }
 
+  public List<SBResource> getHints() {
+    return hints;
+  }
+
+  public void setHints(List<SBResource> hints) {
+    this.hints = hints;
+  }
+  
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -134,7 +157,34 @@ public class SBStep {
     result = prime * result + ((scatter == null) ? 0 : scatter.hashCode());
     return result;
   }
+  
+  @JsonIgnore
+  private <T extends SBResource> List<T> getRequirements(SBResourceType type, Class<T> clazz) {
+    if (requirements == null) {
+      return null;
+    }
+    List<T> result = new ArrayList<>();
+    for (SBResource requirement : requirements) {
+      if (type.equals(requirement.getTypeEnum())) {
+        result.add(clazz.cast(requirement));
+      }
+    }
+    return result;
+  }
 
+  @JsonIgnore
+  private <T extends SBResource> List<T> getHints(SBResourceType type, Class<T> clazz) {
+    if (hints == null) {
+      return null;
+    }
+    List<T> result = new ArrayList<>();
+    for (SBResource hint : hints) {
+      if (type.equals(hint.getTypeEnum())) {
+        result.add(clazz.cast(hint));
+      }
+    }
+    return result;
+  }
   @Override
   public boolean equals(Object obj) {
     if (this == obj)
