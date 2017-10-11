@@ -19,9 +19,9 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.engine.store.cache.Cachable;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.VariableRecord;
-import org.rabix.engine.store.cache.Cachable;
 import org.rabix.engine.store.postgres.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
 import org.rabix.engine.store.repository.VariableRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
@@ -85,16 +85,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
         return new Binder<BindVariableRecord, VariableRecord>() {
           public void bind(SQLStatement<?> q, BindVariableRecord bind, VariableRecord variableRecord) {
             q.bind("job_id", variableRecord.getJobId());
-            
-            try {
-              PGobject data = new PGobject();
-              data.setType("jsonb");
-              data.setValue(JSONHelper.writeObject(variableRecord.getValue()));
-              q.bind("value", data);
-            } catch (SQLException ex) {
-              throw new IllegalStateException("Error Binding value", ex);
-            }
-            
+            q.bind("value", JSONHelper.writeObject(variableRecord.getValue()).getBytes());
             try {
               PGobject data = new PGobject();
               data.setType("jsonb");
@@ -123,7 +114,7 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   public static class VariableRecordMapper implements ResultSetMapper<VariableRecord> {
     public VariableRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
       String jobId = resultSet.getString("job_id");
-      String value = resultSet.getString("value");
+      String value = new String(resultSet.getBytes("value"));
       String transform = resultSet.getString("transform");
       String portId = resultSet.getString("port_id");
       String type = resultSet.getString("type");
