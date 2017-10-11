@@ -18,17 +18,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.FileValueHelper;
-import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
@@ -47,9 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.net.HostAndPort;
 import com.google.inject.Inject;
 import com.spotify.docker.client.DefaultDockerClient;
@@ -106,6 +106,8 @@ public class DockerContainerHandler implements ContainerHandler {
   
   private String commandLine;
   
+  private FilePathMapper mapper;
+  
   public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
     this.dockerClient = dockerClient;
@@ -115,6 +117,15 @@ public class DockerContainerHandler implements ContainerHandler {
     this.workingDir = storageConfig.getWorkingDir(job);
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
     this.removeContainers = dockerConfig.removeContainers();
+    if (SystemUtils.IS_OS_WINDOWS) {
+      mapper = (String path, Map<String, Object> config) -> {
+        return path.startsWith("/") ? path : "/" + path.replace(":", "").replace("\\", "/");
+      };
+    } else {
+      mapper = (String path, Map<String, Object> config) -> {
+        return path;
+      };
+    }
   }
 
   private void pull(String image) throws ContainerException {
@@ -188,24 +199,22 @@ public class DockerContainerHandler implements ContainerHandler {
         toBindSet.remove(physicalPath);
       }
       
-      toBindSet = FluentIterable.from(toBindSet).transform(new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-          return input + ":" + input + ":" + DIRECTORY_MAP_MODE;
-        }
-      }).toSet();
+
+      if (SystemUtils.IS_OS_WINDOWS) {
+        Function<? super String, ? extends String> mapper2 = input -> input.replace("\\", "/");
+        toBindSet = toBindSet.stream().map(input -> input + ":/" + input.replace(":", "") + ":" + DIRECTORY_MAP_MODE).map(mapper2).collect(Collectors.toSet());
+        volumes = volumes.stream().map(mapper2).collect(Collectors.toSet());
+      } else {
+        toBindSet = toBindSet.stream().map(input -> input + ":" + input + ":" + DIRECTORY_MAP_MODE).collect(Collectors.toSet());
+      }
+      
       hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
       
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
       
       Bindings bindings = BindingsFactory.create(job);
-      commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
-        @Override
-        public String map(String path, Map<String, Object> config) throws FileMappingException {
-          return path;
-        }
-      }).build();
+      commandLine = bindings.buildCommandLineObject(job, workingDir, mapper).build();
       
       if (commandLine.startsWith("/bin/bash -c")) {
         commandLine = normalizeCommandLine(commandLine.replace("/bin/bash -c", ""));
@@ -228,7 +237,7 @@ public class DockerContainerHandler implements ContainerHandler {
         return;
       }
 
-      builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("-c", commandLine);
+      builder.workingDir(mapper.map(workingDir.getAbsolutePath(), null)).volumes(volumes).cmd("-c", commandLine);
         
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));

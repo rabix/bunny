@@ -1,6 +1,7 @@
 package org.rabix.bindings.cwl;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       if (!stdout.startsWith("/")) {
         try {
           String mappedWorkingDir = filePathMapper.map(workingDir.getAbsolutePath(), job.getConfig());
-          stdout = new File(mappedWorkingDir, stdout).getAbsolutePath();
+          stdout = Paths.get(mappedWorkingDir).resolve(stdout).toString();
         } catch (FileMappingException e) {
           throw new BindingException(e);
         }
