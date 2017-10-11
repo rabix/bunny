@@ -355,19 +355,21 @@ public class JobHandlerImpl implements JobHandler {
       }
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
-      if (standardErrorLog == null) {
-        standardErrorLog = DEFAULT_ERROR_FILE;
-      }
-      containerHandler.dumpContainerLogs(new File(workingDir, standardErrorLog));
-
+      
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
         return job;
       }
       
       filePermissionService.execute(job);
+
+      if (standardErrorLog != null) {
+        containerHandler.dumpContainerLogs(new File(workingDir, standardErrorLog));
+      }
       
       job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
+      
+      containerHandler.dumpContainerLogs(new File(workingDir, DEFAULT_ERROR_FILE));
       containerHandler.dumpCommandLine();
       
       statusCallback.onOutputFilesUploadStarted(job);
