@@ -2,7 +2,8 @@ package org.rabix.executor.service.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -10,13 +11,10 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.FileValueHelper;
-import org.rabix.bindings.model.DataType;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.common.helper.ChecksumHelper;
-import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.executor.config.FileConfiguration;
 import org.rabix.executor.config.StorageConfiguration;
@@ -31,11 +29,12 @@ public class CacheServiceImpl implements CacheService {
   private final static Logger logger = LoggerFactory.getLogger(CacheService.class);
 
   public final static String JOB_FILE = "job.json";
-
   private File cacheDirectory;
+
   private Configuration configuration;
   private FileConfiguration fileConfiguration;
   private StorageConfiguration storageConfig;
+  private boolean mockWorker;
 
   @Inject
   public CacheServiceImpl(StorageConfiguration storageConfig, Configuration configuration,
@@ -46,11 +45,17 @@ public class CacheServiceImpl implements CacheService {
     if(isCacheEnabled()) {
       this.cacheDirectory = new File(configuration.getString("cache.directory"));
     }
+    this.mockWorker = configuration.getBoolean("executor.mock_worker", false);
   }
 
   @Override
   public boolean isCacheEnabled() {
     return configuration.getBoolean("cache.enabled", false);
+  }
+
+  @Override
+  public boolean isMockWorkerEnabled() {
+    return configuration.getBoolean("executor.mock_worker", false);
   }
 
   @Override
@@ -82,36 +87,44 @@ public class CacheServiceImpl implements CacheService {
    * @return true if jobs are equal
    */
   private boolean jobsEqual(Job job, Job cachedJob, Bindings bindings) throws BindingException {
-    String appText = BeanSerializer.serializePartial(bindings.loadAppObject(job.getApp()));
-    String sortedAppText = JSONHelper.writeSortedWithoutIdentation(JSONHelper.readJsonNode(appText));
-    String appHash = ChecksumHelper.checksum(sortedAppText, HashAlgorithm.SHA1);
-
-    String cachedAppText = BeanSerializer.serializePartial(bindings.loadAppObject(cachedJob.getApp()));
-    String cachedSortedAppText = JSONHelper.writeSortedWithoutIdentation(JSONHelper.readJsonNode(cachedAppText));
-    String cachedAppHash = ChecksumHelper.checksum(cachedSortedAppText, HashAlgorithm.SHA1);
-
-    if (!cachedAppHash.equals(appHash)) {
+    if (!BindingsFactory.create(job).loadAppObject(job.getApp()).equals(BindingsFactory.create(cachedJob).loadAppObject(cachedJob.getApp()))) {
       return false;
     }
 
-    // FileValue equality is different for caching.
-    Map<String, Object> inputs = job.getInputs();
-    Map<String, Object> cachedInputs = cachedJob.getInputs();
+    if (!mockWorker) {
+      // FileValue equality is different for caching.
+      Map<String, Object> inputs = job.getInputs();
+      Map<String, Object> cachedInputs = cachedJob.getInputs();
 
-    for (String inputPortKey : inputs.keySet()) {
-      if (!cachedInputs.containsKey(inputPortKey)) {
-        return false;
+      for (String inputPortKey : inputs.keySet()) {
+        if (!cachedInputs.containsKey(inputPortKey)) {
+          return false;
+        }
+
+        Object value = inputs.get(inputPortKey);
+        Object cachedValue = cachedInputs.get(inputPortKey);
+        if (value == null && cachedValue == null) {
+          continue;
+        }
+
+        if (!cacheValuesEqual(value, cachedValue)) {
+          return false;
+        }
       }
 
-      Object value = inputs.get(inputPortKey);
-      Object cachedValue = cachedInputs.get(inputPortKey);
-      if (value==null && cachedValue==null) {
-        continue;
+      /*
+       * Integrity check is necessary for output files.
+       * Cache directory might be corrupted
+       */
+      Map<String, Object> cachedOutputs = cachedJob.getOutputs();
+      for (String outputPortKey : cachedOutputs.keySet()) {
+        Object cachedValue = cachedOutputs.get(outputPortKey);
+        if(cachedValue instanceof FileValue &&
+                !checkFileIntegrity((FileValue) cachedValue)) {
+          return false;
+        }
       }
 
-      if (!cacheValuesEqual(value, cachedValue)) {
-        return false;
-      }
     }
     return true;
   }
@@ -143,14 +156,24 @@ public class CacheServiceImpl implements CacheService {
     }
   }
 
+  /**
+   * Check whether input files are equal. For backwards compatibility,
+   * if {@code cachedValue} is missing some of the necessary fields, it does
+   * favor equality of the files.
+   * @param value
+   * @param cachedValue
+   * @return
+   */
   private boolean checkFileEquals(FileValue value, FileValue cachedValue) {
     try {
-      if (!value.getSize().equals(cachedValue.getSize()))
+      if (cachedValue.getSize() != 0 &&
+              !value.getSize().equals(cachedValue.getSize()))
         return false;
-      if (!value.getChecksum().equals(cachedValue.getChecksum()))
+      if (cachedValue.getChecksum() != null &&
+              !value.getChecksum().equals(cachedValue.getChecksum()))
         return false;
-      if ((value.getSecondaryFiles()==null && cachedValue.getSecondaryFiles()!=null)
-              || value.getSecondaryFiles()!=null && cachedValue.getSecondaryFiles()==null)
+      // This control does not apply to the opposite situation for the reason explained in the method's doc.
+      if (value.getSecondaryFiles()!=null && cachedValue.getSecondaryFiles()==null)
         return false;
       else if (value.getSecondaryFiles()!=null && cachedValue.getSecondaryFiles()!=null) {
         for (int i = 0; i < value.getSecondaryFiles().size(); i++) {
@@ -160,6 +183,36 @@ public class CacheServiceImpl implements CacheService {
         }
       }
     } catch (Exception e) {
+      return false;
+    }
+    return true;
+  }
+
+  private boolean checkFileIntegrity(FileValue value) {
+    try {
+      File file = new File(value.getPath());
+      if (file.exists() && file.isFile()) {
+        if (value.getSize() != 0 &&
+                !value.getSize().equals(file.length())) {
+          return false;
+        }
+        if (value.getChecksum() != null) {
+          String checksumValue = ChecksumHelper.checksum(file, fileConfiguration.checksumAlgorithm());
+          if (!checksumValue.equals(value.getChecksum())) {
+            return false;
+          }
+        }
+        if (value.getSecondaryFiles() != null) {
+          for (int i = 0; i < value.getSecondaryFiles().size(); i++) {
+            if (!checkFileIntegrity(value.getSecondaryFiles().get(i))) {
+              return false;
+            }
+          }
+        }
+      } else {
+        return false;
+      }
+    } catch(Exception e) {
       return false;
     }
     return true;
@@ -228,7 +281,9 @@ public class CacheServiceImpl implements CacheService {
         return null;
       }
 
-      job = fillCacheProperties(job);
+      if (!mockWorker) {
+        job = fillCacheProperties(job);
+      }
 
       if (!jobsEqual(job, cachedJob, bindings)) {
         logger.warn("Cached job is different. Doing dry run");

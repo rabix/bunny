@@ -1,0 +1,83 @@
+{
+  "id" : "62ab543a-107b-428d-b523-a2330212b8a6",
+  "parentId" : "1a4fd24b-5bec-4e9e-b3f2-5fd1312ea058",
+  "rootId" : "1a4fd24b-5bec-4e9e-b3f2-5fd1312ea058",
+  "name" : "root.SBG_Prepare_VQSR_Omni",
+  "app" : "data:text/plain;base64,ewogICJjb250cmlidXRvciIgOiBbIF0sCiAgIm93bmVyIiA6IFsgXSwKICAiY3dsVmVyc2lvbiIgOiAic2JnOmRyYWZ0LTIiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogIiN0cnV0aCIsCiAgICAidHlwZSIgOiBbICJudWxsIiwgImJvb2xlYW4iIF0sCiAgICAiZGVzY3JpcHRpb24iIDogIlRydXRoLiIsCiAgICAic2JnOmNhdGVnb3J5IiA6ICIiLAogICAgImxhYmVsIiA6ICJUcnV0aCIKICB9LCB7CiAgICAiaWQiIDogIiN0cmFpbmluZyIsCiAgICAidHlwZSIgOiBbICJudWxsIiwgImJvb2xlYW4iIF0sCiAgICAiZGVzY3JpcHRpb24iIDogIlRyYWluaW5nLiIsCiAgICAic2JnOmNhdGVnb3J5IiA6ICIiLAogICAgImxhYmVsIiA6ICJUcmFpbmluZyIKICB9LCB7CiAgICAiaWQiIDogIiNwcmlvciIsCiAgICAidHlwZSIgOiBbICJmbG9hdCIgXSwKICAgICJkZXNjcmlwdGlvbiIgOiAiUHJpb3IuIiwKICAgICJzYmc6Y2F0ZWdvcnkiIDogIiIsCiAgICAibGFiZWwiIDogIlByaW9yIgogIH0sIHsKICAgICJpZCIgOiAiI2xhYmVsIiwKICAgICJ0eXBlIiA6IFsgInN0cmluZyIgXSwKICAgICJkZXNjcmlwdGlvbiIgOiAiTGFiZWwuIiwKICAgICJzYmc6Y2F0ZWdvcnkiIDogIiIsCiAgICAibGFiZWwiIDogIkxhYmVsIgogIH0sIHsKICAgICJpZCIgOiAiI2tub3duIiwKICAgICJ0eXBlIiA6IFsgIm51bGwiLCAiYm9vbGVhbiIgXSwKICAgICJkZXNjcmlwdGlvbiIgOiAiS25vd24uIiwKICAgICJzYmc6Y2F0ZWdvcnkiIDogIiIsCiAgICAibGFiZWwiIDogIktub3duIgogIH0sIHsKICAgICJpZCIgOiAiI2lucHV0X3ZjZiIsCiAgICAidHlwZSIgOiBbICJudWxsIiwgIkZpbGUiIF0sCiAgICAic2JnOnN0YWdlSW5wdXQiIDogImxpbmsiLAogICAgImRlc2NyaXB0aW9uIiA6ICJJbnB1dCBWQ0YgZmlsZSBmb3IgR0FUSyBWYXJpYW50UmVjYWxpYnJhdG9yIFJlc291cmNlcy4iLAogICAgImxhYmVsIiA6ICJWQ0YgRmlsZSIsCiAgICAic2JnOmZpbGVUeXBlcyIgOiAiVkNGIiwKICAgICJyZXF1aXJlZCIgOiBmYWxzZQogIH0gXSwKICAib3V0cHV0cyIgOiBbIHsKICAgICJpZCIgOiAiI291dHB1dF92Y2YiLAogICAgInR5cGUiIDogWyAibnVsbCIsICJGaWxlIiBdLAogICAgIm91dHB1dEJpbmRpbmciIDogewogICAgICAiZ2xvYiIgOiAiKi52Y2YiLAogICAgICAic2JnOmluaGVyaXRNZXRhZGF0YUZyb20iIDogIiNpbnB1dF92Y2YiLAogICAgICAic2JnOm1ldGFkYXRhIiA6IHsKICAgICAgICAicmVzb3VyY2VzIiA6IHsKICAgICAgICAgICJjbGFzcyIgOiAiRXhwcmVzc2lvbiIsCiAgICAgICAgICAiZW5naW5lIiA6ICIjY3dsLWpzLWVuZ2luZSIsCiAgICAgICAgICAic2NyaXB0IiA6ICJ7ICBcbiAgaWYoJGpvYi5pbnB1dHMua25vd24pe2tub3duID0gJ3RydWUnfWVsc2V7a25vd24gPSAnZmFsc2UnfVxuICBpZigkam9iLmlucHV0cy50cmFpbmluZyl7dHJhaW5pbmcgPSAndHJ1ZSd9ZWxzZXt0cmFpbmluZyA9ICdmYWxzZSd9XG4gIGlmKCRqb2IuaW5wdXRzLnRydXRoKXt0cnV0aCA9ICd0cnVlJ31lbHNle3RydXRoID0gJ2ZhbHNlJ31cblxuICByZXMgPSBbJy1yZXNvdXJjZTonICsgJGpvYi5pbnB1dHMubGFiZWwsXG4gICAgICAgICAna25vd249JyArIGtub3duLFxuICAgICAgICAgJ3RyYWluaW5nPScgKyB0cmFpbmluZyxcbiAgICAgICAgICd0cnV0aD0nICsgdHJ1dGgsXG4gICAgICAgICAncHJpb3I9JyArICRqb2IuaW5wdXRzLnByaW9yXG4gIF1cbiAgcmV0dXJuIHJlcy5qb2luKFwiLFwiKVxufVxuXG5cbiAiCiAgICAgICAgfQogICAgICB9CiAgICB9LAogICAgImRlc2NyaXB0aW9uIiA6ICJQcmVwYXJlZCBWQ0YgZmlsZSBmb3IgR0FUSyBWYXJpYW50UmVjYWxpYnJhdG9yIiwKICAgICJsYWJlbCIgOiAiUHJlcGFyZWQgVkNGIgogIH0gXSwKICAiaGludHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkRvY2tlclJlcXVpcmVtZW50IiwKICAgICJkb2NrZXJQdWxsIiA6ICJ1YnVudHU6MTQuMDQiLAogICAgImRvY2tlckltYWdlSWQiIDogIiIKICB9LCB7CiAgICAiY2xhc3MiIDogInNiZzpNZW1SZXF1aXJlbWVudCIsCiAgICAidmFsdWUiIDogMTAwMAogIH0sIHsKICAgICJjbGFzcyIgOiAic2JnOkNQVVJlcXVpcmVtZW50IiwKICAgICJ2YWx1ZSIgOiAxCiAgfSBdLAogICJyZXF1aXJlbWVudHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkV4cHJlc3Npb25FbmdpbmVSZXF1aXJlbWVudCIsCiAgICAicmVxdWlyZW1lbnRzIiA6IFsgewogICAgICAiY2xhc3MiIDogIkRvY2tlclJlcXVpcmVtZW50IiwKICAgICAgImRvY2tlclB1bGwiIDogInJhYml4L2pzLWVuZ2luZSIKICAgIH0gXSwKICAgICJpZCIgOiAiI2N3bC1qcy1lbmdpbmUiCiAgfSBdLAogICJzdWNjZXNzQ29kZXMiIDogWyBdLAogICJzdGRpbiIgOiAiIiwKICAic3Rkb3V0IiA6ICIiLAogICJiYXNlQ29tbWFuZCIgOiBbICJlY2hvIiwgIlByZXBhcmluZyIsICJWUVNSIiwgIlJlc291cmNlcyIgXSwKICAiYXJndW1lbnRzIiA6IFsgXSwKICAic2JnOnJldmlzaW9uIiA6IDQsCiAgInNiZzpjYXRlZ29yaWVzIiA6IFsgIlZDRi1Qcm9jZXNzaW5nIiBdLAogICJkZXNjcmlwdGlvbiIgOiAiUHJlcGFyZSBWUVNSIHJlc291cmNlIGlzIGEgdG9vbCBmb3IgcHJlcGFyaW5nIHJlc291cmNlIGRhdGFzZXRzIGFuZCBhcmd1bWVudHMgdG8gdXNlIHdpdGggVlFTUi4gSXQgc2V0cyBhIG1ldGFkYXRhIGZvciBhIGxpc3Qgb2Ygc2l0ZXMgZm9yIHdoaWNoIHRvIGFwcGx5IGEgcHJpb3IgcHJvYmFiaWxpdHkgb2YgYmVpbmcgY29ycmVjdCwgYnV0IHdoaWNoIGFyZW4ndCB1c2VkIGJ5IHRoZSBhbGdvcml0aG0gKHRyYWluaW5nIGFuZCB0cnV0aCBzZXRzIGFyZSByZXF1aXJlZCB0byBydW4pLiIsCiAgInNiZzpjcmVhdGVkT24iIDogMTQ2MTYxMzAzNywKICAic2JnOmNvbnRyaWJ1dG9ycyIgOiBbICJkam9yZGplX2tsaXNpYyIsICJ2bGFkaW1pcmsiLCAiYm9nZGFuZyIgXSwKICAic2JnOnRvb2xraXQiIDogIlNCR1Rvb2xzIiwKICAic2JnOmlkIiA6ICJiaXgtZGVtby9zYmd0b29scy1kZW1vL3NiZy1wcmVwYXJlLWdhdGstdmFyaWFudHJlY2FsaWJyYXRvci1yZXNvdXJjZS80IiwKICAic2JnOmpvYiIgOiB7CiAgICAiYWxsb2NhdGVkUmVzb3VyY2VzIiA6IHsKICAgICAgImNwdSIgOiAxLAogICAgICAibWVtIiA6IDEwMDAKICAgIH0sCiAgICAiaW5wdXRzIiA6IHsKICAgICAgImlucHV0X3ZjZiIgOiB7CiAgICAgICAgInBhdGgiIDogInZjZiIKICAgICAgfSwKICAgICAgImtub3duIiA6IHRydWUsCiAgICAgICJsYWJlbCIgOiAiYWFhIiwKICAgICAgInByaW9yIiA6IDEyLAogICAgICAidHJ1dGgiIDogdHJ1ZQogICAgfQogIH0sCiAgInNiZzpzYmdNYWludGFpbmVkIiA6IGZhbHNlLAogICJ0ZW1wb3JhcnlGYWlsQ29kZXMiIDogWyBdLAogICJzYmc6dG9vbEF1dGhvciIgOiAiU2V2ZW4gQnJpZGdlcyBHZW5vbWljcyIsCiAgImlkIiA6ICJiaXgtZGVtby9zYmd0b29scy1kZW1vL3NiZy1wcmVwYXJlLWdhdGstdmFyaWFudHJlY2FsaWJyYXRvci1yZXNvdXJjZS80IiwKICAiY2xhc3MiIDogIkNvbW1hbmRMaW5lVG9vbCIsCiAgInNiZzpwcm9qZWN0IiA6ICJiaXgtZGVtby9zYmd0b29scy1kZW1vIiwKICAic2JnOnJldmlzaW9uTm90ZXMiIDogImNvbW1hbmQgbGluZSBlY2hvIiwKICAic2JnOm1vZGlmaWVkT24iIDogMTQ3NjQ1MTg4OCwKICAic2JnOmNtZFByZXZpZXciIDogImVjaG8gUHJlcGFyaW5nIFZRU1IgUmVzb3VyY2VzIiwKICAic2JnOmxpY2Vuc2UiIDogIkFwYWNoZSBMaWNlbnNlIDIuMCIsCiAgImxhYmVsIiA6ICJTQkcgUHJlcGFyZSBWUVNSIE9tbmkiLAogICJzYmc6bW9kaWZpZWRCeSIgOiAiYm9nZGFuZyIsCiAgInNiZzpsYXRlc3RSZXZpc2lvbiIgOiA0LAogICJzYmc6Y3JlYXRlZEJ5IiA6ICJkam9yZGplX2tsaXNpYyIsCiAgIngiIDogMjM3OC4zMzM2Mzg1MDkxMTYsCiAgInkiIDogLTMyNS41NzMwMDU2NzYyNjk3LAogICJzYmc6aW1hZ2VfdXJsIiA6IG51bGwsCiAgInNiZzpyZXZpc2lvbnNJbmZvIiA6IFsgewogICAgInNiZzptb2RpZmllZEJ5IiA6ICJkam9yZGplX2tsaXNpYyIsCiAgICAic2JnOm1vZGlmaWVkT24iIDogMTQ2MTYxMzAzNywKICAgICJzYmc6cmV2aXNpb24iIDogMCwKICAgICJzYmc6cmV2aXNpb25Ob3RlcyIgOiBudWxsCiAgfSwgewogICAgInNiZzptb2RpZmllZEJ5IiA6ICJkam9yZGplX2tsaXNpYyIsCiAgICAic2JnOm1vZGlmaWVkT24iIDogMTQ2MTYxMzA3MCwKICAgICJzYmc6cmV2aXNpb24iIDogMSwKICAgICJzYmc6cmV2aXNpb25Ob3RlcyIgOiBudWxsCiAgfSwgewogICAgInNiZzptb2RpZmllZEJ5IiA6ICJ2bGFkaW1pcmsiLAogICAgInNiZzptb2RpZmllZE9uIiA6IDE0NzEzNjIzOTksCiAgICAic2JnOnJldmlzaW9uIiA6IDIsCiAgICAic2JnOnJldmlzaW9uTm90ZXMiIDogIlZDRiBmaWxlIHR5cGUgYW5kIHJlcXVpcmVkIHNldCBmb3IgaW5wdXRfdmNmLiIKICB9LCB7CiAgICAic2JnOm1vZGlmaWVkQnkiIDogInZsYWRpbWlyayIsCiAgICAic2JnOm1vZGlmaWVkT24iIDogMTQ3MjUxMjk4MCwKICAgICJzYmc6cmV2aXNpb24iIDogMywKICAgICJzYmc6cmV2aXNpb25Ob3RlcyIgOiAiVkNGX2lucHV0IG5vdCByZXF1aXJlZC4iCiAgfSwgewogICAgInNiZzptb2RpZmllZEJ5IiA6ICJib2dkYW5nIiwKICAgICJzYmc6bW9kaWZpZWRPbiIgOiAxNDc2NDUxODg4LAogICAgInNiZzpyZXZpc2lvbiIgOiA0LAogICAgInNiZzpyZXZpc2lvbk5vdGVzIiA6ICJjb21tYW5kIGxpbmUgZWNobyIKICB9IF0sCiAgInNiZzp0b29sa2l0VmVyc2lvbiIgOiAiIiwKICAic2JnOnZhbGlkYXRpb25FcnJvcnMiIDogWyBdCn0=",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "input_vcf" : [ {
+      "size" : 201389765,
+      "path" : "/media/storage/workdir/LocalRerun20170721110425/app-2017-07-21-114527.26/root/SBG_Prepare_VQSR_Omni/1000G_omni2.5.b37.vcf",
+      "location" : "/media/storage/workdir/LocalRerun20170721110425/files/1000G_omni2.5.b37.vcf",
+      "name" : "1000G_omni2.5.b37.vcf",
+      "checksum" : "sha1$1bec2d1fb59f3efc4050704008693947e296c026",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "file_segment_number" : null,
+          "individual" : null,
+          "library_id" : null,
+          "median_fragment_length" : null,
+          "paired_end" : null,
+          "platform_unit_id" : null,
+          "population" : null,
+          "quality_scale" : null,
+          "resources" : "-resource:omni,known=false,training=true,truth=true,prior=12",
+          "run" : null,
+          "sample_group" : null,
+          "sample_id" : null,
+          "seq_center" : null,
+          "species" : null,
+          "tissue" : null
+        }
+      },
+      "$type" : "File"
+    } ],
+    "label" : "omni",
+    "prior" : 12,
+    "training" : true,
+    "truth" : true
+  },
+  "outputs" : {
+    "output_vcf" : {
+      "size" : 201389765,
+      "path" : "/media/storage/workdir/LocalRerun20170721110425/app-2017-07-21-114527.26/root/SBG_Prepare_VQSR_Omni/1000G_omni2.5.b37.vcf",
+      "location" : "/media/storage/workdir/LocalRerun20170721110425/app-2017-07-21-114527.26/root/SBG_Prepare_VQSR_Omni/1000G_omni2.5.b37.vcf",
+      "name" : "1000G_omni2.5.b37.vcf",
+      "checksum" : "sha1$1bec2d1fb59f3efc4050704008693947e296c026",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : {
+          "file_segment_number" : null,
+          "individual" : null,
+          "library_id" : null,
+          "median_fragment_length" : null,
+          "paired_end" : null,
+          "platform_unit_id" : null,
+          "population" : null,
+          "quality_scale" : null,
+          "resources" : "-resource:omni,known=false,training=true,truth=true,prior=12",
+          "run" : null,
+          "sample_group" : null,
+          "sample_id" : null,
+          "seq_center" : null,
+          "species" : null,
+          "tissue" : null
+        }
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 32,
+    "memMB" : 46967,
+    "diskSpaceMB" : null,
+    "networkAccess" : true,
+    "workingDir" : null,
+    "tmpDir" : null,
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  },
+  "visiblePorts" : [ ]
+}

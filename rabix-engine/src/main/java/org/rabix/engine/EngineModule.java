@@ -71,6 +71,7 @@ public class EngineModule extends AbstractModule {
     bind(JobStatsRecordService.class).to(JobStatsRecordServiceImpl.class).in(Scopes.SINGLETON);
     bind(StoreCleanupService.class).to(StoreCleanupServiceImpl.class).in(Scopes.SINGLETON);
 
+    bind(JobHelper.class).in(Scopes.SINGLETON);
     bind(ScatterHandler.class).in(Scopes.SINGLETON);
     bind(InitEventHandler.class).in(Scopes.SINGLETON);
     bind(InputEventHandler.class).in(Scopes.SINGLETON);

@@ -10,7 +10,8 @@ import java.util.*;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataType {
   public enum Type {
-    UNION, ARRAY, RECORD, ENUM, MAP, FILE(null, "File"), DIRECTORY(null, "Directory"), ANY(null, "any"), NULL(null, "null"),
+    UNION, ARRAY, RECORD, ENUM, MAP, FILE(null, "File"), DIRECTORY(null, "Directory"), ANY(null, "any"),
+    NULL(null, "null"), EMPTY,
     BOOLEAN(new Class<?>[] {Boolean.class}, "boolean"), STRING(new Class<?>[] {String.class}, "string"),
     INT(new Class<?>[] {Integer.class, Long.class}, "int"), FLOAT(new Class<?>[] {Float.class, Double.class}, "float");
 
@@ -232,6 +233,10 @@ public class DataType {
         return true;
       }
 
+      // Always allow empty array to pass validation
+      if (value.getSubtype().getType() == Type.EMPTY)
+        return true;
+
       return subtype.isCompatible(value.getSubtype(), allowAny);
     }
 
@@ -305,6 +310,9 @@ public class DataType {
       ret.put("values", subtype.toAvro());
       return ret;
     }
+
+    if (isType(Type.EMPTY))
+      return new ArrayList<>();
 
     // Primitive types
     return type.avroType;

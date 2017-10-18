@@ -1,0 +1,172 @@
+{
+    "app": "wholegenome.cwl",
+        "known_sites_1": [
+            {
+                "path": "whole_genome/known_sites_1",
+                "checksum": null,
+                "size": 8436107210,
+                "name": "dbsnp_137.b37.vcf",
+                "contents": null,
+                "class": "File",
+                "metadata": {
+                    "resources": "-resource:dbsnp,known=true,training=false,truth=false,prior=2"
+                }
+            }
+        ],
+        "input_vcf_2": {
+            "path": "whole_genome/input_vcf_2",
+            "checksum": null,
+            "size": 7313069069,
+            "name": "1000G_phase1.snps.high_confidence.b37.vcf",
+            "contents": null,
+            "class": "File",
+            "metadata": {
+                "resources": "-resource:1000G,known=false,training=true,truth=true,prior=10"
+            }
+        },
+        "input_vcf_1": {
+            "path": "whole_genome/input_vcf_1",
+            "checksum": null,
+            "size": 225898391,
+            "name": "hapmap_3.3.b37.vcf",
+            "contents": null,
+            "class": "File",
+            "metadata": {
+                "file_segment_number": null,
+                "quality_scale": null,
+                "individual": null,
+                "platform_unit_id": null,
+                "median_fragment_length": null,
+                "tissue": null,
+                "paired_end": null,
+                "species": null,
+                "sample_id": null,
+                "population": null,
+                "seq_center": null,
+                "resources": "-resource:hapmap,known=false,training=true,truth=true,prior=15",
+                "run": null,
+                "library_id": null,
+                "sample_group": null
+            }
+        },
+        "input_vcf": {
+            "path": "whole_genome/input_vcf",
+            "checksum": null,
+            "size": 201389765,
+            "name": "1000G_omni2.5.b37.vcf",
+            "contents": null,
+            "class": "File",
+            "metadata": {
+                "file_segment_number": null,
+                "quality_scale": null,
+                "individual": null,
+                "platform_unit_id": null,
+                "median_fragment_length": null,
+                "tissue": null,
+                "paired_end": null,
+                "species": null,
+                "sample_id": null,
+                "population": null,
+                "seq_center": null,
+                "resources": "-resource:omni,known=false,training=true,truth=true,prior=12",
+                "run": null,
+                "library_id": null,
+                "sample_group": null
+            }
+        },
+        "reference": {
+            "path": "whole_genome/reference",
+            "checksum": null,
+            "size": 8680417280,
+            "name": "human_g1k_v37_decoy.fasta.tar",
+            "contents": null,
+            "class": "File",
+            "metadata": {}
+        },
+        "fastq": [
+            {
+                "path": "whole_genome/fastq_1",
+                "name": "C835.HCC1143_BL.4.converted.pe_1.fastq",
+                "class": "File",
+                "metadata": {
+                    "sample_id": "HCC1143BL",
+                    "species": "Homo sapiens",
+                    "investigation": "CCLE-BRCA",
+                    "sample_type": "EBV Immortalized Normal",
+                    "experimental_strategy": "WXS",
+                    "reference_genome": "HG19_Broad_variant",
+                    "paired_end": "1",
+                    "platform": "Illumina",
+                    "case_id": "CCLE-HCC1143BL"
+                }
+            },
+            {
+                "path": "whole_genome/fastq_2",
+                "name": "C835.HCC1143_BL.4.converted.pe_2.fastq",
+                "class": "File",
+                "metadata": {
+                    "sample_id": "HCC1143BL",
+                    "species": "Homo sapiens",
+                    "investigation": "CCLE-BRCA",
+                    "sample_type": "EBV Immortalized Normal",
+                    "experimental_strategy": "WXS",
+                    "reference_genome": "HG19_Broad_variant",
+                    "paired_end": "2",
+                    "platform": "Illumina",
+                    "case_id": "CCLE-HCC1143BL"
+                }
+            }
+        ],
+        "intervals": "20",
+        "database_1": {
+            "path": "whole_genome/database_1",
+            "checksum": null,
+            "size": 695676172,
+            "name": "GRCh37.75.zip",
+            "contents": null,
+            "class": "File",
+            "metadata": {}
+        },
+        "input_vcf_3": {
+            "path": "whole_genome/input_vcf_3",
+            "checksum": null,
+            "size": 86369975,
+            "name": "Mills_and_1000G_gold_standard.indels.b37.vcf",
+            "contents": null,
+            "class": "File",
+            "metadata": {
+                "species": "Homo sapiens"
+            }
+        },
+        "known_1": [
+            {
+                "path": "whole_genome/known_1_1",
+                "checksum": null,
+                "size": 86369975,
+                "name": "Mills_and_1000G_gold_standard.indels.b37.vcf",
+                "contents": null,
+                "class": "File",
+                "metadata": {
+                    "species": "Homo sapiens"
+                }
+            },
+            {
+                "path": "whole_genome/known_1_2",
+                "checksum": null,
+                "size": 237684308,
+                "name": "1000G_phase1.indels.b37.vcf",
+                "contents": null,
+                "class": "File",
+                "metadata": {}
+            }
+        ],
+        "bed_file_1": {
+            "path": "whole_genome/bed_file_1",
+            "checksum": null,
+            "size": 1942,
+            "name": "human_g1k_v37_decoy.breakpoints.bed",
+            "contents": null,
+            "class": "File",
+            "metadata": {}
+        }
+}

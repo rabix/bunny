@@ -3,7 +3,12 @@ package org.rabix.executor.handler.impl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -91,8 +96,6 @@ public class JobHandlerImpl implements JobHandler {
   private final FilePermissionService filePermissionService;
   private final CacheService cacheService;
 
-  private boolean setPermissions;
-
   @Inject
   public JobHandlerImpl(
       @Assisted Job job, @Assisted EngineStub<?, ?, ?> engineStub, 
@@ -118,7 +121,6 @@ public class JobHandlerImpl implements JobHandler {
     this.outputFileMapper = outputFileMapper;
     this.enableHash = fileConfiguration.calculateFileChecksum();
     this.hashAlgorithm = fileConfiguration.checksumAlgorithm();
-    this.setPermissions = configuration.getBoolean("executor.set_permissions", false);
   }
 
   @Override
@@ -126,6 +128,24 @@ public class JobHandlerImpl implements JobHandler {
     logger.info("Start command line tool for id={}", job.getId());
     try {
       job = statusCallback.onJobReady(job);
+      /*
+       * If cache service and mock worker are enabled,
+       * executor will simply pass the results before binding
+       * or checking on inputs.
+       */
+      if(cacheService.isCacheEnabled() && cacheService.isMockWorkerEnabled()) {
+        cachedJob = (Job) CloneHelper.deepCopy(job);
+
+        if (cacheService.isCacheEnabled()) {
+          Map<String, Object> results = cacheService.find(job);
+          if (results != null) {
+            logger.info("Job {} is successfully copied from cache by mocking", job.getName());
+            containerHandler = new CompletedContainerHandler(job);
+            containerHandler.start();
+            return;
+          }
+        }
+      }
 
       Bindings bindings = BindingsFactory.create(job);
       statusCallback.onInputFilesDownloadStarted(job);
@@ -140,10 +160,14 @@ public class JobHandlerImpl implements JobHandler {
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
       job = bindings.preprocess(job, workingDir, null);
 
-      if (cacheService.isCacheEnabled()) {
+      /*
+       * Cache service is enabled but mocking is not.
+       * Inputs will be thoroughly scanned after binding.
+       */
+      if (cacheService.isCacheEnabled() && !cacheService.isMockWorkerEnabled()) {
         Map<String, Object> results = cacheService.find(job);
         if (results != null) {
-          logger.info("Job {} is successfully copied from cache", job.getName());
+          logger.info("Job {} is successfully copied from cache without mocking", job.getName());
           containerHandler = new CompletedContainerHandler(job);
           containerHandler.start();
           return;
@@ -331,19 +355,24 @@ public class JobHandlerImpl implements JobHandler {
       }
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
-      if (standardErrorLog == null) {
-        standardErrorLog = DEFAULT_ERROR_FILE;
-      }
-      containerHandler.dumpContainerLogs(new File(workingDir, standardErrorLog));
-
+      
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
         return job;
       }
-      if (setPermissions) {
-        filePermissionService.execute(job);
+      
+      filePermissionService.execute(job);
+
+      if (standardErrorLog != null) {
+        containerHandler.dumpContainerLogs(new File(workingDir, standardErrorLog));
       }
+      
       job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
+      
+      if (standardErrorLog == null) {
+        containerHandler.dumpContainerLogs(new File(workingDir, DEFAULT_ERROR_FILE));
+      }
+      
       containerHandler.dumpCommandLine();
       
       statusCallback.onOutputFilesUploadStarted(job);

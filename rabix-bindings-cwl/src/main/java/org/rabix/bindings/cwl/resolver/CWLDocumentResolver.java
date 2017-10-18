@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,6 +55,7 @@ public class CWLDocumentResolver {
     types.add("stdin");
     types.add("stdout");
     types.add("stderr");
+    types.add("map");
   }
 
   public static final String ID_KEY = "id";
@@ -320,7 +323,9 @@ public class CWLDocumentResolver {
 
         JsonNode referenceDocumentRoot = findDocumentRoot(root, file, referencePath, isJsonPointer);
         ParentChild parentChild = findReferencedNode(referenceDocumentRoot, referencePath);
-        JsonNode resolvedNode = traverse(appUrl, root, file.getParentFile().toPath().resolve(referencePath).toFile(), parentChild.parent, parentChild.child, false);
+
+        Path parentPath = file.getParentFile() != null ? file.getParentFile().toPath() : Paths.get(".");
+        JsonNode resolvedNode = traverse(appUrl, root, parentPath.resolve(referencePath).toFile(), parentChild.parent, parentChild.child, false);
         if (resolvedNode == null) {
           return null;
         }
@@ -350,7 +355,7 @@ public class CWLDocumentResolver {
 
   private static boolean checkIsItInputsOrOutputs(JsonNode currentNode, JsonNode subnode, boolean previous) {
     boolean result = false;
-    if(!currentNode.has(APP_STEP_KEY)) {
+    if(!currentNode.has(APP_STEP_KEY) && currentNode.has(CLASS_KEY)) {
       if (currentNode.has(INPUTS_KEY_LONG) && currentNode.get(INPUTS_KEY_LONG).equals(subnode)) {
         result = true;
       } else if (currentNode.has(INPUTS_KEY_SHORT) && currentNode.get(INPUTS_KEY_SHORT).equals(subnode)) {

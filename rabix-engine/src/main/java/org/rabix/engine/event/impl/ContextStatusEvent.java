@@ -75,11 +75,6 @@ public class ContextStatusEvent implements Event {
   }
 
   @Override
-  public EventRecord.PersistentType getPersistentType() {
-    return null;
-  }
-
-  @Override
   public String getProducedByNode() {
     return null;
   }

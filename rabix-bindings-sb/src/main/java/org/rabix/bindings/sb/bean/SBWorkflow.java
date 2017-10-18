@@ -62,4 +62,35 @@ public class SBWorkflow extends SBJobApp {
     return SBJobAppType.WORKFLOW;
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((dataLinks == null) ? 0 : dataLinks.hashCode());
+    result = prime * result + ((steps == null) ? 0 : steps.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (!super.equals(obj))
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    SBWorkflow other = (SBWorkflow) obj;
+    if (dataLinks == null) {
+      if (other.dataLinks != null)
+        return false;
+    } else if (!dataLinks.equals(other.dataLinks))
+      return false;
+    if (steps == null) {
+      if (other.steps != null)
+        return false;
+    } else if (!steps.equals(other.steps))
+      return false;
+    return true;
+  }
+
 }

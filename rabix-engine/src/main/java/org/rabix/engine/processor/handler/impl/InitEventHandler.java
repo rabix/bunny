@@ -7,6 +7,7 @@ import org.rabix.bindings.model.dag.DAGContainer;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
+import org.rabix.bindings.model.dag.DAGNode.DAGNodeType;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.event.impl.InitEvent;
@@ -80,7 +81,8 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     }
 
     for (DAGLinkPort outputPort : node.getOutputPorts()) {
-      jobRecordService.incrementPortCounter(job, outputPort, LinkPortType.OUTPUT);
+      if(!node.getType().equals(DAGNodeType.CONTAINER))
+        jobRecordService.incrementPortCounter(job, outputPort, LinkPortType.OUTPUT);
 
       VariableRecord variable = new VariableRecord(event.getContextId(), node.getId(), outputPort.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(outputPort.getId(), outputPort.getType()));
       variableRecordService.create(variable);

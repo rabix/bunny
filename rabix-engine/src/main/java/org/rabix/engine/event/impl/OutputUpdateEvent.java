@@ -66,6 +66,19 @@ public class OutputUpdateEvent implements Event {
     this.producedByNode = producedByNode;
   }
 
+  public OutputUpdateEvent(UUID contextId, String jobId, String portId, Object outputValue,
+      Integer numberOfScattered, Integer position, UUID eventGroupId, String producedByNode) {
+    this.jobId = jobId;
+    this.contextId = contextId;
+    this.portId = portId;
+    this.value = outputValue;
+    this.position = position;
+    this.fromScatter = numberOfScattered > 1;
+    this.eventGroupId = eventGroupId;
+    this.producedByNode = producedByNode;
+    this.numberOfScattered = numberOfScattered;
+  }
+  
   public String getJobId() {
     return jobId;
   }
@@ -166,10 +179,4 @@ public class OutputUpdateEvent implements Event {
   public String toString() {
     return "OutputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", portId=" + portId + ", value=" + value + ", fromScatter=" + fromScatter + ", numberOfScattered=" + numberOfScattered + "]";
   }
-
-  @Override
-  public EventRecord.PersistentType getPersistentType() {
-    return null;
-  }
-  
 }

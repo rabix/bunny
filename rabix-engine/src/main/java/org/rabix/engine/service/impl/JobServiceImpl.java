@@ -71,6 +71,8 @@ public class JobServiceImpl implements JobService {
   private Set<UUID> stoppingRootIds = new HashSet<>();
   private EngineStatusCallback engineStatusCallback;
   private boolean setResources;
+
+  private JobHelper jobHelper;
   
   @Inject
   public JobServiceImpl(EventProcessor eventProcessor, JobRecordService jobRecordService,
@@ -78,7 +80,7 @@ public class JobServiceImpl implements JobService {
       ContextRecordService contextRecordService, SchedulerService scheduler, DAGNodeService dagNodeService,
       AppService appService, JobRepository jobRepository, TransactionHelper transactionHelper,
       EngineStatusCallback statusCallback, Configuration configuration,
-      IntermediaryFilesService intermediaryFilesService) {
+      IntermediaryFilesService intermediaryFilesService, JobHelper jobHelper) {
     this.dagNodeService = dagNodeService;
     this.appService = appService;
     this.eventProcessor = eventProcessor;
@@ -92,6 +94,7 @@ public class JobServiceImpl implements JobService {
     this.transactionHelper = transactionHelper;
     this.engineStatusCallback = statusCallback;
     this.intermediaryFilesService = intermediaryFilesService;
+    this.jobHelper = jobHelper;
 
     deleteIntermediaryFiles = configuration.getBoolean("engine.delete_intermediary_files", false);
     keepInputFiles = !configuration.getBoolean("engine.treat_inputs_as_intermediary", false) || !deleteIntermediaryFiles;
@@ -203,7 +206,7 @@ public class JobServiceImpl implements JobService {
           updatedJob = Job.cloneWithConfig(updatedJob, config);
           jobRepository.insert(updatedJob, null, null);
 
-          InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, null);
+          InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, InternalSchemaHelper.ROOT_NAME);
           eventProcessor.persist(initEvent);
           eventWrapper.set(initEvent);
           jobWrapper.set(updatedJob);
@@ -250,7 +253,7 @@ public class JobServiceImpl implements JobService {
   
   @Override
   public Set<Job> getReady(EventProcessor eventProcessor, UUID rootId) throws JobServiceException {
-    return JobHelper.createReadyJobs(jobRecordService, variableRecordService, linkRecordService, contextRecordService, dagNodeService, appService, rootId, setResources);
+    return jobHelper.createReadyJobs(rootId, setResources);
   }
   
   @Override
@@ -334,7 +337,7 @@ public class JobServiceImpl implements JobService {
     }
 
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
-    job = JobHelper.fillOutputs(job, jobRecordService, variableRecordService);
+    job = jobHelper.fillOutputs(job);
     jobRepository.update(job);
     try {
       engineStatusCallback.onJobRootCompleted(job);
@@ -372,10 +375,10 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public void handleJobRootPartiallyCompleted(Job rootJob, String producedBy){
-    logger.info("Root {} is partially completed.", rootJob.getId());
+  public void handleJobRootPartiallyCompleted(UUID rootId, Map<String, Object> outputs, String producedBy){
+    logger.info("Root {} is partially completed.", rootId);
     try{
-      engineStatusCallback.onJobRootPartiallyCompleted(rootJob, producedBy);
+      engineStatusCallback.onJobRootPartiallyCompleted(rootId, outputs, producedBy);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
     }

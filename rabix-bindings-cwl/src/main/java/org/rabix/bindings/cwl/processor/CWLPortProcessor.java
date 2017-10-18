@@ -92,9 +92,13 @@ public class CWLPortProcessor {
       for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
         Map<?, ?> field = CWLSchemaHelper.getField(entry.getKey(), CWLSchemaHelper.getSchemaForRecordField(job.getApp().getSchemaDefs(), schema));
 
-        if (field == null && CWLSchemaHelper.getType(schema).equals("record")) {
-          logger.info("Field {} not found in schema {}", entry.getKey(), schema);
-          continue;
+        
+        if (field == null) {
+          Object type = CWLSchemaHelper.getType(schema);
+          if (type != null && type.equals("record")) {
+            logger.info("Field {} not found in schema {}", entry.getKey(), schema);
+            continue;
+          }
         }
 
         Object fieldBinding = port instanceof CWLInputPort ? CWLSchemaHelper.getInputBinding(field) : CWLSchemaHelper.getOutputBinding(field);
@@ -109,7 +113,7 @@ public class CWLPortProcessor {
 
       for (Object item : ((List<?>) value)) {
         Object arrayItemSchema = CWLSchemaHelper.getSchemaForArrayItem(item, job.getApp().getSchemaDefs(), schema);
-        Object fieldBinding = port instanceof CWLInputPort ? CWLSchemaHelper.getInputBinding(item) : CWLSchemaHelper.getOutputBinding(item);
+        Object fieldBinding = port instanceof CWLInputPort ? CWLSchemaHelper.getInputBinding(schema) : CWLSchemaHelper.getOutputBinding(schema);
         Object singleResult = processValue(item, port, arrayItemSchema, fieldBinding == null ? binding : fieldBinding, key, portProcessor);
         result.add(singleResult);
       }
