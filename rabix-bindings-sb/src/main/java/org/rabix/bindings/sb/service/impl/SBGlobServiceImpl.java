@@ -205,7 +205,18 @@ public class SBGlobServiceImpl implements SBGlobService {
       result.addAll(listDir("*", false, globDir));
     }
     if(glob.startsWith("!(") && glob.endsWith(")")) {
-      Set<File> exclude = listDir(glob.substring(2, glob.length()-1), false, globDirs);
+      Set<File> exclude;
+      String globsString = glob.substring(2, glob.length()-1);
+      if(glob.contains("|")) {
+        String[] globs = globsString.split("\\|");
+        exclude = new HashSet<>();
+        for(String g: globs) {
+          exclude.addAll(listDir(g, false, globDirs));
+        }
+      }
+      else {
+        exclude = listDir(glob, false, globDirs);
+      }
       Set<File> all = listDir("*", false, globDirs);
       all.removeAll(exclude);
       result.addAll(all);

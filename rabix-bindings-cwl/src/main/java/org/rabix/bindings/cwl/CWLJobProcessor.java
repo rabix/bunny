@@ -1,6 +1,7 @@
 package org.rabix.bindings.cwl;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -84,21 +85,20 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
   
   @SuppressWarnings("unchecked")
   private void rewriteDefaultPaths(Object value, String appLocation) {
+
+    Path appFolder = Paths.get(appLocation).getParent() != null ?
+        Paths.get(appLocation).getParent().toAbsolutePath() : Paths.get(".").toAbsolutePath();
     if (value instanceof CWLStepInputs) {
       value = ((CWLStepInputs) value).getDefaultValue();
     }
     if (CWLSchemaHelper.isFileFromValue(value) || CWLSchemaHelper.isDirectoryFromValue(value)) {
       String location = CWLFileValueHelper.getLocation(value);
-      if (location != null && !location.startsWith("/")) {
-        File appFile = new File(appLocation);
-        String newLocation = new File(appFile.getParentFile(), location).getAbsolutePath();
-        CWLFileValueHelper.setLocation(newLocation, value);
+      if (location != null && !!Paths.get(location).isAbsolute()) {
+        CWLFileValueHelper.setLocation(appFolder.resolve(location).toString(), value);
       }
       String path = CWLFileValueHelper.getPath(value);
-      if (path != null && !path.startsWith("/")) {
-        File appFile = new File(appLocation);
-        String newPath = new File(appFile.getParentFile(), path).getAbsolutePath();
-        CWLFileValueHelper.setPath(newPath, value);
+      if (path != null && !Paths.get(path).isAbsolute()) {
+        CWLFileValueHelper.setPath(appFolder.resolve(path).toString(), value);
       }
       List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {

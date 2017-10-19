@@ -90,13 +90,13 @@ public class FileValueHelper {
     //ARRAY
     if (value instanceof List) {
       Set<DataType> arrayTypes = new HashSet<>();
-      DataType arrayType = null;
+      DataType arrayType;
       for (Object element: (List<?>)value) {
         arrayTypes.add(getDataTypeFromValue(element));
       }
 
       if (arrayTypes.isEmpty())
-        arrayType = new DataType(DataType.Type.ANY);
+        arrayType = new DataType(DataType.Type.EMPTY);
       else if (arrayTypes.size() == 1)
         arrayType = arrayTypes.iterator().next();
       else
@@ -172,7 +172,7 @@ public class FileValueHelper {
       FileValue fileValue = (FileValue) value;
       if (fileValue.getPath() != null) {
         fileValue.setPath(fileMapper.map(fileValue.getPath(), config));
-        fileValue.setLocation(fileMapper.map(fileValue.getPath(), config));
+        fileValue.setLocation(fileValue.getPath());
       }
       if (fileValue.getDirname() != null) {
         fileValue.setDirname(fileMapper.map(fileValue.getDirname(), config));

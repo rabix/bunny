@@ -44,10 +44,10 @@ import org.slf4j.LoggerFactory;
 public class SBProcessor implements ProtocolProcessor {
 
   public final static int DEFAULT_SUCCESS_CODE = 0;
-  
+
   public final static String JOB_FILE = "job.json";
   public final static String RESULT_FILENAME = "cwl.output.json";
-  
+
   private final static Logger logger = LoggerFactory.getLogger(SBProcessor.class);
 
   private final SBGlobService globService;
@@ -66,15 +66,17 @@ public class SBProcessor implements ProtocolProcessor {
       Map<String, Object> inputs = sbJob.getInputs();
       inputs = portProcessorHelper.setFileSize(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
+      inputs = portProcessorHelper.setInputSecondaryFiles(inputs, sbJob, null);
+
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
-      
+
       Map<String, Object> mappedInputs = inputs;
       if (logFilesPathMapper != null) {
         Map<String, Object> config = job.getConfig();
         SBPortProcessor sbPortProcessor = new SBPortProcessor(sbJob);
         mappedInputs = sbPortProcessor.processInputs(inputs, new SBFilePathMapProcessorCallback(logFilesPathMapper, config));
       }
-      
+
       File jobFile = new File(workingDir, SBProcessor.JOB_FILE);
       String serializedJob = BeanSerializer.serializePartial(new SBJob(sbJob.getId(), sbJob.getApp(), mappedInputs, sbJob.getOutputs()));
       try {
@@ -82,7 +84,7 @@ public class SBProcessor implements ProtocolProcessor {
       } catch (IOException e) {
         throw new BindingException(e);
       }
-      
+
       @SuppressWarnings("unchecked")
       Map<String, Object> commonInputs = (Map<String, Object>) SBValueTranslator.translateToCommon(inputs);
       return Job.cloneWithInputs(job, commonInputs);
@@ -90,7 +92,7 @@ public class SBProcessor implements ProtocolProcessor {
       throw new BindingException(e);
     }
   }
-  
+
   @Override
   public boolean isSuccessful(Job job, int statusCode) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
@@ -126,7 +128,7 @@ public class SBProcessor implements ProtocolProcessor {
       } else {
         outputs = collectOutputs(sbJob, workingDir, hashAlgorithm, executionFilePathMapper, job.getConfig());
       }
-      
+
       if (executionFilePathMapper != null) {
         Map<String, Object> mappedInputs = new SBPortProcessor(sbJob).processInputs(sbJob.getInputs(), new SBFilePathMapProcessorCallback(executionFilePathMapper, job.getConfig()));
         sbJob.setInputs(mappedInputs);
@@ -141,17 +143,17 @@ public class SBProcessor implements ProtocolProcessor {
       throw new BindingException(e);
     }
   }
-  
+
   private Map<String, Object> collectOutputs(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper executionFilePathMapper, Map<String, Object> config) throws SBGlobException, SBExpressionException, IOException, BindingException, SBPortProcessorException {
     File resultFile = new File(workingDir, RESULT_FILENAME);
-    
+
     if (resultFile.exists()) {
       String resultStr = FileUtils.readFileToString(resultFile);
       Map<String, Object> result = JSONHelper.readMap(resultStr);
       postprocessToolCreatedResults(result, hashAlgorithm);
       return JSONHelper.readMap(resultStr);
     }
-    
+
     Map<String, Object> result = new HashMap<>();
     SBCommandLineTool commandLineTool = (SBCommandLineTool) job.getApp();
     for (SBOutputPort outputPort : commandLineTool.getOutputs()) {
@@ -165,7 +167,7 @@ public class SBProcessor implements ProtocolProcessor {
     }
     return result;
   }
-  
+
   private void postprocessToolCreatedResults(Object value, HashAlgorithm hashAlgorithm) {
     if (value == null) {
       return;
@@ -176,14 +178,14 @@ public class SBProcessor implements ProtocolProcessor {
         return;
       }
       SBFileValueHelper.setSize(file.length(), value);
-      
-      if(hashAlgorithm != null) {
+
+      if (hashAlgorithm != null) {
         String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
         if (checksum != null) {
           SBFileValueHelper.setChecksum(checksum, value);
         }
       }
-      
+
       List<Map<String, Object>> secondaryFiles = SBFileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {
         for (Object secondaryFile : secondaryFiles) {
@@ -200,7 +202,7 @@ public class SBProcessor implements ProtocolProcessor {
       }
     }
   }
-  
+
   @SuppressWarnings("unchecked")
   private Object collectOutput(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, SBOutputPort outputPort) throws SBGlobException, SBExpressionException, BindingException {
     if (binding == null) {
@@ -275,7 +277,7 @@ public class SBProcessor implements ProtocolProcessor {
     }
     return result;
   }
-  
+
   /**
    * Extracts files from a directory based on GLOB expression
    */
@@ -374,15 +376,17 @@ public class SBProcessor implements ProtocolProcessor {
         secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
       }
       File secondaryFile = new File(secondaryFilePath);
-        Map<String, Object> secondaryFileMap = new HashMap<>();
-        SBFileValueHelper.setFileType(secondaryFileMap);
-        SBFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
-        SBFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
-        SBFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-        if (hashAlgorithm != null && secondaryFile.exists()) {
+      Map<String, Object> secondaryFileMap = new HashMap<>();
+      SBFileValueHelper.setFileType(secondaryFileMap);
+      SBFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
+      SBFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
+      SBFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
+      if (secondaryFile.exists()) {
+        if (hashAlgorithm != null) {
           SBFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
-          secondaryFileMaps.add(secondaryFileMap);
         }
+        secondaryFileMaps.add(secondaryFileMap);
+      }
     }
     return secondaryFileMaps;
   }

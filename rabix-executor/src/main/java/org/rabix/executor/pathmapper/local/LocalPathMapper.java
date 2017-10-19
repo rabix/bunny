@@ -1,7 +1,6 @@
 package org.rabix.executor.pathmapper.local;
 
-import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -14,22 +13,19 @@ import com.google.inject.Inject;
 public class LocalPathMapper implements FilePathMapper {
 
   private final StorageConfiguration storageConfig;
-  
+
   @Inject
   public LocalPathMapper(final StorageConfiguration storageConfig) {
     this.storageConfig = storageConfig;
   }
-  
+
   @Override
   public String map(String path, Map<String, Object> config) throws FileMappingException {
-    if (!Paths.get(path).isAbsolute()) {
-      try {
-        return new File(storageConfig.getPhysicalExecutionBaseDir(), path).getCanonicalPath();
-      } catch (IOException e) {
-        throw new FileMappingException(e);
-      }
+    Path pathP = Paths.get(path);
+    if (!pathP.isAbsolute()) {
+      return storageConfig.getPhysicalExecutionBaseDir().toPath().resolve(pathP).toString();
+    } else {
+      return path;
     }
-    return path;
   }
-
 }

@@ -1,11 +1,9 @@
 package org.rabix.bindings.cwl.expression;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,7 +61,7 @@ public class CWLExpressionResolver {
         if (inlineJavascriptRequirement != null) {
           expressionLibs = inlineJavascriptRequirement.getExpressionLib();
         }
-        return (T) javascriptInterpolate(job, self, (String) expression, job.getRuntime(), expressionLibs);
+        return (T) process((String) expression, job.getInputs(), self, job.getRuntime(), expressionLibs);
       } else {
         Map<String, Object> vars = new HashMap<>();
         vars.put("inputs", job.getInputs());
@@ -92,7 +90,7 @@ public class CWLExpressionResolver {
       if (m.find()) {
         if (m.group(0).startsWith(".")) {
           if(m.group(0).equals(".length") && vars instanceof List){
-            return ((List) vars).size();
+            return ((List<?>) vars).size();
           }
           return nextSegment(remaining.substring(m.end(0)), ((Map<?, ?>) vars).get(m.group(0).substring(1)));
         } else if (m.group(0).charAt(1) == '\"' || m.group(0).charAt(1) == '\'') {
@@ -142,162 +140,107 @@ public class CWLExpressionResolver {
     return ex;
   }
 
-  private static Object javascriptInterpolate(CWLJob job, Object self, String expression, CWLRuntime runtime, List<String> engineConfigs) throws CWLExpressionException {
-    expression = expression.trim();
-
-    List<Object> parts = new ArrayList<>();
-
-    int[] scanned = scanJavascriptExpression(expression);
-
-    while (scanned != null) {
-      parts.add(expression.substring(0, scanned[0]));
-
-      Map<String, Object> inputs = null;
-      if(job != null) {
-        inputs = job.getInputs();
-      }
-      Object evaluated = CWLExpressionJavascriptResolver.evaluate(inputs, self, expression.substring(scanned[0] + 1, scanned[1]), runtime, engineConfigs);
-      if (scanned[0] == 0 && scanned[1] == expression.length()) {
-        return evaluated;
-      }
-      String leafStr = null;
-      try {
-        leafStr = sortMapper.writeValueAsString(evaluated);
-      } catch (JsonProcessingException e) {
-        throw new CWLExpressionException("Failed to serialize " + evaluated + " to JSON.", e);
-      }
-      if (leafStr.startsWith("\"")) {
-        leafStr = leafStr.substring(1, leafStr.length() - 1);
-      }
-      parts.add(leafStr);
-
-      expression = expression.substring(scanned[1]);
-      scanned = scanJavascriptExpression(expression);
-    }
-    parts.add(expression);
-    return StringUtils.join(parts, "");
+  private static boolean startsExpression(char c) {
+    return c == '{' || c == '(';
   }
 
-  private static int[] scanJavascriptExpression(String expression) throws CWLExpressionException {
+  private static Object process(String value, Object inputs, Object self, CWLRuntime runtime, List<String> engineConfigs) throws CWLExpressionException {
+    char[] chars = value.trim().toCharArray();
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < chars.length; i++) {
+      char c = chars[i];
+      if (c == '$' && startsExpression(chars[i + 1])) {
+        String expression = new Seeker(chars).extractExpression(i + 1);
+        if (expression == null)
+          throw new CWLExpressionException("Expression left open: " + value.substring(i));
 
-    int DEFAULT = 0;
-    int DOLLAR = 1;
-    int PAREN = 2;
-    int BRACE = 3;
-    int SINGLE_QUOTE = 4;
-    int DOUBLE_QUOTE = 5;
-    int BACKSLASH = 6;
-    int QUOTE_FIRST = 7;
-    int QUOTE_SECOND = 8;
-
-    int i = 0;
-    Stack<Integer> stack = new Stack<>();
-    stack.push(DEFAULT);
-
-    int start = 0;
-    while (i < expression.length()) {
-      int state = stack.peek();
-      Character c = expression.charAt(i);
-
-      if (state == DEFAULT) {
-        if (c == '$') {
-          stack.push(DOLLAR);
+        Object resolved = CWLExpressionJavascriptResolver.evaluate(inputs, self, expression.toString(), runtime, engineConfigs);
+        if (expression.length() == chars.length - 1) {
+          return resolved;
         }
-        else if (c == '\\') {
-          stack.push(BACKSLASH);
-        }
+        i = i + expression.length();
+        sb.append(resolved == null ? "null" : resolved.toString());
+      } else {
+        sb.append(c);
       }
-      else if (state == BACKSLASH) {
-        stack.pop();
-      }
-      else if (state == DOLLAR) {
-        if (c == '(') {
-          start = i - 1;
-          stack.push(PAREN);
-        }
-        else if (c == '{') {
-          start = i - 1;
-          stack.push(BRACE);
-        }
-      }
-      else if (state == PAREN) {
-        if (c == '(') {
-          stack.push(PAREN);
-        }
-        else if (c == ')') {
-          stack.pop();
-          if (stack.peek() == DOLLAR) {
-            return new int[] { start, i + 1 };
-          }
-        }
-        else if (c == '\'') {
-          stack.push(SINGLE_QUOTE);
-        }
-        else if (c == '"') {
-          stack.push(DOUBLE_QUOTE);
-        }
-        else if (c == '/') {
-          stack.push(QUOTE_FIRST);
-        }
-      }
-      else if (state == BRACE) {
-        if (c == '{') {
-          stack.push(BRACE);
-        }
-        else if (c == '}') {
-          stack.pop();
-          if (stack.peek() == DOLLAR) {
-            return new int[] { start, i + 1 };
-          }
-        }
-        else if (c == '\'') {
-          stack.push(SINGLE_QUOTE);
-        }
-        else if (c == '"') {
-          stack.push(DOUBLE_QUOTE);
-        }
-        else if (c == '/') {
-          stack.push(QUOTE_FIRST);
-        }
-      }
-      else if (state == SINGLE_QUOTE) {
-        if (c == '\'') {
-          stack.pop();
-        }
-        else if (c == '\\') {
-          stack.push(BACKSLASH);
-        }
-      }
-      else if (state == DOUBLE_QUOTE) {
-        if (c == '\"') {
-          stack.pop();
-        }
-        else if (c == '\\') {
-          stack.push(BACKSLASH);
-        }
-      }
-      else if (state == QUOTE_FIRST) {
-        if (c == '/') {
-          stack.pop();
-          stack.push(QUOTE_SECOND);
-        }
-        else {
-          stack.pop();
-          i--;
-        }
-      }
-      else if (state == QUOTE_SECOND) {
-        if (c == '\n') {
-          stack.pop();
-        }
-      }
-      i++;
     }
-    if (stack.size() > 1) {
-      throw new CWLExpressionException("Substitution error, unfinished block starting at position " + start + " : " + expression.substring(start));
-    }
-    return null;
+    return sb.toString();
   }
 
+  private static class Seeker {
+    
+    private StringBuilder sb;
+    private char[] chars;
 
+    public Seeker(char[] chars) {
+      this.sb = new StringBuilder();
+      this.chars = chars;
+    }
+    private static char close(char c) {
+      if (c == '{')
+        return '}';
+      if (c == '(')
+        return ')';
+      return 0;
+    }
+    private String extractExpression(int start) {
+      char open = chars[start];
+      char close = close(open);
+      int opened = 0;
+      int i = start;
+      while (i < chars.length) {
+        char c = chars[i];
+        sb.append(c);
+        if (c == open) {
+          opened++;
+        } else if (c == close) {
+          opened--;
+        }
+        if (opened == 0) {
+          return sb.toString();
+        }
+        i = skipStringycontent(i);
+        i++;
+      }
+      return null;
+    }
+
+    private int skipStringycontent(int start) {
+      char c = chars[start];
+      if (c != '\'' && c != '\"' && c != '/')
+        return start;
+      if (c == '/') {
+        if (chars[start + 1] == '/')
+          return skipUntil(start, '\n');
+        if (chars[start + 1] == '*')
+          return skipFullComments(start);
+      }
+      return skipUntil(start, c);
+    }
+
+    private int skipFullComments(int start) {
+      int i = skipUntil(start, '\n');
+      do {
+        i = skipUntil(i, '/');
+      } while (chars[i - 1] != '*');
+      return i;
+    }
+
+    private int skipUntil(int start, char goal) {
+      int i = start + 1;
+      while (i < chars.length) {
+        char c = chars[i];
+        sb.append(c);
+        if (goal == c && !isEscaped(chars, i)) {
+          return i;
+        }
+        i++;
+      }
+      return i;
+    }
+
+    private static boolean isEscaped(char[] chars, int i) {
+      return chars[i - 1] == '\\' && !isEscaped(chars, i - 1);
+    }
+  }
 }

@@ -24,5 +24,30 @@ public class SBExpressionTool extends SBJobApp {
   public String toString() {
     return "SBExpressionTool [script=" + script + ", id=" + getId() + ", context=" + getContext() + ", description=" + getDescription() + ", inputs=" + getInputs() + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((script == null) ? 0 : script.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (!super.equals(obj))
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    SBExpressionTool other = (SBExpressionTool) obj;
+    if (script == null) {
+      if (other.script != null)
+        return false;
+    } else if (!script.equals(other.script))
+      return false;
+    return true;
+  }
   
 }
