@@ -285,7 +285,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
       if (itemSeparator != null) {
         String joinedItems = Joiner.on(itemSeparator).join(flattenedValues);
         if (prefix == null) {
-          return new SBCommandLinePart.Builder(position, isFile).part(joinedItems).build();
+          return new SBCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(joinedItems).build();
         }
         if (StringUtils.isWhitespace(separator) && separator.length() > 0) {
           return new SBCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(joinedItems).build();

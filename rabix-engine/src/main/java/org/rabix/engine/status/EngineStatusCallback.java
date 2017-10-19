@@ -1,5 +1,6 @@
 package org.rabix.engine.status;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ public interface EngineStatusCallback {
   
   void onJobRootCompleted(Job rootJob) throws EngineStatusCallbackException;
   
-  void onJobRootPartiallyCompleted(Job rootJob, String producedBy) throws EngineStatusCallbackException;
+  void onJobRootPartiallyCompleted(UUID rootId, Map<String, Object> outputs, String producedBy) throws EngineStatusCallbackException;
 
   void onJobRootFailed(Job rootJob) throws EngineStatusCallbackException;
   

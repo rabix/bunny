@@ -311,7 +311,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       if (itemSeparator != null) {
         String joinedItems = Joiner.on(itemSeparator).join(flattenedValues);
         if (prefix == null) {
-          return new CWLCommandLinePart.Builder(position, isFile).part(joinedItems).build();
+          return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(joinedItems).build();
         }
         if (StringUtils.isWhitespace(separator) && separator.length() > 0) {
           return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(joinedItems).build();

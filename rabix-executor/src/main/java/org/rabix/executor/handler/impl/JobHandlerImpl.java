@@ -28,7 +28,6 @@ import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
-import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -40,11 +39,9 @@ import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequi
 import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
 import org.rabix.bindings.model.requirement.LocalContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.service.download.DownloadService;
-import org.rabix.common.service.download.DownloadService.DownloadResource;
 import org.rabix.common.service.download.DownloadServiceException;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.UploadServiceException;
@@ -353,11 +350,7 @@ public class JobHandlerImpl implements JobHandler {
       }
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
-      if (standardErrorLog == null) {
-        standardErrorLog = DEFAULT_ERROR_FILE;
-      }
-      containerHandler.dumpContainerLogs(new File(workingDir, standardErrorLog));
-
+      
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
         return job;
@@ -366,6 +359,11 @@ public class JobHandlerImpl implements JobHandler {
       filePermissionService.execute(job);
       
       job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
+      
+      if (standardErrorLog == null) {
+        containerHandler.dumpContainerLogs(new File(workingDir, DEFAULT_ERROR_FILE));
+      }
+      
       containerHandler.dumpCommandLine();
       
       statusCallback.onOutputFilesUploadStarted(job);

@@ -129,4 +129,47 @@ public class SBCommandLineTool extends SBJobApp {
         + ", outputs=" + getOutputs() + ", requirements=" + requirements + "]";
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((arguments == null) ? 0 : arguments.hashCode());
+    result = prime * result + ((baseCommand == null) ? 0 : baseCommand.hashCode());
+    result = prime * result + ((stdin == null) ? 0 : stdin.hashCode());
+    result = prime * result + ((stdout == null) ? 0 : stdout.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (!super.equals(obj))
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    SBCommandLineTool other = (SBCommandLineTool) obj;
+    if (arguments == null) {
+      if (other.arguments != null)
+        return false;
+    } else if (!arguments.equals(other.arguments))
+      return false;
+    if (baseCommand == null) {
+      if (other.baseCommand != null)
+        return false;
+    } else if (!baseCommand.equals(other.baseCommand))
+      return false;
+    if (stdin == null) {
+      if (other.stdin != null)
+        return false;
+    } else if (!stdin.equals(other.stdin))
+      return false;
+    if (stdout == null) {
+      if (other.stdout != null)
+        return false;
+    } else if (!stdout.equals(other.stdout))
+      return false;
+    return true;
+  }
+
 }

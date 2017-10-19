@@ -206,7 +206,7 @@ public class JobServiceImpl implements JobService {
           updatedJob = Job.cloneWithConfig(updatedJob, config);
           jobRepository.insert(updatedJob, null, null);
 
-          InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, null);
+          InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, InternalSchemaHelper.ROOT_NAME);
           eventProcessor.persist(initEvent);
           eventWrapper.set(initEvent);
           jobWrapper.set(updatedJob);
@@ -375,10 +375,10 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public void handleJobRootPartiallyCompleted(Job rootJob, String producedBy){
-    logger.info("Root {} is partially completed.", rootJob.getId());
+  public void handleJobRootPartiallyCompleted(UUID rootId, Map<String, Object> outputs, String producedBy){
+    logger.info("Root {} is partially completed.", rootId);
     try{
-      engineStatusCallback.onJobRootPartiallyCompleted(rootJob, producedBy);
+      engineStatusCallback.onJobRootPartiallyCompleted(rootId, outputs, producedBy);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
     }

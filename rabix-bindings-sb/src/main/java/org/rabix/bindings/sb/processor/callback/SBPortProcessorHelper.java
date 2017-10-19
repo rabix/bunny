@@ -10,6 +10,7 @@ import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.processor.SBPortProcessor;
 import org.rabix.bindings.sb.processor.SBPortProcessorException;
 import org.rabix.bindings.transformer.FileTransformer;
+import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 
 public class SBPortProcessorHelper {
 
@@ -89,13 +90,20 @@ public class SBPortProcessorHelper {
     }
   }
 
-  public Map<String, Object> stageInputFiles(Map<String, Object> inputs, File workingDir)
-      throws SBPortProcessorException {
+  public Map<String, Object> stageInputFiles(Map<String, Object> inputs, File workingDir) throws SBPortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new SBStageInputProcessorCallback(workingDir));
     } catch (SBPortProcessorException e) {
       throw new SBPortProcessorException("Failed to stage inputs.", e);
     }
   }
-
+  
+  public Map<String, Object> setInputSecondaryFiles(Map<String, Object> inputs, SBJob job, HashAlgorithm hash) throws SBPortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new SBInputSecondaryFilesProcessor(job, hash));
+    } catch (SBPortProcessorException e) {
+      throw new SBPortProcessorException("Failed to set inputs secondaryFiles.", e);
+    }
+  }
+  
 }
