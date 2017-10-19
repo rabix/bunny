@@ -21,8 +21,8 @@ public interface BackendRepository {
   
   void updateStatus(UUID id, BackendRecord.Status status);
 
-  void updateConfiguration(UUID id, Map<String, ?> backendConfiguration);
-
   Instant getHeartbeatInfo(UUID id);
+
+  void updateConfiguration(UUID id, String backendConfiguration);
 
 }

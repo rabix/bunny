@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.backend.api.WorkerService;
-import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.engine.service.BackendService;
@@ -22,7 +21,6 @@ import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
-import org.rabix.transport.backend.Backend.BackendType;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
@@ -93,7 +91,7 @@ public class BackendServiceImpl implements BackendService {
                 backend.getId(),
                 backend.getName(),
                 Instant.now(),
-                JSONHelper.convertToMap(backend),
+                BeanSerializer.serializePartial(backend),
                 BackendRecord.Status.ACTIVE,
                 BackendRecord.Type.valueOf(backend.getType().toString()));
             backendRepository.insert(br);
@@ -189,14 +187,26 @@ public class BackendServiceImpl implements BackendService {
   @Override
   public List<Backend> getActiveBackends() {
     return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().map(
-        br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
+        br -> {
+          Backend backend = BeanSerializer.deserialize(br.getBackendConfig(), Backend.class);
+          backend.setId(br.getId());
+          backend.setName(br.getName());
+          backend.setStatus(BackendStatus.ACTIVE);
+          return backend;
+        }
     ).collect(Collectors.toList());
   }
 
   @Override
   public List<Backend> getActiveRemoteBackends() {
     return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().filter(b -> !b.getType().equals(BackendRecord.Type.LOCAL))
-        .map(br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)).collect(Collectors.toList());
+        .map(br -> {
+          Backend backend = BeanSerializer.deserialize(br.getBackendConfig(), Backend.class);
+          backend.setId(br.getId());
+          backend.setName(br.getName());
+          backend.setStatus(BackendStatus.ACTIVE);
+          return backend;
+        }).collect(Collectors.toList());
   }
 
   @Override
@@ -206,9 +216,13 @@ public class BackendServiceImpl implements BackendService {
 
   @Override
   public List<Backend> getAllBackends() {
-    return backendRepository.getAll().stream().map(
-        br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
-    ).collect(Collectors.toList());
+    return backendRepository.getAll().stream().map(br -> {
+      Backend backend = BeanSerializer.deserialize(br.getBackendConfig(), Backend.class);
+      backend.setId(br.getId());
+      backend.setName(br.getName());
+      backend.setStatus(BackendStatus.ACTIVE);
+      return backend;
+    }).collect(Collectors.toList());
   }
 
   @Override
@@ -221,5 +235,4 @@ public class BackendServiceImpl implements BackendService {
     }
     return false;
   }
-  
 }

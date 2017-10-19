@@ -46,6 +46,10 @@ public interface JobRepository {
   
   void deleteByRootIds(Set<UUID> rootIds);
   
+  default void updatePartial(Job job) {
+    update(job);
+  }
+  
   public class JobEntity {
     
     Job job;

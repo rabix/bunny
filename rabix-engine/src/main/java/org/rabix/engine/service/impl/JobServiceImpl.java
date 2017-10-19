@@ -161,7 +161,7 @@ public class JobServiceImpl implements JobService {
           default:
             break;
           }
-          jobRepository.update(job);
+          jobRepository.updatePartial(job);
           eventProcessor.persist(statusEvent);
           eventWrapper.set(statusEvent);
           isSuccessful.set(true);
@@ -311,10 +311,6 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobContainerReady(Job containerJob) {
-    logger.info("Container job {} rootId: {} id ready.", containerJob.getName(), containerJob.getRootId());
-    if (deleteIntermediaryFiles) {
-      intermediaryFilesService.handleContainerReady(containerJob, keepInputFiles);
-    }
     try {
       engineStatusCallback.onJobContainerReady(containerJob);
     } catch (EngineStatusCallbackException e) {

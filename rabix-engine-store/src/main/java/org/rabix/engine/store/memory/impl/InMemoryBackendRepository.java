@@ -37,7 +37,7 @@ public class InMemoryBackendRepository implements BackendRepository {
   }
 
   @Override
-  public synchronized void updateConfiguration(UUID id, Map<String, ?> backendConfiguration) {
+  public synchronized void updateConfiguration(UUID id, String backendConfiguration) {
     backendRepository.get(id).setBackendConfig(backendConfiguration);
   }
 

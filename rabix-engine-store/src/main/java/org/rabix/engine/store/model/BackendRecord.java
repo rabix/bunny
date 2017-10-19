@@ -1,7 +1,6 @@
 package org.rabix.engine.store.model;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -25,13 +24,13 @@ public class BackendRecord {
   private Instant heartbeatInfo;
   private Status status;
   private Type type;
-  private Map<String, ?> backendConfig;
+  private String backendConfig;
 
-  public BackendRecord(UUID id, String name, Instant heartbeatInfo, Map<String, ?> backendConfig, Status status, Type type) {
+  public BackendRecord(UUID id, String name, Instant heartbeatInfo, String string, Status status, Type type) {
     this.id = id;
     this.name = name;
     this.heartbeatInfo = heartbeatInfo;
-    this.backendConfig = backendConfig;
+    this.backendConfig = string;
     this.status = status;
     this.type = type;
   }
@@ -60,11 +59,11 @@ public class BackendRecord {
     this.heartbeatInfo = heartbeatInfo;
   }
 
-  public Map<String, ?> getBackendConfig() {
+  public String getBackendConfig() {
     return backendConfig;
   }
 
-  public void setBackendConfig(Map<String, ?> backendConfig) {
+  public void setBackendConfig(String backendConfig) {
     this.backendConfig = backendConfig;
   }
 

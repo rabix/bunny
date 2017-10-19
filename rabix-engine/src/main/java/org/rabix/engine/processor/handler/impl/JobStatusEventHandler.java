@@ -105,6 +105,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
 
   @Override
   public void handle(JobStatusEvent event) throws EventHandlerException {
+    logger.info(event.toString());
     JobRecord jobRecord = jobRecordService.find(event.getJobId(), event.getContextId());
     if (jobRecord == null) {
       logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
@@ -202,12 +203,14 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           if (!outs.isEmpty()) {
             jobService.handleJobRootPartiallyCompleted(jobRecord.getRootId(), outs, jobRecord.getId());
           }
-          try {
-            jobService.handleJobCompleted(jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult()));
-          } catch (BindingException e) {
-          }
         }
       }
+        try {
+          jobService.handleJobCompleted(jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult()));
+        } catch (BindingException e1) {
+          // TODO Auto-generated catch block
+          e1.printStackTrace();
+        }
       break;
     case ABORTED:
       Set<JobRecord.JobState> jobRecordStatuses = new HashSet<>();
@@ -265,14 +268,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     UUID rootId = event.getContextId();
     DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), rootId, job.getDagHash());
 
-    DebugAppender readyJobLogging = new DebugAppender(logger);
-    readyJobLogging.append(" --- JobRecord ").append(job.getId()).append(" is ready.").append(" Job isBlocking=").append(job.isBlocking()).append("\n");
-    for (PortCounter portCounter : job.getInputCounters()) {
-      readyJobLogging.append(" --- Input port ").append(portCounter.getPort()).append(", isScatter=").append(portCounter.isScatter()).append(", isBlocking ").append(job.isInputPortBlocking(node, portCounter.getPort())).append("\n");
-    }
-    readyJobLogging.append(" --- All scatter ports ").append(job.getScatterPorts()).append("\n");
-    logger.debug(readyJobLogging.toString());
-    
     if (!job.isScattered() && job.getScatterPorts().size() > 0) {
       job.setState(JobRecord.JobState.RUNNING);
       
@@ -393,26 +388,17 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       JobRecord childJob = scatterHelper.createJobRecord(newJobId, job.getExternalId(), node, false, contextId, job.getDagHash());
       jobRecordService.create(childJob);
 
-      DebugAppender childJobLogBuilder = new DebugAppender(logger);
-      childJobLogBuilder.append("\n -- JobRecord ", newJobId, ", isBlocking ", childJob.isBlocking(), "\n");
-
-
       for (DAGLinkPort port : node.getInputPorts()) {
         if (port.getTransform() != null) {
           childJob.setBlocking(true);
         }
         VariableRecord childVariable = new VariableRecord(contextId, newJobId, port.getId(), LinkPortType.INPUT, port.getDefaultValue(), node.getLinkMerge(port.getId(), port.getType()));
-        childJobLogBuilder.append(" -- Input port ", port.getId(), ", isScatter ", port.isScatter(), "\n");
         variableRecordService.create(childVariable);
       }
-
       for (DAGLinkPort port : node.getOutputPorts()) {
-        childJobLogBuilder.append(" -- Output port ", port.getId(), ", isScatter ", port.isScatter(), "\n");
         VariableRecord childVariable = new VariableRecord(contextId, newJobId, port.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(port.getId(), port.getType()));
         variableRecordService.create(childVariable);
       }
-      logger.debug(childJobLogBuilder.toString());
-
     }
     for (DAGLink link : containerNode.getLinks()) {
       String originalJobID = InternalSchemaHelper.normalizeId(job.getId());

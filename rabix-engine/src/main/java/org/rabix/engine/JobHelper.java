@@ -50,8 +50,6 @@ public class JobHelper {
   private DAGNodeService dagNodeService;
   @Inject
   private AppService appService;
-
-  DebugAppender inputsLogBuilder = new DebugAppender(logger);
   
   private static Logger logger = LoggerFactory.getLogger(JobHelper.class);
   
@@ -150,8 +148,6 @@ public class JobHelper {
   public Job createJob(JobRecord job, JobStatus status, boolean processVariables) throws BindingException {
     DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId(), job.getDagHash());
 
-    inputsLogBuilder.append("\n ---- JobRecord ", job.getId(), "\n");
-    
     Map<String, Object> inputs = new HashMap<>();
     
     List<VariableRecord> inputVariables = variableRecordService.find(job.getId(), LinkPortType.INPUT, job.getRootId());
@@ -171,7 +167,6 @@ public class JobHelper {
     } else {
       inputs = preprocesedInputs;
     }
-    logger.debug(inputsLogBuilder.toString());
     return new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, inputs, null, contextRecord.getConfig(), null, null);
   }
 
@@ -211,7 +206,6 @@ public class JobHelper {
               value = transformed;
             }
           }
-          inputsLogBuilder.append(" ---- Input ", inputVariable.getPortId(), ", value ", value, "\n");
           inputs.put(inputVariable.getPortId(), value);
         }
     } catch (BindingException e) {

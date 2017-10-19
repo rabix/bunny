@@ -14,12 +14,15 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.DAGNodeService;
+import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.LinkRecord;
 import org.rabix.engine.store.model.VariableRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -28,32 +31,33 @@ import com.google.inject.Inject;
  */
 public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
-  private final DAGNodeService dagNodeService;
-  private final JobRecordService jobService;
-  private final LinkRecordService linkService;
-  private final VariableRecordService variableService;
-  
-  private final ScatterHandler scatterHelper;
-  private final EventProcessor eventProcessor;
-
   @Inject
-  public InputEventHandler(EventProcessor eventProcessor, ScatterHandler scatterHelper, JobRecordService jobService,
-      VariableRecordService variableService, LinkRecordService linkService, DAGNodeService dagNodeService) {
-    this.dagNodeService = dagNodeService;
-    this.jobService = jobService;
-    this.linkService = linkService;
-    this.variableService = variableService;
+  private DAGNodeService dagNodeService;
+  @Inject
+  private JobRecordService jobService;
+  @Inject
+  private LinkRecordService linkService;
+  @Inject
+  private VariableRecordService variableService;
+  @Inject
+  private ScatterHandler scatterHelper;
+  @Inject
+  private EventProcessor eventProcessor;
+  @Inject
+  private IntermediaryFilesService intermediaryFilesService;
+  
+  private Logger logger = LoggerFactory.getLogger(InputEventHandler.class);
 
-    this.scatterHelper = scatterHelper;
-    this.eventProcessor = eventProcessor;
-  }
   
   @Override
   public void handle(InputUpdateEvent event) throws EventHandlerException {
+    logger.info(event.toString());
     JobRecord job = jobService.find(event.getJobId(), event.getContextId());
     VariableRecord variable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
 
     DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), event.getContextId(), job.getDagHash());
+    if(!job.isScatterWrapper())
+      intermediaryFilesService.handleInputSent(event.getContextId(), event.getValue());
 
     if (event.isLookAhead()) {
       if (job.isBlocking() || (job.getInputPortIncoming(event.getPortId()) > 1)) {
