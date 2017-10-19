@@ -33,12 +33,18 @@ public interface JDBIIntermediaryFilesRepository extends IntermediaryFilesReposi
   
   @SqlUpdate("insert into intermediary_files (root_id,filename,count) values (:root_id,:filename,:count)")
   void insert(@Bind("root_id") UUID root_id, @Bind("filename") String filename, @Bind("count") Integer count);
-  
+
   @SqlUpdate("update intermediary_files set count=:count where root_id=:root_id and filename=:filename")
   void update(@Bind("root_id") UUID root_id, @Bind("filename") String filename, @Bind("count") Integer count);
+
+  @SqlUpdate("insert into intermediary_files (root_id,filename,count) values (:root_id,:filename,0) on conflict (root_id, filename) do update set count=intermediary_files.count-1")
+  void decrement(@Bind("root_id") UUID root_id, @Bind("filename") String filename);
+  @Override
+  @SqlUpdate("insert into intermediary_files (root_id,filename,count) values (:root_id,:filename,1) on conflict (root_id, filename) do update set count=intermediary_files.count+1")
+  void increment(@Bind("root_id") UUID rootId, @Bind("filename") String filename);
   
   @SqlUpdate("delete from intermediary_files where root_id=:root_id and filename=:filename")
-  void delete(@Bind("root_id") UUID root_id, @Bind("filename") String filename);
+  void delete(@Bind("root_id") UUID rootId, @Bind("filename") String filename);
   
   @SqlUpdate("delete from intermediary_files where root_id=:root_id")
   void delete(@Bind("root_id") UUID root_id);

@@ -82,4 +82,29 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
     }
   }
 
+  @Override
+  public void decrement(UUID rootId, String filename) {
+    if (intermediaryFilesRepository.containsKey(rootId)) {
+      List<IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.get(rootId);
+      for (IntermediaryFileEntity file : intermediaryPerRoot) {
+        if (file.getFilename().equals(filename)) {
+          file.setCount(file.getCount() - 1);
+          break;
+        }
+      }
+    }
+  }
+
+  @Override
+  public void increment(UUID rootId, String filename) {
+    if (intermediaryFilesRepository.containsKey(rootId)) {
+      List<IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.get(rootId);
+      for (IntermediaryFileEntity file : intermediaryPerRoot) {
+        if (file.getFilename().equals(filename)) {
+          file.setCount(file.getCount() + 1);
+          break;
+        }
+      }
+    }
+  }
 }

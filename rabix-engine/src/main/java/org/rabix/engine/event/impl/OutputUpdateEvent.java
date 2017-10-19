@@ -177,6 +177,8 @@ public class OutputUpdateEvent implements Event {
 
   @Override
   public String toString() {
-    return "OutputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", portId=" + portId + ", value=" + value + ", fromScatter=" + fromScatter + ", numberOfScattered=" + numberOfScattered + "]";
+    return "OutputUpdateEvent [jobId=" + jobId + ", contextId=" + contextId + ", value=" + value + ", portId=" + portId + ", position=" + position
+        + ", fromScatter=" + fromScatter + ", numberOfScattered=" + numberOfScattered + ", eventGroupId=" + eventGroupId + ", producedByNode=" + producedByNode
+        + "]";
   }
 }

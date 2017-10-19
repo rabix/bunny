@@ -18,6 +18,7 @@ import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.DAGNodeService;
+import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.VariableRecordService;
@@ -33,26 +34,19 @@ import com.google.inject.Inject;
  * Handles {@link InitEvent} events.
  */
 public class InitEventHandler implements EventHandler<InitEvent> {
-
-  private EventProcessor eventProcessor;
-  private DAGNodeService dagNodeService;
-  private JobRecordService jobRecordService;
-  private ContextRecordService contextRecordService;
-  private VariableRecordService variableRecordService;
-  private JobStatsRecordService jobStatsRecordService;
-
   @Inject
-  public InitEventHandler(EventProcessor eventProcessor, JobRecordService jobRecordService,
-      VariableRecordService variableRecordService, ContextRecordService contextRecordService,
-      DAGNodeService dagNodeService, JobStatsRecordService jobStatsRecordService) {
-    this.dagNodeService = dagNodeService;
-    this.eventProcessor = eventProcessor;
-    this.jobRecordService = jobRecordService;
-    this.contextRecordService = contextRecordService;
-    this.variableRecordService = variableRecordService;
-    this.jobStatsRecordService = jobStatsRecordService;
-  }
-
+  private EventProcessor eventProcessor;
+  @Inject
+  private DAGNodeService dagNodeService;
+  @Inject
+  private JobRecordService jobRecordService;
+  @Inject
+  private ContextRecordService contextRecordService;
+  @Inject
+  private VariableRecordService variableRecordService;
+  @Inject
+  private JobStatsRecordService jobStatsRecordService;
+  
   public void handle(final InitEvent event) throws EventHandlerException {
     ContextRecord context = new ContextRecord(event.getRootId(), event.getConfig(), ContextStatus.RUNNING);
     contextRecordService.create(context);
@@ -98,6 +92,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       Object value = mixedInputs.get(inputPort.getId());
       eventProcessor.send(new InputUpdateEvent(event.getContextId(), node.getId(), inputPort.getId(), value, 1, event.getEventGroupId(), event.getProducedByNode()));
+      
     }
   }
   
