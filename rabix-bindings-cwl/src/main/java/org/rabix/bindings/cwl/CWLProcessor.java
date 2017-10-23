@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -89,7 +90,6 @@ public class CWLProcessor implements ProtocolProcessor {
     CWLPortProcessorHelper portProcessorHelper = new CWLPortProcessorHelper(cwlJob);
     try {
       Map<String, Object> inputs = cwlJob.getInputs();
-
       inputs = portProcessorHelper.createFileLiteralFiles(inputs, workingDir);
       inputs = portProcessorHelper.setPathsToInputs(inputs);
       inputs = portProcessorHelper.setFileProperties(inputs);
