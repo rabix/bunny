@@ -14,10 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolProcessor;
 import org.rabix.bindings.cwl.bean.CWLCommandLineTool;
@@ -47,7 +44,6 @@ import org.rabix.bindings.cwl.service.impl.CWLGlobServiceImpl;
 import org.rabix.bindings.cwl.service.impl.CWLMetadataServiceImpl;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
-import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
@@ -151,7 +147,7 @@ public class CWLProcessor implements ProtocolProcessor {
         outputs = collectOutputs(cwlJob, workingDir, hashAlgorithm, logFilePathMapper, job.getConfig());
       }
       return Job.cloneWithOutputs(job, (Map<String, Object>) CWLValueTranslator.translateToCommon(outputs));
-    } catch (CWLGlobException | CWLExpressionException | IOException e) {
+    } catch (CWLGlobException | CWLExpressionException | IOException | URISyntaxException e) {
       throw new BindingException(e);
     }
   }
@@ -162,7 +158,7 @@ public class CWLProcessor implements ProtocolProcessor {
   }
 
   private Map<String, Object> collectOutputs(CWLJob job, Path workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper,
-      Map<String, Object> config) throws CWLGlobException, CWLExpressionException, IOException, BindingException {
+      Map<String, Object> config) throws CWLGlobException, CWLExpressionException, IOException, BindingException, URISyntaxException {
     Path resultFile = workingDir.resolve(RESULT_FILENAME);
 
     if (Files.exists(resultFile)) {
@@ -193,11 +189,11 @@ public class CWLProcessor implements ProtocolProcessor {
     return result;
   }
 
-  public static void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, File workingDir) throws IOException {
+  public static void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, File workingDir) throws IOException, URISyntaxException {
     postprocessCreatedResults(value, hashAlgorithm, workingDir.toPath());
   }
 
-  public static void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, Path workingDir) throws IOException {
+  public static void postprocessCreatedResults(Object value, HashAlgorithm hashAlgorithm, Path workingDir) throws IOException, URISyntaxException {
     if (value == null) {
       return;
     }
@@ -242,12 +238,8 @@ public class CWLProcessor implements ProtocolProcessor {
 
         return;
       }
-      try {
-        CWLFileValueHelper.buildMissingInfo(value, hashAlgorithm, workingDir);
-      } catch (URISyntaxException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+      
+      CWLFileValueHelper.buildMissingInfo(value, hashAlgorithm, workingDir);
 
       List<Map<String, Object>> secondaryFiles = CWLFileValueHelper.getSecondaryFiles(value);
       if (secondaryFiles != null) {
@@ -401,8 +393,8 @@ public class CWLProcessor implements ProtocolProcessor {
   }
 
   public Map<String, Object> formFileValue(Path file, CWLJob job, Object outputBinding, CWLOutputPort outputPort, HashAlgorithm hashAlgorithm, Path workingDir)
-      throws CWLExpressionException, IOException {
-    Map<String, Object> fileData = fileToData(file, hashAlgorithm, workingDir);
+      throws CWLExpressionException, IOException, URISyntaxException {
+    Map<String, Object> fileData = CWLFileValueHelper.pathToRawFile(file, hashAlgorithm, workingDir);
     if (Files.isDirectory(file)) {
       return fileData;
     }
@@ -430,31 +422,23 @@ public class CWLProcessor implements ProtocolProcessor {
     return fileData;
   }
 
-  private static Map<String, Object> fileToData(Path file, HashAlgorithm hashAlgorithm, Path workDir) {
-    try {
-      return CWLFileValueHelper.pathToRawFile(file, hashAlgorithm, workDir);
-    } catch (IOException | URISyntaxException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-    return null;
-  }
-
   /**
    * Gets secondary files (absolute paths)
+   * @throws URISyntaxException 
    */
   public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String filePath,
-      Object secs, File workingDir, boolean onlyExisting) throws CWLExpressionException, IOException {
+      Object secs, File workingDir, boolean onlyExisting) throws CWLExpressionException, IOException, URISyntaxException {
     return getSecondaryFiles(job, hashAlgorithm, fileValue, Paths.get(filePath), secs, workingDir.toPath(), onlyExisting);
   }
 
 
   /**
    * Gets secondary files (absolute paths)
+   * @throws URISyntaxException 
    */
   @SuppressWarnings("unchecked")
   public static List<Map<String, Object>> getSecondaryFiles(CWLJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, Path filePath, Object secs,
-      Path workingDir, boolean onlyExisting) throws CWLExpressionException, IOException {
+      Path workingDir, boolean onlyExisting) throws CWLExpressionException, IOException, URISyntaxException {
     Object secondaryFilesObj = secs;
     if (secondaryFilesObj == null) {
       return null;
@@ -488,14 +472,14 @@ public class CWLProcessor implements ProtocolProcessor {
   }
 
   private static void addSecondaryFile(HashAlgorithm hashAlgorithm, Path filePath, Path workingDir, boolean onlyExisting,
-      List<Map<String, Object>> secondaryFileMaps, Object expr, boolean append) throws IOException {
+      List<Map<String, Object>> secondaryFileMaps, Object expr, boolean append) throws IOException, URISyntaxException {
     Map<String, Object> secondaryFile = getSecondaryFile(hashAlgorithm, filePath, workingDir, expr, append, onlyExisting);
     if (secondaryFile != null && !secondaryFile.isEmpty())
       secondaryFileMaps.add(secondaryFile);
   }
 
   private static Map<String, Object> getSecondaryFile(HashAlgorithm hashAlgorithm, Path filePath, Path workingDir, Object expr, boolean append,
-      boolean onlyExisting) throws IOException {
+      boolean onlyExisting) throws IOException, URISyntaxException {
     Map<String, Object> secondaryFileMap = new HashMap<>();
     Path path;
     if (expr instanceof String) {
@@ -516,11 +500,11 @@ public class CWLProcessor implements ProtocolProcessor {
       secondaryFilePath += suffix;
       path = filePath.getParent().resolve(secondaryFilePath);
       if (Files.exists(path) || !onlyExisting) {
-        secondaryFileMap = fileToData(path, hashAlgorithm, workingDir);
+        secondaryFileMap = CWLFileValueHelper.pathToRawFile(path, hashAlgorithm, workingDir);
       } else {
         path = path.resolve(".").normalize();
         if (Files.exists(path) || !onlyExisting) {
-          secondaryFileMap = fileToData(path, hashAlgorithm, workingDir);
+          secondaryFileMap = CWLFileValueHelper.pathToRawFile(path, hashAlgorithm, workingDir);
         }
       }
     } else if (expr instanceof Map) {// also string

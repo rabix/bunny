@@ -125,8 +125,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
           try {
             CWLFileValueHelper.buildMissingInfo(fileValue, null, workDir);
           } catch (IOException | URISyntaxException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new BindingException("Couldn't process file value",e);
           }
           fileValue.setPath(workDir.resolve(fileValue.getName()).toString());
         }

@@ -460,15 +460,9 @@ public class BackendCommandLine {
     } catch (IOException e) {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
-    } catch (JobServiceException | InterruptedException e) {
+    } catch (JobServiceException | InterruptedException | BootstrapServiceException | URISyntaxException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
-    } catch (BootstrapServiceException e) {
-      logger.error("Encountered an error while starting local backend.", e);
-      System.exit(10);
-    } catch (URISyntaxException e2) {
-      // TODO Auto-generated catch block
-      e2.printStackTrace();
     }
   }
   static String keyPath = "path";

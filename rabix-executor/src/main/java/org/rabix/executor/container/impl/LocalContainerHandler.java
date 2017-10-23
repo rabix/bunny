@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -98,29 +99,34 @@ public class LocalContainerHandler implements ContainerHandler {
       }
 
       processBuilder.directory(workingDir);
-
-      boolean runInShell = (commandLineString.startsWith("/bin/bash") || commandLineString.startsWith("/bin/sh"));
-      boolean check = (commandLineString.contains("&&") || commandLineString.contains("|")) ;
-      if (runInShell || (!commandLine.isRunInShell() && !check)) {
-        List<String> parts = commandLine.getParts();
-        processBuilder.command(parts);
-
-        if(!StringUtils.isEmpty( commandLine.getStandardIn()))
-        processBuilder.redirectInput(redirect(workingDir, commandLine.getStandardIn(), false));
-        if(!StringUtils.isEmpty( commandLine.getStandardOut()))
-        processBuilder.redirectOutput(redirect(workingDir, commandLine.getStandardOut(), true));
-        if(!StringUtils.isEmpty( commandLine.getStandardError()))
-        processBuilder.redirectError(redirect(workingDir, commandLine.getStandardError(), true));
-      } else {
-        processBuilder.command("/bin/sh", "-c", commandLineString);
+      List<String> parts = commandLine.getParts();
+      boolean overrideShell = false;
+      if(StringUtils.startsWithAny(parts.get(0), "/bin/bash", "/bin/sh")){
+        parts.remove(0);
+        if(parts.get(0).startsWith("-c")){
+          parts.remove(0);
+        }
+        overrideShell=true;
       }
+      
+      String cmdString = StringUtils.join(parts, " ");
+      overrideShell = overrideShell || cmdString.contains("&&") || cmdString.contains("|") || cmdString.contains(">");
 
-      VerboseLogger.log(String.format("Running command line: %s", commandLineString));
+      if (commandLine.isRunInShell() || overrideShell) {
+        processBuilder.command("/bin/sh", "-c", cmdString);
+      } else {
+        String[] commandLineArray = cmdString.split(" ");
+        processBuilder.command(commandLineArray);
+      }
+      redirect(processBuilder, workingDir, commandLine);;
+      
+      VerboseLogger.log(String.format("Running command line: %s", cmdString));
       processFuture = executorService.submit(new Callable<Integer>() {
         @Override
         public Integer call() throws Exception {
           process = processBuilder.start();
           process.waitFor();
+//          List readLines = IOUtils.readLines(process.getErrorStream());IOUtils.readLines(process.getInputStream());
           return process.exitValue();
         }
       });
@@ -131,22 +137,19 @@ public class LocalContainerHandler implements ContainerHandler {
     }
   }
   
-  
-
-  private ProcessBuilder.Redirect redirect(File workingDir, String path, boolean write) {
-    if (StringUtils.isEmpty(path)) {
-      return ProcessBuilder.Redirect.PIPE;
-    }
-    File res = new File(path);
-    if (!res.isAbsolute()) {
-      res = new File(workingDir, path);
-    }
-    if (write) {
-      return ProcessBuilder.Redirect.to(res);
-    }
-    return ProcessBuilder.Redirect.from(res);
+  private void redirect(ProcessBuilder pb, File workingDir, CommandLine commandLine) {
+    String stdIn = commandLine.getStandardIn();
+    String stdOut = commandLine.getStandardOut();
+    String stdError = commandLine.getStandardError();
+    Path path = workingDir.toPath();
+    if (!StringUtils.isEmpty(stdIn))
+      pb.redirectInput(ProcessBuilder.Redirect.from(path.resolve(stdIn).toFile()));
+    if (!StringUtils.isEmpty(stdOut))
+      pb.redirectOutput(ProcessBuilder.Redirect.to(path.resolve(stdOut).toFile()));
+    if (!StringUtils.isEmpty(stdError))
+      pb.redirectError(ProcessBuilder.Redirect.to(path.resolve(stdError).toFile()));
   }
-  
+
   @SuppressWarnings("unchecked")
   private <T extends Requirement> T getRequirement(List<Requirement> requirements, Class<T> clazz) {
     for (Requirement requirement : requirements) {

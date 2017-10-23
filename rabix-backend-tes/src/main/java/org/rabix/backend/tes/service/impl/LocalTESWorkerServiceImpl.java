@@ -116,11 +116,11 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       }
       job = bindings.postprocess(job, localDir, HashAlgorithm.SHA1, (String path, Map<String, Object> config) -> path);
     } catch (BindingException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      logger.error("Couldn't process job",e);
+      job = Job.cloneWithStatus(job, JobStatus.FAILED);
     } catch (TESStorageException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      logger.error("Couldn't use shared storage",e);
+      job = Job.cloneWithStatus(job, JobStatus.FAILED);
     }
     try {
       job = statusCallback.onJobCompleted(job);
