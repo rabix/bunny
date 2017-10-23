@@ -288,7 +288,8 @@ public class JobHandlerImpl implements JobHandler {
             return;
           }
           
-          String path = URI.create(((SingleInputFileRequirement) fileRequirement).getContent().getLocation()).getSchemeSpecificPart();
+          URI location = URI.create(content.getLocation());
+          String path = location.getScheme()!=null ? Paths.get(location).toString() : content.getPath();
           String mappedPath = inputFileMapper.map(path, job.getConfig());
           stagedFiles.put(path, destinationFile.getPath());
           File file = new File(mappedPath);

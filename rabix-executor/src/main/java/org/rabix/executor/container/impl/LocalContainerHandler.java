@@ -73,8 +73,6 @@ public class LocalContainerHandler implements ContainerHandler {
         }
       });
 
-      commandLineString = commandLine.build();
-
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -98,35 +96,24 @@ public class LocalContainerHandler implements ContainerHandler {
         }
       }
 
+      commandLineString = commandLine.build();
       processBuilder.directory(workingDir);
-      List<String> parts = commandLine.getParts();
-      boolean overrideShell = false;
-      if(StringUtils.startsWithAny(parts.get(0), "/bin/bash", "/bin/sh")){
-        parts.remove(0);
-        if(parts.get(0).startsWith("-c")){
-          parts.remove(0);
-        }
-        overrideShell=true;
-      }
-      
-      String cmdString = StringUtils.join(parts, " ");
-      overrideShell = overrideShell || cmdString.contains("&&") || cmdString.contains("|") || cmdString.contains(">");
 
-      if (commandLine.isRunInShell() || overrideShell) {
-        processBuilder.command("/bin/sh", "-c", cmdString);
+      if (commandLine.isRunInShell()){
+        List<String> parts = commandLine.getBuiltParts();
+        int start = StringUtils.startsWithAny(parts.get(0), "/bin/bash", "/bin/sh") && parts.get(1).startsWith("-c") ? 2 : 0;
+        processBuilder.command("/bin/sh", "-c", StringUtils.join(parts.subList(start, parts.size() - 1), " "));
       } else {
-        String[] commandLineArray = cmdString.split(" ");
-        processBuilder.command(commandLineArray);
+        processBuilder.command(commandLine.getParts());
       }
       redirect(processBuilder, workingDir, commandLine);;
       
-      VerboseLogger.log(String.format("Running command line: %s", cmdString));
+      VerboseLogger.log(String.format("Running command line: %s", commandLineString));
       processFuture = executorService.submit(new Callable<Integer>() {
         @Override
         public Integer call() throws Exception {
           process = processBuilder.start();
           process.waitFor();
-//          List readLines = IOUtils.readLines(process.getErrorStream());IOUtils.readLines(process.getInputStream());
           return process.exitValue();
         }
       });
