@@ -99,13 +99,17 @@ public class LocalContainerHandler implements ContainerHandler {
 
       processBuilder.directory(workingDir);
 
-      boolean runInShell = commandLineString.startsWith("/bin/bash") || commandLineString.startsWith("/bin/sh");
-      if (runInShell || !commandLine.isRunInShell()) {
+      boolean runInShell = (commandLineString.startsWith("/bin/bash") || commandLineString.startsWith("/bin/sh"));
+      boolean check = (commandLineString.contains("&&") || commandLineString.contains("|")) ;
+      if (runInShell || (!commandLine.isRunInShell() && !check)) {
         List<String> parts = commandLine.getParts();
         processBuilder.command(parts);
 
+        if(!StringUtils.isEmpty( commandLine.getStandardIn()))
         processBuilder.redirectInput(redirect(workingDir, commandLine.getStandardIn(), false));
+        if(!StringUtils.isEmpty( commandLine.getStandardOut()))
         processBuilder.redirectOutput(redirect(workingDir, commandLine.getStandardOut(), true));
+        if(!StringUtils.isEmpty( commandLine.getStandardError()))
         processBuilder.redirectError(redirect(workingDir, commandLine.getStandardError(), true));
       } else {
         processBuilder.command("/bin/sh", "-c", commandLineString);

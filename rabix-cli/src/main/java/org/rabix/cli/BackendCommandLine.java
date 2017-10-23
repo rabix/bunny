@@ -304,7 +304,7 @@ public class BackendCommandLine {
       Map<String, Object> inputs;
       if (inputsFile != null) {
         String inputsText = readFile(inputsFile.toAbsolutePath().toString(), Charset.defaultCharset());
-        inputs = (Map<String, Object>) JSONHelper.transform(JSONHelper.readJsonNode(inputsText), true);
+        inputs = (Map<String, Object>) JSONHelper.transform(JSONHelper.readJsonNode(inputsText), false);
       } else {
         inputs = new HashMap<>();
         // No inputs file. If we didn't provide -- at the end, just print app help and exit
