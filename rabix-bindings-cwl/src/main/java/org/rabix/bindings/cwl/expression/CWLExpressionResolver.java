@@ -191,9 +191,9 @@ public class CWLExpressionResolver {
       while (i < chars.length) {
         char c = chars[i];
         sb.append(c);
-        if (c == open) {
+        if (c == open && !isEscaped(i)) {
           opened++;
-        } else if (c == close) {
+        } else if (c == close && !isEscaped(i)) {
           opened--;
         }
         if (opened == 0) {
@@ -207,15 +207,18 @@ public class CWLExpressionResolver {
 
     private int skipStringycontent(int start) {
       char c = chars[start];
-      if (c != '\'' && c != '\"' && c != '/')
+      if (isEscaped(start))
         return start;
       if (c == '/') {
         if (chars[start + 1] == '/')
           return skipUntil(start, '\n');
         if (chars[start + 1] == '*')
           return skipFullComments(start);
+        return start;
       }
-      return skipUntil(start, c);
+      if(c == '\'' && c == '\"')
+        return skipUntil(start, c);
+      return start;
     }
 
     private int skipFullComments(int start) {
@@ -231,7 +234,7 @@ public class CWLExpressionResolver {
       while (i < chars.length) {
         char c = chars[i];
         sb.append(c);
-        if (goal == c && !isEscaped(chars, i)) {
+        if (goal == c && !isEscaped(i)) {
           return i;
         }
         i++;
@@ -239,8 +242,8 @@ public class CWLExpressionResolver {
       return i;
     }
 
-    private static boolean isEscaped(char[] chars, int i) {
-      return chars[i - 1] == '\\' && !isEscaped(chars, i - 1);
+    private boolean isEscaped( int i) {
+      return chars[i - 1] == '\\' && !isEscaped(i - 1);
     }
   }
 }

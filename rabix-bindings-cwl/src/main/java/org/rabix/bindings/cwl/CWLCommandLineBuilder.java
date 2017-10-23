@@ -336,7 +336,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(value.toString(), shellQuote)).build();
     }
     if (CWLBindingHelper.DEFAULT_SEPARATOR.equals(separator)) {
-      return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(new CommandLine.Part(value.toString(), shellQuote)).build();
+      return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(prefix)).part(new CommandLine.Part(value.toString(), shellQuote)).build();
     }
     return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(prefix + separator + value, shellQuote)).build();
   }
