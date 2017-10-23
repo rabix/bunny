@@ -102,7 +102,7 @@ public class LocalContainerHandler implements ContainerHandler {
       if (commandLine.isRunInShell()){
         List<String> parts = commandLine.getBuiltParts();
         int start = StringUtils.startsWithAny(parts.get(0), "/bin/bash", "/bin/sh") && parts.get(1).startsWith("-c") ? 2 : 0;
-        processBuilder.command("/bin/sh", "-c", StringUtils.join(parts.subList(start, parts.size() - 1), " "));
+        processBuilder.command("/bin/sh", "-c", StringUtils.join(parts.subList(start, parts.size()), " "));
       } else {
         processBuilder.command(commandLine.getParts());
       }
