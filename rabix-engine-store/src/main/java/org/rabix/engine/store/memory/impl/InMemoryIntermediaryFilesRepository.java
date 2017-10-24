@@ -82,4 +82,12 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
     }
   }
 
+  @Override
+  public void decrement(UUID rootId, String filename) {
+
+  }
+  @Override
+  public void increment(UUID rootId, String filename) {
+
+  }
 }
