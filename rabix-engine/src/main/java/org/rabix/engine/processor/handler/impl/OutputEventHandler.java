@@ -65,7 +65,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     
     if (sourceJob.isCompleted()) {
       if(sourceJob.getOutputCounter(sourceVariable.getPortId()) != null) {
-        if (sourceJob.isRoot()) {
+        if (sourceJob.isRoot() && sourceJob.isContainer()) {
           Job rootJob = createJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
             eventProcessor.addToQueue(
                 new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobRecord.JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), InternalSchemaHelper.ROOT_NAME));
