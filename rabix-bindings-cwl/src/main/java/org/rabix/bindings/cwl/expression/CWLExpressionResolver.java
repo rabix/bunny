@@ -216,7 +216,7 @@ public class CWLExpressionResolver {
           return skipFullComments(start);
         return start;
       }
-      if(c == '\'' && c == '\"')
+      if(c == '\'' || c == '\"')
         return skipUntil(start, c);
       return start;
     }
