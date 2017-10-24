@@ -222,7 +222,7 @@ public class CWLExpressionResolver {
     }
 
     private int skipFullComments(int start) {
-      int i = skipUntil(start, '\n');
+      int i = start;
       do {
         i = skipUntil(i, '/');
       } while (chars[i - 1] != '*');

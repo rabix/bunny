@@ -253,7 +253,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         if (prefix == null) {
           throw new BindingException("Missing prefix for " + inputPort.getId() + " input.");
         }
-        return new CWLCommandLinePart.Builder(position, isFile).part(prefix).keyValue(keyValue).build();
+        return new CWLCommandLinePart.Builder(position, isFile).part(new CommandLine.Part(prefix)).keyValue(keyValue).build();
       } else {
         return null;
       }
