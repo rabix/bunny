@@ -15,6 +15,8 @@ import org.rabix.engine.service.AppService;
 import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.DAGNodeService;
+import org.rabix.engine.service.IntermediaryFilesHandler;
+import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
@@ -24,9 +26,12 @@ import org.rabix.engine.service.impl.AppServiceImpl;
 import org.rabix.engine.service.impl.CacheServiceImpl;
 import org.rabix.engine.service.impl.ContextRecordServiceImpl;
 import org.rabix.engine.service.impl.DAGNodeServiceImpl;
+import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
+import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
 import org.rabix.engine.service.impl.JobRecordServiceImpl;
 import org.rabix.engine.service.impl.JobStatsRecordServiceImpl;
 import org.rabix.engine.service.impl.LinkRecordServiceImpl;
+import org.rabix.engine.service.impl.NoOpIntermediaryFilesServiceHandler;
 import org.rabix.engine.service.impl.StoreCleanupServiceImpl;
 import org.rabix.engine.service.impl.VariableRecordServiceImpl;
 import org.rabix.engine.store.lru.dag.DAGCache;
@@ -51,6 +56,7 @@ public class EngineModule extends AbstractModule {
   protected void configure() {
     Configuration configuration = this.config.provideConfig();
     String persistence = configuration.getString("engine.store", "IN_MEMORY");
+    
     if (persistence.equals("POSTGRES")) {
       install(new JDBIRepositoryModule());
       bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
@@ -58,6 +64,14 @@ public class EngineModule extends AbstractModule {
       install(new InMemoryRepositoryModule());
       bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     }
+
+    if (configuration.getBoolean("engine.delete_intermediary_files", false)) {
+      bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
+    } else {
+      bind(IntermediaryFilesHandler.class).to(NoOpIntermediaryFilesServiceHandler.class).in(Scopes.SINGLETON);
+    }
+
+    bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);       
     
     bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
     

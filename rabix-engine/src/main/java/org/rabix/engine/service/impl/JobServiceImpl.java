@@ -62,8 +62,6 @@ public class JobServiceImpl implements JobService {
   private final TransactionHelper transactionHelper;
 
   private boolean deleteFilesUponExecution;
-  private boolean deleteIntermediaryFiles;
-  private boolean keepInputFiles;
   private boolean isLocalBackend;
 
   private IntermediaryFilesService intermediaryFilesService;
@@ -96,8 +94,6 @@ public class JobServiceImpl implements JobService {
     this.intermediaryFilesService = intermediaryFilesService;
     this.jobHelper = jobHelper;
 
-    deleteIntermediaryFiles = configuration.getBoolean("engine.delete_intermediary_files", false);
-    keepInputFiles = !configuration.getBoolean("engine.treat_inputs_as_intermediary", false) || !deleteIntermediaryFiles;
     setResources = configuration.getBoolean("engine.set_resources", false);
   }
   
@@ -298,10 +294,8 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobFailed(final Job failedJob){
     logger.warn("Job {}, rootId: {} failed: {}", failedJob.getName(), failedJob.getRootId(), failedJob.getMessage());
-
-    if (deleteIntermediaryFiles) {
-      intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()), keepInputFiles);
-    }
+    intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()));
+    
     try {
       engineStatusCallback.onJobFailed(failedJob);
     } catch (EngineStatusCallbackException e) {
@@ -399,9 +393,6 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobCompleted(Job job){
     logger.info("Job {} rootId: {} is completed.", job.getName(), job.getRootId());
-    if (deleteIntermediaryFiles) {
-      intermediaryFilesService.handleJobCompleted(job);
-    }
     try{
       engineStatusCallback.onJobCompleted(job);
     } catch (EngineStatusCallbackException e) {

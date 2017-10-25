@@ -18,7 +18,7 @@ public interface IntermediaryFilesService {
 
   void handleJobCompleted(Job job);
 
-  void handleJobFailed(Job job, Job rootJob, boolean keepInputFiles);
+  void handleJobFailed(Job job, Job rootJob);
 
   void extractPathsFromFileValue(Set<String> paths, FileValue file);
   
