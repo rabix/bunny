@@ -59,14 +59,9 @@ public class CWLFilePathMapProcessorCallback implements CWLPortProcessorCallback
       }
 
       if (CWLSchemaHelper.isDirectoryFromValue(value)) {
-        List<Object> listingObjs = CWLDirectoryValueHelper.getListing(value);
-        
-        List<Object> clonedListingObjs = (List<Object>) CloneHelper.deepCopy(listingObjs);
-        if (listingObjs != null) {
-          for (Object listingObj : listingObjs) {
-            clonedListingObjs.add(mapSingleFile(listingObj));
-          }
-          CWLDirectoryValueHelper.setListing(clonedListingObjs, value);
+        List<Object> listingObjs = CWLDirectoryValueHelper.getListing(clonedValue);
+        for (Object listingObj : listingObjs) {
+          mapSingleFile(listingObj);
         }
       }
       return clonedValue;

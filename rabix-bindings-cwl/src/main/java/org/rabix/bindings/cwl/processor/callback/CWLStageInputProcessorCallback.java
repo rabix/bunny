@@ -1,15 +1,15 @@
 package org.rabix.bindings.cwl.processor.callback;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.io.FileUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.cwl.bean.CWLInputPort;
 import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
@@ -25,9 +25,9 @@ public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback 
 
   private static final Logger logger = LoggerFactory.getLogger(CWLStageInputProcessorCallback.class);
 
-  private final File workingDir;
+  private final Path workingDir;
 
-  public CWLStageInputProcessorCallback(File workingDir) {
+  public CWLStageInputProcessorCallback(Path workingDir) {
     this.workingDir = workingDir;
   }
 
@@ -86,34 +86,30 @@ public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback 
   }
 
   private String stagePath(String path, StageInput stageInput) throws BindingException {
-    File file = new File(path);
-    if (!file.exists()) {
+    Path file = Paths.get(path);
+    if (!Files.exists(file)) {
       throw new BindingException("Failed to stage input file path " + path);
     }
-    File destinationFile = new File(workingDir, file.getName());
-    if (destinationFile.exists()) {
+    Path destinationFile = workingDir.resolve(file.getFileName());
+    if (Files.exists(destinationFile)) {
       throw new BindingException("Failed to stage input file path " + path + ". File with the same name already exists.");
     }
     logger.info("Stage input file {} to {}.", file, destinationFile);
     switch (stageInput) { // just copy for now
     case COPY:
       try {
-        if (file.isFile()) {
-          FileUtils.copyFile(file, destinationFile);
-        } else {
-          FileUtils.copyDirectory(file, destinationFile);
-        }
+          Files.copy(file, destinationFile);
       } catch (IOException e) {
         throw new BindingException(e);
       }
-      return destinationFile.getAbsolutePath();
+      return destinationFile.toString();
     case LINK:
         try {
-          Files.createLink(destinationFile.toPath(), file.toPath());
+          Files.createLink(destinationFile, file);
         } catch (IOException e) {
           throw new BindingException(e);
         }
-     return destinationFile.getAbsolutePath();
+     return destinationFile.toString();
     default:
       throw new BindingException("Failed to stage input files. StageInput " + stageInput + " is not supported");
     }

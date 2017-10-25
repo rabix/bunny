@@ -3,10 +3,11 @@ package org.rabix.common.helper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -26,7 +27,7 @@ public class ChecksumHelper {
 
   private static final Logger logger = LoggerFactory.getLogger(ChecksumHelper.class);
 
-  public static String checksum(File file, HashAlgorithm hashAlgo) {
+  public static String checksum(Path file, HashAlgorithm hashAlgo) {
     switch (hashAlgo) {
     case SHA1:
       return sha1(file);
@@ -34,6 +35,19 @@ public class ChecksumHelper {
       return md5(file);
     case MURMUR3:
       return murmur3(file);
+    default:
+      // couldn't really happen but..
+      throw new IllegalArgumentException("Unsupported hashing algorithm");
+    }
+  }
+  public static String checksum(File file, HashAlgorithm hashAlgo) {
+    switch (hashAlgo) {
+    case SHA1:
+      return sha1(file.toPath());
+    case MD5:
+      return md5(file.toPath());
+    case MURMUR3:
+      return murmur3(file.toPath());
     default:
       // couldn't really happen but..
       throw new IllegalArgumentException("Unsupported hashing algorithm");
@@ -52,7 +66,7 @@ public class ChecksumHelper {
     }
   }
 
-  public static String sha1(File file) {
+  public static String sha1(Path file) {
     return standardHash(file, HashAlgorithm.SHA1);
   }
 
@@ -60,7 +74,7 @@ public class ChecksumHelper {
     return standardHash(content, HashAlgorithm.SHA1);
   }
 
-  public static String md5(File file) {
+  public static String md5(Path file) {
     return standardHash(file, HashAlgorithm.MD5);
   }
 
@@ -68,13 +82,13 @@ public class ChecksumHelper {
     return standardHash(content, HashAlgorithm.MD5);
   }
 
-  public static String murmur3(File file) {
+  public static String murmur3(Path file) {
     checkNotNull(file);
 
     String hashed = null;
     HashFunction murmur3Hash = Hashing.murmur3_128();
     try {
-      byte[] fileBytes = Files.readAllBytes(file.toPath());
+      byte[] fileBytes = Files.readAllBytes(file);
       byte[] hashedBytes = murmur3Hash.hashBytes(fileBytes).asBytes();
       hashed = HashAlgorithm.MURMUR3.name().toLowerCase() + "$" + bytesToString(hashedBytes);
     } catch (IOException e) {
@@ -84,17 +98,17 @@ public class ChecksumHelper {
     return hashed;
   }
 
-  private static String standardHash(File file, HashAlgorithm hash) {
+  private static String standardHash(Path file, HashAlgorithm hash) {
     checkNotNull(file);
     checkNotNull(hash);
 
     MessageDigest md;
-    FileInputStream fis = null;
+    InputStream fis = null;
 
     try {
       md = MessageDigest.getInstance(hash.name());
 
-      fis = new FileInputStream(file);
+      fis = Files.newInputStream(file);
       byte[] dataBytes = new byte[1024];
 
       int nread = 0;

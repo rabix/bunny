@@ -69,7 +69,7 @@ public class TESHttpClient {
       if (response.isSuccessful()) {
         return JSONHelper.readObject(response.body().string(), TESJobId.class);
       } else {
-        throw new TESHTTPClientException("Failed to run a Task");
+        throw new TESHTTPClientException("Failed to run a Task: " + response.body().string());
       }
     } catch (IOException e) {
       throw new TESHTTPClientException("Failed to run Task", e);

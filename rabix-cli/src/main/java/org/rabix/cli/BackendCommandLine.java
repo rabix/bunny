@@ -3,9 +3,12 @@ package org.rabix.cli;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -29,12 +32,10 @@ import org.apache.commons.lang.StringUtils;
 import org.rabix.backend.api.BackendModule;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
-import org.rabix.backend.tes.TESModule;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.helper.URIHelper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.DataType;
@@ -122,24 +123,37 @@ public class BackendCommandLine {
         printUsageAndExit(posixOptions);
       }
       
-      final String appPath = commandLine.getArgList().get(0);
-      File appFile = new File(URIHelper.extractBase(appPath));
-      if (!appFile.exists()) {
-        VerboseLogger.log(String.format("Application file %s does not exist.", appFile.getCanonicalPath()));
+      final String app = commandLine.getArgList().get(0);
+
+      Path filePath = null;
+      URI appUri = URI.create(app);
+      if (appUri.getScheme() == null) {
+        appUri = new URI("file", appUri.getSchemeSpecificPart(), appUri.getFragment());
+      }
+
+      if (appUri.getScheme().equals("file")) {
+        filePath = Paths.get("").toAbsolutePath().resolve(appUri.getSchemeSpecificPart());
+      } else {
+        filePath = Paths.get(new URI(appUri.getScheme(), appUri.getSchemeSpecificPart(), null)).toAbsolutePath();
+      }
+      
+      if (!Files.exists(filePath)) {
+        VerboseLogger.log(String.format("Application file %s does not exist.", appUri.toString()));
         printUsageAndExit(posixOptions);
       }
       
-      String appUrl = URIHelper.createURI(URIHelper.FILE_URI_SCHEME, appPath);
+
+      String fullUri = appUri.toString();
       if (commandLine.hasOption("resolve-app")) {
-        printResolvedAppAndExit(appUrl);
+        printResolvedAppAndExit(fullUri);
       }
 
-      File inputsFile = null;
+      Path inputsFile = null;
       if (commandLine.getArgList().size() > 1) {
         String inputsPath = commandLine.getArgList().get(1);
-        inputsFile = new File(inputsPath);
-        if (!inputsFile.exists()) {
-          VerboseLogger.log(String.format("Inputs file %s does not exist.", inputsFile.getCanonicalPath()));
+        inputsFile = Paths.get(".").resolve(inputsPath).toAbsolutePath().normalize();
+        if (!Files.exists(inputsFile)) {
+          VerboseLogger.log(String.format("Inputs file %s does not exist.", inputsFile.toString()));
           printUsageAndExit(posixOptions);
         }
       }
@@ -154,7 +168,7 @@ public class BackendCommandLine {
       Map<String, Object> configOverrides = new HashMap<>();
       configOverrides.put("cleaner.backend.period", 5000L);
       
-      String directoryName = generateDirectoryName(appPath);
+      String directoryName = generateDirectoryName(app);
       configOverrides.put("backend.execution.directory.name", directoryName);
           
       String executionDirPath = commandLine.getOptionValue("basedir");
@@ -169,7 +183,7 @@ public class BackendCommandLine {
       } else {
         String workingDir = null;
         try {
-          workingDir = inputsFile.getParentFile().getCanonicalPath();
+          workingDir = inputsFile.getParent().toString();
         } catch (Exception e) {
           workingDir = new File(".").getCanonicalPath();
         }
@@ -223,7 +237,6 @@ public class BackendCommandLine {
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
       Injector injector = Guice.createInjector(
           new EngineModule(configModule),
-          new TESModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {
@@ -264,13 +277,13 @@ public class BackendCommandLine {
       Application application = null;
       
       try {
-        bindings = BindingsFactory.create(appUrl);
-        application = bindings.loadAppObject(appUrl);
+        bindings = BindingsFactory.create(appUri.toString());
+        application = bindings.loadAppObject(fullUri);
       } catch (NotImplementedException e) {
         logger.error("Not implemented feature");
         System.exit(33);
       } catch (BindingException e) {
-        logger.error("Error: " + appUrl + " is not a valid app! {}", e.getMessage());
+        logger.error("Error: " + appUri.toString() + " is not a valid app! {}", e.getMessage());
         System.exit(10);
       }
       if (application == null) {
@@ -290,8 +303,8 @@ public class BackendCommandLine {
 
       Map<String, Object> inputs;
       if (inputsFile != null) {
-        String inputsText = readFile(inputsFile.getAbsolutePath(), Charset.defaultCharset());
-        inputs = (Map<String, Object>) JSONHelper.transform(JSONHelper.readJsonNode(inputsText), true);
+        String inputsText = readFile(inputsFile.toAbsolutePath().toString(), Charset.defaultCharset());
+        inputs = (Map<String, Object>) JSONHelper.transform(JSONHelper.readJsonNode(inputsText), false);
       } else {
         inputs = new HashMap<>();
         // No inputs file. If we didn't provide -- at the end, just print app help and exit
@@ -391,20 +404,18 @@ public class BackendCommandLine {
       
       bootstrapService.start();
       Object commonInputs = null;
-      try {
+      try {       
         commonInputs = bindings.translateToCommon(inputs);
       } catch (BindingException e1) {
         VerboseLogger.log("Failed to translate inputs to the common Rabix format");
         System.exit(10);
       }
       
-      @SuppressWarnings("unchecked")
-      final Job job = jobService.start(new Job(appUrl, (Map<String, Object>) commonInputs), contextConfig);
+      final Job job = jobService.start(new Job(fullUri, (Map<String, Object>) commonInputs), contextConfig);
 
       final Bindings finalBindings = bindings;
       Thread checker = new Thread(new Runnable() {
         @Override
-        @SuppressWarnings("unchecked")
         public void run() {
           ContextRecord contextRecord = contextRecordService.find(job.getId());
           
@@ -446,15 +457,14 @@ public class BackendCommandLine {
     } catch (IOException e) {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
-    } catch (JobServiceException | InterruptedException e) {
-      logger.error("Encountered an error while starting local backend.", e);
-      System.exit(10);
-    } catch (BootstrapServiceException e) {
+    } catch (JobServiceException | InterruptedException | BootstrapServiceException | URISyntaxException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }
   }
-
+  static String keyPath = "path";
+  static String keyLocation = "location";
+  
   /**
    * Prints resolved application on standard out 
    */
@@ -555,7 +565,7 @@ public class BackendCommandLine {
   }
   
   private static void printVersionAndExit(Options posixOptions) {
-    System.out.println("Rabix 1.0.1");
+    System.out.println("Rabix 1.0.2");
     System.exit(0);
   }
 

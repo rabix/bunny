@@ -1,6 +1,8 @@
 package org.rabix.bindings.cwl.processor.callback;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -20,10 +22,10 @@ import org.rabix.common.helper.CloneHelper;
 public class CWLInputSecondaryFilesProcessor implements CWLPortProcessorCallback {
 
   private CWLJob job;
-  private File workingDir;
+  private Path workingDir;
   private HashAlgorithm hashAlgorithm;
 
-  public CWLInputSecondaryFilesProcessor(CWLJob job, HashAlgorithm hashAlgorithm, File workingDir) {
+  public CWLInputSecondaryFilesProcessor(CWLJob job, HashAlgorithm hashAlgorithm, Path workingDir) {
     this.job = job;
     this.workingDir = workingDir;
     this.hashAlgorithm = hashAlgorithm;
@@ -49,7 +51,7 @@ public class CWLInputSecondaryFilesProcessor implements CWLPortProcessorCallback
       }
 
       Map<String, Object> clonedValue = (Map<String, Object>) CloneHelper.deepCopy(value);
-      List<Map<String, Object>> outs = CWLProcessor.getSecondaryFiles(job, hashAlgorithm, clonedValue,  CWLFileValueHelper.getPath(clonedValue), secondaryFiles, workingDir, false);
+      List<Map<String, Object>> outs = CWLProcessor.getSecondaryFiles(job, hashAlgorithm, clonedValue,  Paths.get(CWLFileValueHelper.getPath(clonedValue)), secondaryFiles, workingDir, false);
       if (secondaryFiles != null) {
         CWLFileValueHelper.setSecondaryFiles(outs, clonedValue);
         return new CWLPortProcessorResult(clonedValue, true);
