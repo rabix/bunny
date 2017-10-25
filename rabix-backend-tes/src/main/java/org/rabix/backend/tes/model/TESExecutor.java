@@ -6,7 +6,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TESDockerExecutor {
+public class TESExecutor {
   
   @JsonProperty("image_name")
   private String imageName;
@@ -24,7 +24,7 @@ public class TESDockerExecutor {
   private Map<String, String> environ;
   
   @JsonCreator
-  public TESDockerExecutor(@JsonProperty("image_name") String imageName, @JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("workdir") String workingDirectory, @JsonProperty("stdin") String standardIn, @JsonProperty("stdout") String standardOut, @JsonProperty("stderr") String standardError,  @JsonProperty("environ") Map<String, String> environ) {
+  public TESExecutor(@JsonProperty("image_name") String imageName, @JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("workdir") String workingDirectory, @JsonProperty("stdin") String standardIn, @JsonProperty("stdout") String standardOut, @JsonProperty("stderr") String standardError, @JsonProperty("environ") Map<String, String> environ) {
     this.imageName = imageName;
     this.commandLineParts = commandLineParts;
     this.workingDirectory = workingDirectory;
@@ -34,16 +34,11 @@ public class TESDockerExecutor {
     this.environ = environ;
   }
 
-  public Map<String, String> getEnviron() {
-    return environ;
-  }
+  public Map<String, String> getEnviron() { return environ; }
 
-  public void setEnviron(Map<String, String> environ) {
-    this.environ = environ;
-  }
-  public String getImageName() {
-    return imageName;
-  }
+  public void setEnviron(Map<String, String> environ) { this.environ = environ; }
+
+  public String getImageName() { return imageName; }
 
   public void setImageName(String imageName) {
     this.imageName = imageName;
@@ -91,7 +86,7 @@ public class TESDockerExecutor {
 
   @Override
   public String toString() {
-    return "TESDockerExecutor [imageName=" + imageName + ", commandLineParts=" + commandLineParts
+    return "TESExecutor [imageName=" + imageName + ", commandLineParts=" + commandLineParts
         + ", workingDirectory=" + workingDirectory + ", standardIn=" + standardIn + ", standardOut=" + standardOut
         + ", standardError=" + standardError + "]";
   }
