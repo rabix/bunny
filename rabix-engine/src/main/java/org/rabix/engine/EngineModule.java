@@ -64,13 +64,6 @@ public class EngineModule extends AbstractModule {
       install(new InMemoryRepositoryModule());
       bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     }
-
-    if (configuration.getBoolean("engine.delete_intermediary_files", false)) {
-      bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
-    } else {
-      bind(IntermediaryFilesHandler.class).to(NoOpIntermediaryFilesServiceHandler.class).in(Scopes.SINGLETON);
-    }
-
     bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);       
     
     bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);

@@ -26,6 +26,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
@@ -71,6 +72,7 @@ import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
 import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
 import org.rabix.engine.service.impl.JobReceiverImpl;
 import org.rabix.engine.service.impl.JobServiceImpl;
+import org.rabix.engine.service.impl.NoOpIntermediaryFilesServiceHandler;
 import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
@@ -235,13 +237,19 @@ public class BackendCommandLine {
       }
       
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
+      Configuration configuration = configModule.provideConfig();
       Injector injector = Guice.createInjector(
           new EngineModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {
               install(configModule);
-                     
+
+              if (configuration.getBoolean("engine.delete_intermediary_files", false)) {
+                bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
+              } else {
+                bind(IntermediaryFilesHandler.class).to(NoOpIntermediaryFilesServiceHandler.class).in(Scopes.SINGLETON);
+              }
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
               bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
