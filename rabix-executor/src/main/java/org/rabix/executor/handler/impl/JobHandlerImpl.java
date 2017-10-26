@@ -152,7 +152,9 @@ public class JobHandlerImpl implements JobHandler {
       Bindings bindings = BindingsFactory.create(job);
       statusCallback.onInputFilesDownloadStarted(job);
       try {
-        downloadInputFiles(job, bindings);
+        Map<String, Object> inputs = job.getInputs();
+        downloadInputFiles(FileValueHelper.getFilesFromValue(inputs), bindings);
+        job = Job.cloneWithInputs(job, inputs);
       } catch (Exception e) {
         statusCallback.onInputFilesDownloadFailed(job);
         throw e;
@@ -201,9 +203,11 @@ public class JobHandlerImpl implements JobHandler {
     }
   }
 
-  private void downloadInputFiles(final Job job, final Bindings bindings) throws BindingException, DownloadServiceException {
-    Set<FileValue> fileValues = flattenFiles(FileValueHelper.getInputFiles(job));
-    fileValues.forEach(file->download(file, job.getConfig()));
+  private void downloadInputFiles(List<FileValue> files, final Bindings bindings) throws BindingException, DownloadServiceException {
+    files.forEach(file -> {
+      download(file, job.getConfig());
+      file.getSecondaryFiles().forEach(file2 -> download(file2, job.getConfig()));
+    });
   }
   
   private void download(FileValue file, Map<String, Object> config) {
@@ -409,7 +413,7 @@ public class JobHandlerImpl implements JobHandler {
     if (storageConfiguration.getBackendStore().equals(BackendStore.LOCAL)) {
       return;
     }
-    Set<FileValue> fileValues = flattenFiles(FileValueHelper.getOutputFiles(job));
+    Set<FileValue> fileValues = FileValueHelper.getOutputFiles(job);
     fileValues.addAll(bindings.getProtocolFiles(workingDir));
     
     File cmdFile = new File(workingDir, COMMAND_LOG);
@@ -502,17 +506,4 @@ public class JobHandlerImpl implements JobHandler {
   public EngineStub<?, ?, ?> getEngineStub() {
     return engineStub;
   }
-  
-  private Set<FileValue> flattenFiles(Set<FileValue> fileValues) {
-    Set<FileValue> flattenedFileValues = new HashSet<>();
-    for (FileValue fileValue : fileValues) {
-      flattenedFileValues.add(fileValue);
-      if (fileValue.getSecondaryFiles() != null) {
-        flattenedFileValues.addAll(fileValue.getSecondaryFiles());
-      }
-    }
-    return flattenedFileValues;
-  }
-
-
 }
