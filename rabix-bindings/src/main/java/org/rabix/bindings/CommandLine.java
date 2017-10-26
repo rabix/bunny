@@ -47,9 +47,13 @@ public class CommandLine {
   private String normalizeCommandLine(String commandLine) {
     return commandLine.trim();//.replaceAll(PART_SEPARATOR + "+", PART_SEPARATOR);
   }
-  
+
   public List<String> getParts() {
     return parts.stream().map(Part::getValue).collect(Collectors.toList());
+  }
+
+  public List<String> getBuiltParts() {
+    return parts.stream().map(part->part.toString()).collect(Collectors.toList());
   }
 
   public String getStandardIn() {

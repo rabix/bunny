@@ -2,10 +2,12 @@ package org.rabix.backend.tes.client;
 
 import java.io.IOException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.rabix.backend.tes.config.TESConfig;
-import org.rabix.backend.tes.model.*;
+import org.rabix.backend.tes.model.TESCancelTaskRequest;
+import org.rabix.backend.tes.model.TESCancelTaskResponse;
+import org.rabix.backend.tes.model.TESCreateTaskResponse;
 import org.rabix.backend.tes.model.TESGetTaskRequest;
+import org.rabix.backend.tes.model.TESTask;
 import org.rabix.common.helper.JSONHelper;
 
 import com.google.inject.Inject;

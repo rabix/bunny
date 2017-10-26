@@ -10,7 +10,7 @@ public class TESCreateTaskResponse {
 
   @JsonCreator
   public TESCreateTaskResponse(@JsonProperty("id") String value) {
-    this.id = id;
+    this.id = value;
   }
   
   public String getId() {

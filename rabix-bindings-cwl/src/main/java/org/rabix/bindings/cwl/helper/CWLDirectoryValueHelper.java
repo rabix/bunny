@@ -106,7 +106,6 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
-    setLocation(path, raw);
   }
   
   public static String getLocation(Object raw) {
@@ -187,6 +186,7 @@ public class CWLDirectoryValueHelper extends CWLBeanHelper {
     
     setDirectoryType(raw);
     setPath(fileValue.getPath(), raw);
+    setLocation(fileValue.getLocation(), raw);
     setName(fileValue.getName(), raw);
     setSize(fileValue.getSize(), raw);
     setFormat(fileValue.getFormat(), raw);

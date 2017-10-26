@@ -2,6 +2,8 @@ package org.rabix.common.json;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.processor.BeanProcessor;
@@ -68,6 +70,10 @@ public class BeanSerializer {
    * Save bean to file and use {@link BeanPropertyView.Full} for filtering
    */
   public static void serializeFull(File file, Object data) {
+    serializeFull(file.toPath(), data);
+  }
+  
+  public static void serializeFull(Path file, Object data) {
     serialize(file, data, BeanPropertyView.Full.class);
   }
 
@@ -75,6 +81,10 @@ public class BeanSerializer {
    * Save bean to file and use {@link BeanPropertyView.Partial} for filtering
    */
   public static void serializePartial(File file, Object data) {
+    serializePartial(file.toPath(), data);
+  }
+  
+  public static void serializePartial(Path file, Object data) {
     serialize(file, data, BeanPropertyView.Partial.class);
   }
 
@@ -82,17 +92,21 @@ public class BeanSerializer {
    * Save bean to file and use custom {@link BeanPropertyView} for filtering
    */
   public static void serialize(File file, Object data, Class<? extends BeanPropertyView> clazz) {
+    serialize(file.toPath(), clazz);
+  }
+  
+  public static void serialize(Path file, Object data, Class<? extends BeanPropertyView> clazz) {
     Preconditions.checkNotNull(data);
 
     try {
       if (clazz != null) {
         ObjectWriter writer = JSONHelper.mapper.writerWithView(clazz);
-        writer.withDefaultPrettyPrinter().writeValue(file, data);
+        writer.withDefaultPrettyPrinter().writeValue(Files.newOutputStream(file), data);
         return;
       }
-      JSONHelper.mapper.writerWithDefaultPrettyPrinter().writeValue(file, data);
+      JSONHelper.mapper.writerWithDefaultPrettyPrinter().writeValue(Files.newOutputStream(file), data);
     } catch (IOException e) {
-      logger.error("Failed to serialize object " + data + " to file " + file.getAbsolutePath(), e);
+      logger.error("Failed to serialize object " + data + " to file " + file.toString(), e);
       throw new IllegalStateException(e);
     }
   }

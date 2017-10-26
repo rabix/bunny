@@ -1,9 +1,13 @@
 package org.rabix.bindings.cwl.helper;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.rabix.bindings.helper.URIHelper;
+import org.rabix.bindings.cwl.CWLProcessor;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.common.helper.ChecksumHelper;
@@ -45,30 +49,34 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     setValue(CWLSchemaHelper.KEY_JOB_TYPE, CWLSchemaHelper.TYPE_JOB_DIRECTORY, raw);
   }
 
+  public static boolean isDirType(Object raw) {
+    return getValue(CWLSchemaHelper.KEY_JOB_TYPE, raw).equals(CWLSchemaHelper.TYPE_JOB_DIRECTORY);
+  }
+
   public static String getFormat(Object raw) {
     return getValue(KEY_FORMAT, raw);
   }
-  
+
   public static void setNameroot(String nameroot, Object raw) {
     setValue(KEY_NAMEROOT, nameroot, raw);
   }
-  
+
   public static void setFormat(String format, Object raw) {
     setValue(KEY_FORMAT, format, raw);
   }
-  
+
   public static String getNameroot(Object raw) {
     return getValue(KEY_NAMEROOT, raw);
   }
-  
+
   public static void setNameext(String nameext, Object raw) {
     setValue(KEY_NAMEEXT, nameext, raw);
   }
-  
+
   public static String getNameext(Object raw) {
     return getValue(KEY_NAMEEXT, raw);
   }
-  
+
   public static String getName(Object raw) {
     return getValue(KEY_NAME, raw);
   }
@@ -76,7 +84,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   public static void setName(String name, Object raw) {
     setValue(KEY_NAME, name, raw);
   }
-  
+
   public static String getDirname(Object raw) {
     return getValue(KEY_DIRNAME, raw);
   }
@@ -101,6 +109,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   public static void setChecksum(File file, Object raw, HashAlgorithm hashAlgorithm) {
+
     if (!file.exists()) {
       throw new RuntimeException("Missing file " + file);
     }
@@ -109,7 +118,17 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       setValue(KEY_CHECKSUM, checksum, raw);
     }
   }
-  
+
+  public static void setChecksum(Path file, Object raw, HashAlgorithm hashAlgorithm) {
+    if (!Files.exists(file)) {
+      throw new RuntimeException("Missing file " + file);
+    }
+    String checksum = ChecksumHelper.checksum(file, hashAlgorithm);
+    if (checksum != null) {
+      setValue(KEY_CHECKSUM, checksum, raw);
+    }
+  }
+
   public static void setChecksum(String checksum, Object raw) {
     setValue(KEY_CHECKSUM, checksum, raw);
   }
@@ -118,7 +137,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     String contents = loadContents(raw);
     setValue(KEY_CONTENTS, contents, raw);
   }
-  
+
   public static void setContents(String contents, Object raw) {
     setValue(KEY_CONTENTS, contents, raw);
   }
@@ -132,22 +151,18 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   public static String getPath(Object raw) {
-    String path = getValue(KEY_PATH, raw);
-    if (path == null) {
-      path = URIHelper.getURIInfo((String) getValue(KEY_LOCATION, raw));
-      if (path == null) {
-        path = getValue(KEY_LOCATION, raw);
-      }
-      setPath(path, raw);
-    }
-    return path;
+    return getValue(KEY_PATH, raw);
   }
 
   public static void setPath(String path, Object raw) {
     setValue(KEY_PATH, path, raw);
-    setLocation(path, raw);
+    if (isDirType(raw)) {
+      List<Object> listing = CWLDirectoryValueHelper.getListing(raw);
+      if (listing != null)
+        listing.forEach(file -> setPath(Paths.get(path).resolve(getName(file)).toString(), file));
+    }
   }
-  
+
   public static String getLocation(Object raw) {
     return getValue(KEY_LOCATION, raw);
   }
@@ -155,11 +170,11 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   public static void setLocation(String location, Object raw) {
     setValue(KEY_LOCATION, location, raw);
   }
-  
+
   public static void setOriginalPath(String path, Object raw) {
     setValue(KEY_ORIGINAL_PATH, path, raw);
   }
-  
+
   public static String getOriginalPath(Object raw) {
     return getValue(KEY_ORIGINAL_PATH, raw);
   }
@@ -207,21 +222,19 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
     return paths;
   }
-  
+
   /**
    * Load first CONTENTS_NUMBER_OF_BYTES bytes from file
    */
   private static String loadContents(Object fileData) throws IOException {
-    String path = CWLFileValueHelper.getPath(fileData);
-
+    String path = getPath(fileData);
+    Path pathP = Paths.get(path);
+    if (!Files.exists(pathP)) {
+      return new String(Files.readAllBytes(Paths.get(URI.create(getLocation(fileData)))), "UTF-8");
+    }
     InputStream is = null;
     try {
-      File file = new File(path);
-      is = new FileInputStream(file);
-      int bufferSize = file.length() > 0 && file.length() < CONTENTS_NUMBER_OF_BYTES ? (int) file.length(): CONTENTS_NUMBER_OF_BYTES;
-      byte[] buffer = new byte[bufferSize];
-      is.read(buffer);
-      return new String(buffer, "UTF-8");
+      return new String(Files.readAllBytes(pathP), "UTF-8");
     } finally {
       if (is != null) {
         try {
@@ -232,49 +245,42 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       }
     }
   }
-  
+
   public static FileValue createFileValue(Object value) {
-    String path = CWLFileValueHelper.getPath(value);
-    String name = CWLFileValueHelper.getName(value);
-    String format = CWLFileValueHelper.getFormat(value);
-    String location = CWLFileValueHelper.getLocation(value);
-    String checksum = CWLFileValueHelper.getChecksum(value);
-    String dirname = CWLFileValueHelper.getDirname(value);
-    String nameroot = CWLFileValueHelper.getNameroot(value);
-    String nameext = CWLFileValueHelper.getNameext(value);
-    String contents = CWLFileValueHelper.getContents(value);
-    
-    Long size = CWLFileValueHelper.getSize(value);
-    
-    if (path == null) { // TODO remove
-      setPath(getLocation(value), value);
-    }
-    if (location == null) { // TODO remove
-      setLocation(getPath(value), value);
-    }
-    
-    if(path != null) {
+    String path = getPath(value);
+    String name = getName(value);
+    String format = getFormat(value);
+    String location = getLocation(value);
+    String checksum = getChecksum(value);
+    String dirname = getDirname(value);
+    String nameroot = getNameroot(value);
+    String nameext = getNameext(value);
+    String contents = getContents(value);
+
+    Long size = getSize(value);
+
+    if (path != null) {
       File file = new File(path);
-      if(name == null) {
+      if (name == null) {
         name = file.getName();
       }
-      if(dirname == null) {
+      if (dirname == null) {
         File parent = file.getParentFile();
-        dirname = parent != null ? parent.getPath(): null;
+        dirname = parent != null ? parent.getPath() : null;
       }
-      if(nameroot == null) {
+      if (nameroot == null) {
         nameroot = getBasename(file.getName());
       }
-      if(nameext == null) {
+      if (nameext == null) {
         nameext = getNameext(file.getName());
       }
     }
-    
+
     Map<String, Object> properties = new HashMap<>();
-    properties.put(CWLBindingHelper.KEY_SBG_METADATA, CWLFileValueHelper.getMetadata(value));
+    properties.put(CWLBindingHelper.KEY_SBG_METADATA, getMetadata(value));
 
     List<FileValue> secondaryFiles = new ArrayList<>();
-    List<Map<String, Object>> secondaryFileValues = CWLFileValueHelper.getSecondaryFiles(value);
+    List<Map<String, Object>> secondaryFileValues = getSecondaryFiles(value);
     if (secondaryFileValues != null) {
       for (Map<String, Object> secondaryFileValue : secondaryFileValues) {
         if (CWLSchemaHelper.isFileFromValue(secondaryFileValue)) {
@@ -289,10 +295,10 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
     return new FileValue(size, path, location, name, dirname, nameroot, nameext, contents, checksum, secondaryFiles, properties, format);
   }
-  
+
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
     Map<String, Object> raw = new HashMap<>();
-    
+
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
     setName(fileValue.getName(), raw);
@@ -304,12 +310,12 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     setNameroot(fileValue.getNameroot(), raw);
     setNameext(fileValue.getNameext(), raw);
     setContents(fileValue.getContents(), raw);
-    
+
     Map<String, Object> properties = fileValue.getProperties();
     if (properties != null) {
       setMetadata(properties.get(CWLBindingHelper.KEY_SBG_METADATA), raw);
     }
-    
+
     List<FileValue> secondaryFileValues = fileValue.getSecondaryFiles();
     if (secondaryFileValues != null) {
       List<Map<String, Object>> secondaryFilesRaw = new ArrayList<>();
@@ -324,7 +330,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
     return raw;
   }
-  
+
   public static boolean isFileLiteral(Object fileRaw) {
     if (fileRaw == null) {
       return false;
@@ -336,20 +342,144 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
     return false;
   }
-  
+
   private static String getBasename(String filename) {
     String[] parts = StringUtils.split(filename, ".");
-    if(parts.length > 2) {
-      return String.join(".", Arrays.copyOfRange(parts, 0, parts.length-1));
+    if (parts.length > 2) {
+      return String.join(".", Arrays.copyOfRange(parts, 0, parts.length - 1));
     }
     return parts[0];
   }
-  
+
   private static String getNameext(String filename) {
     int dotIndex = filename.lastIndexOf(".");
     if (dotIndex != -1) {
       return filename.substring(dotIndex);
     }
     return null;
+  }
+
+  public static void buildMissingInfo(Object value, HashAlgorithm alg, Path workDir) throws IOException, URISyntaxException {
+    String path = getPath(value);
+    String location = getLocation(value);
+    Path pPath, lPath;
+    if (path == null) {
+      if (location == null)
+        return;
+
+      URI uri = URI.create(location);
+      if (uri.getScheme() == null) {
+        uri = new URI("file", uri.getSchemeSpecificPart(), null);
+      }
+      if (uri.isOpaque()) {
+        pPath = workDir.resolve(location).toAbsolutePath();
+        location = pPath.toUri().toString();
+      } else {
+        location = uri.toString();
+        pPath = Paths.get(uri).toAbsolutePath();
+      }
+    } else {
+      pPath = Paths.get(path);
+    }
+
+    if (location == null || URI.create(location).getScheme()==null) {
+      location = pPath.toUri().toString();
+    }
+
+    if (!pPath.isAbsolute()) {
+      pPath = workDir.resolve(pPath).toAbsolutePath().normalize();
+    }
+
+    setLocation(location, value);
+
+    String name = getName(value);
+    if (name == null)
+      setNames(pPath, value);
+    if (getSize(value) == null)
+      setSize(Files.size(Paths.get(URI.create(location))), value);
+
+    if (CWLSchemaHelper.isDirectoryFromValue(value)) {
+      setListing(pPath, value, alg, workDir);
+    } else {
+      if (alg != null) {
+        setChecksum(pPath, value, alg);
+      }
+    }
+
+    List<Map<String, Object>> secondaryFiles = getSecondaryFiles(value);
+    if (secondaryFiles != null) {
+      for (Map<String, Object> secondaryFileValue : secondaryFiles) {
+        buildMissingInfo(secondaryFileValue, alg, workDir);
+      }
+    }
+    if (name != null && !pPath.endsWith(name)) {
+      pPath = pPath.resolveSibling(name);
+    }
+    setPath(pPath.toString(), value);
+  }
+
+  private static void setNames(Path path, Object value) throws IOException {
+    String name = path.getFileName().toString();
+    if (getName(value) == null)
+      setName(name, value);
+
+    int dotIndex = name.lastIndexOf(".");
+    if (dotIndex != -1) {
+      if (getNameext(value) == null)
+        setNameext(name.substring(dotIndex), value);
+      if (getNameroot(value) == null)
+        setNameroot(name.substring(0, dotIndex), value);
+    }
+
+    setDirname(path.getParent().toString(), value);
+  }
+
+  private static void setListing(Path path, Object value, HashAlgorithm hash, Path workDir) throws IOException, URISyntaxException {
+    List<Object> listing = new ArrayList<>();
+    for (Path childFile : Files.list(path).toArray(Path[]::new)) {
+      switch (childFile.getFileName().toString()) {
+        case CWLProcessor.JOB_FILE:
+        case CWLProcessor.RESULT_FILENAME:
+        case CWLProcessor.RESERVED_EXECUTOR_CMD_LOG_FILE_NAME:
+        case CWLProcessor.RESERVED_EXECUTOR_ERROR_LOG_FILE_NAME:
+          continue;
+        default:
+          break;
+      }
+      listing.add(pathToRawFile(childFile, hash, workDir));
+    }
+    CWLDirectoryValueHelper.setListing(listing, value);
+  }
+
+  public static Map<String, Object> pathToRawFile(Path file, HashAlgorithm hash, Path workDir) throws IOException, URISyntaxException {
+    Map<String, Object> fileValue = new HashMap<>();
+
+    if (Files.isDirectory(file)) {
+      setDirType(fileValue);
+    } else {
+      setFileType(fileValue);
+    }
+
+    setPath(file.toString(), fileValue);
+    buildMissingInfo(fileValue, hash, workDir);
+    // if (Files.isDirectory(file)) {
+    // Map<String, Object> directory = new HashMap<>();
+    // CWLDirectoryValueHelper.setDirectoryType(directory);
+    // CWLDirectoryValueHelper.setSize(Files.size(file), directory);
+    // setNames(file, directory);
+    // CWLDirectoryValueHelper.setPath(file.toString(), directory);
+    // setLocation(file.toUri().toString(), directory);
+    // setListing(file, directory);
+    // return directory;
+    // }
+    //
+    // Map<String, Object> fileData = new HashMap<>();
+    // setFileType(fileData);
+    // setSize(Files.size(file), fileData);
+    // setNames(file, fileData);
+    // setPath(file.toString(), fileData);
+    // setLocation(file.toUri().toString(), fileData);
+    // setDirname(file.getParent().toString(), fileData);
+    return fileValue;
   }
 }
