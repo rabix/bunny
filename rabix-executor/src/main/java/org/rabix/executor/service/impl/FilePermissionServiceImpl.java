@@ -63,8 +63,7 @@ public class FilePermissionServiceImpl implements FilePermissionService {
       String commandLine = getChmodCommand(workingDir) + ";" + getChownCommand(workingDir);
       builder.workingDir(workingDir.getAbsolutePath()).volumes(volumes).cmd("sh", "-c", commandLine);
 
-      ContainerCreation creation = dockerClient.createContainer(builder.build());
-      String containerId = creation.id();
+      String containerId = dockerClient.createContainer(builder.build());
       dockerClient.startContainer(containerId);
       logger.info("Docker container {} has started.", containerId);
       dockerClient.waitContainer(containerId);
