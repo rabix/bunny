@@ -60,6 +60,7 @@ import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.LogsParam;
 import com.spotify.docker.client.LogMessage;
 import com.spotify.docker.client.LogStream;
+import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.AuthConfig;
@@ -295,18 +296,16 @@ public class DockerContainerHandler implements ContainerHandler {
       }
       
       builder.env(transformEnvironmentVariables(environmentVariables));
-      ContainerCreation creation = null;
       try {
         VerboseLogger.log(String.format("Running command line: %s", commandLine));
-        creation = dockerClient.createContainer(builder.build());
+        containerId = dockerClient.createContainer(builder.build());
       } catch (DockerException | InterruptedException e) {
         logger.error("Failed to create Docker container.", e);
         throw new ContainerException("Failed to create Docker container.");
       }
-      containerId = creation.id();
       try {
         dockerClient.startContainer(containerId);
-      } catch (DockerException | InterruptedException e) {
+      } catch (Exception e) {
         logger.error("Failed to start Docker container " + containerId, e);
         throw new ContainerException("Failed to start Docker container " + containerId);
       }
@@ -595,13 +594,21 @@ public class DockerContainerHandler implements ContainerHandler {
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
-    public synchronized ContainerCreation createContainer(ContainerConfig containerConfig) throws DockerException, InterruptedException {
-      return dockerClient.createContainer(containerConfig);
+    public synchronized String createContainer(ContainerConfig containerConfig) throws DockerException, InterruptedException {
+      return dockerClient.createContainer(containerConfig).id();
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
     public synchronized void startContainer(String containerId) throws DockerException, InterruptedException {
-      dockerClient.startContainer(containerId);
+      try {
+        dockerClient.startContainer(containerId);
+      } catch (DockerException e) {
+        ContainerInfo inspect = dockerClient.inspectContainer(containerId);
+        if (inspect == null || inspect.state().startedAt() == null) {
+          throw e;
+        }
+        logger.warn("Start container method timed-out but still started the container, recovering.");
+      }
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)

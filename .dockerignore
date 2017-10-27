@@ -1,0 +1,8 @@
+*.tmp
+*.iml
+*.bak
+*.swp
+*~.nib
+.*
+*.tar.gz
+Dockerfile
