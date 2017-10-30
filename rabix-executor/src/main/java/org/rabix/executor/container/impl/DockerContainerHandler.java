@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
@@ -106,10 +108,13 @@ public class DockerContainerHandler implements ContainerHandler {
   private WorkerStatusCallback statusCallback;
   
   private String commandLine;
+
+  private boolean setPermissions;
+  private String user;
   
   private FilePathMapper mapper;
   
-  public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
+  public DockerContainerHandler(Job job, Configuration configuration, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
     this.dockerClient = dockerClient;
     this.dockerResource = dockerResource;
@@ -118,6 +123,16 @@ public class DockerContainerHandler implements ContainerHandler {
     this.workingDir = storageConfig.getWorkingDir(job);
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
     this.removeContainers = dockerConfig.removeContainers();
+
+    this.setPermissions = configuration.getBoolean("executor.set_permissions", false);
+    
+    if (setPermissions) {
+      user = configuration.getString("executor.permission.uid");
+      String gid = configuration.getString("executor.permission.gid");
+      if (gid != null)
+        user = user + ":" + gid;
+    }
+    
     if (SystemUtils.IS_OS_WINDOWS) {
       mapper = (String path, Map<String, Object> config) -> {
         return path.startsWith("/") ? path : "/" + path.replace(":", "").replace("\\", "/");
@@ -173,6 +188,25 @@ public class DockerContainerHandler implements ContainerHandler {
     return image.contains(TAG_SEPARATOR) ? image : image + TAG_SEPARATOR + LATEST;
   }
 
+  private String getUser() throws IOException {
+    if (user == null) {
+      user = getId("u");
+      String gid = getId("g");
+      if (gid != null) {
+        user = user + ":" + gid;
+      }
+    }
+    return user;
+  }
+
+  private String getId(String param) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    InputStream stream = Runtime.getRuntime().exec(sb.append("id -").append(param).append(" ").append(System.getProperty("user.name")).toString()).getInputStream();
+    @SuppressWarnings("unchecked")
+    List<String> readLines = IOUtils.readLines(stream);
+    return readLines.get(0);
+  }
+  
   @Override
   public void start() throws ContainerException {
     String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
@@ -189,6 +223,11 @@ public class DockerContainerHandler implements ContainerHandler {
 
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
       volumes = normalizeVolumes(job, volumes);
+      
+      if(setPermissions && !SystemUtils.IS_OS_WINDOWS){
+        builder.user(getUser());
+        hostConfigBuilder.capAdd("DAC_OVERRIDE");
+      }
       
       Set<String> toBindSet = new HashSet<>();
       toBindSet.addAll(volumes);

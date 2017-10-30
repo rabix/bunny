@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
@@ -54,13 +53,11 @@ import org.rabix.executor.container.ContainerException;
 import org.rabix.executor.container.ContainerHandler;
 import org.rabix.executor.container.ContainerHandlerFactory;
 import org.rabix.executor.container.impl.CompletedContainerHandler;
-import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.service.CacheService;
-import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,30 +88,25 @@ public class JobHandlerImpl implements JobHandler {
   private DockerConfigation dockerConfig;
   private StorageConfiguration storageConfiguration;
   private ContainerHandler containerHandler;
-  private DockerClientLockDecorator dockerClient;
 
   private final WorkerStatusCallback statusCallback;
-  
-  private final FilePermissionService filePermissionService;
+ 
   private final CacheService cacheService;
+
+  private ContainerHandlerFactory containerHandlerFactory;
 
   @Inject
   public JobHandlerImpl(
-      @Assisted Job job, @Assisted EngineStub<?, ?, ?> engineStub, 
-      JobDataService jobDataService, Configuration configuration, StorageConfiguration storageConfig, 
-      DockerConfigation dockerConfig, FileConfiguration fileConfiguration, 
-      DockerClientLockDecorator dockerClient, WorkerStatusCallback statusCallback,
-      CacheService cacheService, FilePermissionService filePermissionService, 
-      UploadService uploadService, DownloadService downloadService,
-      @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper) {
+      @Assisted Job job, @Assisted EngineStub<?, ?, ?> engineStub, JobDataService jobDataService,
+      StorageConfiguration storageConfig, DockerConfigation dockerConfig, FileConfiguration fileConfiguration,
+      WorkerStatusCallback statusCallback, CacheService cacheService, UploadService uploadService, DownloadService downloadService,
+      @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper, ContainerHandlerFactory containerHandlerFactory) {
     this.job = job;
     this.engineStub = engineStub;
     this.storageConfiguration = storageConfig;
     this.dockerConfig = dockerConfig;
     this.jobDataService = jobDataService;
-    this.dockerClient = dockerClient;
     this.statusCallback = statusCallback;
-    this.filePermissionService = filePermissionService;
     this.cacheService = cacheService;
     this.workingDir = storageConfig.getWorkingDir(job);
     this.uploadService = uploadService;
@@ -123,6 +115,7 @@ public class JobHandlerImpl implements JobHandler {
     this.outputFileMapper = outputFileMapper;
     this.enableHash = fileConfiguration.calculateFileChecksum();
     this.hashAlgorithm = fileConfiguration.checksumAlgorithm();
+    this.containerHandlerFactory = containerHandlerFactory;
   }
 
   @Override
@@ -194,7 +187,7 @@ public class JobHandlerImpl implements JobHandler {
         if (containerRequirement == null || !dockerConfig.isDockerSupported()) {
           containerRequirement = new LocalContainerRequirement();
         }
-        containerHandler = ContainerHandlerFactory.create(job, containerRequirement, dockerClient, statusCallback, storageConfiguration, dockerConfig);
+        containerHandler = containerHandlerFactory.create(job, containerRequirement);
       }
       containerHandler.start();
     } catch (Exception e) {
@@ -360,8 +353,6 @@ public class JobHandlerImpl implements JobHandler {
         uploadOutputFiles(job, bindings);
         return job;
       }
-      
-      filePermissionService.execute(job);
       
       job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
       
