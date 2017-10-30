@@ -92,6 +92,10 @@ public abstract class CWLJobApp extends Application {
     return appFileLocation;
   }
 
+  public void setAppFileLocation(String appFileLocation) {
+    this.appFileLocation = appFileLocation;
+  }
+  
   @JsonIgnore
   public List<Map<String, Object>> getSchemaDefs() {
     CWLSchemaDefRequirement schemaDefRequirement = lookForResource(CWLResourceType.SCHEMA_DEF_REQUIREMENT, CWLSchemaDefRequirement.class);

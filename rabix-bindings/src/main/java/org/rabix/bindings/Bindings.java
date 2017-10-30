@@ -1,6 +1,7 @@
 package org.rabix.bindings;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -66,6 +67,20 @@ public interface Bindings {
   Job preprocess(Job job, File workingDir, FilePathMapper logFilePathMapper) throws BindingException;
   
   /**
+   * Pre-process the {@link Job}.
+   * Note: Call pre process before Job execution
+   *
+   * @param job                 Job object
+   * @param workingDir          Working directory
+   * @param logFilePathMapper   File path mapper for logging purposes
+   * @return                    Pre-processed Job object
+   * @throws BindingException
+   */
+  default Job preprocess(Job job, Path workingDir, FilePathMapper logFilePathMapper) throws BindingException {
+    return this.preprocess(job, workingDir.toFile(), logFilePathMapper);
+  };
+
+  /**
    * Post-process the {@link Job}
    * Note: Call post process after successful or failed Job execution
    *
@@ -77,6 +92,21 @@ public interface Bindings {
    * @throws BindingException
    */
   Job postprocess(Job job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException;
+
+  /**
+   * Post-process the {@link Job}
+   * Note: Call post process after successful or failed Job execution
+   *
+   * @param job                 Job object
+   * @param workingDir          Working directory
+   * @param hashAlgorithm       Checksum hash algorithm
+   * @param logFilePathMapper   File path mapper for logging purposes
+   * @return                    Post processed Job object
+   * @throws BindingException
+   */
+  default Job postprocess(Job job, Path workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+    return this.postprocess(job, workingDir.toFile(), hashAlgorithm, logFilePathMapper);
+  };
 
   /**
    * Builds command line as a string

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,8 +73,6 @@ public class LocalContainerHandler implements ContainerHandler {
         }
       });
 
-      commandLineString = commandLine.build();
-
       final ProcessBuilder processBuilder = new ProcessBuilder();
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -97,20 +96,18 @@ public class LocalContainerHandler implements ContainerHandler {
         }
       }
 
+      commandLineString = commandLine.build();
       processBuilder.directory(workingDir);
 
-      boolean runInShell = commandLineString.startsWith("/bin/bash") || commandLineString.startsWith("/bin/sh");
-      if (runInShell || !commandLine.isRunInShell()) {
-        List<String> parts = commandLine.getParts();
-        processBuilder.command(parts);
-
-        processBuilder.redirectInput(redirect(workingDir, commandLine.getStandardIn(), false));
-        processBuilder.redirectOutput(redirect(workingDir, commandLine.getStandardOut(), true));
-        processBuilder.redirectError(redirect(workingDir, commandLine.getStandardError(), true));
+      if (commandLine.isRunInShell()){
+        List<String> parts = commandLine.getBuiltParts();
+        int start = StringUtils.startsWithAny(parts.get(0), "/bin/bash", "/bin/sh") && parts.get(1).startsWith("-c") ? 2 : 0;
+        processBuilder.command("/bin/sh", "-c", StringUtils.join(parts.subList(start, parts.size()), " "));
       } else {
-        processBuilder.command("/bin/sh", "-c", commandLineString);
+        processBuilder.command(commandLine.getParts());
       }
-
+      redirect(processBuilder, workingDir, commandLine);;
+      
       VerboseLogger.log(String.format("Running command line: %s", commandLineString));
       processFuture = executorService.submit(new Callable<Integer>() {
         @Override
@@ -127,22 +124,19 @@ public class LocalContainerHandler implements ContainerHandler {
     }
   }
   
-  
-
-  private ProcessBuilder.Redirect redirect(File workingDir, String path, boolean write) {
-    if (StringUtils.isEmpty(path)) {
-      return ProcessBuilder.Redirect.PIPE;
-    }
-    File res = new File(path);
-    if (!res.isAbsolute()) {
-      res = new File(workingDir, path);
-    }
-    if (write) {
-      return ProcessBuilder.Redirect.to(res);
-    }
-    return ProcessBuilder.Redirect.from(res);
+  private void redirect(ProcessBuilder pb, File workingDir, CommandLine commandLine) {
+    String stdIn = commandLine.getStandardIn();
+    String stdOut = commandLine.getStandardOut();
+    String stdError = commandLine.getStandardError();
+    Path path = workingDir.toPath();
+    if (!StringUtils.isEmpty(stdIn))
+      pb.redirectInput(ProcessBuilder.Redirect.from(path.resolve(stdIn).toFile()));
+    if (!StringUtils.isEmpty(stdOut))
+      pb.redirectOutput(ProcessBuilder.Redirect.to(path.resolve(stdOut).toFile()));
+    if (!StringUtils.isEmpty(stdError))
+      pb.redirectError(ProcessBuilder.Redirect.to(path.resolve(stdError).toFile()));
   }
-  
+
   @SuppressWarnings("unchecked")
   private <T extends Requirement> T getRequirement(List<Requirement> requirements, Class<T> clazz) {
     for (Requirement requirement : requirements) {

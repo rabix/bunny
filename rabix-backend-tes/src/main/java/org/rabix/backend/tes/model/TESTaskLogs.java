@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TESTaskLogs {
   @JsonProperty("logs")
-  private List<TESJobLog> logs;
+  private List<TESExecutorLog> logs;
+  @JsonProperty("metadata")
+  private Map<String, String> metadata;
   @JsonProperty("start_time")
   private String startTime;
   @JsonProperty("end_time")
@@ -15,45 +17,34 @@ public class TESTaskLogs {
   @JsonProperty("outputs")
   private List<Map<String, String>> outputs;
 
-  public TESTaskLogs(@JsonProperty("logs") List<TESJobLog> logs, @JsonProperty("start_time") String startTime, @JsonProperty("end_time") String endTime,
-      @JsonProperty("outputs") List<Map<String, String>> outputs) {
+  public TESTaskLogs(@JsonProperty("logs") List<TESExecutorLog> logs,
+                     @JsonProperty("metadata") Map<String, String> metadata,
+                     @JsonProperty("start_time") String startTime,
+                     @JsonProperty("end_time") String endTime,
+                     @JsonProperty("outputs") List<Map<String, String>> outputs) {
     super();
     this.logs = logs;
+    this.metadata = metadata;
     this.startTime = startTime;
     this.endTime = endTime;
     this.outputs = outputs;
   }
 
-  public List<TESJobLog> getLogs() {
+  public List<TESExecutorLog> getLogs() {
     return logs;
   }
 
-  public void setLogs(List<TESJobLog> logs) {
-    this.logs = logs;
-  }
+  public Map<String, String> getMetadata() { return metadata; }
 
   public String getStartTime() {
     return startTime;
-  }
-
-  public void setStartTime(String startTime) {
-    this.startTime = startTime;
   }
 
   public String getEndTime() {
     return endTime;
   }
 
-  public void setEndTime(String endTime) {
-    this.endTime = endTime;
-  }
-
   public List<Map<String, String>> getOutputs() {
     return outputs;
   }
-
-  public void setOutputs(List<Map<String, String>> outputs) {
-    this.outputs = outputs;
-  }
-
 }

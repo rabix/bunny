@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
@@ -56,9 +57,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
     draft3Job.setRuntime(remapedRuntime);
     
     Draft3CommandLineTool commandLineTool = (Draft3CommandLineTool) draft3Job.getApp();
-    List<CommandLine.Part> commandLineParts = Lists.transform(buildCommandLineParts(draft3Job, workingDir, filePathMapper), (obj ->
-        new CommandLine.Part(obj.toString())));
-
+    List<CommandLine.Part> parts = buildCommandLineParts(draft3Job, workingDir, filePathMapper).stream().map(p->new CommandLine.Part(p.toString())).collect(Collectors.toList());
     String stdin = null;
     try {
       stdin = commandLineTool.getStdin(draft3Job);
@@ -73,7 +72,7 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
       throw new BindingException("Failed to extract standard outputs.", e);
     }
 
-    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null, true);
+    CommandLine commandLine = new CommandLine(parts, stdin, stdout, null, parts.stream().anyMatch(p->StringUtils.endsWithAny(p.getValue(),"&&","|")));
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }

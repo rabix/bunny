@@ -65,7 +65,7 @@ public final class CWLJob {
     }
     for (CWLInputPort inputPort : app.getInputs()) {
       String normalizedId = CWLSchemaHelper.normalizeId(inputPort.getId());
-      if (!inputs.containsKey(normalizedId) && inputPort.getDefaultValue() != null) {
+      if ((!inputs.containsKey(normalizedId) || inputs.get(normalizedId) == null) && inputPort.getDefaultValue() != null) {
         inputs.put(normalizedId, inputPort.getDefaultValue());
       }
     }

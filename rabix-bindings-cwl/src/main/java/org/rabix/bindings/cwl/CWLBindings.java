@@ -1,6 +1,7 @@
 package org.rabix.bindings.cwl;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,6 +71,11 @@ public class CWLBindings implements Bindings {
   
   @Override
   public Job preprocess(Job job, File workingDir, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.preprocess(job, workingDir, logFilePathMapper);
+  }
+  
+  @Override
+  public Job preprocess(Job job, Path workingDir, FilePathMapper logFilePathMapper) throws BindingException {
     return processor.preprocess(job, workingDir, logFilePathMapper);
   }
   
@@ -185,6 +191,11 @@ public class CWLBindings implements Bindings {
   @Override
   public Object translateToCommon(Object nativeValue) throws BindingException {
     return CWLValueTranslator.translateToCommon(nativeValue);
+  }
+
+  @Override
+  public Job postprocess(Job job, Path workingDir, HashAlgorithm hashAlgorithm, FilePathMapper logFilePathMapper) throws BindingException {
+    return processor.postprocess(job, workingDir, hashAlgorithm, logFilePathMapper);
   }
 
 }
