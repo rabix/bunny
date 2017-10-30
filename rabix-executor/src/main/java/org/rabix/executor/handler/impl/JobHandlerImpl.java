@@ -275,8 +275,6 @@ public class JobHandlerImpl implements JobHandler {
       Map<String, String> stagedFiles = new HashMap<>();
 
       for (SingleFileRequirement fileRequirement : fileRequirements) {
-        logger.info("Process file requirement {}", fileRequirement);
-
         File destinationFile = new File(workingDir, fileRequirement.getFilename());
         if (fileRequirement instanceof SingleTextFileRequirement) {
           FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent());
