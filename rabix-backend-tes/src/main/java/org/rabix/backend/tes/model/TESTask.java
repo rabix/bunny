@@ -10,10 +10,12 @@ public class TESTask {
 
   @JsonProperty("id")
   private String id;
+  @JsonProperty("state")
+  private TESState state;
   @JsonProperty("name")
   private String name;
-  @JsonProperty("projectID")
-  private String projectId;
+  @JsonProperty("project")
+  private String project;
   @JsonProperty("description")
   private String description;
   @JsonProperty("inputs")
@@ -22,45 +24,59 @@ public class TESTask {
   private List<TESTaskParameter> outputs;
   @JsonProperty("resources")
   private TESResources resources;
-  @JsonProperty("taskID")
-  private String taskId;
   @JsonProperty("executors")
-  private List<TESDockerExecutor> dockerExecutors;
-  @JsonProperty("state")
-  private TESState state;
-
+  private List<TESExecutor> executors;
+  @JsonProperty("volumes")
+  private List<String> volumes;
+  @JsonProperty("tags")
+  private Map<String, String> tags;
   @JsonProperty("logs")
   private List<TESTaskLogs> logs;
-  
-  public TESTask(@JsonProperty("name") String name, @JsonProperty("projectID") String projectId, @JsonProperty("description") String description,
-      @JsonProperty("inputs") List<TESTaskParameter> inputs, @JsonProperty("outputs") List<TESTaskParameter> outputs,
-      @JsonProperty("resources") TESResources resources, @JsonProperty("taskID") String taskId,
-      @JsonProperty("executors") List<TESDockerExecutor> dockerExecutors) {
+
+  public TESTask(@JsonProperty("name") String name,
+                 @JsonProperty("project") String project,
+                 @JsonProperty("description") String description,
+                 @JsonProperty("inputs") List<TESTaskParameter> inputs,
+                 @JsonProperty("outputs") List<TESTaskParameter> outputs,
+                 @JsonProperty("resources") TESResources resources,
+                 @JsonProperty("executors") List<TESExecutor> executors,
+                 @JsonProperty("volumes") List<String> volumes,
+                 @JsonProperty("tags") Map<String, String> tags) {
     this.name = name;
-    this.projectId = projectId;
     this.description = description;
+    this.project = project;
     this.inputs = inputs;
     this.outputs = outputs;
     this.resources = resources;
-    this.taskId = taskId;
-    this.dockerExecutors = dockerExecutors;
+    this.executors = executors;
+    this.volumes = volumes;
+    this.tags = tags;
   }
 
   @JsonCreator
-  public TESTask(@JsonProperty("id") String id, @JsonProperty("name") String name, @JsonProperty("projectID") String projectId,
-      @JsonProperty("description") String description, @JsonProperty("inputs") List<TESTaskParameter> inputs,
-      @JsonProperty("outputs") List<TESTaskParameter> outputs, @JsonProperty("resources") TESResources resources, @JsonProperty("taskID") String taskId,
-      @JsonProperty("executors") List<TESDockerExecutor> dockerExecutors, @JsonProperty("state") TESState state, @JsonProperty("logs") List<TESTaskLogs> logs) {
+  public TESTask(@JsonProperty("id") String id,
+                 @JsonProperty("state") TESState state,
+                 @JsonProperty("name") String name,
+                 @JsonProperty("project") String project,
+                 @JsonProperty("description") String description,
+                 @JsonProperty("inputs") List<TESTaskParameter> inputs,
+                 @JsonProperty("outputs") List<TESTaskParameter> outputs,
+                 @JsonProperty("resources") TESResources resources,
+                 @JsonProperty("executors") List<TESExecutor> executors,
+                 @JsonProperty("volumes") List<String> volumes,
+                 @JsonProperty("tags") Map<String, String> tags,
+                 @JsonProperty("logs") List<TESTaskLogs> logs) {
     this.id = id;
+    this.state = state;
     this.name = name;
-    this.projectId = projectId;
     this.description = description;
+    this.project = project;
     this.inputs = inputs;
     this.outputs = outputs;
     this.resources = resources;
-    this.taskId = taskId;
-    this.dockerExecutors = dockerExecutors;
-    this.state = state;
+    this.executors = executors;
+    this.volumes = volumes;
+    this.tags = tags;
     this.logs = logs;
   }
 
@@ -72,12 +88,12 @@ public class TESTask {
     this.name = name;
   }
 
-  public String getProjectId() {
-    return projectId;
+  public String getProject() {
+    return project;
   }
 
-  public void setProjectId(String projectId) {
-    this.projectId = projectId;
+  public void setProject(String project) {
+    this.project = project;
   }
 
   public String getDescription() {
@@ -112,42 +128,44 @@ public class TESTask {
     this.resources = resources;
   }
 
-  public String getTaskId() {
-    return taskId;
+  public List<TESExecutor> getExecutors() {
+    return executors;
   }
 
-  public void setTaskId(String taskId) {
-    this.taskId = taskId;
+  public void setExecutors(List<TESExecutor> executors) {
+    this.executors = executors;
   }
 
-  public List<TESDockerExecutor> getDockerExecutors() {
-    return dockerExecutors;
+  public List<String> getVolumes() {
+    return volumes;
   }
 
-  public void setDockerExecutors(List<TESDockerExecutor> dockerExecutors) {
-    this.dockerExecutors = dockerExecutors;
+  public void setVolumes(List<String> volumes) {
+    this.volumes = volumes;
+  }
+
+  public Map<String, String> getTags() {
+    return tags;
+  }
+
+  public void setTags(Map<String, String> tags) {
+    this.tags = tags;
+  }
+
+  public String getId() {
+    return id;
   }
 
   public TESState getState() {
     return state;
   }
 
-  public void setState(TESState state) {
-    this.state = state;
-  }
-
-  public List<TESTaskLogs> getLogs() {
-    return logs;
-  }
-
-  public void setLogs(List<TESTaskLogs> logs) {
-    this.logs = logs;
-  }
+  public List<TESTaskLogs> getLogs() { return logs; }
 
   @Override
   public String toString() {
-    return "TESTask [name=" + name + ", projectId=" + projectId + ", description=" + description + ", inputs=" + inputs + ", outputs=" + outputs
-        + ", resources=" + resources + ", taskId=" + taskId + ", dockerExecutors=" + dockerExecutors + "]";
+    return "TESTask [name=" + name + ", project=" + project + ", description=" + description + ", inputs=" + inputs + ", outputs=" + outputs
+        + ", resources=" + resources + ", executors=" + executors + "]";
   }
 
 }
