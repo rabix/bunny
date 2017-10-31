@@ -65,8 +65,6 @@ public class Draft2PortProcessor {
 
   @SuppressWarnings("unchecked")
   private Object processValue(Object value, ApplicationPort port, Object schema, String key, Draft2PortProcessorCallback portProcessor) throws Exception {
-    logger.debug("Process value {} and schema {}", value, schema);
-
     if (value == null) {
       return null;
     }

@@ -66,8 +66,6 @@ public class SBPortProcessor {
 
   @SuppressWarnings("unchecked")
   private Object processValue(Object value, ApplicationPort port, Object schema, Object binding, String key, SBPortProcessorCallback portProcessor) throws Exception {
-    logger.debug("Process value {} and schema {}", value, schema);
-
     if (value == null) {
       return null;
     }
