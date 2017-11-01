@@ -1,11 +1,5 @@
 package org.rabix.transport.mechanism.impl.rabbitmq;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import com.rabbitmq.client.*;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.json.BeanSerializer;
@@ -15,6 +9,12 @@ import org.rabix.transport.mechanism.TransportPluginException;
 import org.rabix.transport.mechanism.TransportPluginType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRabbitMQ> {
 
@@ -28,8 +28,10 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
   private Configuration configuration;
 
   private ConcurrentMap<TransportQueueRabbitMQ, Receiver<?>> receivers = new ConcurrentHashMap<>();
-  
+
   private ExecutorService receiverThreadPool = Executors.newCachedThreadPool();
+
+  private ThreadLocal<Channel> channels = new ThreadLocal<>();
 
   private boolean durable;
 
@@ -74,6 +76,19 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
     } catch (Exception e) {
       throw new TransportPluginException("Failed to initialize TransportPluginRabbitMQ", e);
     }
+  }
+
+  private Channel getChannel() throws TransportPluginException {
+    Channel channel = channels.get();
+    if (channel == null) {
+      try {
+        channel = connection.createChannel();
+        channels.set(channel);
+      } catch (IOException e) {
+        throw new TransportPluginException("Failed to create new channel.", e);
+      }
+    }
+    return channel;
   }
 
   /**
@@ -150,40 +165,28 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
 
   @Override
   public <T> ResultPair<T> send(TransportQueueRabbitMQ queue, T entity) {
-    Channel channel = null;
     String payload = BeanSerializer.serializeFull(entity);
-    try {
+    while (true) {
+      try {
+        getChannel().basicPublish(queue.getExchange(), queue.getRoutingKey(), MessageProperties.PERSISTENT_TEXT_PLAIN, payload.getBytes(DEFAULT_ENCODING));
+        return ResultPair.success();
+      } catch (Exception e) {
+        logger.error("Failed to send a message to " + queue, e);
 
-      while (true) {
-        try {
-          channel = connection.createChannel();
-          channel.basicPublish(queue.getExchange(), queue.getRoutingKey(), MessageProperties.PERSISTENT_TEXT_PLAIN, payload.getBytes(DEFAULT_ENCODING));
-          return ResultPair.success();
-        } catch (Exception e) {
-          logger.error("Failed to send a message to " + queue, e);
-
-          while (true) {
-            try {
-              Thread.sleep(RETRY_TIMEOUT*1000);
-            } catch (InterruptedException e1) {
-              // Ignore
-            }
-
-            try {
-              initConnection();
-              logger.info("Reconnected to {}", queue);
-              break;
-            } catch (TransportPluginException e1) {
-              logger.info("Sender reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
-            }
+        while (true) {
+          try {
+            Thread.sleep(RETRY_TIMEOUT*1000);
+          } catch (InterruptedException e1) {
+            // Ignore
           }
-        }
-      }
-    } finally {
-      if (channel != null) {
-        try {
-          channel.close();
-        } catch (Exception ignore) {
+
+          try {
+            initConnection();
+            logger.info("Reconnected to {}", queue);
+            break;
+          } catch (TransportPluginException e1) {
+            logger.info("Sender reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
+          }
         }
       }
     }
@@ -205,7 +208,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
       }
     });
   }
-  
+
   @Override
   public void stopReceiver(TransportQueueRabbitMQ queue) {
     Receiver<?> receiver = receivers.get(queue);
