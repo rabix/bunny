@@ -3,12 +3,16 @@ package org.rabix.backend.tes.service.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.backend.tes.service.TESStorageException;
@@ -23,7 +27,10 @@ import org.rabix.bindings.transformer.FileTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.upplication.s3fs.AmazonS3Factory;
+import com.upplication.s3fs.S3FileSystemProvider;
 
 public class LocalTESStorageServiceImpl implements TESStorageService {
 
@@ -34,8 +41,17 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
 
   @Inject
   public LocalTESStorageServiceImpl(Configuration configuration) {
+    if (configuration.containsKey(AmazonS3Factory.ACCESS_KEY) && configuration.containsKey(AmazonS3Factory.SECRET_KEY)) {
+      Map<String, ?> env = ImmutableMap.<String, Object>builder().put(AmazonS3Factory.ACCESS_KEY, configuration.getString(AmazonS3Factory.ACCESS_KEY))
+          .put(AmazonS3Factory.SECRET_KEY, configuration.getString(AmazonS3Factory.SECRET_KEY)).build();
+      try {
+        FileSystem newFileSystem = FileSystems.newFileSystem(URI.create("s3:/"), env, Thread.currentThread().getContextClassLoader());
+      } catch (IOException e) {
+        logger.error("Failed to register s3 filesystem");
+      }
+    }
+    
     localFileStorage = Paths.get(configuration.getString("backend.execution.directory"));
-
     URI uri = URI.create(configuration.getString("rabix.tes.storage.base", localFileStorage.toString()));
     if (uri.getScheme() == null) {
       try {
@@ -93,6 +109,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
       try {
         Path staged = workdir.resolveSibling("stagedinputs" + workdir.hashCode()).resolve("./" + path).normalize();
         if (!Files.exists(staged)) {
+          Files.createDirectories(staged.getParent());
           Files.copy(locationPath, staged);
           fileValue.setLocation(staged.toUri().toString());
         }

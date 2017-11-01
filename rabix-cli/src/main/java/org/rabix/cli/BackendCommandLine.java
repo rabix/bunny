@@ -406,7 +406,6 @@ public class BackendCommandLine {
       Object commonInputs = null;
       try {       
         commonInputs = bindings.translateToCommon(inputs);
-        commonInputs = processInputs(commonInputs, filePath.getParent());
       } catch (BindingException e1) {
         VerboseLogger.log("Failed to translate inputs to the common Rabix format");
         System.exit(10);
@@ -464,36 +463,6 @@ public class BackendCommandLine {
     }
   }
   
-  @SuppressWarnings("unchecked")
-  private static Object processInputs(Object value, Path appLocation) {
-    if (value instanceof FileValue) {
-      FileValue file = ((FileValue) value);
-      String path =  file.getPath();
-      if (path == null) {
-        if (file.getLocation() != null)
-          path = file.getLocation();
-        else
-          return value;
-      }
-      Path resolved = appLocation.resolve(path);
-      file.setPath(resolved.toString());
-      file.setLocation(resolved.toUri().toString());
-      file.getSecondaryFiles().forEach(f->processInputs(f, appLocation));
-      return file;
-    }
-    if (value instanceof Map<?, ?>) {
-      for (Object mapValue : ((Map<String, Object>) value).values()) {
-        processInputs(mapValue, appLocation);
-      }
-      return value;
-    }
-    if (value instanceof List<?>) {
-      for (Object listValue : ((List<Object>) value)) {
-        processInputs(listValue, appLocation);
-      }
-    }
-    return value;
-  }
 
   /**
    * Prints resolved application on standard out 

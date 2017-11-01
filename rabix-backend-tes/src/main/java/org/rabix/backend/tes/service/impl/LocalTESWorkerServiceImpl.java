@@ -88,7 +88,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
   public static @interface TESWorker {
   }
-  
+
 
   @Inject
   private TESHttpClient tesHttpClient;
@@ -111,18 +111,15 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
     try {
       Bindings bindings = BindingsFactory.create(job);
-      Path localDir = storage.localDir(job);
+      Path dir = storage.localDir(job);
       if (!bindings.isSelfExecutable(job)) {
         TESTaskParameter tesTaskParameter = tesJob.getOutputs().get(0);
         Path outDir = Paths.get(URI.create(tesTaskParameter.getLocation() + "/"));
-        storage.downloadDirectory(localDir, outDir);
+        dir = outDir;
       }
-      job = bindings.postprocess(job, localDir, HashAlgorithm.SHA1, (String path, Map<String, Object> config) -> path);
+      job = bindings.postprocess(job, dir, HashAlgorithm.SHA1, (String path, Map<String, Object> config) -> path);
     } catch (BindingException e) {
-      logger.error("Couldn't process job",e);
-      job = Job.cloneWithStatus(job, JobStatus.FAILED);
-    } catch (TESStorageException e) {
-      logger.error("Couldn't use shared storage",e);
+      logger.error("Couldn't process job", e);
       job = Job.cloneWithStatus(job, JobStatus.FAILED);
     }
     try {
@@ -234,13 +231,12 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     public TESWorkPair call() throws Exception {
       try {
         Bindings bindings = BindingsFactory.create(job);
-
+        job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
         DockerContainerRequirement dockerContainerRequirement = getRequirement(getRequirements(bindings), DockerContainerRequirement.class);
         if (dockerContainerRequirement != null && dockerContainerRequirement.getDockerOutputDirectory() != null) {
           localDir = Paths.get(dockerContainerRequirement.getDockerOutputDirectory());
         }
 
-        job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
         if (bindings.isSelfExecutable(job)) {
           return new TESWorkPair(job, new TESTask(null, TESState.COMPLETE, null, null, null, null, null, null, null, null, null, null));
         }
@@ -261,8 +257,9 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           }
         });
         job = Job.cloneWithInputs(job, wfInputs);
-        
-        List<TESTaskParameter> outputs = Collections.singletonList(new TESTaskParameter(localDir.getFileName().toString(), null, workDir.toUri().toString(), localDir.toString(), TESFileType.DIRECTORY, null));
+
+        List<TESTaskParameter> outputs = Collections.singletonList(
+            new TESTaskParameter(localDir.getFileName().toString(), null, workDir.toUri().toString(), localDir.toString(), TESFileType.DIRECTORY, null));
 
         CommandLine commandLine = bindings.buildCommandLineObject(job, localDir.toFile(), (String path, Map<String, Object> config) -> path);
 
@@ -277,14 +274,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         }
         commandLineToolErrLog = localDir.resolve(commandLineToolErrLog).toString();
 
-        List<TESExecutor> command = Collections.singletonList(new TESExecutor(
-            getImageId(dockerContainerRequirement),  
-            buildCommandLine(commandLine), 
-            localDir.toString(), 
-            commandLine.getStandardIn(),
-            commandLineToolStdout, 
-            commandLineToolErrLog, 
-            getVariables(combinedRequirements)));
+        List<TESExecutor> command = Collections.singletonList(new TESExecutor(getImageId(dockerContainerRequirement), buildCommandLine(commandLine),
+            localDir.toString(), commandLine.getStandardIn(), commandLineToolStdout, commandLineToolErrLog, getVariables(combinedRequirements)));
 
         TESResources resources = getResources(combinedRequirements);
         TESTask task = new TESTask(job.getName(), DEFAULT_PROJECT, null, new ArrayList<TESTaskParameter>(inputs), outputs, resources, command, null, null);
@@ -371,6 +362,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         if (fileRequirement instanceof SingleTextFileRequirement) {
           try {
             byte[] bytes = ((SingleTextFileRequirement) fileRequirement).getContent().getBytes();
+            Files.createDirectories(destinationFile.getParent());
             Files.write(destinationFile, bytes);
           } catch (IOException e) {
             throw new TESStorageException(e.getMessage());
