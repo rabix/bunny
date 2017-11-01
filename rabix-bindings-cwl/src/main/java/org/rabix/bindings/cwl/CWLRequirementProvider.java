@@ -61,7 +61,6 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
     for (EnvironmentDef envDef : envDefinitions) {
       String key = envDef.getName();
       Object value = envDef.getValue();
-
       try {
         value = CWLExpressionResolver.resolve(value, cwlJob, null);
       } catch (CWLExpressionException e) {
@@ -79,6 +78,7 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
     result.add(new FileRequirement.SingleInputFileRequirement((String) entryname, fileValue, linkEnabled));        
     if(fileValue.getSecondaryFiles() !=null)
       for(FileValue secondary: fileValue.getSecondaryFiles()){
+        secondary.setPath(Paths.get(fileValue.getPath()).resolveSibling(secondary.getPath()).toString());
         processFileValue(result, linkEnabled, secondary.getName(), secondary);
     }
   }
@@ -122,11 +122,6 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         String runtime = cwlJob.getRuntime().getOutdir();
         if (runtime != null) {
           Path workDir = Paths.get(runtime);
-          try {
-            CWLFileValueHelper.buildMissingInfo(fileValue, null, workDir);
-          } catch (IOException | URISyntaxException e) {
-            throw new BindingException("Couldn't process file value",e);
-          }
           fileValue.setPath(workDir.resolve(fileValue.getName()).toString());
         }
         processFileValue(result, false, (String) fileValue.getName(), (FileValue) listingObj);

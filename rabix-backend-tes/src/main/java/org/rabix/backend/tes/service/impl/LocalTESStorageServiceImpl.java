@@ -8,8 +8,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.spi.FileSystemProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.upplication.s3fs.AmazonS3Factory;
-import com.upplication.s3fs.S3FileSystemProvider;
 
 public class LocalTESStorageServiceImpl implements TESStorageService {
 
@@ -111,8 +108,8 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
         if (!Files.exists(staged)) {
           Files.createDirectories(staged.getParent());
           Files.copy(locationPath, staged);
-          fileValue.setLocation(staged.toUri().toString());
         }
+        fileValue.setLocation(staged.toUri().toString());
       } catch (IOException e) {
         throw new TESStorageException(e.getMessage());
       }
@@ -127,24 +124,6 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
       }
     }
     flat.add(fileValue);
-  }
-
-  @Override
-  public void downloadDirectory(Path localDir, Path outDir) throws TESStorageException {
-    try {
-      Files.createDirectories(localDir);
-      Path[] array = Files.list(outDir).toArray(Path[]::new);
-      for (Path p : array) {
-        Path resolved = localDir.resolve(outDir.relativize(p.toAbsolutePath()).toString());
-        if (!Files.isDirectory(p)) {
-          Files.copy(p.toAbsolutePath(), resolved, StandardCopyOption.REPLACE_EXISTING);
-        } else {
-          downloadDirectory(resolved, p.toAbsolutePath());
-        }
-      }
-    } catch (IOException e1) {
-      throw new TESStorageException(e1);
-    }
   }
 
   @Override

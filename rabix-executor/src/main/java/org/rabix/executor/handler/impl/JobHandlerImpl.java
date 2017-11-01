@@ -143,19 +143,10 @@ public class JobHandlerImpl implements JobHandler {
       }
 
       Bindings bindings = BindingsFactory.create(job);
-      statusCallback.onInputFilesDownloadStarted(job);
-      try {
-        Map<String, Object> inputs = job.getInputs();
-        downloadInputFiles(FileValueHelper.getFilesFromValue(inputs), bindings);
-        job = Job.cloneWithInputs(job, inputs);
-      } catch (Exception e) {
-        statusCallback.onInputFilesDownloadFailed(job);
-        throw e;
-      }
-      statusCallback.onInputFilesDownloadCompleted(job);
+
+      job = bindings.preprocess(job, workingDir, null);
 
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
-      job = bindings.preprocess(job, workingDir, null);
 
       /*
        * Cache service is enabled but mocking is not.
@@ -194,62 +185,6 @@ public class JobHandlerImpl implements JobHandler {
       String message = String.format("Execution failed for %s. %s", job.getId(), e.getMessage());
       throw new ExecutorException(message, e);
     }
-  }
-
-  private void downloadInputFiles(List<FileValue> files, final Bindings bindings) throws BindingException, DownloadServiceException {
-    files.forEach(file -> {
-      download(file, job.getConfig());
-      file.getSecondaryFiles().forEach(file2 -> download(file2, job.getConfig()));
-    });
-  }
-  
-  private void download(FileValue file, Map<String, Object> config) {
-    String path2 = file.getPath();
-    if (path2 == null)
-      return;
-
-    Path path = Paths.get(path2);
-
-    String location = file.getLocation();
-    String name = file.getName();
-    if (name == null)
-      name = path.getFileName().toString();
-    if (!Files.exists(path) || !path.endsWith(name)) {
-      Path locationPath;
-      if (location != null) {
-        locationPath = Paths.get(URI.create(location));
-      } else {
-        locationPath = path;
-      }
-      if(!path.isAbsolute())
-        return;
-      
-      Path resolved = path.getParent().resolve(name);
-      if(!downloadFile(locationPath, resolved)){
-        return;
-      }
-      file.setPath(resolved.toString());
-    }
-  }
-
-  private boolean downloadFile(Path locationPath, Path resolved) {
-    if (!Files.isDirectory(locationPath)) {
-      try {
-        if (!Files.exists(resolved.getParent()))
-          Files.createDirectories(resolved);
-        Files.copy(locationPath, resolved, StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException e) {
-        return false;
-      }
-    } else {
-      try {
-        List<Boolean> all = Files.list(locationPath).map(f -> downloadFile(f, resolved.resolve(locationPath.relativize(f)))).collect(Collectors.toList());
-        return all.stream().reduce(true, (x, y) -> x && y);
-      } catch (IOException e) {
-        return false;
-      }
-    }
-    return true;
   }
   
   private void stageFileRequirements(List<Requirement> requirements) throws ExecutorException, FileMappingException {
@@ -308,7 +243,9 @@ public class JobHandlerImpl implements JobHandler {
       try {
         job = FileValueHelper.updateInputFiles(job, fileValue -> {
           if (stagedFiles.containsKey(fileValue.getPath())) {
-            fileValue.setPath(stagedFiles.get(fileValue.getPath()));
+            String path = stagedFiles.get(fileValue.getPath());
+            fileValue.setPath(path);
+            fileValue.setLocation(Paths.get(path).toUri().toString());
           }
 
           return fileValue;

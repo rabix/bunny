@@ -7,20 +7,17 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -29,12 +26,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
-import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
-import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
@@ -60,12 +55,10 @@ import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.LogsParam;
 import com.spotify.docker.client.LogMessage;
 import com.spotify.docker.client.LogStream;
-import com.spotify.docker.client.exceptions.ContainerNotFoundException;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerState;
@@ -214,42 +207,32 @@ public class DockerContainerHandler implements ContainerHandler {
     try {
       pull(dockerPull);
       
-      Set<String> volumes = new HashSet<>();
-      String physicalPath = storageConfig.getPhysicalExecutionBaseDir().getAbsolutePath();
-      volumes.add(physicalPath);
-
       ContainerConfig.Builder builder = ContainerConfig.builder();
       builder.image(dockerPull);
 
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
-      volumes = normalizeVolumes(job, volumes);
       
       if(setPermissions && !SystemUtils.IS_OS_WINDOWS){
         builder.user(getUser());
         hostConfigBuilder.capAdd("DAC_OVERRIDE");
       }
       
-      Set<String> toBindSet = new HashSet<>();
-      toBindSet.addAll(volumes);
-      if(dockerResource.getDockerOutputDirectory() != null) {
-        volumes.add(dockerResource.getDockerOutputDirectory());
-        hostConfigBuilder.binds(workingDir + ":" + dockerResource.getDockerOutputDirectory() + ":" + DIRECTORY_MAP_MODE);
-        toBindSet.remove(workingDir);
-        toBindSet.remove(dockerResource.getDockerOutputDirectory());
-        toBindSet.remove(physicalPath);
-      }
-      
-
       if (SystemUtils.IS_OS_WINDOWS) {
-        Function<? super String, ? extends String> mapper2 = input -> input.replace("\\", "/");
-        toBindSet = toBindSet.stream().map(input -> input + ":/" + input.replace(":", "") + ":" + DIRECTORY_MAP_MODE).map(mapper2).collect(Collectors.toSet());
-        volumes = volumes.stream().map(mapper2).collect(Collectors.toSet());
+//        Function<? super String, ? extends String> mapper2 = input -> input.replace("\\", "/"); //TODO: windows
+//        toBindSet = toBindSet.stream().map(input -> input + ":/" + input.replace(":", "") + ":" + DIRECTORY_MAP_MODE).map(mapper2).collect(Collectors.toSet());
+//        volumes = volumes.stream().map(mapper2).collect(Collectors.toSet());
       } else {
-        toBindSet = toBindSet.stream().map(input -> input + ":" + input + ":" + DIRECTORY_MAP_MODE).collect(Collectors.toSet());
+        FileValueHelper.getInputFiles(job).forEach(f -> {
+          hostConfigBuilder.appendBinds(URI.create(f.getLocation()).getPath() + ":" + f.getPath());
+          f.getSecondaryFiles().forEach(sec -> hostConfigBuilder.appendBinds(URI.create(sec.getLocation()).getPath() + ":" + sec.getPath()));
+        });
+        if (dockerResource.getDockerOutputDirectory() != null) {
+          hostConfigBuilder.binds(workingDir.getAbsolutePath() + ":" + dockerResource.getDockerOutputDirectory());
+        } else {
+          hostConfigBuilder.appendBinds(workingDir.getAbsolutePath() + ":" + workingDir.getAbsolutePath());
+        }
       }
-      
-      hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
-      
+            
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
       
@@ -277,7 +260,7 @@ public class DockerContainerHandler implements ContainerHandler {
         return;
       }
 
-      builder.workingDir(mapper.map(workingDir.getAbsolutePath(), null)).volumes(volumes).cmd("-c", commandLine);
+      builder.workingDir(mapper.map(workingDir.getAbsolutePath(), null)).cmd("-c", commandLine);
         
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -340,43 +323,6 @@ public class DockerContainerHandler implements ContainerHandler {
       commandLine = entryPointString + commandLine;
     }
     return commandLine;
-  }
-  
-  private Set<String> normalizeVolumes(Job job, Set<String> volumes) throws BindingException {
-    Set<String> paths = new HashSet<>();
-    Set<FileValue> files = flattenFiles(FileValueHelper.getInputFiles(job));
-    
-    for (FileValue fileValue : files) {
-      paths.add(Paths.get(fileValue.getPath()).getParent().toAbsolutePath().toString());
-    }
-    paths.addAll(volumes);
-    
-    List<String> toRemove = new ArrayList<>();
-    for (String pathA : paths) {
-      for (String pathB : paths) {
-        if (pathA.equals(pathB)) {
-          continue;
-        }
-        if (pathB.startsWith(pathA)) {
-          toRemove.add(pathB);
-        }
-      }
-    }
-    for (String path : toRemove) {
-      paths.remove(path);
-    }
-    return paths;
-  }
-  
-  private Set<FileValue> flattenFiles(Set<FileValue> fileValues) {
-    Set<FileValue> flattenedFileValues = new HashSet<>();
-    for (FileValue fileValue : fileValues) {
-      flattenedFileValues.add(fileValue);
-      if (fileValue.getSecondaryFiles() != null) {
-        flattenedFileValues.addAll(fileValue.getSecondaryFiles());
-      }
-    }
-    return flattenedFileValues;
   }
   
   private List<String> transformEnvironmentVariables(Map<String, String> variables) {

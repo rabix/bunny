@@ -17,6 +17,4 @@ public interface TESStorageService {
 
   List<FileValue> stageFile(Path workDir, FileValue fileValue) throws TESStorageException;
 
-  void downloadDirectory(Path localDir, Path outDir) throws TESStorageException;
-
 }

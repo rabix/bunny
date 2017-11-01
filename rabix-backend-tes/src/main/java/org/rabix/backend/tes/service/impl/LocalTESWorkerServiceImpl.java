@@ -235,6 +235,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         DockerContainerRequirement dockerContainerRequirement = getRequirement(getRequirements(bindings), DockerContainerRequirement.class);
         if (dockerContainerRequirement != null && dockerContainerRequirement.getDockerOutputDirectory() != null) {
           localDir = Paths.get(dockerContainerRequirement.getDockerOutputDirectory());
+          job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
         }
 
         if (bindings.isSelfExecutable(job)) {
