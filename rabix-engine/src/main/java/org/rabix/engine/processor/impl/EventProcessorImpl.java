@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -40,14 +41,14 @@ import com.google.inject.Inject;
 public class EventProcessorImpl implements EventProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(EventProcessorImpl.class);
-  
-  public final static long SLEEP = 100;
-  
+    
   private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
   private final BlockingQueue<Event> externalEvents = new LinkedBlockingQueue<>();
   
-  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor((Runnable r) -> {
+    return new Thread(r, "EventProcessorThread" + r.hashCode());
+  });
+  
   private final AtomicBoolean stop = new AtomicBoolean(false);
   private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -82,12 +83,7 @@ public class EventProcessorImpl implements EventProcessor {
         final AtomicReference<Event> eventReference = new AtomicReference<Event>(null);
         while (!stop.get()) {
           try {
-            eventReference.set(externalEvents.poll());
-            if (eventReference.get() == null) {
-              running.set(false);
-              Thread.sleep(SLEEP);
-              continue;
-            }
+            eventReference.set(externalEvents.take());
             running.set(true);
             transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
               @Override
