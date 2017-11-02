@@ -236,60 +236,56 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
     }
 
     void start() {
-      QueueingConsumer consumer = null;
+      DefaultConsumer consumer = null;
 
       String queueName = queue.getQueueName();
       boolean initChannel = true;
+      try {
+        if (initChannel) {
+          final Channel channel = connection.createChannel();
+          consumer = new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+              String message = new String(body, "UTF-8");
+              try {
+                callback.handleReceive(BeanSerializer.deserialize(message, clazz));
+              } catch (TransportPluginException e) {
+                throw new IOException();
+              }
+              channel.basicAck(envelope.getDeliveryTag(), false);
+            }
+          };
 
+          channel.basicConsume(queueName, false, consumer);
+          initChannel = false;
+        }
+      } catch (BeanProcessorException e) {
+        logger.error("Failed to deserialize message payload", e);
+        errorCallback.handleError(e);
+      } catch (Exception e) {
         while (!isStopped) {
           try {
-            if (initChannel) {
-              final Channel channel = connection.createChannel();
-              consumer = new QueueingConsumer(channel) {
-                @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                  String message = new String(body, "UTF-8");
-                  try {
-                    callback.handleReceive(BeanSerializer.deserialize(message, clazz));
-                  } catch (TransportPluginException e) {
-                    throw new IOException();
-                  }
-                  channel.basicAck(envelope.getDeliveryTag(), false);
-                }
-              };
+            logger.error("Failed to receive a message from " + queue, e);
+            Thread.sleep(RETRY_TIMEOUT * 1000);
+          } catch (InterruptedException e1) {
+            // Ignore
+          }
 
-              channel.basicConsume(queueName, false, consumer);
-              initChannel = false;
-            }
-            consumer.nextDelivery();
-          } catch (BeanProcessorException e) {
-            logger.error("Failed to deserialize message payload", e);
-            errorCallback.handleError(e);
-          } catch (Exception e) {
-            while (!isStopped) {
-              try {
-                logger.error("Failed to receive a message from " + queue, e);
-                Thread.sleep(RETRY_TIMEOUT * 1000);
-              } catch (InterruptedException e1) {
-                // Ignore
-              }
-
-              try {
-                initConnection();
-                logger.info("Reconnected to {}", queueName);
-                initChannel = true;
-                break;
-              } catch (TransportPluginException e1) {
-                logger.info("Receiver reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
-              }
-            }
+          try {
+            initConnection();
+            logger.info("Reconnected to {}", queueName);
+            initChannel = true;
+            break;
+          } catch (TransportPluginException e1) {
+            logger.info("Receiver reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
           }
         }
-
+      }
     }
+
     void stop() {
       isStopped = true;
     }
-
   }
 
 }
