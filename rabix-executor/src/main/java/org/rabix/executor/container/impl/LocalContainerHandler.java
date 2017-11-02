@@ -31,7 +31,9 @@ import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
+import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
+import org.rabix.bindings.model.FileValue.FileType;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
@@ -75,6 +77,11 @@ public class LocalContainerHandler implements ContainerHandler {
         logger.error("Failed to stage file: " + file.getLocation(), e);
       }
     }
+    file.getSecondaryFiles().forEach((FileValue sec) -> stageFile(sec));
+    
+    if(file instanceof DirectoryValue){
+      ((DirectoryValue)file).getListing().forEach(f->stageFile(f));
+    }
   }
   
   @Override
@@ -117,7 +124,6 @@ public class LocalContainerHandler implements ContainerHandler {
 
       FileValueHelper.updateFileValues(job.getInputs(), (FileValue f) -> {
         stageFile(f);
-        f.getSecondaryFiles().forEach((FileValue sec) -> stageFile(sec));
         return f;
       });
 
