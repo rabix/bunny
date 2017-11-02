@@ -394,16 +394,22 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       path=workDir.resolve(path).toAbsolutePath().toString();
     }
     
-    setPath(path, value);
-    setLocation(location, value);
-    
 //    if(!Files.exists(actual) && Files.exists(workDir.resolve(path))){
 //      actual = workDir.resolve(path);
 //    }
     
     String name = getName(value);
-    if (name == null)
+    if (name == null) {
       setNames(actual, value);
+    } else {
+      if (!path.endsWith(name)) {
+        path = Paths.get(path).resolveSibling(name).toString();
+      }
+    }
+    
+    setPath(path, value);
+    setLocation(location, value);
+    
     if (getSize(value) == null)
       setSize(Files.size(actual), value);
 
