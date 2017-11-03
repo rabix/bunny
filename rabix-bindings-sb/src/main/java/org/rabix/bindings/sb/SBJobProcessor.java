@@ -46,6 +46,10 @@ public class SBJobProcessor implements BeanProcessor<SBJob> {
       job.getApp().setCwlVersion(parentJob.getApp().getCwlVersion());
     }
     processElements(null, job);
+
+    if(job.getApp().getAppFileLocation() == null && parentJob != null) {
+      job.getApp().setAppFileLocation(parentJob.getApp().getAppFileLocation());
+    }
     
     if (job.getApp().isWorkflow()) {
       SBWorkflow workflow = (SBWorkflow) job.getApp();
