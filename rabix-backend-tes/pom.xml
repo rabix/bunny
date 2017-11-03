@@ -6,14 +6,19 @@
 	<parent>
 		<groupId>org.rabix</groupId>
 		<artifactId>rabix</artifactId>
-		<version>1.0.2</version>
+		<version>1.0.3</version>
 	</parent>
 	<artifactId>rabix-backend-tes</artifactId>
 	<name>rabix-backend-tes</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<ok.http.version>3.4.2</ok.http.version>
-	</properties>
+	</properties><repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.rabix</groupId>
@@ -44,6 +49,11 @@
 			<groupId>com.google.cloud</groupId>
 			<artifactId>google-cloud-nio</artifactId>
 			<version>0.19.0-alpha</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.milos-ljubinkovic</groupId>
+			<artifactId>Amazon-S3-FileSystem-NIO2</artifactId>
+			<version>b3456a1692f82d500c302f9e33ab803d9348bbc6</version>
 		</dependency>
 	</dependencies>
 </project>

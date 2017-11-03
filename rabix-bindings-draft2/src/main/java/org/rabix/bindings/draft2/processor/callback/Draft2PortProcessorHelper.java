@@ -1,6 +1,7 @@
 package org.rabix.bindings.draft2.processor.callback;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,5 +98,13 @@ public class Draft2PortProcessorHelper {
       throw new Draft2PortProcessorException("Failed to stage inputs.", e);
     }
   }
-
+  
+  public Map<String, Object> setFileProperties(Map<String, Object> inputs) throws Draft2PortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new Draft2FilePropertiesProcessorCallback(Paths.get(draft2Job.getApp().getAppFileLocation())));
+    } catch (Draft2PortProcessorException e) {
+      throw new Draft2PortProcessorException("Failed to set input properties.", e);
+    }
+  }
+  
 }

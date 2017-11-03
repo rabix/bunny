@@ -59,10 +59,6 @@ public abstract class CWLJobApp extends Application {
   
   @JsonProperty("successCodes")
   protected List<Integer> successCodes = new ArrayList<>();
-
-  @JsonProperty("appFileLocation")
-  @JsonView(BeanPropertyView.Full.class)
-  protected String appFileLocation;
   
   @JsonIgnore
   public String getId() {
@@ -86,10 +82,6 @@ public abstract class CWLJobApp extends Application {
   
   public List<Integer> getSuccessCodes() {
     return successCodes;
-  }
-  
-  public String getAppFileLocation() {
-    return appFileLocation;
   }
 
   @JsonIgnore

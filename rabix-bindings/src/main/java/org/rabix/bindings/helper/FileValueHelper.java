@@ -33,16 +33,14 @@ public class FileValueHelper {
       List<Object> ret = new ArrayList<>();
       for (Object o : (List<?>) value) {
         Object newValue = updateFileValues(o, fileTransformer);
-        if (newValue != null)
-          ret.add(newValue);
+        ret.add(newValue);
       }
       return ret;
     } else if (value instanceof Map) {
       Map<Object, Object> ret = new HashMap<>();
       for (Object key : ((Map<?, ?>) value).keySet()) {
         Object newValue = updateFileValues(((Map<?, ?>) value).get(key), fileTransformer);
-        if (newValue != null)
-          ret.put(key, newValue);
+        ret.put(key, newValue);
       }
       return ret;
     }
@@ -172,7 +170,6 @@ public class FileValueHelper {
       FileValue fileValue = (FileValue) value;
       if (fileValue.getPath() != null) {
         fileValue.setPath(fileMapper.map(fileValue.getPath(), config));
-        fileValue.setLocation(fileValue.getPath());
       }
       if (fileValue.getDirname() != null) {
         fileValue.setDirname(fileMapper.map(fileValue.getDirname(), config));
@@ -180,18 +177,12 @@ public class FileValueHelper {
 
       List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();
       if (secondaryFiles != null) {
-        for (FileValue secondaryFile : secondaryFiles) {
-          mapValue(secondaryFile, fileMapper, config);
-        }
+        mapValue(secondaryFiles, fileMapper, config);
       }
       if (value instanceof DirectoryValue) {
-        DirectoryValue directoryValue = (DirectoryValue) value;
-
-        List<FileValue> listing = directoryValue.getListing();
+        List<FileValue> listing = ((DirectoryValue) value).getListing();
         if (listing != null) {
-          for (FileValue listingFileValue : listing) {
-            mapValue(listingFileValue, fileMapper, config);
-          }
+          mapValue(listing, fileMapper, config);
         }
       }
       return;

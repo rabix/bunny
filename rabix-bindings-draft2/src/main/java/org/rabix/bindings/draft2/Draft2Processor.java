@@ -64,7 +64,7 @@ public class Draft2Processor implements ProtocolProcessor {
     Draft2PortProcessorHelper portProcessorHelper = new Draft2PortProcessorHelper(draft2Job);
     try {
       Map<String, Object> inputs = draft2Job.getInputs();
-      inputs = portProcessorHelper.setFileSize(inputs);
+      inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
 

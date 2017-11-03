@@ -60,7 +60,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
       throw new BindingException("Failed to extract standard outputs.", e);
     }
 
-    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null, true);
+    CommandLine commandLine = new CommandLine(commandLineParts, stdin, stdout, null, commandLineParts.stream().anyMatch(p->StringUtils.endsWithAny(p.getValue(),"&&","|")));
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
   }

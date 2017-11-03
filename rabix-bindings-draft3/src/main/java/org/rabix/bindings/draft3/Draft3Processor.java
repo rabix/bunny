@@ -2,6 +2,7 @@ package org.rabix.bindings.draft3;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,7 +80,7 @@ public class Draft3Processor implements ProtocolProcessor {
     Draft3PortProcessorHelper portProcessorHelper = new Draft3PortProcessorHelper(draft3Job);
     try {
       Map<String, Object> inputs = draft3Job.getInputs();
-      inputs = portProcessorHelper.setFileSize(inputs);
+      inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.stageInputFiles(inputs, workingDir);
       Job newJob = Job.cloneWithResources(job, Draft3RuntimeHelper.convertToResources(runtime));
@@ -187,8 +188,9 @@ public class Draft3Processor implements ProtocolProcessor {
     }
     if ((Draft3SchemaHelper.isFileFromValue(value))) {
       String path = Draft3FileValueHelper.getPath(value);
+      
       if (StringUtils.isEmpty(Draft3FileValueHelper.getLocation(value))) {
-        Draft3FileValueHelper.setLocation(path, value);
+        Draft3FileValueHelper.setLocation(Paths.get(path).toUri().toString(), value);
       }
       
       File file = new File(path);

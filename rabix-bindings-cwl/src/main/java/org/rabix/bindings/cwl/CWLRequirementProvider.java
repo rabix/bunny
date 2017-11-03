@@ -1,5 +1,9 @@
 package org.rabix.bindings.cwl;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,6 +14,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
+import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLEnvVarRequirement;
@@ -56,7 +61,6 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
     for (EnvironmentDef envDef : envDefinitions) {
       String key = envDef.getName();
       Object value = envDef.getValue();
-
       try {
         value = CWLExpressionResolver.resolve(value, cwlJob, null);
       } catch (CWLExpressionException e) {
@@ -69,13 +73,16 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
     }
     return new EnvironmentVariableRequirement(result);
   }
+  
   private void processFileValue(List<SingleFileRequirement> result, boolean linkEnabled, String entryname, FileValue fileValue) {
     result.add(new FileRequirement.SingleInputFileRequirement((String) entryname, fileValue, linkEnabled));        
     if(fileValue.getSecondaryFiles() !=null)
       for(FileValue secondary: fileValue.getSecondaryFiles()){
+        secondary.setPath(Paths.get(fileValue.getPath()).resolveSibling(secondary.getPath()).toString());
         processFileValue(result, linkEnabled, secondary.getName(), secondary);
     }
   }
+  
   private FileRequirement getFileRequirement(CWLJob cwlJob, CWLInitialWorkDirRequirement initialWorkDirRequirement) throws BindingException {
     if (initialWorkDirRequirement == null) {
       return null;
@@ -109,15 +116,15 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
           result.add(new FileRequirement.SingleTextFileRequirement((String) entryname, (String) entry));    // TODO discuss cast
         }
         continue;
-      }
+      }      
       if (listingObj instanceof FileValue) {
         FileValue fileValue = (FileValue) listingObj;
+        String runtime = cwlJob.getRuntime().getOutdir();
+        if (runtime != null) {
+          Path workDir = Paths.get(runtime);
+          fileValue.setPath(workDir.resolve(fileValue.getName()).toString());
+        }
         processFileValue(result, false, (String) fileValue.getName(), (FileValue) listingObj);
-        continue;
-      }
-      if (listingObj instanceof DirectoryValue) {
-        DirectoryValue directoryValue = (DirectoryValue) listingObj;
-        result.add(new FileRequirement.SingleInputDirectoryRequirement(directoryValue.getName(), directoryValue, false));
         continue;
       }
       throw new BindingException("Failed to create file requirements. Unknown value " + listingObj);

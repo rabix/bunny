@@ -1,6 +1,7 @@
 package org.rabix.bindings.sb.processor.callback;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
@@ -98,6 +99,14 @@ public class SBPortProcessorHelper {
     }
   }
   
+  public Map<String, Object> populateFiles(Map<String, Object> inputs, File workingDir) throws SBPortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new SBStageInputProcessorCallback(workingDir));
+    } catch (SBPortProcessorException e) {
+      throw new SBPortProcessorException("Failed to stage inputs.", e);
+    }
+  }
+  
   public Map<String, Object> setInputSecondaryFiles(Map<String, Object> inputs, SBJob job, HashAlgorithm hash) throws SBPortProcessorException {
     try {
       return portProcessor.processInputs(inputs, new SBInputSecondaryFilesProcessor(job, hash));
@@ -105,5 +114,12 @@ public class SBPortProcessorHelper {
       throw new SBPortProcessorException("Failed to set inputs secondaryFiles.", e);
     }
   }
-  
+
+  public Map<String, Object> setFileProperties(Map<String, Object> inputs) throws SBPortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new SBFilePropertiesProcessorCallback(Paths.get(sbJob.getApp().getAppFileLocation())));
+    } catch (SBPortProcessorException e) {
+      throw new SBPortProcessorException("Failed to set inputs properties.", e);
+    }
+  }  
 }

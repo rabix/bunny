@@ -7,7 +7,7 @@ public enum TESState {
   PAUSED,
   COMPLETE,
   ERROR,
-  SYSTEMERROR,
+  SYSTEM_ERROR,
   CANCELED,
   INITIALIZING
 }

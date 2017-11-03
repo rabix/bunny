@@ -1,5 +1,6 @@
 package org.rabix.bindings.draft3.helper;
 
+import java.nio.file.Paths;
 import java.util.Map;
 
 import org.rabix.bindings.BindingException;
@@ -17,8 +18,12 @@ public class Draft3JobHelper {
 
   @SuppressWarnings("unchecked")
   public static Draft3Job getDraft3Job(Job job) throws BindingException {
-    String resolvedAppStr = Draft3DocumentResolver.resolve(job.getApp());
+    String appPath = job.getApp();
+    String resolvedAppStr = Draft3DocumentResolver.resolve(appPath);
     Draft3JobApp app = BeanSerializer.deserialize(resolvedAppStr, Draft3JobApp.class);
+    if (appPath.startsWith("file")) {
+      app.setAppFileLocation(Paths.get(appPath.replaceAll("file:", "")).toString());
+    }
     
     Map<String, Object> nativeInputs = (Map<String, Object>) Draft3ValueTranslator.translateToSpecific(job.getInputs());
     Map<String, Object> nativeOutputs = (Map<String, Object>) Draft3ValueTranslator.translateToSpecific(job.getOutputs());

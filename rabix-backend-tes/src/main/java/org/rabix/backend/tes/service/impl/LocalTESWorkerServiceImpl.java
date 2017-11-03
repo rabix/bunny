@@ -1,11 +1,17 @@
 package org.rabix.backend.tes.service.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.backend.api.WorkerService;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
@@ -28,28 +35,36 @@ import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.backend.api.engine.EngineStubLocal;
 import org.rabix.backend.tes.client.TESHTTPClientException;
 import org.rabix.backend.tes.client.TESHttpClient;
-import org.rabix.backend.tes.model.TESDockerExecutor;
-import org.rabix.backend.tes.model.TESJobId;
+import org.rabix.backend.tes.model.TESCreateTaskResponse;
+import org.rabix.backend.tes.model.TESExecutor;
+import org.rabix.backend.tes.model.TESFileType;
+import org.rabix.backend.tes.model.TESGetTaskRequest;
 import org.rabix.backend.tes.model.TESResources;
 import org.rabix.backend.tes.model.TESState;
 import org.rabix.backend.tes.model.TESTask;
 import org.rabix.backend.tes.model.TESTaskParameter;
-import org.rabix.backend.tes.model.TESVolume;
+import org.rabix.backend.tes.model.TESView;
 import org.rabix.backend.tes.service.TESServiceException;
+import org.rabix.backend.tes.service.TESStorageException;
 import org.rabix.backend.tes.service.TESStorageService;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.CommandLine;
-import org.rabix.bindings.helper.FileValueHelper;
+import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.FileValue.FileType;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
+import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleFileRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequirement;
+import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
-import org.rabix.common.helper.JSONHelper;
+import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendLocal;
@@ -65,74 +80,48 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   private final static Logger logger = LoggerFactory.getLogger(LocalTESWorkerServiceImpl.class);
 
   private final static String TYPE = "TES";
-  
+  public final static String DEFAULT_PROJECT = "default";
+  public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
+
   @BindingAnnotation
-  @Target({ java.lang.annotation.ElementType.FIELD, java.lang.annotation.ElementType.PARAMETER, java.lang.annotation.ElementType.METHOD })
+  @Target({java.lang.annotation.ElementType.FIELD, java.lang.annotation.ElementType.PARAMETER, java.lang.annotation.ElementType.METHOD})
   @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
   public static @interface TESWorker {
   }
-  
-  public final static String PYTHON_DEFAULT_DOCKER_IMAGE = "frolvlad/alpine-python2";
-//  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix-tes-cli";
-  public final static String BUNNY_COMMAND_LINE_DOCKER_IMAGE = "rabix/tes-command-line:v3";
-  public final static String DEFAULT_PROJECT = "default";
-  public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
+
 
   @Inject
   private TESHttpClient tesHttpClient;
   @Inject
   private TESStorageService storage;
 
-  private Set<PendingResult> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<PendingResult, Boolean>());
-  
+  private Set<Future<TESWorkPair>> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<Future<TESWorkPair>, Boolean>());
+
   private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(1);
   private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(10);
-  
+
   private EngineStub<?, ?, ?> engineStub;
-  
+
   @Inject
   private Configuration configuration;
   @Inject
   private WorkerStatusCallback statusCallback;
 
-  static String WORKING_DIR = "working_dir";
-  
-  private class PendingResult {
-    private Job job;
-    private Future<TESTask> future;
-    
-    public PendingResult(Job job, Future<TESTask> future) {
-      this.job = job;
-      this.future = future;
-    }
-  }
-  
-  public LocalTESWorkerServiceImpl() {
-  }
-  
-  @SuppressWarnings("unchecked")
   private void success(Job job, TESTask tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
-    Map<String, Object> result = null;
     try {
-      result = (Map<String, Object>) FileValue.deserialize(
-        JSONHelper.readMap(
-          tesJob.getLogs().get(0).getLogs().get(tesJob.getLogs().get(0).getLogs().size() - 1).getStdout()
-        )
-      );
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to process output files: {}", e);
-    }
-
-    try {
-      result = storage.transformOutputFiles(result, job);
+      Bindings bindings = BindingsFactory.create(job);
+      Path dir = storage.localDir(job);
+      if (!bindings.isSelfExecutable(job)) {
+        TESTaskParameter tesTaskParameter = tesJob.getOutputs().get(0);
+        Path outDir = Paths.get(URI.create(tesTaskParameter.getLocation() + "/"));
+        dir = outDir;
+      }
+      job = bindings.postprocess(job, dir, HashAlgorithm.SHA1, (String path, Map<String, Object> config) -> path);
     } catch (BindingException e) {
-      logger.error("Failed to process output files", e);
-      throw new RuntimeException("Failed to process output files", e);
+      logger.error("Couldn't process job", e);
+      job = Job.cloneWithStatus(job, JobStatus.FAILED);
     }
-
-    job = Job.cloneWithOutputs(job, result);
-    job = Job.cloneWithMessage(job, "Success");
     try {
       job = statusCallback.onJobCompleted(job);
     } catch (WorkerStatusCallbackException e1) {
@@ -140,7 +129,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     }
     engineStub.send(job);
   }
-  
+
+
   private void fail(Job job, TESTask tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.FAILED);
     try {
@@ -150,35 +140,35 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     }
     engineStub.send(job);
   }
-  
+
   @Override
   public void start(Backend backend) {
     try {
       switch (backend.getType()) {
-      case LOCAL:
-        engineStub = new EngineStubLocal((BackendLocal) backend, this, configuration);
-        break;
-      default:
-        throw new TransportPluginException("Backend " + backend.getType() + " is not supported.");
+        case LOCAL:
+          engineStub = new EngineStubLocal((BackendLocal) backend, this, configuration);
+          break;
+        default:
+          throw new TransportPluginException("Backend " + backend.getType() + " is not supported.");
       }
       engineStub.start();
     } catch (TransportPluginException e) {
       logger.error("Failed to initialize Executor", e);
       throw new RuntimeException("Failed to initialize Executor", e);
     }
-    
+
     this.scheduledTaskChecker.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
-        for (Iterator<PendingResult> iterator = pendingResults.iterator(); iterator.hasNext();){
-          PendingResult pending = (PendingResult) iterator.next();
-          if (pending.future.isDone()) {
+        for (Iterator<Future<TESWorkPair>> iterator = pendingResults.iterator(); iterator.hasNext();) {
+          Future<TESWorkPair> pending = (Future<TESWorkPair>) iterator.next();
+          if (pending.isDone()) {
             try {
-              TESTask tesJob = pending.future.get();
-              if (tesJob.getState().equals(TESState.COMPLETE)) {
-                success(pending.job, tesJob);
+              TESWorkPair tesJob = pending.get();
+              if (tesJob.tesTask.getState().equals(TESState.COMPLETE)) {
+                success(tesJob.job, tesJob.tesTask);
               } else {
-                fail(pending.job, tesJob);
+                fail(tesJob.job, tesJob.tesTask);
               }
               iterator.remove();
             } catch (InterruptedException | ExecutionException e) {
@@ -189,9 +179,9 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           }
         }
       }
-      
+
       /**
-       * Basic exception handling  
+       * Basic exception handling
        */
       private void handleException(Exception e) {
         Throwable cause = e.getCause();
@@ -207,11 +197,11 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           }
         }
       }
-    }, 0, 1, TimeUnit.SECONDS);
+    }, 0, 300, TimeUnit.MILLISECONDS);
   }
 
   public void submit(Job job, UUID contextId) {
-    pendingResults.add(new PendingResult(job, taskPoolExecutor.submit(new TaskRunCallable(job))));
+    pendingResults.add(taskPoolExecutor.submit(new TaskRunCallable(job)));
   }
 
   @SuppressWarnings("unchecked")
@@ -224,228 +214,83 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     return null;
   }
 
-  
-  public class TaskRunCallable implements Callable<TESTask> {
+
+  public class TaskRunCallable implements Callable<TESWorkPair> {
 
     private Job job;
-    
+    private Path workDir;
+    private Path localDir;
+
     public TaskRunCallable(Job job) {
       this.job = job;
+      workDir = storage.workDir(job);
+      localDir = storage.localDir(job);
     }
-    
+
     @Override
-    public TESTask call() throws Exception {
+    public TESWorkPair call() throws Exception {
       try {
         Bindings bindings = BindingsFactory.create(job);
-        job = bindings.preprocess(job, new File(storage.workDir(job).toString()), (String path, Map<String, Object> config) -> path);
+        job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
+        DockerContainerRequirement dockerContainerRequirement = getRequirement(getRequirements(bindings), DockerContainerRequirement.class);
+        if (dockerContainerRequirement != null && dockerContainerRequirement.getDockerOutputDirectory() != null) {
+          localDir = Paths.get(dockerContainerRequirement.getDockerOutputDirectory());
+          job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
+        }
 
-        List<TESTaskParameter> inputs = new ArrayList<>();
-        List<TESTaskParameter> outputs = new ArrayList<>();
-        List<TESVolume> volumes = new ArrayList<>();
-        List<String> initCommand = new ArrayList<>();
-        List<String> mainCommand = new ArrayList<>();
-        List<String> finalizeCommand = new ArrayList<>();
-        List<TESDockerExecutor> commands = new ArrayList<>();
+        if (bindings.isSelfExecutable(job)) {
+          return new TESWorkPair(job, new TESTask(null, TESState.COMPLETE, null, null, null, null, null, null, null, null, null, null));
+        }
 
-        // Prepare CWL input file into TES-compatible files
-        job = storage.transformInputFiles(job);
+        Set<TESTaskParameter> inputs = new HashSet<>();
+        Map<String, Object> wfInputs = job.getInputs();
+        Collection<FileValue> flat = flatten(wfInputs);
+        List<Requirement> combinedRequirements = getRequirements(bindings);
+        stageFileRequirements(combinedRequirements, workDir, flat);
 
-        // Add all job inputs to TES Job inputs parameters
-        FileValueHelper.updateInputFiles(job, (FileValue fileValue) -> {
-          inputs.add(new TESTaskParameter(
-            fileValue.getName(),
-            null,
-            fileValue.getLocation(),
-            fileValue.getPath(),
-            fileValue.getType(),
-            false
-          ));
-          List<FileValue> secondaryFiles = fileValue.getSecondaryFiles();
-          if (secondaryFiles != null) {
-            for (FileValue f : secondaryFiles) {
-              inputs.add(new TESTaskParameter(
-                      f.getName(),
-                      null,
-                      f.getLocation(),
-                      f.getPath(),
-                      f.getType(),
-                      false
-              ));
-            }
+        flat.forEach(fileValue -> {
+          try {
+            storage.stageFile(workDir, fileValue);
+            inputs.add(new TESTaskParameter(fileValue.getName(), null, fileValue.getLocation(), fileValue.getPath(),
+                fileValue.getType().equals(FileType.File) ? TESFileType.FILE : TESFileType.DIRECTORY, null));
+          } catch (TESStorageException e) {
+            e.printStackTrace();
           }
-          return fileValue;
         });
-        
+        job = Job.cloneWithInputs(job, wfInputs);
 
-      /*
-        inputs.add(new TESTaskParameter(
-          "inputs",
-          null,
-          storage.stagingPath(job.getId(), "inputs").toUri().toString(),
-          storage.containerPath("inputs").toString(),
-          FileType.Directory.name(),
-          false));
-          */
+        List<TESTaskParameter> outputs = Collections.singletonList(
+            new TESTaskParameter(localDir.getFileName().toString(), null, workDir.toUri().toString(), localDir.toString(), TESFileType.DIRECTORY, null));
 
-        inputs.add(new TESTaskParameter(
-          "job.json",
-          null,
-          storage.writeJobFile(job).toUri().toString(),
-          storage.containerPath("inputs", "job.json").toString(),
-          FileType.File,
-          false
-        ));
+        CommandLine commandLine = bindings.buildCommandLineObject(job, localDir.toFile(), (String path, Map<String, Object> config) -> path);
 
-        outputs.add(new TESTaskParameter(
-          WORKING_DIR,
-          null,
-          storage.workDir(job).toUri().toString(),
-          storage.containerPath(WORKING_DIR).toString(),
-          FileType.Directory,
-          false
-        ));
-
-        // Initialization command
-        initCommand.add("/usr/share/rabix-tes-command-line/rabix");
-        initCommand.add("-j");
-        initCommand.add(storage.containerPath("inputs", "job.json").toString());
-        initCommand.add("-w");
-        initCommand.add(storage.containerPath(WORKING_DIR).toString());
-        initCommand.add("-m");
-        initCommand.add("initialize");
-
-        commands.add(new TESDockerExecutor(
-          BUNNY_COMMAND_LINE_DOCKER_IMAGE,
-          initCommand,
-          storage.containerPath(WORKING_DIR).toString(),
-          null,
-          storage.containerPath(WORKING_DIR, "standard_out.log").toString(),
-          storage.containerPath(WORKING_DIR, "standard_error.log").toString(), null
-        ));
-        
-        List<Requirement> combinedRequirements = new ArrayList<>();
-        combinedRequirements.addAll(bindings.getHints(job));
-        combinedRequirements.addAll(bindings.getRequirements(job));
-        DockerContainerRequirement dockerContainerRequirement = getRequirement(combinedRequirements, DockerContainerRequirement.class);
-        String imageId;
-        if (dockerContainerRequirement == null) {
-          imageId = PYTHON_DEFAULT_DOCKER_IMAGE;
-        } else {
-          imageId = dockerContainerRequirement.getDockerPull();
-        }
-        
-        if (!bindings.isSelfExecutable(job)) {
-          mainCommand.add("/bin/sh");
-          mainCommand.add("command.sh");
-
-          CommandLine commandLine = bindings.buildCommandLineObject(
-            job,
-            // TODO needs local staging directory?
-            //      is "File" the wrong type for this argument? Why is it a container path?
-            storage.containerPath(WORKING_DIR).toFile(),
-            (String path, Map<String, Object> config) -> path
-          );
-
-          String commandLineToolStdout = commandLine.getStandardOut();
-          if (commandLineToolStdout != null && !commandLineToolStdout.startsWith("/")) {
-              commandLineToolStdout = storage.containerPath(WORKING_DIR, commandLineToolStdout).toString();
-          }
-
-          String commandLineToolErrLog = commandLine.getStandardError();
-          if (commandLineToolErrLog == null) {
-            commandLineToolErrLog = storage.containerPath(WORKING_DIR, DEFAULT_COMMAND_LINE_TOOL_ERR_LOG).toString();
-          }
-
-          // Main job command
-          commands.add(new TESDockerExecutor(
-            imageId,
-            mainCommand,
-            storage.containerPath(WORKING_DIR).toString(),
-            null,
-            commandLineToolStdout,
-            commandLineToolErrLog, null
-          ));
+        String commandLineToolStdout = commandLine.getStandardOut();
+        if (commandLineToolStdout != null && !commandLineToolStdout.startsWith("/")) {
+          commandLineToolStdout = localDir.resolve(commandLineToolStdout).toString();
         }
 
-        // Finalization command
-
-        finalizeCommand.add("/usr/share/rabix-tes-command-line/rabix");
-        finalizeCommand.add("-j");
-        finalizeCommand.add(storage.containerPath("inputs", "job.json").toString());
-        finalizeCommand.add("-w");
-        finalizeCommand.add(storage.containerPath(WORKING_DIR).toString());
-        finalizeCommand.add("-m");
-        finalizeCommand.add("finalize");
-
-        commands.add(new TESDockerExecutor(
-          BUNNY_COMMAND_LINE_DOCKER_IMAGE,
-          finalizeCommand,
-          storage.containerPath(WORKING_DIR).toString(),
-          null,
-          // TODO maybe move these to a "rabix" output path so there's zero chance of conflict with the tool
-          storage.containerPath(WORKING_DIR, "standard_out.log").toString(),
-          storage.containerPath(WORKING_DIR, "standard_error.log").toString(), null
-        ));
-
-        Integer cpus = null;
-        Double disk = null;
-        Double ram = null;
-        ResourceRequirement jobResourceRequirement = bindings.getResourceRequirement(job);
-        if (jobResourceRequirement != null) {
-          cpus = (jobResourceRequirement.getCpuMin() != null) ? jobResourceRequirement.getCpuMin().intValue() : null;
-          disk = (jobResourceRequirement.getDiskSpaceMinMB() != null) ? jobResourceRequirement.getDiskSpaceMinMB().doubleValue() / 1000.0 : null;
-          ram = (jobResourceRequirement.getMemMinMB() != null) ? jobResourceRequirement.getMemMinMB().doubleValue() / 1000.0 : null;
+        String commandLineToolErrLog = commandLine.getStandardError();
+        if (commandLineToolErrLog == null) {
+          commandLineToolErrLog = DEFAULT_COMMAND_LINE_TOOL_ERR_LOG;
         }
+        commandLineToolErrLog = localDir.resolve(commandLineToolErrLog).toString();
 
-        volumes.add(new TESVolume(
-          WORKING_DIR,
-          disk,
-          null,
-          storage.containerPath(WORKING_DIR).toString(),
-          false
-        ));
+        List<TESExecutor> command = Collections.singletonList(new TESExecutor(getImageId(dockerContainerRequirement), buildCommandLine(commandLine),
+            localDir.toString(), commandLine.getStandardIn(), commandLineToolStdout, commandLineToolErrLog, getVariables(combinedRequirements)));
 
-        volumes.add(new TESVolume(
-          "inputs",
-          disk,
-          null,
-          storage.containerPath("inputs").toString(),
-          true
-        ));
+        TESResources resources = getResources(combinedRequirements);
+        TESTask task = new TESTask(job.getName(), DEFAULT_PROJECT, null, new ArrayList<TESTaskParameter>(inputs), outputs, resources, command, null, null);
 
-        TESResources resources = new TESResources(
-          cpus,
-          false,
-          ram,
-          volumes,
-          null
-        );
+        TESCreateTaskResponse tesJobId = tesHttpClient.runTask(task);
 
-        TESTask task = new TESTask(
-          job.getName(),
-          DEFAULT_PROJECT,
-          job.getRootId().toString(),
-          inputs,
-          outputs,
-          resources,
-          job.getId().toString(),
-          commands
-        );
-        
-        TESJobId tesJobId = tesHttpClient.runTask(task);
-
-        TESTask tesJob;
         do {
-          Thread.sleep(1000L);
-          tesJob = tesHttpClient.getTask(tesJobId);
-          if (tesJob == null) {
+          Thread.sleep(100L);
+          task = tesHttpClient.getTask(new TESGetTaskRequest(tesJobId.getId(), TESView.FULL));
+          if (task == null) {
             throw new TESServiceException("TESJob is not created. JobId = " + job.getId());
           }
-        } while(!isFinished(tesJob));
-        return tesJob;
-      } catch (IOException e) {
-        logger.error("Failed to write files to SharedFileStorage", e);
-        throw new TESServiceException("Failed to write files to SharedFileStorage", e);
+        } while (!isFinished(task));
+        return new TESWorkPair(job, task);
       } catch (TESHTTPClientException e) {
         logger.error("Failed to submit Job to TES", e);
         throw new TESServiceException("Failed to submit Job to TES", e);
@@ -454,15 +299,184 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         throw new TESServiceException("Failed to use Bindings", e);
       }
     }
-    
+
+    private List<String> buildCommandLine(CommandLine commandLine) {
+      List<String> mainCommand = new ArrayList<>();
+      List<String> parts = commandLine.getParts();
+      StringBuilder joined = new StringBuilder();
+
+      parts.forEach(part -> {
+        if ((!mainCommand.isEmpty() && mainCommand.get(mainCommand.size() - 1).equals("-c")) || joined.length() > 0) {
+          joined.append(" ").append(part);
+        } else {
+          mainCommand.add(part);
+        }
+      });
+      if (joined.length() > 0) {
+        mainCommand.add(joined.toString().trim());
+      } else {
+        joined.append(StringUtils.join(mainCommand, " "));
+        mainCommand.clear();
+        mainCommand.add(joined.toString());
+        mainCommand.add(0, "-c");
+        mainCommand.add(0, "/bin/sh");
+      }
+      return mainCommand;
+    }
+
+    private Map<String, String> getVariables(List<Requirement> combinedRequirements) {
+      EnvironmentVariableRequirement envs = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
+      Map<String, String> variables = new HashMap<>();
+      if (envs != null) {
+        variables = envs.getVariables();
+      }
+      variables.put("HOME", localDir.toString());
+      variables.put("TMPDIR", localDir.toString());
+      return variables;
+    }
+
+    private String getImageId(DockerContainerRequirement dockerContainerRequirement) {
+      String imageId;
+      if (dockerContainerRequirement == null) {
+        imageId = "debian:stretch-slim";
+      } else {
+        imageId = dockerContainerRequirement.getDockerPull();
+      }
+      return imageId;
+    }
+
+    private void stageFileRequirements(List<Requirement> requirements, Path workDir, Collection<FileValue> old) throws TESStorageException {
+      FileRequirement fileRequirementResource = getRequirement(requirements, FileRequirement.class);
+      if (fileRequirementResource == null) {
+        return;
+      }
+
+      List<SingleFileRequirement> fileRequirements = fileRequirementResource.getFileRequirements();
+      if (fileRequirements == null) {
+        return;
+      }
+
+      for (SingleFileRequirement fileRequirement : fileRequirements) {
+        logger.info("Process file requirement {}", fileRequirement);
+        String filename = fileRequirement.getFilename();
+        Path destinationFile = workDir.resolve(filename);
+        if (fileRequirement instanceof SingleTextFileRequirement) {
+          try {
+            byte[] bytes = ((SingleTextFileRequirement) fileRequirement).getContent().getBytes();
+            Files.createDirectories(destinationFile.getParent());
+            Files.write(destinationFile, bytes);
+          } catch (IOException e) {
+            throw new TESStorageException(e.getMessage());
+          }
+          old.add(new FileValue(0l, localDir.resolve(filename).toString(), destinationFile.toUri().toString(), null, Collections.emptyList(), null, null));
+          continue;
+        }
+        if (fileRequirement instanceof SingleInputFileRequirement) {
+          FileValue content = ((SingleInputFileRequirement) fileRequirement).getContent();
+          for (FileValue f : old) {
+            if (f.getPath().equals(content.getPath())) {
+              content = f;
+            }
+          }
+          if (!filename.equals(content.getName())) {
+            recursiveSet(content, filename);
+          }
+          if (content.getPath() == null) {
+            content.setPath(storage.localDir(job).resolve(content.getPath()).toString());
+          }
+          if (!old.contains(content)) {
+            old.add(content);
+          }
+        }
+      }
+    }
+
+    private List<Requirement> getRequirements(Bindings bindings) throws BindingException {
+      List<Requirement> combinedRequirements = new ArrayList<>();
+      combinedRequirements.addAll(bindings.getHints(job));
+      combinedRequirements.addAll(bindings.getRequirements(job));
+      return combinedRequirements;
+    }
+
+    private void recursiveSet(FileValue file, String a) {
+      file.setName(a);
+      file.setPath(storage.localDir(job).resolve(a).toString());
+      file.getSecondaryFiles().forEach(f -> {
+        recursiveSet(f, f.getName());
+      });
+    }
+
+    private Collection<FileValue> flatten(Map<String, Object> inputs) {
+      List<FileValue> flat = new ArrayList<>();
+      flatten(flat, inputs);
+      return flat;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    private void flatten(Collection<FileValue> inputs, Object value) {
+      if (value instanceof Map)
+        flatten(inputs, (Map) value);
+      if (value instanceof List)
+        flatten(inputs, (List) value);
+      if (value instanceof FileValue)
+        flatten(inputs, (FileValue) value);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void flatten(Collection<FileValue> inputs, Map value) {
+      value.values().forEach(v -> flatten(inputs, v));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void flatten(Collection<FileValue> inputs, List value) {
+      value.forEach(v -> flatten(inputs, v));
+    }
+
+    private void flatten(Collection<FileValue> inputs, FileValue value) {
+      value.getSecondaryFiles().forEach(f -> flatten(inputs, f));
+      if (value instanceof DirectoryValue) {
+        List<FileValue> listing = ((DirectoryValue) value).getListing();
+        if (!listing.isEmpty()) {
+          listing.forEach(f -> flatten(inputs, f));
+        } else {
+          inputs.add(value);
+        }
+      } else {
+        inputs.add(value);
+      }
+    }
+
+    private TESResources getResources(List<Requirement> combinedRequirements) {
+      Integer cpus = null;
+      Double disk = null;
+      Double ram = null;
+      ResourceRequirement jobResourceRequirement = getRequirement(combinedRequirements, ResourceRequirement.class);
+      if (jobResourceRequirement != null) {
+        cpus = (jobResourceRequirement.getCpuMin() != null) ? jobResourceRequirement.getCpuMin().intValue() : null;
+        disk = (jobResourceRequirement.getDiskSpaceMinMB() != null) ? jobResourceRequirement.getDiskSpaceMinMB().doubleValue() / 1000.0 : null;
+        ram = (jobResourceRequirement.getMemMinMB() != null) ? jobResourceRequirement.getMemMinMB().doubleValue() / 1000.0 : null;
+      }
+      TESResources resources = new TESResources(cpus, false, ram, disk, null);
+      return resources;
+    }
+
     private boolean isFinished(TESTask tesJob) {
-      return tesJob.getState().equals(TESState.CANCELED) || 
-          tesJob.getState().equals(TESState.COMPLETE) || 
-          tesJob.getState().equals(TESState.ERROR) || 
-          tesJob.getState().equals(TESState.SYSTEMERROR);
+      return tesJob.getState().equals(TESState.CANCELED) || tesJob.getState().equals(TESState.COMPLETE) || tesJob.getState().equals(TESState.ERROR)
+          || tesJob.getState().equals(TESState.SYSTEM_ERROR);
     }
   }
-  
+
+  private class TESWorkPair {
+    Job job;
+    TESTask tesTask;
+
+    public TESWorkPair(Job job, TESTask tesTask) {
+      super();
+      this.job = job;
+      this.tesTask = tesTask;
+    }
+  }
+
   @Override
   public void cancel(List<UUID> ids, UUID contextId) {
     throw new NotImplementedException("This method is not implemented");
