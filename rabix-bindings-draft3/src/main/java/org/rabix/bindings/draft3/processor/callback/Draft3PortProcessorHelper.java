@@ -1,6 +1,7 @@
 package org.rabix.bindings.draft3.processor.callback;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
@@ -83,6 +84,14 @@ public class Draft3PortProcessorHelper {
       return portProcessor.processInputs(inputs, new Draft3StageInputProcessorCallback(workingDir));
     } catch (Draft3PortProcessorException e) {
       throw new Draft3PortProcessorException("Failed to stage inputs.", e);
+    }
+  }
+  
+  public Map<String, Object> setFileProperties(Map<String, Object> inputs) throws Draft3PortProcessorException {
+    try {
+      return portProcessor.processInputs(inputs, new Draft3FilePropertiesProcessorCallback(Paths.get(draft3Job.getApp().getAppFileLocation())));
+    } catch (Draft3PortProcessorException e) {
+      throw new Draft3PortProcessorException("Failed to set input properties.", e);
     }
   }
 }

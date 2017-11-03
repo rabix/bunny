@@ -4,6 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -211,6 +216,78 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
     FileValue ret = new FileValue(size, path, location, checksum, secondaryFiles, properties, name, null, contents);
     ret.setDirname(dirname);
     return ret;
+  }
+  
+  public static void buildMissingInfo(Object value, HashAlgorithm alg, Path workDir) throws IOException, URISyntaxException {
+    String path = getPath(value);
+    String location = getLocation(value);
+    Path actual = null;
+
+    if (path == null) {
+      if (location != null) {
+        URI uri = URI.create(location);
+        if (uri.getScheme() == null) {
+          uri = new URI("file", location, null);
+        }
+        if (uri.isOpaque()) {
+          uri = new URI("file", workDir.resolve(uri.getSchemeSpecificPart()).toAbsolutePath().toString(), null);
+        }
+        location = uri.toString();
+        actual = Paths.get(uri);
+        if (!actual.isAbsolute()) {
+          actual = workDir.resolve(actual).toAbsolutePath();
+        }
+        path = actual.toString();
+      } else {
+        return;
+      }
+    }
+    
+    if (location == null) {
+      actual = workDir.resolve(path).toAbsolutePath();
+      location = actual.toUri().toString();
+    } else {
+      actual = Paths.get(URI.create(location));
+    }
+    if(!Paths.get(path).isAbsolute()){
+      path=workDir.resolve(path).toAbsolutePath().toString();
+    }
+    
+    String name = getName(value);
+    if (name == null) {
+      setNames(actual, value);
+    } else {
+      if (!path.endsWith(name)) {
+        path = Paths.get(path).resolveSibling(name).toString();
+      }
+    }
+    
+    setPath(path, value);
+    setLocation(location, value);
+    
+    if (getSize(value) == null && Files.exists(actual)) {
+      setSize(Files.size(actual), value);
+      if (alg != null)
+        setChecksum(actual.toFile(), value, alg);
+    }
+
+    List<Map<String, Object>> secondaryFiles = getSecondaryFiles(value);
+    if (secondaryFiles != null) {
+      for (Map<String, Object> secondaryFileValue : secondaryFiles) {
+        buildMissingInfo(secondaryFileValue, alg, workDir);
+      }
+    }
+    if (name != null && !actual.endsWith(name)) {
+      setPath(Paths.get(path).resolveSibling(name).toString(), value);
+    }
+  }
+
+  private static void setNames(Path path, Object value) throws IOException {
+    String name = path.getFileName().toString();
+    if (getName(value) == null)
+      setName(name, value);
+    if (path.getParent() != null)
+      setDirname(path.getParent().toString(), value);
   }
   
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
