@@ -64,8 +64,7 @@ public class SBProcessor implements ProtocolProcessor {
     SBPortProcessorHelper portProcessorHelper = new SBPortProcessorHelper(sbJob);
     try {
       Map<String, Object> inputs = sbJob.getInputs();
-      // inputs = portProcessorHelper.setFileSize(inputs);
-      inputs = portProcessorHelper.setFileProperties(inputs, workingDir.toPath());
+      inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.setInputSecondaryFiles(inputs, sbJob, null);
 
