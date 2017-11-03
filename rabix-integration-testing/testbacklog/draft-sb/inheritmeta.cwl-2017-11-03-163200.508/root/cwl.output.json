@@ -1,0 +1,14 @@
+{
+  "output" : {
+    "checksum" : "sha1$da39a3ee5e6b4b0d3255bfef95601890afd80709",
+    "class" : "File",
+    "metadata" : {
+      "key0" : "value0",
+      "key1" : "value1",
+      "key2" : "value2"
+    },
+    "name" : "out.txt",
+    "path" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/draft-sb/inheritmeta.cwl-2017-11-03-163200.508/root/out.txt",
+    "size" : 0
+  }
+}

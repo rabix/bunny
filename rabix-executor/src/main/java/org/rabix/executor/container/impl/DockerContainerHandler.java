@@ -97,7 +97,6 @@ public class DockerContainerHandler implements ContainerHandler {
 
   private Integer overrideResultStatus = null;
 
-  private StorageConfiguration storageConfig;
   private WorkerStatusCallback statusCallback;
   
   private String commandLine;
@@ -112,7 +111,6 @@ public class DockerContainerHandler implements ContainerHandler {
     this.dockerClient = dockerClient;
     this.dockerResource = dockerResource;
     this.statusCallback = statusCallback;
-    this.storageConfig = storageConfig;
     this.workingDir = storageConfig.getWorkingDir(job);
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
     this.removeContainers = dockerConfig.removeContainers();
@@ -218,9 +216,10 @@ public class DockerContainerHandler implements ContainerHandler {
       }
       
       if (SystemUtils.IS_OS_WINDOWS) {
-//        Function<? super String, ? extends String> mapper2 = input -> input.replace("\\", "/"); //TODO: windows
-//        toBindSet = toBindSet.stream().map(input -> input + ":/" + input.replace(":", "") + ":" + DIRECTORY_MAP_MODE).map(mapper2).collect(Collectors.toSet());
-//        volumes = volumes.stream().map(mapper2).collect(Collectors.toSet());
+        FileValueHelper.getInputFiles(job).forEach(f -> {
+          hostConfigBuilder.appendBinds((URI.create(f.getLocation()).getPath() + ":" + f.getPath().replace(":", "")).replace("\\", "/"));
+          f.getSecondaryFiles().forEach(sec -> hostConfigBuilder.appendBinds(URI.create(sec.getLocation()).getPath() + ":" + sec.getPath()));
+        });
       } else {
         FileValueHelper.getInputFiles(job).forEach(f -> {
           hostConfigBuilder.appendBinds(URI.create(f.getLocation()).getPath() + ":" + f.getPath());
