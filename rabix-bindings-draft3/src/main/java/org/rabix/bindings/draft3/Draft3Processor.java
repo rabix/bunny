@@ -2,6 +2,7 @@ package org.rabix.bindings.draft3;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -187,8 +188,9 @@ public class Draft3Processor implements ProtocolProcessor {
     }
     if ((Draft3SchemaHelper.isFileFromValue(value))) {
       String path = Draft3FileValueHelper.getPath(value);
+      
       if (StringUtils.isEmpty(Draft3FileValueHelper.getLocation(value))) {
-        Draft3FileValueHelper.setLocation(path, value);
+        Draft3FileValueHelper.setLocation(Paths.get(path).toUri().toString(), value);
       }
       
       File file = new File(path);
