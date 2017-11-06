@@ -123,7 +123,7 @@ public class ScatterHandler {
 
       List<VariableRecord> outputVariableRecords = variableRecordService.find(job.getId(), LinkPortType.OUTPUT, job.getRootId());
       for (VariableRecord outputVariableRecord : outputVariableRecords) {
-        eventProcessor.addToQueue(new OutputUpdateEvent(job.getRootId(), job.getId(), outputVariableRecord.getPortId(), output, 1, 1, event.getEventGroupId(), event.getProducedByNode()));
+        eventProcessor.send(new OutputUpdateEvent(job.getRootId(), job.getId(), outputVariableRecord.getPortId(), output, 1, 1, event.getEventGroupId(), event.getProducedByNode()));
       }
       return;
     }

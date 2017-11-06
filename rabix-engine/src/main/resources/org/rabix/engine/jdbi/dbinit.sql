@@ -448,4 +448,7 @@ alter table backend alter column configuration type text
 ALTER TABLE intermediary_files ADD CONSTRAINT key PRIMARY KEY (root_id, filename);
 --rollback ALTER TABLE public.intermediary_files DROP CONSTRAINT key PRIMARY KEY (root_id, filename);
 
+--changeset bunny:1487849040814-73 dbms:postgresql
+ALTER TABLE public.job drop CONSTRAINT job_backend_status_check;
+--rollback ALTER TABLE job ADD CONSTRAINT job_backend_status_check CHECK (backend_id IS NOT NULL OR status <> 'RUNNING'::job_status OR parent_id IS NULL);
 

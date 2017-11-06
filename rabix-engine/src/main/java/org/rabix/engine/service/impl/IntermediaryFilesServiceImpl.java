@@ -71,16 +71,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
 
   @Override
   public void handleJobFailed(Job job, Job rootJob) {
-//    Set<String> rootInputs = new HashSet<String>();
-//    if(keepInputFiles) {
-//      for(Map.Entry<String, Object> entry : rootJob.getInputs().entrySet()) {
-//      Set<FileValue> files = new HashSet(FileValueHelper.getFilesFromValue(entry.getValue()));
-//        for (FileValue file : files) {
-//          extractPathsFromFileValue(rootInputs, file);
-//        }
-//      }
-//    }
-//    jobFailed(job.getRootId(), rootInputs); 
     handleUnusedFiles(job);
   }
   

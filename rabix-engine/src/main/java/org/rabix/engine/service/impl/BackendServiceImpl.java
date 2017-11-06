@@ -70,6 +70,7 @@ public class BackendServiceImpl implements BackendService {
           injector.injectMembers(backendAPI);
           BackendLocal backendLocal = new BackendLocal(Integer.toString(prefix++));
           create(backendLocal);
+          startBackend(backendLocal);
           backendAPI.start(backendLocal);
         }
       } catch (InstantiationException | IllegalAccessException | BackendServiceException e) {
@@ -95,8 +96,6 @@ public class BackendServiceImpl implements BackendService {
                 BackendRecord.Status.ACTIVE,
                 BackendRecord.Type.valueOf(backend.getType().toString()));
             backendRepository.insert(br);
-            BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
-            scheduler.addBackendStub(backendStub);
             logger.info("Backend {} registered.", populated.getId());
             return backend;
           } catch (BackendServiceException e) {

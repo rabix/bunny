@@ -50,7 +50,7 @@ public interface JDBIJobRepository extends JobRepository {
   void update(@BindJob Job job);
 
   @Override
-  @SqlUpdate("update job set status=:status::job_status, message=:message, outputs=:outputs, modified_at='now' where id=:id")
+  @SqlUpdate("update job set status=:status::job_status, message=:message, outputs=:outputs, modified_at='now', config=:config::jsonb where id=:id")
   void updatePartial(@BindJob Job job);
   
   @Override

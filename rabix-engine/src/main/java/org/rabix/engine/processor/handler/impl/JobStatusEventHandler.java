@@ -26,7 +26,6 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.common.logging.DebugAppender;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.ContextStatusEvent;
@@ -265,14 +264,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     UUID rootId = event.getContextId();
     DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), rootId, job.getDagHash());
 
-    DebugAppender readyJobLogging = new DebugAppender(logger);
-    readyJobLogging.append(" --- JobRecord ").append(job.getId()).append(" is ready.").append(" Job isBlocking=").append(job.isBlocking()).append("\n");
-    for (PortCounter portCounter : job.getInputCounters()) {
-      readyJobLogging.append(" --- Input port ").append(portCounter.getPort()).append(", isScatter=").append(portCounter.isScatter()).append(", isBlocking ").append(job.isInputPortBlocking(node, portCounter.getPort())).append("\n");
-    }
-    readyJobLogging.append(" --- All scatter ports ").append(job.getScatterPorts()).append("\n");
-    logger.debug(readyJobLogging.toString());
-    
     if (!job.isScattered() && job.getScatterPorts().size() > 0) {
       job.setState(JobRecord.JobState.RUNNING);
       
@@ -393,26 +384,18 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       JobRecord childJob = scatterHelper.createJobRecord(newJobId, job.getExternalId(), node, false, contextId, job.getDagHash());
       jobRecordService.create(childJob);
 
-      DebugAppender childJobLogBuilder = new DebugAppender(logger);
-      childJobLogBuilder.append("\n -- JobRecord ", newJobId, ", isBlocking ", childJob.isBlocking(), "\n");
-
-
       for (DAGLinkPort port : node.getInputPorts()) {
         if (port.getTransform() != null) {
           childJob.setBlocking(true);
         }
         VariableRecord childVariable = new VariableRecord(contextId, newJobId, port.getId(), LinkPortType.INPUT, port.getDefaultValue(), node.getLinkMerge(port.getId(), port.getType()));
-        childJobLogBuilder.append(" -- Input port ", port.getId(), ", isScatter ", port.isScatter(), "\n");
         variableRecordService.create(childVariable);
       }
 
       for (DAGLinkPort port : node.getOutputPorts()) {
-        childJobLogBuilder.append(" -- Output port ", port.getId(), ", isScatter ", port.isScatter(), "\n");
         VariableRecord childVariable = new VariableRecord(contextId, newJobId, port.getId(), LinkPortType.OUTPUT, null, node.getLinkMerge(port.getId(), port.getType()));
         variableRecordService.create(childVariable);
       }
-      logger.debug(childJobLogBuilder.toString());
-
     }
     for (DAGLink link : containerNode.getLinks()) {
       String originalJobID = InternalSchemaHelper.normalizeId(job.getId());

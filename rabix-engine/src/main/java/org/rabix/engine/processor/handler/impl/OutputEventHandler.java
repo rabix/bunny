@@ -75,8 +75,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       if(sourceJob.getOutputCounter(sourceVariable.getPortId()) != null) {
         if (sourceJob.isRoot() && sourceJob.isContainer()) {
           Job rootJob = createJob(sourceJob, JobHelper.transformStatus(sourceJob.getState()));
-            eventProcessor.addToQueue(
-                new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobRecord.JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), InternalSchemaHelper.ROOT_NAME));
+          eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobRecord.JobState.COMPLETED, rootJob.getOutputs(), event.getEventGroupId(), InternalSchemaHelper.ROOT_NAME));
           return;
         }
       }
@@ -114,7 +113,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     }
     
     if (sourceJob.isCompleted() && (sourceJob.isScatterWrapper() || sourceJob.isContainer())) {
-      eventProcessor.addToQueue(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, createJob(sourceJob, JobStatus.COMPLETED).getOutputs(),
+      eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, createJob(sourceJob, JobStatus.COMPLETED).getOutputs(),
           event.getEventGroupId(), sourceJob.getId()));
     }
     

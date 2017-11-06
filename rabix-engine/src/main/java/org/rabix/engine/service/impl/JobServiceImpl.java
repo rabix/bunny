@@ -35,7 +35,6 @@ import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.repository.JobRepository;
 import org.rabix.engine.store.repository.JobRepository.JobEntity;
 import org.rabix.engine.store.repository.TransactionHelper;
-import org.rabix.engine.validator.JobStateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,52 +105,21 @@ public class JobServiceImpl implements JobService {
       transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
         @Override
         public Void call() throws Exception {
-          if (!job.isRoot()) {
-            UUID backendId = jobRepository.getBackendId(job.getId());
-            if (backendId == null) {
-              logger.warn("Tried to update Job " + job.getId() + " without backend assigned.");
-              return null;
-            }  
-            
-            JobStatus dbStatus = jobRepository.getStatus(job.getId());
-            JobStateValidator.checkState(JobHelper.transformStatus(dbStatus), JobHelper.transformStatus(job.getStatus()));
-          }
-          JobRecord jobRecord = jobRecordService.find(job.getName(), job.getRootId());
-          if (jobRecord == null) {
-            logger.info("Possible stale message. Job {} for root {} doesn't exist.", job.getName(), job.getRootId());
-            return null;
-          }
           JobStatusEvent statusEvent = null;
           JobStatus status = job.getStatus();
           switch (status) {
           case RUNNING:
-            if (JobRecord.JobState.RUNNING.equals(jobRecord.getState())) {
-              return null;
-            }
-            JobStateValidator.checkState(jobRecord, JobRecord.JobState.RUNNING);
             statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.RUNNING, job.getOutputs(), job.getId(), job.getName());
             break;
           case FAILED:
-            if (JobRecord.JobState.FAILED.equals(jobRecord.getState())) {
-              return null;
-            }
-            JobStateValidator.checkState(jobRecord, JobRecord.JobState.FAILED);
             statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.FAILED, job.getMessage(), job.getId(), job.getName());
             break;
           case ABORTED:
-            if (JobRecord.JobState.ABORTED.equals(jobRecord.getState())) {
-              return null;
-            }
-            JobStateValidator.checkState(jobRecord, JobRecord.JobState.ABORTED);
-            Job rootJob = jobRepository.get(jobRecord.getRootId());
+            Job rootJob = jobRepository.get(job.getRootId());
             handleJobRootAborted(rootJob);
             statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobRecord.JobState.ABORTED, rootJob.getId(), rootJob.getName());
             break;
           case COMPLETED:
-            if (JobRecord.JobState.COMPLETED.equals(jobRecord.getState())) {
-              return null;
-            }
-            JobStateValidator.checkState(jobRecord, JobRecord.JobState.COMPLETED);
             statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.COMPLETED, job.getOutputs(), job.getId(), job.getName());
             break;
           default:
@@ -295,7 +263,7 @@ public class JobServiceImpl implements JobService {
   public void handleJobFailed(final Job failedJob){
     logger.warn("Job {}, rootId: {} failed: {}", failedJob.getName(), failedJob.getRootId(), failedJob.getMessage());
     intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()));
-    
+
     try {
       engineStatusCallback.onJobFailed(failedJob);
     } catch (EngineStatusCallbackException e) {
