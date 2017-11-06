@@ -1,45 +1,14 @@
 package org.rabix.engine.store.repository;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.rabix.engine.store.cache.Cachable;
-import org.rabix.engine.store.cache.CachableRepository;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.JobRecord.JobIdRootIdPair;
 
-public abstract class JobRecordRepository implements CachableRepository {
-
-  @Override
-  public int insertCachable(Cachable record) {
-    return insert((JobRecord) record);
-  }
-  
-  @Override
-  public int updateCachable(Cachable record) {
-    return update((JobRecord) record);
-  }
-  
-  @Override
-  public void insertCachables(List<Cachable> cachables) {
-    List<JobRecord> records = new ArrayList<>();
-    for (Cachable cachable : cachables) {
-      records.add((JobRecord) cachable);
-    }
-    insertBatch(records.iterator());
-  }
-  
-  @Override
-  public void updateCachables(List<Cachable> cachables) {
-    List<JobRecord> records = new ArrayList<>();
-    for (Cachable cachable : cachables) {
-      records.add((JobRecord) cachable);
-    }
-    updateBatch(records.iterator());
-  }
+public abstract class JobRecordRepository {
 
   public abstract int insert(JobRecord jobRecord);
   

@@ -6,7 +6,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -17,20 +16,19 @@ import org.rabix.engine.event.Event.EventType;
 import org.rabix.engine.event.impl.ContextStatusEvent;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
-import org.rabix.engine.store.model.ContextRecord;
-import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.store.model.ContextRecord;
+import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.store.model.EventRecord;
 import org.rabix.engine.store.model.JobRecord.JobState;
 import org.rabix.engine.store.repository.EventRepository;
 import org.rabix.engine.store.repository.JobRepository;
 import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.store.repository.TransactionHelper.TransactionException;
-import org.rabix.engine.service.CacheService;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.JobService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,20 +56,17 @@ public class EventProcessorImpl implements EventProcessor {
   private final ContextRecordService contextRecordService;
   
   private final TransactionHelper transactionHelper;
-  private final CacheService cacheService;
-  
   private final JobRepository jobRepository;
   private final EventRepository eventRepository;
   private final JobService jobService;
   
   @Inject
   public EventProcessorImpl(HandlerFactory handlerFactory, ContextRecordService contextRecordService,
-      TransactionHelper transactionHelper, CacheService cacheService, EventRepository eventRepository,
+      TransactionHelper transactionHelper, EventRepository eventRepository,
       JobRepository jobRepository, JobService jobService) {
     this.handlerFactory = handlerFactory;
     this.contextRecordService = contextRecordService;
     this.transactionHelper = transactionHelper;
-    this.cacheService = cacheService;
     this.eventRepository = eventRepository;
     this.jobRepository = jobRepository;
     this.jobService = jobService;
@@ -93,8 +88,6 @@ public class EventProcessorImpl implements EventProcessor {
                   eventRepository.deleteGroup(eventReference.get().getEventGroupId());
                   return null;
                 }
-                cacheService.flush(eventReference.get().getContextId());
-                
                 if (checkForReadyJobs(eventReference.get())) {
                   Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(eventReference.get().getEventGroupId());
                   jobService.handleJobsReady(readyJobs, eventReference.get().getContextId(), eventReference.get().getProducedByNode());  
@@ -114,7 +107,6 @@ public class EventProcessorImpl implements EventProcessor {
               logger.error("Failed to call jobFailed handler for job after event {} failed.", e, ex);
             }
             try {
-              cacheService.clear(eventReference.get().getContextId());
               Event event = eventReference.get();
               EventRecord er = new EventRecord(event.getEventGroupId(), EventRecord.Status.FAILED, JSONHelper.convertToMap(e));
               eventRepository.insert(er);

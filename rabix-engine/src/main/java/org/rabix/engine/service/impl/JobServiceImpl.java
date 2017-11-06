@@ -45,12 +45,6 @@ public class JobServiceImpl implements JobService {
   private static final long FREE_RESOURCES_WAIT_TIME = 3000L;
   
   private final static Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
-  
-  private final JobRecordService jobRecordService;
-  private final LinkRecordService linkRecordService;
-  private final VariableRecordService variableRecordService;
-  private final ContextRecordService contextRecordService;
-
   private final JobRepository jobRepository;
   private final DAGNodeService dagNodeService;
   private final AppService appService;
@@ -82,11 +76,6 @@ public class JobServiceImpl implements JobService {
     this.appService = appService;
     this.eventProcessor = eventProcessor;
     this.jobRepository = jobRepository;
-
-    this.jobRecordService = jobRecordService;
-    this.linkRecordService = linkRecordService;
-    this.variableRecordService = variableRecordService;
-    this.contextRecordService = contextRecordService;
     this.scheduler = scheduler;
     this.transactionHelper = transactionHelper;
     this.engineStatusCallback = statusCallback;

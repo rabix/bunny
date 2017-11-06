@@ -12,10 +12,8 @@ import org.rabix.engine.processor.handler.impl.OutputEventHandler;
 import org.rabix.engine.processor.handler.impl.ScatterHandler;
 import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
 import org.rabix.engine.service.AppService;
-import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.DAGNodeService;
-import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobStatsRecordService;
@@ -23,15 +21,12 @@ import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.service.StoreCleanupService;
 import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.service.impl.AppServiceImpl;
-import org.rabix.engine.service.impl.CacheServiceImpl;
 import org.rabix.engine.service.impl.ContextRecordServiceImpl;
 import org.rabix.engine.service.impl.DAGNodeServiceImpl;
-import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
 import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
 import org.rabix.engine.service.impl.JobRecordServiceImpl;
 import org.rabix.engine.service.impl.JobStatsRecordServiceImpl;
 import org.rabix.engine.service.impl.LinkRecordServiceImpl;
-import org.rabix.engine.service.impl.NoOpIntermediaryFilesServiceHandler;
 import org.rabix.engine.service.impl.StoreCleanupServiceImpl;
 import org.rabix.engine.service.impl.VariableRecordServiceImpl;
 import org.rabix.engine.store.lru.dag.DAGCache;
@@ -64,9 +59,7 @@ public class EngineModule extends AbstractModule {
       install(new InMemoryRepositoryModule());
       bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     }
-    bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);       
-    
-    bind(CacheService.class).to(CacheServiceImpl.class).in(Scopes.SINGLETON);
+    bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
     
     bind(DAGCache.class).in(Scopes.SINGLETON);
     bind(DAGNodeService.class).to(DAGNodeServiceImpl.class).in(Scopes.SINGLETON);

@@ -19,7 +19,6 @@ import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.engine.store.cache.Cachable;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.VariableRecord;
 import org.rabix.engine.store.postgres.jdbi.impl.JDBIVariableRecordRepository.VariableRecordMapper;
@@ -38,11 +37,6 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(VariableRecordMapper.class)
 public abstract class JDBIVariableRecordRepository extends VariableRecordRepository {
-
-  @Override
-  public int insertCachable(Cachable record) {
-    return insert((VariableRecord) record);
-  }
   
   @Override
   @SqlUpdate("insert into variable_record (job_id,value,port_id,type,link_merge,is_wrapped,globals_count,times_updated_count,context_id,is_default,transform,created_at,modified_at) values (:job_id,:value,:port_id,:type::port_type,:link_merge::link_merge_type,:is_wrapped,:globals_count,:times_updated_count,:context_id,:is_default,:transform,:created_at,:modified_at)")
