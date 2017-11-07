@@ -258,7 +258,10 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
             try {
               callback.handleReceive(BeanSerializer.deserialize(message, clazz));
             } catch (TransportPluginException e) {
-              throw new IOException();
+              logger.error("Could not handle receive", e);
+              channel.basicNack(envelope.getDeliveryTag(), false, false);
+
+              return;
             }
             channel.basicAck(envelope.getDeliveryTag(), false);
           }
