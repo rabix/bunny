@@ -11,14 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRabbitMQ> {
 
   public static final String DEFAULT_ENCODING = "UTF-8";
+  public static final String CONSUMER_THREAD_PREFIX = "TransportPluginRabbitMQConsumerThread-";
   public static final int RETRY_TIMEOUT = 5; // Seconds
 
   private static final Logger logger = LoggerFactory.getLogger(TransportPluginRabbitMQ.class);
@@ -72,10 +70,22 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
         }
       }
       durable = TransportConfigRabbitMQ.durableQueues(configuration);
-      connection = factory.newConnection(Executors.newFixedThreadPool(TransportConfigRabbitMQ.consumersThreadPoolSize(configuration)));
+      connection = factory.newConnection(getConsumersExecutor());
     } catch (Exception e) {
       throw new TransportPluginException("Failed to initialize TransportPluginRabbitMQ", e);
     }
+  }
+
+  private ExecutorService getConsumersExecutor() {
+    int nThreads = TransportConfigRabbitMQ.consumersThreadPoolSize(configuration);
+    ThreadFactory threadFactory = new ThreadFactory() {
+      int threadNum;
+      @Override
+      public Thread newThread(Runnable runnable) {
+        return new Thread(runnable, CONSUMER_THREAD_PREFIX + ++threadNum);
+      }
+    };
+    return Executors.newFixedThreadPool(nThreads, threadFactory);
   }
 
   private Channel getChannel() throws TransportPluginException {
