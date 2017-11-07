@@ -250,7 +250,9 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
       String queueName = queue.getQueueName();
 
       try {
-        final Channel channel = connection.createChannel();
+        Channel channel = connection.createChannel();
+        channel.basicQos(configuration.getInt("rabbitmq.prefetch.count", 1000));
+
         consumer = new DefaultConsumer(channel) {
           @Override
           public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
