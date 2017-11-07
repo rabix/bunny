@@ -127,11 +127,6 @@ public class EventProcessorImpl implements EventProcessor {
   private boolean handle(Event event) throws TransactionException {
     while (event != null) {
       try {
-        ContextRecord context = contextRecordService.find(event.getContextId());
-        if (context != null && (context.getStatus().equals(ContextStatus.FAILED) || context.getStatus().equals(ContextStatus.ABORTED))) {
-          logger.info("Skip event {}. Context {} has been invalidated.", event, context.getId());
-          return false;
-        }
         handlerFactory.get(event.getType()).handle(event);
       } catch (EventHandlerException e) {
         throw new TransactionException(e);

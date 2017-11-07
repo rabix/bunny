@@ -452,3 +452,8 @@ ALTER TABLE intermediary_files ADD CONSTRAINT key PRIMARY KEY (root_id, filename
 ALTER TABLE public.job drop CONSTRAINT job_backend_status_check;
 --rollback ALTER TABLE job ADD CONSTRAINT job_backend_status_check CHECK (backend_id IS NOT NULL OR status <> 'RUNNING'::job_status OR parent_id IS NULL);
 
+--changeset bunny:1487849040814-74 dbms:postgresql
+ALTER TABLE job_stats
+    DROP CONSTRAINT job_stats_id_fkey;
+ALTER TABLE job_stats ADD CONSTRAINT job_stats_context_fkey FOREIGN KEY (root_id) REFERENCES context_record (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE CASCADE;
+--rollback ALTER TABLE job_stats DROP CONSTRAINT job_stats_context_fkey; ALTER TABLE job_stats ADD CONSTRAINT job_stats_id_fkey FOREIGN KEY (root_id) REFERENCES job (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE CASCADE;

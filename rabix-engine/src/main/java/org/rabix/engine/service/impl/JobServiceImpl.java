@@ -1,6 +1,12 @@
 package org.rabix.engine.service.impl;
 
-import com.google.inject.Inject;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -14,7 +20,11 @@ import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.service.*;
+import org.rabix.engine.service.AppService;
+import org.rabix.engine.service.DAGNodeService;
+import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobServiceException;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.rabix.engine.store.model.JobRecord;
@@ -24,12 +34,7 @@ import org.rabix.engine.store.repository.TransactionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import com.google.inject.Inject;
 
 public class JobServiceImpl implements JobService {
 
@@ -41,8 +46,6 @@ public class JobServiceImpl implements JobService {
   private final AppService appService;
 
   private final EventProcessor eventProcessor;
-  private final SchedulerService scheduler;
-
   private final TransactionHelper transactionHelper;
   private final MetricsHelper metricsHelper;
 
@@ -58,7 +61,7 @@ public class JobServiceImpl implements JobService {
   private JobHelper jobHelper;
 
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor, SchedulerService scheduler, DAGNodeService dagNodeService,
+  public JobServiceImpl(EventProcessor eventProcessor,DAGNodeService dagNodeService,
       AppService appService, JobRepository jobRepository, TransactionHelper transactionHelper,
       EngineStatusCallback statusCallback, Configuration configuration,
       IntermediaryFilesService intermediaryFilesService, JobHelper jobHelper, MetricsHelper metricsHelper) {
@@ -66,7 +69,6 @@ public class JobServiceImpl implements JobService {
     this.appService = appService;
     this.eventProcessor = eventProcessor;
     this.jobRepository = jobRepository;
-    this.scheduler = scheduler;
     this.transactionHelper = transactionHelper;
     this.engineStatusCallback = statusCallback;
     this.intermediaryFilesService = intermediaryFilesService;
@@ -144,9 +146,9 @@ public class JobServiceImpl implements JobService {
           String dagHash = dagNodeService.put(node, rootId);
 
 
-          updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.RUNNING);
+          updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.PENDING);
           updatedJob = Job.cloneWithConfig(updatedJob, config);
-          jobRepository.insert(updatedJob, null, null);
+          jobRepository.insert(updatedJob, updatedJob.getRootId(), null);
 
           InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, InternalSchemaHelper.ROOT_NAME);
           eventProcessor.persist(initEvent);
@@ -177,12 +179,6 @@ public class JobServiceImpl implements JobService {
       statuses.add(JobStatus.RUNNING);
       statuses.add(JobStatus.STARTED);
       jobRepository.updateStatus(job.getId(), JobStatus.ABORTED, statuses);
-
-      Set<Job> jobs = jobRepository.getByRootId(job.getRootId());
-      scheduler.stop(jobs.toArray(new Job[jobs.size()]));
-    } else {
-      // TODO implement the rest of the logic
-      scheduler.stop(job);
     }
     logger.info("Job {} rootId: {} stopped", job.getName(), job.getRootId());
   }
@@ -262,8 +258,6 @@ public class JobServiceImpl implements JobService {
   public void handleJobRootCompleted(Job job){
     logger.info("Root job {} completed.", job.getId());
     if (deleteFilesUponExecution) {
-      scheduler.freeBackend(job);
-
       if (isLocalBackend) {
         try {
           Thread.sleep(FREE_RESOURCES_WAIT_TIME);
@@ -287,8 +281,6 @@ public class JobServiceImpl implements JobService {
     logger.warn("Root job {} failed.", job.getId());
     synchronized (stoppingRootIds) {
       if (deleteFilesUponExecution) {
-        scheduler.freeBackend(job);
-
         if (isLocalBackend) {
           try {
             Thread.sleep(FREE_RESOURCES_WAIT_TIME);
@@ -299,8 +291,6 @@ public class JobServiceImpl implements JobService {
 
       job = Job.cloneWithStatus(job, JobStatus.FAILED);
       jobRepository.update(job);
-
-      scheduler.deallocate(job);
       stoppingRootIds.remove(job.getId());
     }
     try {
