@@ -5,18 +5,25 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.Job;
+import org.rabix.engine.service.BackendService;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
 public class DefaultEngineStatusCallback implements EngineStatusCallback {
 
   private final static Logger logger = LoggerFactory.getLogger(DefaultEngineStatusCallback.class);
   
+  @Inject
+  private BackendService backendService;
+  
   @Override
   public void onJobReady(Job job) throws EngineStatusCallbackException {
     logger.debug("onJobReady(jobId={})", job.getId());
+    backendService.sendToExecution(job);
   }
   
   @Override

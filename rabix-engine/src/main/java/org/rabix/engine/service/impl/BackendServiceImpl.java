@@ -1,6 +1,8 @@
 package org.rabix.engine.service.impl;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -8,11 +10,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.backend.api.WorkerService;
+import org.rabix.bindings.model.Job;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
-import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.store.model.BackendRecord;
 import org.rabix.engine.store.repository.BackendRepository;
 import org.rabix.engine.store.repository.TransactionHelper;
@@ -26,6 +28,8 @@ import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.BackendConfiguration;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.EngineConfiguration;
+import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.rabix.transport.mechanism.TransportPluginException;
 import org.rabix.transport.mechanism.impl.rabbitmq.TransportConfigRabbitMQ;
 import org.slf4j.Logger;
@@ -38,7 +42,8 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
 
-  private final SchedulerService scheduler;
+  private Set<BackendStub> backendStubs;
+
   private final BackendStubFactory backendStubFactory;
   private final TransactionHelper transactionHelper;
   private final Configuration configuration;
@@ -46,16 +51,23 @@ public class BackendServiceImpl implements BackendService {
   private final BackendRepository backendRepository;
   
   private final Injector injector;
+
+  private ReceiveCallback<Job> jobReceiver;
+  private ErrorCallback errorCallback;
   
   @Inject
-  public BackendServiceImpl(BackendStubFactory backendStubFactory, SchedulerService backendDispatcher,
-      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration, Injector injector) {
-    this.injector = injector;
-    this.scheduler = backendDispatcher;
+  public BackendServiceImpl(BackendStubFactory backendStubFactory,
+      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration, Injector injector, ReceiveCallback<Job> jobReceiver) {
+    this.injector = injector;;
     this.backendStubFactory = backendStubFactory;
     this.transactionHelper = transactionHelper;
     this.configuration = configuration;
     this.backendRepository = backendRepository;
+    this.backendStubs = Collections.synchronizedSet(new HashSet<>());
+    this.jobReceiver = jobReceiver;
+    this.errorCallback = (Exception e)->{
+      
+    };
   }
   
   @Override
@@ -112,7 +124,12 @@ public class BackendServiceImpl implements BackendService {
     try {
       backendRepository.updateStatus(backend.getId(), BackendRecord.Status.ACTIVE);
       updateHeartbeatInfo(backend.getId(), Instant.now());
-      scheduler.addBackendStub(backendStubFactory.create(backend));
+      BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
+      
+      backendStub.start(info -> {
+        updateHeartbeatInfo(backendStub.getBackend().getId(), Instant.ofEpochMilli(info.getTimestamp()));
+      }, jobReceiver, errorCallback);
+      this.backendStubs.add(backendStub);
     } catch (TransportPluginException e) {
       throw new BackendServiceException(e);
     }
@@ -233,5 +250,12 @@ public class BackendServiceImpl implements BackendService {
       }
     }
     return false;
+  }
+
+  @Override
+  public void sendToExecution(Job job) {
+    synchronized (backendStubs) {
+      backendStubs.iterator().next().send(job);
+    }
   }
 }
