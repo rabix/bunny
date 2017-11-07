@@ -12,6 +12,7 @@ import org.rabix.engine.JobHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
+import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.service.*;
 import org.rabix.engine.status.EngineStatusCallback;
@@ -43,6 +44,7 @@ public class JobServiceImpl implements JobService {
   private final SchedulerService scheduler;
 
   private final TransactionHelper transactionHelper;
+  private final MetricsHelper metricsHelper;
 
   private boolean deleteFilesUponExecution;
   private boolean isLocalBackend;
@@ -59,7 +61,7 @@ public class JobServiceImpl implements JobService {
   public JobServiceImpl(EventProcessor eventProcessor, SchedulerService scheduler, DAGNodeService dagNodeService,
       AppService appService, JobRepository jobRepository, TransactionHelper transactionHelper,
       EngineStatusCallback statusCallback, Configuration configuration,
-      IntermediaryFilesService intermediaryFilesService, JobHelper jobHelper) {
+      IntermediaryFilesService intermediaryFilesService, JobHelper jobHelper, MetricsHelper metricsHelper) {
     this.dagNodeService = dagNodeService;
     this.appService = appService;
     this.eventProcessor = eventProcessor;
@@ -69,46 +71,48 @@ public class JobServiceImpl implements JobService {
     this.engineStatusCallback = statusCallback;
     this.intermediaryFilesService = intermediaryFilesService;
     this.jobHelper = jobHelper;
+    this.metricsHelper = metricsHelper;
 
     setResources = configuration.getBoolean("engine.set_resources", false);
   }
 
   @Override
   public void update(Job job) throws JobServiceException {
+    metricsHelper.time(() -> doUpdate(job), "JobServiceImpl.update");
+  }
+
+  private void doUpdate(Job job) {
     logger.debug("Update Job {}", job.getId());
     try {
-      final AtomicBoolean isSuccessful = new AtomicBoolean(false);
-      final AtomicReference<Event> eventWrapper = new AtomicReference<Event>(null);
       transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
         JobStatusEvent statusEvent = null;
         JobStatus status = job.getStatus();
+
         switch (status) {
-        case RUNNING:
-          statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.RUNNING, job.getOutputs(), job.getId(), job.getName());
-          break;
-        case FAILED:
-          statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.FAILED, job.getMessage(), job.getId(), job.getName());
-          break;
-        case ABORTED:
-          Job rootJob = jobRepository.get(job.getRootId());
-          handleJobRootAborted(rootJob);
-          statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobRecord.JobState.ABORTED, rootJob.getId(), rootJob.getName());
-          break;
-        case COMPLETED:
-          statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.COMPLETED, job.getOutputs(), job.getId(), job.getName());
-          break;
-        default:
-          break;
+          case RUNNING:
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.RUNNING, job.getOutputs(), job.getId(), job.getName());
+            break;
+          case FAILED:
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.FAILED, job.getMessage(), job.getId(), job.getName());
+            break;
+          case ABORTED:
+            Job rootJob = jobRepository.get(job.getRootId());
+            handleJobRootAborted(rootJob);
+            statusEvent = new JobStatusEvent(rootJob.getName(), rootJob.getRootId(), JobRecord.JobState.ABORTED, rootJob.getId(), rootJob.getName());
+            break;
+          case COMPLETED:
+            statusEvent = new JobStatusEvent(job.getName(), job.getRootId(), JobRecord.JobState.COMPLETED, job.getOutputs(), job.getId(), job.getName());
+            break;
+          default:
+            break;
         }
+
         jobRepository.updatePartial(job);
         eventProcessor.persist(statusEvent);
-        eventWrapper.set(statusEvent);
-        isSuccessful.set(true);
+        eventProcessor.addToExternalQueue(statusEvent);
+
         return null;
       });
-      if (isSuccessful.get()) {
-        eventProcessor.addToExternalQueue(eventWrapper.get());
-      }
     } catch (Exception e) {
       // TODO handle exception
       logger.error("Failed to update Job " + job.getName() + " and root ID " + job.getRootId(), e);

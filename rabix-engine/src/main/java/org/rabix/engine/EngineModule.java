@@ -2,6 +2,7 @@ package org.rabix.engine;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.config.ConfigModule;
+import org.rabix.engine.metrics.MetricsModule;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.processor.handler.impl.ContextStatusEventHandler;
@@ -40,9 +41,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 
 public class EngineModule extends AbstractModule {
-  
+
   ConfigModule config;
-  
+
   public EngineModule(ConfigModule configModule) {
     config = configModule;
   }
@@ -51,7 +52,7 @@ public class EngineModule extends AbstractModule {
   protected void configure() {
     Configuration configuration = this.config.provideConfig();
     String persistence = configuration.getString("engine.store", "IN_MEMORY");
-    
+
     if (persistence.equals("POSTGRES")) {
       install(new JDBIRepositoryModule());
       bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
@@ -60,7 +61,7 @@ public class EngineModule extends AbstractModule {
       bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     }
     bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
-    
+
     bind(DAGCache.class).in(Scopes.SINGLETON);
     bind(DAGNodeService.class).to(DAGNodeServiceImpl.class).in(Scopes.SINGLETON);
     bind(AppService.class).to(AppServiceImpl.class).in(Scopes.SINGLETON);
@@ -78,9 +79,11 @@ public class EngineModule extends AbstractModule {
     bind(OutputEventHandler.class).in(Scopes.SINGLETON);
     bind(JobStatusEventHandler.class).in(Scopes.SINGLETON);
     bind(ContextStatusEventHandler.class).in(Scopes.SINGLETON);
-    
+
     bind(HandlerFactory.class).in(Scopes.SINGLETON);
     bind(EventProcessor.class).to(MultiEventProcessorImpl.class).in(Scopes.SINGLETON);
+
+    install(new MetricsModule(configuration));
   }
 
 }
