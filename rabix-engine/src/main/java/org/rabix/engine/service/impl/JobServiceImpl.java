@@ -108,11 +108,8 @@ public class JobServiceImpl implements JobService {
           default:
             break;
         }
-
-        jobRepository.updatePartial(job);
         eventProcessor.persist(statusEvent);
         eventProcessor.addToExternalQueue(statusEvent);
-
         return null;
       });
     } catch (Exception e) {
