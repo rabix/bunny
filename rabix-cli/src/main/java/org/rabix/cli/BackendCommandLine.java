@@ -36,6 +36,7 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
+import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.DataType;
@@ -405,7 +406,19 @@ public class BackendCommandLine {
       bootstrapService.start();
       Object commonInputs = null;
       try {       
+        final Path finalInputs = inputsFile;
         commonInputs = bindings.translateToCommon(inputs);
+        FileValueHelper.updateFileValues(commonInputs, (FileValue f) -> {
+          String path = f.getPath();
+          if(path!=null && !Paths.get(path).isAbsolute()){
+            f.setPath(finalInputs.resolveSibling(path).normalize().toString());
+          }
+          String location = f.getLocation();
+          if(location!=null && URI.create(location).getScheme()==null){
+            f.setLocation(finalInputs.resolveSibling(location).normalize().toString());
+          }
+          return f;
+        });
       } catch (BindingException e1) {
         VerboseLogger.log("Failed to translate inputs to the common Rabix format");
         System.exit(10);
