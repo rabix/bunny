@@ -254,10 +254,6 @@ CREATE INDEX context_record_id_index ON context_record USING btree (id);
 CREATE INDEX context_record_status_index ON context_record USING btree (status);
 --rollback DROP INDEX context_record_status_index;
 
---changeset bunny:1487849040814-30 dbms:postgresql
-CREATE UNIQUE INDEX event_id_type_index ON event USING btree (id, type);
---rollback DROP INDEX event_id_type_index;
-
 --changeset bunny:1487849040814-33 dbms:postgresql
 CREATE INDEX job_backend_status_index ON job USING btree (backend_id, status);
 --rollback DROP INDEX job_backend_status_index;
