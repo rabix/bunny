@@ -67,7 +67,7 @@ public class BootstrapServiceImpl implements BootstrapService {
   }
 
   private void replayEvents() {
-    List<Event> events = eventRepository.getAll().stream()
+    List<Event> events = eventRepository.getPendingEvents().stream()
         .map(er -> JSONHelper.convertToObject(er.getEvent(), Event.class))
         .collect(Collectors.toList());
 

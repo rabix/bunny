@@ -29,8 +29,8 @@ public interface JDBIEventRepository extends EventRepository {
   void deleteGroup(@Bind("id") UUID id);
 
   @Override
-  @SqlQuery("select * from event order by created_at asc")
-  List<EventRecord> getAll();
+  @SqlQuery("select * from event where status <> 'FAILED' order by created_at asc")
+  List<EventRecord> getPendingEvents();
 
   public static class EventMapper implements ResultSetMapper<EventRecord> {
     public EventRecord map(int index, ResultSet r, StatementContext ctx) throws SQLException {

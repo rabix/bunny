@@ -12,6 +12,6 @@ public interface EventRepository {
 
   void deleteGroup(UUID groupId);
 
-  List<EventRecord> getAll();
+  List<EventRecord> getPendingEvents();
 
 }

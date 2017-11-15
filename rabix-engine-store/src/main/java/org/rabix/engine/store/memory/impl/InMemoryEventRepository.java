@@ -28,9 +28,11 @@ public class InMemoryEventRepository implements EventRepository {
   }
 
   @Override
-  public List<EventRecord> getAll() {
+  public List<EventRecord> getPendingEvents() {
     return eventRepository.stream()
-        .filter(event -> event.getStatus() == EventRecord.Status.UNPROCESSED)
+        .filter(event ->
+                event.getStatus() == EventRecord.Status.UNPROCESSED
+                        || event.getStatus() == EventRecord.Status.PROCESSED)
         .collect(Collectors.toList());
   }
 
