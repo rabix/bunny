@@ -29,7 +29,7 @@ public interface JDBIEventRepository extends EventRepository {
   void deleteGroup(@Bind("id") UUID id);
 
   @Override
-  @SqlQuery("select * from event")
+  @SqlQuery("select * from event order by created_at asc")
   List<EventRecord> getAll();
 
   public static class EventMapper implements ResultSetMapper<EventRecord> {
