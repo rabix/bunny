@@ -36,7 +36,7 @@ public interface JDBIEventRepository extends EventRepository {
     public EventRecord map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       EventRecord.Status status = EventRecord.Status.valueOf(r.getString("status"));
       Map<String, ?> event = JSONHelper.readMap(new String(r.getBytes("event")));
-      return new EventRecord(UUID.fromString((String) event.get("eventGroupId")), status, event);
+      return new EventRecord(UUID.fromString(r.getString("id")), status, event);
     }
   }
 
