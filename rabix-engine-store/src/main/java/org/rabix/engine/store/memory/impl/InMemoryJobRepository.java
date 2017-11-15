@@ -1,25 +1,19 @@
 package org.rabix.engine.store.memory.impl;
 
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
+import com.google.inject.Inject;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.engine.store.repository.JobRepository;
 
-import com.google.inject.Inject;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class InMemoryJobRepository implements JobRepository {
 
   Map<UUID, Map<UUID, JobEntity>> jobRepository;
-  
+
   @Inject
   public InMemoryJobRepository() {
     this.jobRepository = new ConcurrentHashMap<UUID, Map<UUID, JobEntity>>();
@@ -103,7 +97,7 @@ public class InMemoryJobRepository implements JobRepository {
     Set<Job> groupIdJobs = new HashSet<Job>();
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       for(JobEntity job: rootJobs.values()) {
-        if(job.getGroupId() != null && job.getGroupId().equals(groupId)) {
+        if(job.getGroupId() != null && job.getGroupId().equals(groupId) && !job.getJob().isRoot()) {
           groupIdJobs.add(job.getJob());
         }
       }
@@ -135,14 +129,14 @@ public class InMemoryJobRepository implements JobRepository {
   @Override
   public UUID getBackendId(UUID jobId) {
     return getJobEntity(jobId) != null ? getJobEntity(jobId).getBackendId() : null;
-    
+
   }
 
   @Override
   public JobStatus getStatus(UUID id) {
     return getJobEntity(id) != null ? getJobEntity(id).getJob().getStatus() : null;
   }
-  
+
   private JobEntity getJobEntity(UUID jobId) {
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       if(rootJobs.get(jobId) != null) {
@@ -161,7 +155,7 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> statuses) {  
+  public void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> statuses) {
     Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
     jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus()))
         .forEach(p -> {p.setJob(Job.cloneWithStatus(p.getJob(), status));});
@@ -183,5 +177,5 @@ public class InMemoryJobRepository implements JobRepository {
   public void deleteByRootIds(Set<UUID> rootIds) {
     // TODO Auto-generated method stub
   }
-  
+
 }
