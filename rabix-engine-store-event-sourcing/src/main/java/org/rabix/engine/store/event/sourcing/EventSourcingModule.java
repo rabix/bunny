@@ -49,6 +49,12 @@ public class EventSourcingModule extends AbstractModule {
 
     @Provides
     @Singleton
+    public ContextRecordRepository provideContextRecordRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
+        return jdbiRepositoryRegistry.contextRecordRepository();
+    }
+
+    @Provides
+    @Singleton
     public BackendRepository provideBackendRepository() {
         return inMemoryRepositoryModule.provideBackendRepository();
     }
@@ -75,12 +81,6 @@ public class EventSourcingModule extends AbstractModule {
     @Singleton
     public VariableRecordRepository provideVariableRecordRepository() {
         return inMemoryRepositoryModule.provideVariableRecordRepository();
-    }
-
-    @Provides
-    @Singleton
-    public ContextRecordRepository provideContextRecordRepository() {
-        return inMemoryRepositoryModule.provideContextRecordRepository();
     }
 
     @Provides

@@ -1,19 +1,7 @@
 package org.rabix.engine;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.mockito.ArgumentCaptor;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -26,11 +14,7 @@ import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.HandlerFactory;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.DAGNodeService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.*;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.store.model.ContextRecord;
 import org.rabix.engine.store.model.JobRecord;
@@ -38,8 +22,13 @@ import org.rabix.engine.test.DummyConfigModule;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 @Test(groups = { "functional" })
 public class EngineModuleTest {
@@ -108,9 +97,9 @@ public class EngineModuleTest {
         Collections.emptyMap(), UUID.randomUUID(), "node");
     hf.get(jse.getType()).handle(jse);
 
-    job = ArgumentCaptor.forClass(Job.class);
+    ArgumentCaptor<UUID> rootId = ArgumentCaptor.forClass(UUID.class);
 
-    verify(esc, times(1)).onJobRootCompleted(job.capture());
+    verify(esc, times(1)).onJobRootCompleted(rootId.capture());
 
     // verify(esc, times(1)).onJobCompleted(job.capture());
     assertTrue(job.getValue().getOutputs().isEmpty());

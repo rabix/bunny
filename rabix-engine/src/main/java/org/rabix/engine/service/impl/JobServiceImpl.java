@@ -242,7 +242,7 @@ public class JobServiceImpl implements JobService {
     intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()));
 
     try {
-      engineStatusCallback.onJobFailed(failedJob);
+      engineStatusCallback.onJobFailed(failedJob.getId(), failedJob.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     }
@@ -251,7 +251,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobContainerReady(Job containerJob) {
     try {
-      engineStatusCallback.onJobContainerReady(containerJob);
+      engineStatusCallback.onJobContainerReady(containerJob.getId(), containerJob.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     }
@@ -273,7 +273,7 @@ public class JobServiceImpl implements JobService {
     job = jobHelper.fillOutputs(job);
     jobRepository.update(job);
     try {
-      engineStatusCallback.onJobRootCompleted(job);
+      engineStatusCallback.onJobRootCompleted(job.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     } finally {
@@ -299,7 +299,7 @@ public class JobServiceImpl implements JobService {
       stoppingRootIds.remove(job.getId());
     }
     try {
-      engineStatusCallback.onJobRootFailed(job);
+      engineStatusCallback.onJobRootFailed(job.getRootId(), job.getMessage());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     }
@@ -325,7 +325,7 @@ public class JobServiceImpl implements JobService {
       logger.error("Failed to stop jobs", e);
     }
     try {
-      engineStatusCallback.onJobRootAborted(rootJob);
+      engineStatusCallback.onJobRootAborted(rootJob.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     }
@@ -335,7 +335,7 @@ public class JobServiceImpl implements JobService {
   public void handleJobCompleted(Job job){
     logger.info("Job {} rootId: {} is completed.", job.getName(), job.getRootId());
     try{
-      engineStatusCallback.onJobCompleted(job);
+      engineStatusCallback.onJobCompleted(job.getId(), job.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
     }
