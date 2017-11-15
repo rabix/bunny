@@ -14,7 +14,7 @@ import com.google.inject.Inject;
 public class InMemoryEventRepository implements EventRepository {
 
   private Set<EventRecord> eventRepository;
-  
+
   @Inject
   public InMemoryEventRepository() {
     this.eventRepository = new HashSet<>();
@@ -31,10 +31,10 @@ public class InMemoryEventRepository implements EventRepository {
   }
 
   @Override
-  public synchronized List<EventRecord> findUnprocessed() {
+  public synchronized List<EventRecord> getAll() {
     return eventRepository.stream()
         .filter(event -> event.getStatus() == EventRecord.Status.UNPROCESSED)
         .collect(Collectors.toList());
   }
-  
+
 }

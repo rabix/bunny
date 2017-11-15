@@ -9,9 +9,9 @@ import java.util.UUID;
 public interface EventRepository {
 
   void insert(EventRecord event);
-  
+
   void deleteGroup(UUID groupId);
-  
-  List<EventRecord> findUnprocessed();
-  
+
+  List<EventRecord> getAll();
+
 }

@@ -96,7 +96,6 @@ public class EventProcessorImpl implements EventProcessor {
           Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
           jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
         }
-        eventRepository.deleteGroup(event.getEventGroupId());
         return null;
       });
     } catch (Exception e) {

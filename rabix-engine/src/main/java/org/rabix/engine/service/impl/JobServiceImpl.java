@@ -1,12 +1,6 @@
 package org.rabix.engine.service.impl;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
+import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -20,21 +14,23 @@ import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.processor.EventProcessor;
-import org.rabix.engine.service.AppService;
-import org.rabix.engine.service.DAGNodeService;
-import org.rabix.engine.service.IntermediaryFilesService;
-import org.rabix.engine.service.JobService;
-import org.rabix.engine.service.JobServiceException;
+import org.rabix.engine.service.*;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.repository.EventRepository;
 import org.rabix.engine.store.repository.JobRepository;
 import org.rabix.engine.store.repository.JobRepository.JobEntity;
 import org.rabix.engine.store.repository.TransactionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class JobServiceImpl implements JobService {
 
@@ -42,6 +38,8 @@ public class JobServiceImpl implements JobService {
 
   private final static Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
   private final JobRepository jobRepository;
+  private final EventRepository eventRepository;
+
   private final DAGNodeService dagNodeService;
   private final AppService appService;
 
@@ -61,14 +59,22 @@ public class JobServiceImpl implements JobService {
   private JobHelper jobHelper;
 
   @Inject
-  public JobServiceImpl(EventProcessor eventProcessor,DAGNodeService dagNodeService,
-      AppService appService, JobRepository jobRepository, TransactionHelper transactionHelper,
-      EngineStatusCallback statusCallback, Configuration configuration,
-      IntermediaryFilesService intermediaryFilesService, JobHelper jobHelper, MetricsHelper metricsHelper) {
+  public JobServiceImpl(EventProcessor eventProcessor,
+                        DAGNodeService dagNodeService,
+                        AppService appService,
+                        JobRepository jobRepository,
+                        EventRepository eventRepository,
+                        TransactionHelper transactionHelper,
+                        EngineStatusCallback statusCallback,
+                        Configuration configuration,
+                        IntermediaryFilesService intermediaryFilesService,
+                        JobHelper jobHelper,
+                        MetricsHelper metricsHelper) {
     this.dagNodeService = dagNodeService;
     this.appService = appService;
     this.eventProcessor = eventProcessor;
     this.jobRepository = jobRepository;
+    this.eventRepository = eventRepository;
     this.transactionHelper = transactionHelper;
     this.engineStatusCallback = statusCallback;
     this.intermediaryFilesService = intermediaryFilesService;
@@ -270,6 +276,8 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootCompleted(job);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      eventRepository.deleteGroup(job.getRootId());
     }
   }
 
