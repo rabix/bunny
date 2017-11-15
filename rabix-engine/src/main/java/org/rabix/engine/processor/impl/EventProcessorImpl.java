@@ -179,6 +179,11 @@ public class EventProcessorImpl implements EventProcessor {
     eventRepository.insert(er);
   }
 
+  @Override
+  public boolean hasWork() {
+    return !externalEvents.isEmpty() || !events.isEmpty();
+  }
+
   public void addToExternalQueue(Event event) {
     if (stop.get()) {
       return;
