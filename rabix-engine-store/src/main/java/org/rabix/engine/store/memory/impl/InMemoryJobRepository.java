@@ -41,7 +41,14 @@ public class InMemoryJobRepository implements JobRepository {
       return;
     }
     Map<UUID, JobEntity> rootJobs = jobRepository.get(job.getRootId());
-    rootJobs.get(job.getId()).setJob(job);
+    if (rootJobs == null) {
+      return;
+    }
+
+    JobEntity jobEntity = rootJobs.get(job.getId());
+    if (jobEntity != null) {
+      jobEntity.setJob(job);
+    }
   }
 
   @Override
