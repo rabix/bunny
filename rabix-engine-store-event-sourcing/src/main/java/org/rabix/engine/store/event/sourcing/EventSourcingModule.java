@@ -43,8 +43,8 @@ public class EventSourcingModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public AppRepository provideAppRepository() {
-        return inMemoryRepositoryModule.provideAppRepository();
+    public AppRepository provideAppRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
+        return jdbiRepositoryRegistry.applicationRepository();
     }
 
     @Provides
