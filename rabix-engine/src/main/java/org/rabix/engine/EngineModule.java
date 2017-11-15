@@ -30,6 +30,7 @@ import org.rabix.engine.service.impl.JobStatsRecordServiceImpl;
 import org.rabix.engine.service.impl.LinkRecordServiceImpl;
 import org.rabix.engine.service.impl.StoreCleanupServiceImpl;
 import org.rabix.engine.service.impl.VariableRecordServiceImpl;
+import org.rabix.engine.store.event.sourcing.EventSourcingModule;
 import org.rabix.engine.store.lru.dag.DAGCache;
 import org.rabix.engine.store.memory.InMemoryRepositoryModule;
 import org.rabix.engine.store.memory.InMemoryRepositoryRegistry;
@@ -59,6 +60,9 @@ public class EngineModule extends AbstractModule {
     } else if(persistence.equals("IN_MEMORY")) {
       install(new InMemoryRepositoryModule());
       bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
+    } else if (persistence.equals("EVENT_SOURCING")) {
+      install(new EventSourcingModule(new InMemoryRepositoryModule(), new JDBIRepositoryModule()));
+      bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
     }
     bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
 
