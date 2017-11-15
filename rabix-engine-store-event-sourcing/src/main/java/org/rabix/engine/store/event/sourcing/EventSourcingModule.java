@@ -29,6 +29,8 @@ public class EventSourcingModule extends AbstractModule {
         return dbi.onDemand(JDBIRepositoryRegistry.class);
     }
 
+    /* JDBI REPOS */
+
     @Provides
     @Singleton
     public EventRepository provideEventRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
@@ -55,9 +57,11 @@ public class EventSourcingModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public BackendRepository provideBackendRepository() {
-        return inMemoryRepositoryModule.provideBackendRepository();
+    public BackendRepository provideBackendRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
+        return jdbiRepositoryRegistry.backendRepository();
     }
+
+    /* IN MEMORY REPOS */
 
     @Provides
     @Singleton
