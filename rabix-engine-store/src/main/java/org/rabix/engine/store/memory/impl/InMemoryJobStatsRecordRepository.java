@@ -14,23 +14,23 @@ public class InMemoryJobStatsRecordRepository implements JobStatsRecordRepositor
 
   @Inject
   public InMemoryJobStatsRecordRepository() {
-    this.jobStatsRecordRepository = new ConcurrentHashMap<UUID, JobStatsRecord>();
+    this.jobStatsRecordRepository = new ConcurrentHashMap<>();
   }
 
   @Override
-  public synchronized int insert(JobStatsRecord jobStatsRecord) {
+  public int insert(JobStatsRecord jobStatsRecord) {
     jobStatsRecordRepository.put(jobStatsRecord.getRootId(), jobStatsRecord);
     return 1;
   }
 
   @Override
-  public synchronized int update(JobStatsRecord jobStatsRecord) {
+  public int update(JobStatsRecord jobStatsRecord) {
     jobStatsRecordRepository.put(jobStatsRecord.getRootId(), jobStatsRecord);
     return 1;
   }
 
   @Override
-  public synchronized JobStatsRecord get(UUID id) {
+  public JobStatsRecord get(UUID id) {
     return jobStatsRecordRepository.get(id);
   }
 

@@ -1,34 +1,29 @@
 package org.rabix.engine.store.memory.impl;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
+import com.google.inject.Inject;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.VariableRecord;
 import org.rabix.engine.store.repository.VariableRecordRepository;
 
-import com.google.inject.Inject;
-import org.rabix.engine.store.model.JobRecord;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class InMemoryVariableRecordRepository extends VariableRecordRepository {
 
   private ConcurrentMap<UUID, List<VariableRecord>> variableRecordsPerContext;
-  
+
   @Inject
   public InMemoryVariableRecordRepository() {
-    variableRecordsPerContext = new ConcurrentHashMap<UUID, List<VariableRecord>>();
+    variableRecordsPerContext = new ConcurrentHashMap<>();
   }
 
   public int insert(VariableRecord variableRecord) {
     getVariableRecords(variableRecord.getRootId()).add(variableRecord);
     return 1;
   }
-  
+
   public void delete(UUID rootId) {
     variableRecordsPerContext.remove(rootId);
   }
@@ -42,7 +37,7 @@ public class InMemoryVariableRecordRepository extends VariableRecordRepository {
     }
     return 0;
   }
-  
+
   public List<VariableRecord> getByType(String jobId, LinkPortType type, UUID contextId) {
     List<VariableRecord> result = new ArrayList<>();
     for (VariableRecord vr : getVariableRecords(contextId)) {
@@ -52,7 +47,7 @@ public class InMemoryVariableRecordRepository extends VariableRecordRepository {
     }
     return result;
   }
-  
+
   public List<VariableRecord> getByPort(String jobId, String portId, UUID contextId) {
     List<VariableRecord> result = new ArrayList<>();
     for (VariableRecord vr : getVariableRecords(contextId)) {
@@ -85,13 +80,9 @@ public class InMemoryVariableRecordRepository extends VariableRecordRepository {
   public List<VariableRecord> find(UUID contextId) {
     return getVariableRecords(contextId);
   }
-  
+
   public List<VariableRecord> getVariableRecords(UUID contextId) {
-    List<VariableRecord> variableList = variableRecordsPerContext.get(contextId);
-    if (variableList == null) {
-      variableList = new ArrayList<>();
-      variableRecordsPerContext.put(contextId, variableList);
-    }
+    List<VariableRecord> variableList = variableRecordsPerContext.computeIfAbsent(contextId, k -> new ArrayList<>());
     return variableList;
   }
 
@@ -113,5 +104,5 @@ public class InMemoryVariableRecordRepository extends VariableRecordRepository {
   public void delete(Set<JobRecord.JobIdRootIdPair> externalIDs) {
     // TODO Auto-generated method stub
   }
-  
+
 }

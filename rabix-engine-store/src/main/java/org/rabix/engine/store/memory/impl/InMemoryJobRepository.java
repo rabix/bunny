@@ -12,41 +12,48 @@ import java.util.stream.Collectors;
 
 public class InMemoryJobRepository implements JobRepository {
 
-  Map<UUID, Map<UUID, JobEntity>> jobRepository;
+  private final Map<UUID, Map<UUID, JobEntity>> jobRepository;
 
   @Inject
   public InMemoryJobRepository() {
-    this.jobRepository = new ConcurrentHashMap<UUID, Map<UUID, JobEntity>>();
+    this.jobRepository = new ConcurrentHashMap<>();
   }
 
   @Override
-  public synchronized void insert(Job job, UUID groupId, String producedByNode) {
+  public void insert(Job job, UUID groupId, String producedByNode) {
+    if (job == null) {
+      return;
+    }
+
     Map<UUID, JobEntity> rootJobs = jobRepository.get(job.getRootId());
     if(rootJobs == null) {
-      rootJobs = new HashMap<UUID, JobEntity>();
+      rootJobs = new HashMap<>();
       rootJobs.put(job.getId(), new JobEntity(job, groupId, producedByNode));
       jobRepository.put(job.getRootId(), rootJobs);
-    }
-    else {
+    } else {
       rootJobs.put(job.getId(), new JobEntity(job, groupId, producedByNode));
     }
   }
 
   @Override
-  public synchronized void update(Job job) {
+  public void update(Job job) {
+    if (job == null) {
+      return;
+    }
     Map<UUID, JobEntity> rootJobs = jobRepository.get(job.getRootId());
     rootJobs.get(job.getId()).setJob(job);
   }
 
   @Override
-  public synchronized void updateBackendId(UUID jobId, UUID backendId) {
-    if(getJobEntity(jobId) != null) {
-      getJobEntity(jobId).setBackendId(backendId);
+  public void updateBackendId(UUID jobId, UUID backendId) {
+    JobEntity jobEntity = getJobEntity(jobId);
+    if(jobEntity != null) {
+      jobEntity.setBackendId(backendId);
     }
   }
 
   @Override
-  public synchronized void dealocateJobs(UUID backendId) {
+  public void dealocateJobs(UUID backendId) {
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       for(JobEntity job: rootJobs.values()) {
         if(backendId.equals(job.getBackendId()) && job.getJob().getStatus().equals(JobStatus.READY)) {
@@ -57,13 +64,14 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public synchronized Job get(UUID id) {
-    return getJobEntity(id) != null ? getJobEntity(id).getJob(): null;
+  public Job get(UUID id) {
+    JobEntity jobEntity = getJobEntity(id);
+    return jobEntity != null ? jobEntity.getJob() : null;
   }
 
   @Override
-  public synchronized Set<Job> get() {
-    Set<Job> allJobs = new HashSet<Job>();
+  public Set<Job> get() {
+    Set<Job> allJobs = new HashSet<>();
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       for(JobEntity job: rootJobs.values()) {
         allJobs.add(job.getJob());
@@ -73,8 +81,8 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public synchronized Set<Job> getByRootId(UUID rootId) {
-    Set<Job> rootJobs = new HashSet<Job>();
+  public Set<Job> getByRootId(UUID rootId) {
+    Set<Job> rootJobs = new HashSet<>();
     Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
     for(JobEntity job: jobs.values()) {
       rootJobs.add(job.getJob());
@@ -83,8 +91,8 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public synchronized Set<UUID> getBackendsByRootId(UUID rootId) {
-    Set<UUID> backends = new HashSet<UUID>();
+  public Set<UUID> getBackendsByRootId(UUID rootId) {
+    Set<UUID> backends = new HashSet<>();
     Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
     for(JobEntity job: jobs.values()) {
       backends.add(job.getBackendId());
@@ -93,8 +101,8 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public synchronized Set<Job> getReadyJobsByGroupId(UUID groupId) {
-    Set<Job> groupIdJobs = new HashSet<Job>();
+  public Set<Job> getReadyJobsByGroupId(UUID groupId) {
+    Set<Job> groupIdJobs = new HashSet<>();
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       for(JobEntity job: rootJobs.values()) {
         if(job.getGroupId() != null && job.getGroupId().equals(groupId) && !job.getJob().isRoot()) {
@@ -106,8 +114,8 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   @Override
-  public synchronized Set<JobEntity> getReadyFree() {
-    Set<JobEntity> readyFreeJobs = new HashSet<JobEntity>();
+  public Set<JobEntity> getReadyFree() {
+    Set<JobEntity> readyFreeJobs = new HashSet<>();
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       for(JobEntity job: rootJobs.values()) {
         if(job.getBackendId() == null && job.getJob().getStatus().equals(JobStatus.READY)) {
@@ -128,7 +136,8 @@ public class InMemoryJobRepository implements JobRepository {
 
   @Override
   public UUID getBackendId(UUID jobId) {
-    return getJobEntity(jobId) != null ? getJobEntity(jobId).getBackendId() : null;
+    JobEntity jobEntity = getJobEntity(jobId);
+    return jobEntity != null ? jobEntity.getBackendId() : null;
 
   }
 
@@ -158,13 +167,13 @@ public class InMemoryJobRepository implements JobRepository {
   public void updateStatus(UUID rootId, JobStatus status, Set<JobStatus> statuses) {
     Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
     jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus()))
-        .forEach(p -> {p.setJob(Job.cloneWithStatus(p.getJob(), status));});
+        .forEach(p -> p.setJob(Job.cloneWithStatus(p.getJob(), status)));
   }
 
   @Override
   public Set<Job> get(UUID rootId, Set<JobStatus> statuses) {
     Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
-    return jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus())).map(p->p.getJob()).collect(Collectors.toSet());
+    return jobs.values().stream().filter(p -> statuses.contains(p.getJob().getStatus())).map(JobEntity::getJob).collect(Collectors.toSet());
   }
 
   @Override

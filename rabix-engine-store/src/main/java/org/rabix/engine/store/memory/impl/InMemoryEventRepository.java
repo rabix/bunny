@@ -1,37 +1,34 @@
 package org.rabix.engine.store.memory.impl;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
+import com.google.inject.Inject;
 import org.rabix.engine.store.model.EventRecord;
 import org.rabix.engine.store.repository.EventRepository;
 
-import com.google.inject.Inject;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class InMemoryEventRepository implements EventRepository {
 
-  private Set<EventRecord> eventRepository;
+  private final Set<EventRecord> eventRepository;
 
   @Inject
   public InMemoryEventRepository() {
-    this.eventRepository = new HashSet<>();
+    this.eventRepository = Collections.newSetFromMap(new ConcurrentHashMap<>());
   }
 
   @Override
-  public synchronized void insert(EventRecord event) {
+  public void insert(EventRecord event) {
     eventRepository.add(event);
   }
 
   @Override
-  public synchronized void deleteGroup(UUID id) {
+  public void deleteGroup(UUID id) {
     eventRepository.removeIf(e -> e.getGroupId().equals(id));
   }
 
   @Override
-  public synchronized List<EventRecord> getAll() {
+  public List<EventRecord> getAll() {
     return eventRepository.stream()
         .filter(event -> event.getStatus() == EventRecord.Status.UNPROCESSED)
         .collect(Collectors.toList());

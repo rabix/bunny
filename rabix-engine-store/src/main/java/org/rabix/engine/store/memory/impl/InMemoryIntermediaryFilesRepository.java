@@ -1,27 +1,21 @@
 package org.rabix.engine.store.memory.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.rabix.engine.store.repository.IntermediaryFilesRepository;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRepository {
 
-  Map<UUID, List<IntermediaryFileEntity>> intermediaryFilesRepository;
-  
+  private final Map<UUID, List<IntermediaryFileEntity>> intermediaryFilesRepository;
+
   public InMemoryIntermediaryFilesRepository() {
-    intermediaryFilesRepository = new ConcurrentHashMap<UUID, List<IntermediaryFileEntity>>();
+    intermediaryFilesRepository = new ConcurrentHashMap<>();
   }
-  
+
   @Override
   public void insert(UUID rootId, String filename, Integer count) {
-    
+
     if(intermediaryFilesRepository.containsKey(rootId)) {
       List<IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.get(rootId);
       intermediaryPerRoot.add(new IntermediaryFileEntity(rootId, filename, count));
