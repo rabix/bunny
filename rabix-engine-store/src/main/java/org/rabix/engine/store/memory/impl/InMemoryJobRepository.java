@@ -1,5 +1,6 @@
 package org.rabix.engine.store.memory.impl;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -68,6 +69,15 @@ public class InMemoryJobRepository implements JobRepository {
         }
       }
     }
+  }
+
+  @Override
+  public void delete(UUID rootId, Set<UUID> jobIds) {
+    Map<UUID, JobEntity> jobs = jobRepository.get(rootId);
+    if (jobs == null) {
+      return;
+    }
+    jobIds.forEach(jobs::remove);
   }
 
   @Override
@@ -154,7 +164,7 @@ public class InMemoryJobRepository implements JobRepository {
   }
 
   private JobEntity getJobEntity(UUID jobId) {
-    for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
+    for(Map<UUID, JobEntity> rootJobs : jobRepository.values()) {
       if(rootJobs.get(jobId) != null) {
         return rootJobs.get(jobId);
       }
@@ -185,13 +195,11 @@ public class InMemoryJobRepository implements JobRepository {
 
   @Override
   public Set<Job> getRootJobsForDeletion(JobStatus status, Timestamp time) {
-    // TODO Auto-generated method stub
-    return null;
+    return Sets.newHashSet();
   }
 
   @Override
   public void deleteByRootIds(Set<UUID> rootIds) {
-    // TODO Auto-generated method stub
+    rootIds.forEach(jobRepository::remove);
   }
-
 }

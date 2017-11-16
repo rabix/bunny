@@ -1,19 +1,5 @@
 package org.rabix.engine.store.postgres.jdbi.impl;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Job.JobStatus;
@@ -25,17 +11,17 @@ import org.rabix.engine.store.postgres.jdbi.impl.JDBIJobRepository.JobMapper;
 import org.rabix.engine.store.repository.JobRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.Binder;
-import org.skife.jdbi.v2.sqlobject.BinderFactory;
-import org.skife.jdbi.v2.sqlobject.BindingAnnotation;
-import org.skife.jdbi.v2.sqlobject.SqlBatch;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.skife.jdbi.v2.unstable.BindIn;
+
+import java.lang.annotation.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.*;
 
 @RegisterMapper({ JobMapper.class, JobEntityMapper.class, BackendIDMapper.class })
 @UseStringTemplate3StatementLocator
@@ -50,17 +36,13 @@ public interface JDBIJobRepository extends JobRepository {
   void update(@BindJob Job job);
 
   @Override
-  @SqlUpdate("update job set status=:status::job_status, message=:message, outputs=:outputs, modified_at='now', config=:config::jsonb where id=:id")
-  void updatePartial(@BindJob Job job);
-  
-  @Override
   @SqlBatch("update job set root_id=:root_id,name=:name, parent_id=:parent_id, status=:status::job_status, message=:message, inputs=:inputs, outputs=:outputs, resources=:resources::jsonb,app=:app,config=:config::jsonb,modified_at='now' where id=:id")
   void update(@BindJob Iterator<Job> jobs);
 
   @Override
   @SqlUpdate("update job set backend_id=:backend_id,modified_at='now' where id=:id")
   void updateBackendId(@Bind("id") UUID jobId, @Bind("backend_id") UUID backendId);
-  
+
   @Override
   @SqlBatch("update job set backend_id=:backend_id,modified_at='now' where id=:id")
   void updateBackendIds(@BindJobEntityBackendId Iterator<JobEntity> entities);
@@ -68,7 +50,7 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlUpdate("update job set status=:status::job_status,modified_at='now' where status::text in (<statuses>) and root_id=:root_id")
   void updateStatus(@Bind("root_id") UUID rootId, @Bind("status") JobStatus status, @BindIn("statuses") Set<JobStatus> whereStatuses);
-  
+
   @Override
   @SqlUpdate("update job set backend_id=null, status='READY'::job_status,modified_at='now' where backend_id=:backend_id and status in ('READY'::job_status,'RUNNING'::job_status)")
   void dealocateJobs(@Bind("backend_id") UUID backendId);
@@ -76,35 +58,39 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlQuery("select * from job where id=:id")
   Job get(@Bind("id") UUID id);
-  
+
   @Override
   @SqlQuery("select * from job where id=root_id and status=:status::job_status and modified_at \\< :time")
   Set<Job> getRootJobsForDeletion(@Bind("status") JobStatus status, @Bind("time") Timestamp olderThanTime);
-  
+
   @Override
   @SqlQuery("select status from job where id=:id")
   JobStatus getStatus(@Bind("id") UUID id);
-  
+
   @Override
   @SqlQuery("select * from job")
   Set<Job> get();
-  
+
   @Override
   @SqlQuery("select * from job where status::text in (<statuses>) and root_id=:root_id")
   Set<Job> get(@Bind("root_id") UUID rootID, @BindIn("statuses") Set<JobStatus> whereStatuses);
-  
+
+  @Override
+  @SqlUpdate("delete from job where root_id=:root_id and id in (<ids>)")
+  void delete(@Bind("root_id") UUID rootId, @BindIn("ids") Set<UUID> ids);
+
   @Override
   @SqlQuery("select backend_id from job where root_id=:root_id")
   Set<UUID> getBackendsByRootId(@Bind("root_id") UUID rootId);
-  
+
   @Override
   @SqlQuery("select backend_id from job where id=:id")
   UUID getBackendId(@Bind("id") UUID id);
-  
+
   @Override
   @SqlQuery("select * from job where root_id=:root_id")
   Set<Job> getByRootId(@Bind("root_id") UUID rootId);
-  
+
   @Override
   @SqlQuery("select * from job where group_id=:group_id and status='READY'::job_status")
   Set<Job> getReadyJobsByGroupId(@Bind("group_id") UUID group_id);
@@ -112,11 +98,11 @@ public interface JDBIJobRepository extends JobRepository {
   @Override
   @SqlQuery("select * from job where backend_id is null and status='READY'::job_status")
   Set<JobEntity> getReadyFree();
-  
+
   @Override
   @SqlUpdate("delete from job where root_id in (<ids>)")
   void deleteByRootIds(@BindIn("ids") Set<UUID> rootIds);
-  
+
   public static class JobMapper implements ResultSetMapper<Job> {
     public Job map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       UUID id = r.getObject("id", UUID.class);
@@ -139,7 +125,7 @@ public interface JDBIJobRepository extends JobRepository {
       return new Job(id, parent_id, root_id, name, app, status, message, inputs, outputs, config, res, Collections.emptySet());
     }
   }
-  
+
   public static class JobEntityMapper implements ResultSetMapper<JobEntity> {
     public JobEntity map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       UUID id = r.getObject("id", UUID.class);
@@ -157,7 +143,7 @@ public interface JDBIJobRepository extends JobRepository {
       String configJson = r.getString("config");
       String resourcesStr = r.getString("resources");
       Resources res = JSONHelper.readObject(resourcesStr, Resources.class);
-      
+
 
       Map<String, Object> inputs = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(inputsJson));
       Map<String, Object> outputs = (Map<String, Object>) FileValue.deserialize(JSONHelper.readMap(outputsJson));
@@ -167,7 +153,7 @@ public interface JDBIJobRepository extends JobRepository {
       return new JobEntity(job, groupId, producedByNode, backendId);
     }
   }
-  
+
   public static class BackendIDMapper implements ResultSetMapper<UUID> {
     @Override
     public UUID map(int index, ResultSet r, StatementContext ctx) throws SQLException {
@@ -199,7 +185,7 @@ public interface JDBIJobRepository extends JobRepository {
       }
     }
   }
-  
+
   @BindingAnnotation(JDBIJobRepository.BindJobEntity.JobBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })
@@ -230,7 +216,7 @@ public interface JDBIJobRepository extends JobRepository {
       }
     }
   }
-  
+
   @BindingAnnotation(JDBIJobRepository.BindJobEntityBackendId.JobBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })
@@ -246,5 +232,5 @@ public interface JDBIJobRepository extends JobRepository {
       }
     }
   }
-  
+
 }

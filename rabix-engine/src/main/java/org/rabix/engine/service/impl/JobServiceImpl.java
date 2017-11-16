@@ -1,5 +1,6 @@
 package org.rabix.engine.service.impl;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.Bindings;
@@ -25,12 +26,10 @@ import org.rabix.engine.store.repository.TransactionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class JobServiceImpl implements JobService {
 
@@ -148,7 +147,6 @@ public class JobServiceImpl implements JobService {
           appService.loadDB(node);
           String dagHash = dagNodeService.put(node, rootId);
 
-
           updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.PENDING);
           updatedJob = Job.cloneWithConfig(updatedJob, config);
           jobRepository.insert(updatedJob, updatedJob.getRootId(), null);
@@ -233,6 +231,8 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      jobRepository.delete(rootId, jobs.stream().map(Job::getId).collect(Collectors.toSet()));
     }
   }
 
@@ -245,6 +245,8 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobFailed(failedJob.getId(), failedJob.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      jobRepository.deleteByRootIds(Sets.newHashSet(failedJob.getRootId()));
     }
   }
 
@@ -277,6 +279,7 @@ public class JobServiceImpl implements JobService {
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     } finally {
+      jobRepository.deleteByRootIds(Sets.newHashSet(job.getId()));
       eventRepository.deleteGroup(job.getRootId());
     }
   }
@@ -302,6 +305,9 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootFailed(job.getRootId(), job.getMessage());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      jobRepository.deleteByRootIds(Sets.newHashSet(job.getId()));
+      eventRepository.deleteGroup(job.getRootId());
     }
   }
 
@@ -328,6 +334,8 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootAborted(rootJob.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      jobRepository.deleteByRootIds(Sets.newHashSet(rootJob.getId()));
     }
   }
 
