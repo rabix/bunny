@@ -1,8 +1,6 @@
 package org.rabix.engine.processor.handler.impl;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.google.inject.Inject;
 import org.rabix.bindings.model.dag.DAGContainer;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
@@ -16,18 +14,15 @@ import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.DAGNodeService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.JobStatsRecordService;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.*;
 import org.rabix.engine.store.model.ContextRecord;
 import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.JobStatsRecord;
 import org.rabix.engine.store.model.VariableRecord;
 
-import com.google.inject.Inject;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Handles {@link InitEvent} events.
@@ -53,10 +48,10 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     this.jobStatsRecordService = jobStatsRecordService;
   }
 
-  public void handle(final InitEvent event) throws EventHandlerException {
+  public void handle(final InitEvent event, EventHandlingMode mode) throws EventHandlerException {
     ContextRecord context = new ContextRecord(event.getRootId(), event.getConfig(), ContextStatus.RUNNING);
     contextRecordService.create(context);
-    
+
     DAGNode node = dagNodeService.get(InternalSchemaHelper.ROOT_NAME, event.getContextId(), event.getDagHash());
     JobRecord job = new JobRecord(event.getContextId(), node.getId(), event.getContextId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
 
@@ -93,14 +88,14 @@ public class InitEventHandler implements EventHandler<InitEvent> {
       eventProcessor.send(new JobStatusEvent(job.getId(), event.getContextId(), JobRecord.JobState.READY, event.getEventGroupId(), event.getProducedByNode()));
       return;
     }
-    
+
     Map<String, Object> mixedInputs = mixInputs(node, event.getValue());
     for (DAGLinkPort inputPort : node.getInputPorts()) {
       Object value = mixedInputs.get(inputPort.getId());
       eventProcessor.send(new InputUpdateEvent(event.getContextId(), node.getId(), inputPort.getId(), value, 1, event.getEventGroupId(), event.getProducedByNode()));
     }
   }
-  
+
   @SuppressWarnings("unchecked")
   private Map<String, Object> mixInputs(DAGNode dagNode, Map<String, Object> inputs) {
     Map<String, Object> mixedInputs;

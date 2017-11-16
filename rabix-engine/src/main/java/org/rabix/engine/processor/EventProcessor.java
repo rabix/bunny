@@ -1,6 +1,7 @@
 package org.rabix.engine.processor;
 
 import org.rabix.engine.event.Event;
+import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 
 import java.util.UUID;
@@ -23,12 +24,13 @@ public interface EventProcessor {
 
   boolean hasWork();
 
-   class EventProcessorDispatcher {
+  void setEventHandlingMode(EventHandler.EventHandlingMode mode);
+
+  class EventProcessorDispatcher {
 
     public static int dispatch(UUID rootId, int numberOfEventProcessors) {
       return Math.abs(rootId.hashCode() % numberOfEventProcessors);
     }
-
   }
 
 }

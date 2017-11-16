@@ -1,8 +1,6 @@
 package org.rabix.engine.processor.handler.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.inject.Inject;
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
@@ -13,18 +11,15 @@ import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.DAGNodeService;
-import org.rabix.engine.service.IntermediaryFilesService;
-import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.*;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.LinkRecord;
 import org.rabix.engine.store.model.VariableRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Handles {@link InputUpdateEvent} events.
@@ -47,9 +42,9 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
   private IntermediaryFilesService filesService;
 
   private Logger logger = LoggerFactory.getLogger(getClass());
-  
+
   @Override
-  public void handle(InputUpdateEvent event) throws EventHandlerException {
+  public void handle(InputUpdateEvent event, EventHandlingMode mode) throws EventHandlerException {
     logger.debug(event.toString());
     JobRecord job = jobService.find(event.getJobId(), event.getContextId());
     filesService.handleInputSent(event.getContextId(), event.getValue());
@@ -66,10 +61,10 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     } else if ((job.getInputPortIncoming(event.getPortId()) > 1) && job.isScatterPort(event.getPortId()) && !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
       jobService.resetOutputPortCounters(job, job.getInputPortIncoming(event.getPortId()));
     }
-    
+
     variableService.addValue(variable, event.getValue(), event.getPosition(), false);
     jobService.decrementPortCounter(job, event.getPortId(), LinkPortType.INPUT);
-    
+
     // scatter
     if (!job.isBlocking() && !job.isScattered()) {
       if (job.isScatterPort(event.getPortId())) {
@@ -99,12 +94,12 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       eventProcessor.send(jobStatusEvent);
     }
   }
-  
+
   private void update(JobRecord job, VariableRecord variable) {
     jobService.update(job);
     variableService.update(variable);
   }
-  
+
   /**
    * Send events from scatter wrapper to scattered jobs
    */

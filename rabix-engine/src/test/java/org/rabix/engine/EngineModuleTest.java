@@ -13,6 +13,7 @@ import org.rabix.common.helper.ResourceHelper;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.processor.EventProcessor;
+import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.service.*;
 import org.rabix.engine.status.EngineStatusCallback;
@@ -75,7 +76,7 @@ public class EngineModuleTest {
     // INIT
     UUID nullJobId = UUID.randomUUID();
     InitEvent ie = new InitEvent(UUID.randomUUID(), new HashMap<>(), nullJobId, Collections.emptyMap(), null, null);
-    hf.get(ie.getType()).handle(ie);
+    hf.get(ie.getType()).handle(ie, EventHandler.EventHandlingMode.NORMAL);
 
     ContextRecord cr = crs.find(nullJobId);
     assertNotNull(cr);
@@ -95,7 +96,7 @@ public class EngineModuleTest {
     // JOB COMPLETED
     JobStatusEvent jse = new JobStatusEvent("root", nullJobId, JobRecord.JobState.COMPLETED,
         Collections.emptyMap(), UUID.randomUUID(), "node");
-    hf.get(jse.getType()).handle(jse);
+    hf.get(jse.getType()).handle(jse, EventHandler.EventHandlingMode.NORMAL);
 
     ArgumentCaptor<UUID> rootId = ArgumentCaptor.forClass(UUID.class);
 
@@ -130,7 +131,7 @@ public class EngineModuleTest {
 
     UUID rootJobId = UUID.randomUUID();
     InitEvent ie = new InitEvent(UUID.randomUUID(), new HashMap<>(), rootJobId, Collections.emptyMap(), null, "node");
-    hf.get(ie.getType()).handle(ie);
+    hf.get(ie.getType()).handle(ie, EventHandler.EventHandlingMode.NORMAL);
 
     ContextRecord cr = crs.find(rootJobId);
     assertNotNull(cr);

@@ -5,6 +5,7 @@ import com.google.inject.Provider;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
+import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,11 @@ public class MultiEventProcessorImpl implements EventProcessor {
   @Override
   public boolean hasWork() {
     return eventProcessors.values().stream().anyMatch(EventProcessorImpl::hasWork);
+  }
+
+  @Override
+  public void setEventHandlingMode(EventHandler.EventHandlingMode mode) {
+    eventProcessors.values().forEach(eventProcessor -> eventProcessor.setEventHandlingMode(mode));
   }
 
   @Override

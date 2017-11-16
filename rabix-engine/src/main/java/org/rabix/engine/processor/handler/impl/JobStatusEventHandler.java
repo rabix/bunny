@@ -85,7 +85,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   }
 
   @Override
-  public void handle(JobStatusEvent event) throws EventHandlerException {
+  public void handle(JobStatusEvent event, EventHandlingMode mode) throws EventHandlerException {
     JobRecord jobRecord = jobRecordService.find(event.getJobId(), event.getContextId());
     if (jobRecord == null) {
       logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
@@ -111,7 +111,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       if (jobRecord.getScatterStrategy() != null && jobRecord.getScatterStrategy().skipScatter()) {
         break;
       }
-      if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
+      if (shouldGenerateReadyJob(mode, jobRecord)) {
         Job job = null;
         try {
           job = jobHelper.createReadyJob(jobRecord, JobStatus.READY, setResources);
@@ -235,6 +235,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     default:
       break;
     }
+  }
+
+  private boolean shouldGenerateReadyJob(EventHandlingMode mode, JobRecord jobRecord) {
+    return mode != EventHandlingMode.REPLAY && !jobRecord.isContainer() && !jobRecord.isScatterWrapper();
   }
 
   /*

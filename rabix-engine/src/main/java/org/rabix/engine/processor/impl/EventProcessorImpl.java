@@ -10,6 +10,7 @@ import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.processor.EventProcessor;
+import org.rabix.engine.processor.handler.EventHandler.EventHandlingMode;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
 import org.rabix.engine.service.JobService;
@@ -30,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Event processor implementation
@@ -46,6 +48,7 @@ public class EventProcessorImpl implements EventProcessor {
 
   private final AtomicBoolean stop = new AtomicBoolean(false);
   private final AtomicBoolean running = new AtomicBoolean(false);
+  private final AtomicReference<EventHandlingMode> mode = new AtomicReference<>();
 
   private final HandlerFactory handlerFactory;
 
@@ -88,7 +91,7 @@ public class EventProcessorImpl implements EventProcessor {
   private void doProcessEvent(final Event event) {
     try {
       transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
-        if (!handle(event)) {
+        if (!handle(event, mode.get())) {
           eventRepository.deleteGroup(event.getEventGroupId());
           return null;
         }
@@ -123,10 +126,10 @@ public class EventProcessorImpl implements EventProcessor {
     return (event instanceof InitEvent || (event instanceof JobStatusEvent && ((JobStatusEvent) event).getState().equals(JobState.COMPLETED)));
   }
 
-  private boolean handle(Event event) throws TransactionException {
+  private boolean handle(Event event, EventHandlingMode mode) throws TransactionException {
     while (event != null) {
       try {
-        handlerFactory.get(event.getType()).handle(event);
+        handlerFactory.get(event.getType()).handle(event, mode);
       } catch (EventHandlerException e) {
         throw new TransactionException(e);
       }
@@ -139,7 +142,7 @@ public class EventProcessorImpl implements EventProcessor {
    * Invalidates context
    */
   private void invalidateContext(UUID contextId) throws EventHandlerException {
-    handlerFactory.get(Event.EventType.CONTEXT_STATUS_UPDATE).handle(new ContextStatusEvent(contextId, ContextStatus.FAILED));
+    handlerFactory.get(Event.EventType.CONTEXT_STATUS_UPDATE).handle(new ContextStatusEvent(contextId, ContextStatus.FAILED), EventHandlingMode.NORMAL);
   }
 
   @Override
@@ -160,7 +163,7 @@ public class EventProcessorImpl implements EventProcessor {
       addToQueue(event);
       return;
     }
-    handlerFactory.get(event.getType()).handle(event);
+    handlerFactory.get(event.getType()).handle(event, mode.get());
   }
 
   public void addToQueue(Event event) {
@@ -182,6 +185,11 @@ public class EventProcessorImpl implements EventProcessor {
   @Override
   public boolean hasWork() {
     return !externalEvents.isEmpty() || !events.isEmpty();
+  }
+
+  @Override
+  public void setEventHandlingMode(EventHandlingMode mode) {
+    this.mode.set(mode);
   }
 
   public void addToExternalQueue(Event event) {
