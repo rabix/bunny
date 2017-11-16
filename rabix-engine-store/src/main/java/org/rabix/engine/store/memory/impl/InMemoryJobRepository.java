@@ -27,7 +27,7 @@ public class InMemoryJobRepository implements JobRepository {
 
     Map<UUID, JobEntity> rootJobs = jobRepository.get(job.getRootId());
     if(rootJobs == null) {
-      rootJobs = new HashMap<>();
+      rootJobs = new ConcurrentHashMap<>();
       rootJobs.put(job.getId(), new JobEntity(job, groupId, producedByNode));
       jobRepository.put(job.getRootId(), rootJobs);
     } else {
