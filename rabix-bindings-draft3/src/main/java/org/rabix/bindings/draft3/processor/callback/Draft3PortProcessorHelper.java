@@ -89,7 +89,7 @@ public class Draft3PortProcessorHelper {
   
   public Map<String, Object> setFileProperties(Map<String, Object> inputs) throws Draft3PortProcessorException {
     try {
-      return portProcessor.processInputs(inputs, new Draft3FilePropertiesProcessorCallback(Paths.get(draft3Job.getApp().getAppFileLocation())));
+      return portProcessor.processInputs(inputs, new Draft3FilePropertiesProcessorCallback(Paths.get(draft3Job.getApp().getAppFileLocation()).toAbsolutePath()));
     } catch (Draft3PortProcessorException e) {
       throw new Draft3PortProcessorException("Failed to set input properties.", e);
     }

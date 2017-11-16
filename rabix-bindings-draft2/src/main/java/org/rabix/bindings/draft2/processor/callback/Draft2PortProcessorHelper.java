@@ -101,7 +101,7 @@ public class Draft2PortProcessorHelper {
   
   public Map<String, Object> setFileProperties(Map<String, Object> inputs) throws Draft2PortProcessorException {
     try {
-      return portProcessor.processInputs(inputs, new Draft2FilePropertiesProcessorCallback(Paths.get(draft2Job.getApp().getAppFileLocation())));
+      return portProcessor.processInputs(inputs, new Draft2FilePropertiesProcessorCallback(Paths.get(draft2Job.getApp().getAppFileLocation()).toAbsolutePath()));
     } catch (Draft2PortProcessorException e) {
       throw new Draft2PortProcessorException("Failed to set input properties.", e);
     }
