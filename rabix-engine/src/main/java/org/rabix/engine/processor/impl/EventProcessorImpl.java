@@ -13,6 +13,7 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler.EventHandlingMode;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
+import org.rabix.engine.service.GarbageCollectionService;
 import org.rabix.engine.service.JobService;
 import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.store.model.EventRecord;
@@ -57,6 +58,7 @@ public class EventProcessorImpl implements EventProcessor {
   private final EventRepository eventRepository;
   private final JobService jobService;
   private final MetricsHelper metricsHelper;
+  private final GarbageCollectionService garbageCollectionService;
 
   @Inject
   public EventProcessorImpl(HandlerFactory handlerFactory,
@@ -64,13 +66,15 @@ public class EventProcessorImpl implements EventProcessor {
                             EventRepository eventRepository,
                             JobRepository jobRepository,
                             JobService jobService,
-                            MetricsHelper metricsHelper) {
+                            MetricsHelper metricsHelper,
+                            GarbageCollectionService garbageCollectionService) {
     this.handlerFactory = handlerFactory;
     this.transactionHelper = transactionHelper;
     this.eventRepository = eventRepository;
     this.jobRepository = jobRepository;
     this.jobService = jobService;
     this.metricsHelper = metricsHelper;
+    this.garbageCollectionService = garbageCollectionService;
   }
 
   public void start() {
@@ -127,14 +131,18 @@ public class EventProcessorImpl implements EventProcessor {
   }
 
   private boolean handle(Event event, EventHandlingMode mode) throws TransactionException {
-    while (event != null) {
-      try {
+    UUID rootId = event.getContextId();
+    try {
+      while (event != null) {
         handlerFactory.get(event.getType()).handle(event, mode);
-      } catch (EventHandlerException e) {
-        throw new TransactionException(e);
+        event = events.poll();
       }
-      event = events.poll();
+    } catch (EventHandlerException e) {
+      throw new TransactionException(e);
+    } finally {
+      garbageCollectionService.gc(rootId);
     }
+
     return true;
   }
 

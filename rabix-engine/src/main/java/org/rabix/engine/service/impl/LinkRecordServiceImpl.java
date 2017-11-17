@@ -1,14 +1,13 @@
 package org.rabix.engine.service.impl;
 
-import java.util.List;
-import java.util.UUID;
-
+import com.google.inject.Inject;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.service.LinkRecordService;
 import org.rabix.engine.store.model.LinkRecord;
 import org.rabix.engine.store.repository.LinkRecordRepository;
 
-import com.google.inject.Inject;
+import java.util.List;
+import java.util.UUID;
 
 public class LinkRecordServiceImpl implements LinkRecordService {
 
@@ -42,6 +41,11 @@ public class LinkRecordServiceImpl implements LinkRecordService {
 
   public List<LinkRecord> findBySourceAndDestinationType(String jobId, String portId, LinkPortType varType, UUID rootId) {
     return linkRecordRepository.getBySourceAndDestinationType(jobId, portId, varType, rootId);
+  }
+
+  @Override
+  public void deleteInputLinks(String destinationId, UUID rootId) {
+    linkRecordRepository.deleteByDestinationIdAndType(destinationId, LinkPortType.INPUT, rootId);
   }
 
   @Override

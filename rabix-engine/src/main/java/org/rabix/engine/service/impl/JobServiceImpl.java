@@ -19,17 +19,18 @@ import org.rabix.engine.service.*;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
 import org.rabix.engine.store.model.JobRecord;
-import org.rabix.engine.store.repository.EventRepository;
 import org.rabix.engine.store.repository.JobRepository;
 import org.rabix.engine.store.repository.JobRepository.JobEntity;
 import org.rabix.engine.store.repository.TransactionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class JobServiceImpl implements JobService {
 
@@ -37,7 +38,6 @@ public class JobServiceImpl implements JobService {
 
   private final static Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
   private final JobRepository jobRepository;
-  private final EventRepository eventRepository;
 
   private final DAGNodeService dagNodeService;
   private final AppService appService;
@@ -62,7 +62,6 @@ public class JobServiceImpl implements JobService {
                         DAGNodeService dagNodeService,
                         AppService appService,
                         JobRepository jobRepository,
-                        EventRepository eventRepository,
                         TransactionHelper transactionHelper,
                         EngineStatusCallback statusCallback,
                         Configuration configuration,
@@ -73,7 +72,6 @@ public class JobServiceImpl implements JobService {
     this.appService = appService;
     this.eventProcessor = eventProcessor;
     this.jobRepository = jobRepository;
-    this.eventRepository = eventRepository;
     this.transactionHelper = transactionHelper;
     this.engineStatusCallback = statusCallback;
     this.intermediaryFilesService = intermediaryFilesService;
@@ -89,7 +87,7 @@ public class JobServiceImpl implements JobService {
   }
 
   private void doUpdate(Job job) {
-    logger.debug("Update Job {}", job.getId());
+    logger.debug("Update job id:{}, name:{}, root:{}", job.getId(), job.getName(), job.getRootId());
     try {
       transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
         JobStatusEvent statusEvent = null;
@@ -231,8 +229,6 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
-    } finally {
-      jobRepository.delete(rootId, jobs.stream().map(Job::getId).collect(Collectors.toSet()));
     }
   }
 
@@ -278,9 +274,6 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootCompleted(job.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
-    } finally {
-      jobRepository.deleteByRootIds(Sets.newHashSet(job.getId()));
-      eventRepository.deleteGroup(job.getRootId());
     }
   }
 
@@ -305,9 +298,6 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootFailed(job.getRootId(), job.getMessage());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
-    } finally {
-      jobRepository.deleteByRootIds(Sets.newHashSet(job.getId()));
-      eventRepository.deleteGroup(job.getRootId());
     }
   }
 
@@ -334,14 +324,12 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootAborted(rootJob.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
-    } finally {
-      jobRepository.deleteByRootIds(Sets.newHashSet(rootJob.getId()));
     }
   }
 
   @Override
   public void handleJobCompleted(Job job){
-    logger.info("Job {} rootId: {} is completed.", job.getName(), job.getRootId());
+    logger.info("Job id: {}, name:{}, rootId: {} is completed.", job.getId(), job.getName(), job.getRootId());
     try{
       engineStatusCallback.onJobCompleted(job.getId(), job.getRootId());
     } catch (EngineStatusCallbackException e) {

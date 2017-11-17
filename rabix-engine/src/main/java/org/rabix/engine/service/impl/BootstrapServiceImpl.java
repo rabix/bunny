@@ -7,7 +7,7 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BootstrapService;
 import org.rabix.engine.service.BootstrapServiceException;
-import org.rabix.engine.service.StoreCleanupService;
+import org.rabix.engine.service.GarbageCollectionService;
 import org.rabix.engine.store.repository.EventRepository;
 import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.transport.backend.Backend;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class BootstrapServiceImpl implements BootstrapService {
 
   private final BackendService backendService;
-  private final StoreCleanupService storeCleanupService;
+  private final GarbageCollectionService garbageCollectionService;
 
   private final EventRepository eventRepository;
   private final TransactionHelper transactionHelper;
@@ -30,12 +30,12 @@ public class BootstrapServiceImpl implements BootstrapService {
 
   @Inject
   public BootstrapServiceImpl(TransactionHelper transactionHelper, EventRepository eventRepository,
-      EventProcessor eventProcessor, BackendService backendService, StoreCleanupService storeCleanupService) {
+      EventProcessor eventProcessor, BackendService backendService, GarbageCollectionService garbageCollectionService) {
     this.backendService = backendService;
     this.eventProcessor = eventProcessor;
     this.eventRepository = eventRepository;
     this.transactionHelper = transactionHelper;
-    this.storeCleanupService = storeCleanupService;
+    this.garbageCollectionService = garbageCollectionService;
   }
 
   @Override
@@ -43,7 +43,6 @@ public class BootstrapServiceImpl implements BootstrapService {
     try {
       eventProcessor.start();
       backendService.scanEmbedded();
-      storeCleanupService.start();
     } catch (Exception e) {
       throw new BootstrapServiceException(e);
     }

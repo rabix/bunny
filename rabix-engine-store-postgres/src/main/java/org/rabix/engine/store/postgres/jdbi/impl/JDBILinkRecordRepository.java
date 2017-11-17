@@ -1,35 +1,23 @@
 package org.rabix.engine.store.postgres.jdbi.impl;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.postgres.jdbi.impl.JDBILinkRecordRepository.LinkRecordMapper;
+import org.rabix.engine.store.repository.LinkRecordRepository;
+import org.skife.jdbi.v2.SQLStatement;
+import org.skife.jdbi.v2.StatementContext;
+import org.skife.jdbi.v2.sqlobject.*;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.tweak.ResultSetMapper;
+
+import java.lang.annotation.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-
-import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.store.repository.LinkRecordRepository;
-import org.rabix.engine.store.postgres.jdbi.impl.JDBILinkRecordRepository.LinkRecordMapper;
-import org.rabix.engine.store.model.JobRecord.JobIdRootIdPair;
-import org.rabix.engine.store.model.LinkRecord;
-import org.skife.jdbi.v2.SQLStatement;
-import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.Binder;
-import org.skife.jdbi.v2.sqlobject.BinderFactory;
-import org.skife.jdbi.v2.sqlobject.BindingAnnotation;
-import org.skife.jdbi.v2.sqlobject.SqlBatch;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
-import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @RegisterMapper(LinkRecordMapper.class)
 public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
@@ -37,50 +25,54 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   @Override
   @SqlUpdate("insert into link_record (context_id,source_job_id,source_job_port_id,source_type,destination_job_id,destination_job_port_id,destination_type,position,created_at,modified_at) values (:context_id,:source_job_id,:source_job_port_id,:source_type::port_type,:destination_job_id,:destination_job_port_id,:destination_type::port_type,:position,:created_at,:modified_at)")
   public abstract int insert(@BindLinkRecord LinkRecord linkRecord);
-  
+
   @Override
   @SqlUpdate("update link_record set context_id=:context_id,source_job_id=:source_job_id,source_job_port_id=:source_job_port_id,source_type=:source_type::port_type,destination_job_id=:destination_job_id,destination_job_port_id=:destination_job_port_id,destination_type=:destination_type::port_type,position=:position,modified_at='now' where context_id=:context_id and source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and source_type=:source_type and destination_job_id=:destination_job_id and destination_job_port_id=:destination_job_port_id and destination_type=:destination_type")
   public abstract int update(@BindLinkRecord LinkRecord linkRecord);
- 
+
   @Override
   @SqlBatch("insert into link_record (context_id,source_job_id,source_job_port_id,source_type,destination_job_id,destination_job_port_id,destination_type,position,created_at,modified_at) values (:context_id,:source_job_id,:source_job_port_id,:source_type::port_type,:destination_job_id,:destination_job_port_id,:destination_type::port_type,:position,:created_at,:modified_at)")
   public abstract void insertBatch(@BindLinkRecord Iterator<LinkRecord> records);
-  
+
   @Override
   @SqlBatch("update link_record set context_id=:context_id,source_job_id=:source_job_id,source_job_port_id=:source_job_port_id,source_type=:source_type::port_type,destination_job_id=:destination_job_id,destination_job_port_id=:destination_job_port_id,destination_type=:destination_type::port_type,position=:position,modified_at='now' where context_id=:context_id and source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and source_type=:source_type::port_type and destination_job_id=:destination_job_id and destination_job_port_id=:destination_job_port_id and destination_type=:destination_type::port_type")
   public abstract void updateBatch(@BindLinkRecord Iterator<LinkRecord> records);
-  
+
   @Override
-  @SqlBatch("delete from link_record where source_job_id=:id and context_id=:root_id")
-  public abstract void delete(@JDBIJobRecordRepository.BindJobIdRootId Set<JobIdRootIdPair> pairs);
-  
+  @SqlBatch("delete from link_record where destination_job_id=:id and destination_type=:source_type::port_type and context_id=:root_id")
+  public abstract void deleteByDestinationIdAndType(@Bind("id") String destinationId, @Bind("source_type") LinkPortType linkPortType, @Bind("root_id") UUID rootId);
+
+  @Override
+  @SqlBatch("delete from link_record where context_id=:root_id")
+  public abstract void deleteByRootId(@Bind("root_id") UUID rootId);
+
   @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and context_id=:context_id")
   public abstract List<LinkRecord> getBySource(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("context_id") UUID rootId);
-  
+
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and context_id=:context_id")
   public abstract List<LinkRecord> getBySource(@Bind("source_job_id") String sourceJobId, @Bind("context_id") UUID rootId);
-  
+
   @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and context_id=:context_id")
   public abstract List<LinkRecord> getBySourceJobId(@Bind("source_job_id") String sourceJobId, @Bind("context_id") UUID rootId);
-  
+
   @Override
   @SqlQuery("select count(*) from link_record where source_job_id=:source_job_id and context_id=:context_id")
   public abstract int getBySourceCount(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("context_id") UUID rootId);
-  
+
   @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_type=:source_type::port_type and context_id=:context_id")
   public abstract List<LinkRecord> getBySourceAndSourceType(@Bind("source_job_id") String sourceJobId, @Bind("source_type") LinkPortType sourceType, @Bind("context_id") UUID rootId);
-  
+
   @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and destination_type=:destination_type::port_type and context_id=:context_id")
   public abstract List<LinkRecord> getBySourceAndDestinationType(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("destination_type") LinkPortType destinationType, @Bind("context_id") UUID rootId);
-  
+
   @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and source_type=:source_type::port_type and context_id=:context_id")
   public abstract List<LinkRecord> getBySourceAndSourceType(@Bind("source_job_id") String jobId, @Bind("source_job_port_id") String portId, @Bind("source_type") LinkPortType varType, @Bind("context_id") UUID rootId);
-  
+
   @BindingAnnotation(BindLinkRecord.LinkBinderFactory.class)
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.PARAMETER })
@@ -104,7 +96,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
       }
     }
   }
-  
+
   public static class LinkRecordMapper implements ResultSetMapper<LinkRecord> {
     public LinkRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
       UUID contextId = resultSet.getObject("context_id", UUID.class);
@@ -120,5 +112,5 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
       return new LinkRecord(contextId, sourceJobId, sourceJobPortId, LinkPortType.valueOf(sourceType), destinationJobId, destinationJobPortId, LinkPortType.valueOf(destinationType), position, createdAt, modifiedAt);
     }
   }
-  
+
 }

@@ -19,7 +19,7 @@ import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.service.JobRecordService;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.service.LinkRecordService;
-import org.rabix.engine.service.StoreCleanupService;
+import org.rabix.engine.service.GarbageCollectionService;
 import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.service.impl.AppServiceImpl;
 import org.rabix.engine.service.impl.ContextRecordServiceImpl;
@@ -28,7 +28,7 @@ import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
 import org.rabix.engine.service.impl.JobRecordServiceImpl;
 import org.rabix.engine.service.impl.JobStatsRecordServiceImpl;
 import org.rabix.engine.service.impl.LinkRecordServiceImpl;
-import org.rabix.engine.service.impl.StoreCleanupServiceImpl;
+import org.rabix.engine.service.impl.GarbageCollectionServiceImpl;
 import org.rabix.engine.service.impl.VariableRecordServiceImpl;
 import org.rabix.engine.store.event.sourcing.EventSourcingModule;
 import org.rabix.engine.store.lru.dag.DAGCache;
@@ -74,7 +74,7 @@ public class EngineModule extends AbstractModule {
     bind(LinkRecordService.class).to(LinkRecordServiceImpl.class).in(Scopes.SINGLETON);
     bind(ContextRecordService.class).to(ContextRecordServiceImpl.class).in(Scopes.SINGLETON);
     bind(JobStatsRecordService.class).to(JobStatsRecordServiceImpl.class).in(Scopes.SINGLETON);
-    bind(StoreCleanupService.class).to(StoreCleanupServiceImpl.class).in(Scopes.SINGLETON);
+    bind(GarbageCollectionService.class).to(GarbageCollectionServiceImpl.class).in(Scopes.SINGLETON);
 
     bind(JobHelper.class).in(Scopes.SINGLETON);
     bind(ScatterHandler.class).in(Scopes.SINGLETON);

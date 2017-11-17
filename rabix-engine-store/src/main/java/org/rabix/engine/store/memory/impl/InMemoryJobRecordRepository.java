@@ -2,7 +2,6 @@ package org.rabix.engine.store.memory.impl;
 
 import com.google.inject.Inject;
 import org.rabix.engine.store.model.JobRecord;
-import org.rabix.engine.store.model.JobRecord.JobIdRootIdPair;
 import org.rabix.engine.store.repository.JobRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +23,14 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
 
   @Override
   public int insert(JobRecord jobRecord) {
-    Map<UUID, JobRecord> rootJobs = jobRecordsPerRoot.computeIfAbsent(jobRecord.getRootId(), k -> new HashMap<>());
+    Map<UUID, JobRecord> rootJobs = jobRecordsPerRoot.computeIfAbsent(jobRecord.getRootId(), k -> new ConcurrentHashMap<>());
     rootJobs.put(jobRecord.getExternalId(), jobRecord);
     return 1;
   }
 
   @Override
   public int update(JobRecord jobRecord) {
-    Map<UUID, JobRecord> rootJobs = jobRecordsPerRoot.computeIfAbsent(jobRecord.getRootId(), k -> new HashMap<UUID, JobRecord>());
+    Map<UUID, JobRecord> rootJobs = jobRecordsPerRoot.computeIfAbsent(jobRecord.getRootId(), k -> new ConcurrentHashMap<>());
     rootJobs.put(jobRecord.getExternalId(), jobRecord);
     return 1;
   }
@@ -68,12 +67,14 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
   }
 
   @Override
-  public void delete(Set<JobIdRootIdPair> externalIDs) {
-    for (JobIdRootIdPair job : externalIDs) {
-      jobRecordsPerRoot.get(job.rootId).remove(job.id);
-      if (job.id.equals(job.rootId)) {
-        jobRecordsPerRoot.remove(job.rootId);
-      }
+  public void delete(UUID id, UUID rootId) {
+    Map<UUID, JobRecord> jobRecords = jobRecordsPerRoot.get(rootId);
+    if (jobRecords != null) {
+      jobRecords.remove(id);
+    }
+
+    if (id.equals(rootId)) {
+      jobRecordsPerRoot.remove(id);
     }
   }
 
@@ -83,9 +84,11 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
     if (recordsPerRoot == null) {
       return new ArrayList<>();
     }
-    List<JobRecord> records = new ArrayList<>();
-    records.addAll(recordsPerRoot.values());
-    return records;
+    return recordsPerRoot
+            .values()
+            .stream()
+            .filter(jobRecord -> !jobRecord.getExternalId().equals(rootId))
+            .collect(Collectors.toList());
   }
 
   @Override
@@ -95,7 +98,7 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
   }
 
   @Override
-  public synchronized JobRecord get(String id, UUID rootId) {
+  public JobRecord get(String id, UUID rootId) {
     Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRoot.get(rootId);
     if (recordsPerRoot != null) {
       for (JobRecord job : jobRecordsPerRoot.get(rootId).values()) {
@@ -105,6 +108,15 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
       }
     }
     logger.debug("Failed to find jobRecord {} for root {}", id, rootId);
+    return null;
+  }
+
+  @Override
+  public JobRecord getByExternalId(UUID externalId, UUID rootId) {
+    Map<UUID, JobRecord> records = jobRecordsPerRoot.get(rootId);
+    if (records != null) {
+      return records.get(externalId);
+    }
     return null;
   }
 

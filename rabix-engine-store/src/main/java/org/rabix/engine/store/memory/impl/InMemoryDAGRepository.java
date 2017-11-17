@@ -29,6 +29,11 @@ public class InMemoryDAGRepository implements DAGRepository {
     return getIdFromDAG(id, dagRepository.get(rootId));
   }
 
+  @Override
+  public void delete(UUID rootId) {
+    dagRepository.remove(rootId);
+  }
+
   public DAGNode getIdFromDAG(String id, DAGNode node) {
     Map<String, DAGNode> allNodes = new HashMap<String, DAGNode>();
     populateNodes(node, allNodes);

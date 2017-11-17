@@ -173,8 +173,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       } else {
         if (!jobRecord.isScattered()) {
-          List<LinkRecord> rootLinks = linkRecordService.findBySourceAndSourceType(jobRecord.getId(), LinkPortType.OUTPUT, jobRecord.getRootId()).stream()
-              .filter(p -> p.getDestinationJobId().equals(InternalSchemaHelper.ROOT_NAME)).collect(Collectors.toList());
+          List<LinkRecord> rootLinks = linkRecordService
+                  .findBySourceAndSourceType(jobRecord.getId(), LinkPortType.OUTPUT, jobRecord.getRootId())
+                  .stream()
+                  .filter(p -> p.getDestinationJobId().equals(InternalSchemaHelper.ROOT_NAME))
+                  .collect(Collectors.toList());
           Map<String, Object> outs = new HashMap<>();
           rootLinks.stream().forEach(link -> {
             outs.put(link.getDestinationJobPort(), variableRecordService

@@ -1,9 +1,6 @@
 package org.rabix.engine.service.impl;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.inject.Inject;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.engine.service.JobRecordService;
@@ -13,7 +10,9 @@ import org.rabix.engine.store.repository.JobRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class JobRecordServiceImpl implements JobRecordService {
 
@@ -50,6 +49,11 @@ public class JobRecordServiceImpl implements JobRecordService {
 
   public JobRecord find(String id, UUID rootId) {
     return repo.get(id, rootId);
+  }
+
+  @Override
+  public JobRecord findByExternalId(UUID externalId, UUID rootId) {
+    return repo.getByExternalId(externalId, rootId);
   }
 
   public JobRecord findRoot(UUID rootId) {
