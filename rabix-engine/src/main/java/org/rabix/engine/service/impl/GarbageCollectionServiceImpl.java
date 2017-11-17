@@ -3,6 +3,7 @@ package org.rabix.engine.service.impl;
 import com.google.inject.Inject;
 import org.rabix.engine.service.GarbageCollectionService;
 import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.model.LinkRecord;
 import org.rabix.engine.store.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
@@ -18,6 +20,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final TransactionHelper transactionService;
   private final JobRepository jobRepository;
   private final JobRecordRepository jobRecordRepository;
+  private final JobStatsRecordRepository jobStatsRecordRepository;
   private final EventRepository eventRepository;
   private final VariableRecordRepository variableRecordRepository;
   private final LinkRecordRepository linkRecordRepository;
@@ -28,6 +31,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   @Inject
   public GarbageCollectionServiceImpl(JobRepository jobRepository,
                                       JobRecordRepository jobRecordRepository,
+                                      JobStatsRecordRepository jobStatsRecordRepository,
                                       EventRepository eventRepository,
                                       VariableRecordRepository variableRecordRepository,
                                       LinkRecordRepository linkRecordRepository,
@@ -35,6 +39,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
                                       TransactionHelper transactionService) {
     this.jobRepository = jobRepository;
     this.jobRecordRepository = jobRecordRepository;
+    this.jobStatsRecordRepository = jobStatsRecordRepository;
     this.transactionService = transactionService;
     this.eventRepository = eventRepository;
     this.variableRecordRepository = variableRecordRepository;
@@ -43,7 +48,6 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   public void gc(UUID rootId) {
-    logger.info("gc(rootId={})", rootId);
     executorService.submit(() -> {
       try {
         transactionService.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
@@ -57,7 +61,11 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   private void doGc(UUID rootId) {
-    List<JobRecord> jobRecords = jobRecordRepository.get(rootId, terminalStates());
+    List<JobRecord> jobRecords = jobRecordRepository
+            .get(rootId, terminalStates())
+            .stream()
+            .filter(jobRecord -> !jobRecord.isScattered())
+            .collect(Collectors.toList());
     jobRecords.stream().filter(this::isGarbage).forEach(this::collect);
   }
 
@@ -68,16 +76,46 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     if (jobRecord.isRoot()) {
       dagRepository.delete(rootId);
       linkRecordRepository.deleteByRootId(rootId);
+      jobStatsRecordRepository.delete(rootId);
+
+      List<JobRecord> all = jobRecordRepository.get(rootId);
+      flush(all);
     }
 
-    variableRecordRepository.delete(jobRecord.getId(), rootId);
-    eventRepository.deleteGroup(jobRecord.getExternalId());
-    jobRecordRepository.delete(jobRecord.getExternalId(), rootId);
-    jobRepository.delete(rootId, new HashSet<>(Collections.singletonList(jobRecord.getExternalId())));
+    List<JobRecord> garbage = new ArrayList<>();
+    garbage.add(jobRecord);
+
+    if (jobRecord.isScatterWrapper()) {
+      List<JobRecord> scattered = jobRecordRepository.getByParent(jobRecord.getExternalId(), rootId);
+      garbage.addAll(scattered);
+    }
+
+    flush(garbage);
+  }
+
+  private void flush(List<JobRecord> garbage) {
+    garbage.forEach(record -> {
+      variableRecordRepository.delete(record.getId(), record.getRootId());
+      eventRepository.deleteGroup(record.getExternalId());
+      jobRecordRepository.delete(record.getExternalId(), record.getRootId());
+      jobRepository.delete(record.getRootId(), new HashSet<>(Collections.singletonList(record.getExternalId())));
+    });
   }
 
   private boolean isGarbage(JobRecord jobRecord) {
-    return jobRecord.getOutputCounters().stream().allMatch(portCounter -> portCounter.counter <= 0);
+    List<LinkRecord> outputLink = linkRecordRepository.getBySource(jobRecord.getId(), jobRecord.getRootId());
+    List<JobRecord> outputJobRecords = outputLink
+            .stream()
+            .map(link -> jobRecordRepository.get(link.getDestinationJobId(), link.getRootId()))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+    return outputJobRecords.stream().allMatch(outputRecord -> {
+      if (outputRecord.isScatterWrapper()) {
+        return isGarbage(outputRecord);
+      }
+      return outputRecord.isCompleted();
+    });
   }
 
   private Set<JobRecord.JobState> terminalStates() {

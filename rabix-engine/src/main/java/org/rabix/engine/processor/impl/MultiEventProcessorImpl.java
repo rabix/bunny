@@ -93,7 +93,6 @@ public class MultiEventProcessorImpl implements EventProcessor {
    */
   private EventProcessor getEventProcessor(UUID rootId) {
     int index = EventProcessorDispatcher.dispatch(rootId, eventProcessorCount);
-    logger.debug("Root Job {} goes to EventProcessor {}", rootId, index);
     return eventProcessors.get(index);
   }
 

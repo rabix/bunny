@@ -107,7 +107,6 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
         }
       }
     }
-    logger.debug("Failed to find jobRecord {} for root {}", id, rootId);
     return null;
   }
 

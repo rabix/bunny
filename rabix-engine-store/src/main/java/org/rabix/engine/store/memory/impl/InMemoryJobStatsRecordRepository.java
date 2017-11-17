@@ -35,7 +35,7 @@ public class InMemoryJobStatsRecordRepository implements JobStatsRecordRepositor
   }
 
   @Override
-  public synchronized int delete(UUID id) {
+  public int delete(UUID id) {
     jobStatsRecordRepository.remove(id);
     return 1;
   }
