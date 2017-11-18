@@ -26,6 +26,8 @@ public interface EventProcessor {
 
   void setEventHandlingMode(EventHandler.EventHandlingMode mode);
 
+  boolean isReplayMode();
+
   class EventProcessorDispatcher {
 
     public static int dispatch(UUID rootId, int numberOfEventProcessors) {

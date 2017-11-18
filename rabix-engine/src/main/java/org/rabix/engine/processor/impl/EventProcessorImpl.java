@@ -200,6 +200,11 @@ public class EventProcessorImpl implements EventProcessor {
     this.mode.set(mode);
   }
 
+  @Override
+  public boolean isReplayMode() {
+    return this.mode.get() == EventHandlingMode.REPLAY;
+  }
+
   public void addToExternalQueue(Event event) {
     if (stop.get()) {
       return;

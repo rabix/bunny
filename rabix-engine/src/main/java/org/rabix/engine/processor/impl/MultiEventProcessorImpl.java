@@ -75,6 +75,11 @@ public class MultiEventProcessorImpl implements EventProcessor {
   }
 
   @Override
+  public boolean isReplayMode() {
+    return eventProcessors.values().stream().allMatch(EventProcessorImpl::isReplayMode);
+  }
+
+  @Override
   public void addToExternalQueue(Event event) {
     getEventProcessor(event.getContextId()).addToExternalQueue(event);
   }
