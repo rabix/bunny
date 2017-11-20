@@ -103,6 +103,8 @@ public class EventProcessorImpl implements EventProcessor {
           Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
           jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
         }
+
+        eventRepository.updateStatus(event.getEventGroupId(), EventRecord.Status.PROCESSED);
         return null;
       });
     } catch (Exception e) {
@@ -117,7 +119,7 @@ public class EventProcessorImpl implements EventProcessor {
       }
 
       try {
-        EventRecord er = new EventRecord(event.getEventGroupId(), EventRecord.Status.FAILED, JSONHelper.convertToMap(e));
+        EventRecord er = new EventRecord(event.getContextId(), event.getEventGroupId(), EventRecord.Status.FAILED, JSONHelper.convertToMap(e));
         eventRepository.insert(er);
         invalidateContext(event.getContextId());
       } catch (Exception ehe) {
@@ -183,10 +185,10 @@ public class EventProcessorImpl implements EventProcessor {
 
   @Override
   public void persist(Event event) {
-    if (stop.get() || mode.get() == EventHandlingMode.REPLAY) {
+    if (stop.get()) {
       return;
     }
-    EventRecord er = new EventRecord(event.getEventGroupId(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
+    EventRecord er = new EventRecord(event.getContextId(), event.getEventGroupId(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
     eventRepository.insert(er);
   }
 

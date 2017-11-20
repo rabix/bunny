@@ -1,6 +1,7 @@
 package org.rabix.engine.service.impl;
 
 import com.google.inject.Inject;
+import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.service.GarbageCollectionService;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.LinkRecord;
@@ -28,6 +29,8 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private final ExecutorService executorService = Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "GarbageCollectionService"));
 
+  private final boolean enabled;
+
   @Inject
   public GarbageCollectionServiceImpl(JobRepository jobRepository,
                                       JobRecordRepository jobRecordRepository,
@@ -36,7 +39,8 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
                                       VariableRecordRepository variableRecordRepository,
                                       LinkRecordRepository linkRecordRepository,
                                       DAGRepository dagRepository,
-                                      TransactionHelper transactionService) {
+                                      TransactionHelper transactionService,
+                                      Configuration configuration) {
     this.jobRepository = jobRepository;
     this.jobRecordRepository = jobRecordRepository;
     this.jobStatsRecordRepository = jobStatsRecordRepository;
@@ -45,9 +49,12 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     this.variableRecordRepository = variableRecordRepository;
     this.linkRecordRepository = linkRecordRepository;
     this.dagRepository = dagRepository;
+    this.enabled = configuration.getBoolean("gc.enabled", true);
   }
 
   public void gc(UUID rootId) {
+    if (!enabled) return;
+
     executorService.submit(() -> {
       try {
         transactionService.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
@@ -77,6 +84,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       dagRepository.delete(rootId);
       linkRecordRepository.deleteByRootId(rootId);
       jobStatsRecordRepository.delete(rootId);
+      eventRepository.deleteByRootId(rootId);
 
       List<JobRecord> all = jobRecordRepository.get(rootId);
       flush(all);

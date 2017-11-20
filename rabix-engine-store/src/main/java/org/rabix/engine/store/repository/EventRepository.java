@@ -12,6 +12,10 @@ public interface EventRepository {
 
   void deleteGroup(UUID groupId);
 
+  void deleteByRootId(UUID rootId);
+
+  void updateStatus(UUID groupId, EventRecord.Status status);
+
   List<EventRecord> getPendingEvents();
 
 }

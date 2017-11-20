@@ -29,6 +29,14 @@ public interface JDBIEventRepository extends EventRepository {
   void deleteGroup(@Bind("id") UUID id);
 
   @Override
+  @SqlUpdate("delete from event where root_id=:root_id")
+  void deleteByRootId(@Bind("root_id") UUID rootId);
+
+  @Override
+  @SqlUpdate("update event set status=:status::event_status where id=:id")
+  void updateStatus(@Bind("id") UUID groupId, @Bind("status") EventRecord.Status status);
+
+  @Override
   @SqlQuery("select * from event where status <> 'FAILED' order by created_at asc")
   List<EventRecord> getPendingEvents();
 
@@ -36,7 +44,7 @@ public interface JDBIEventRepository extends EventRepository {
     public EventRecord map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       EventRecord.Status status = EventRecord.Status.valueOf(r.getString("status"));
       Map<String, ?> event = JSONHelper.readMap(new String(r.getBytes("event")));
-      return new EventRecord(UUID.fromString(r.getString("id")), status, event);
+      return new EventRecord(UUID.fromString("root_id"), UUID.fromString(r.getString("id")), status, event);
     }
   }
 

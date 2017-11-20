@@ -10,26 +10,39 @@ import java.util.stream.Collectors;
 
 public class InMemoryEventRepository implements EventRepository {
 
-  private final Set<EventRecord> eventRepository;
+  private final Map<UUID, EventRecord> eventRepository;
 
   @Inject
   public InMemoryEventRepository() {
-    this.eventRepository = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    this.eventRepository = new ConcurrentHashMap<>();
   }
 
   @Override
   public void insert(EventRecord event) {
-    eventRepository.add(event);
+    eventRepository.put(event.getGroupId(), event);
   }
 
   @Override
   public void deleteGroup(UUID id) {
-    eventRepository.removeIf(e -> e.getGroupId().equals(id));
+    eventRepository.remove(id);
+  }
+
+  @Override
+  public void deleteByRootId(UUID rootId) {
+    eventRepository.values().removeIf(e -> rootId.equals(e.getRootId()));
+  }
+
+  @Override
+  public void updateStatus(UUID groupId, EventRecord.Status status) {
+    EventRecord eventRecord = eventRepository.get(groupId);
+    if (eventRecord != null) {
+      eventRecord.setStatus(status);
+    }
   }
 
   @Override
   public List<EventRecord> getPendingEvents() {
-    return eventRepository.stream()
+    return eventRepository.values().stream()
         .filter(event ->
                 event.getStatus() == EventRecord.Status.UNPROCESSED
                         || event.getStatus() == EventRecord.Status.PROCESSED)

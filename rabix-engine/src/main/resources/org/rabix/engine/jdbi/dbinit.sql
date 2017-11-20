@@ -397,3 +397,7 @@ ALTER TABLE job_stats
     DROP CONSTRAINT job_stats_id_fkey;
 ALTER TABLE job_stats ADD CONSTRAINT job_stats_context_fkey FOREIGN KEY (root_id) REFERENCES context_record (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE CASCADE;
 --rollback ALTER TABLE job_stats DROP CONSTRAINT job_stats_context_fkey; ALTER TABLE job_stats ADD CONSTRAINT job_stats_id_fkey FOREIGN KEY (root_id) REFERENCES job (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE CASCADE;
+
+--changeset bunny:1487849040814-75 dbms:postgresql
+ALTER TABLE event ADD COLUMN root_id uuid;
+--rollback ALTER TABLE event drop column root_id;
