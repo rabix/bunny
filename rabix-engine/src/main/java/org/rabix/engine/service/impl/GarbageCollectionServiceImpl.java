@@ -111,6 +111,10 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   private boolean isGarbage(JobRecord jobRecord) {
+    if (jobRecord.isRoot() && jobRecord.isCompleted()) {
+      return true;
+    }
+
     List<LinkRecord> outputLink = linkRecordRepository.getBySource(jobRecord.getId(), jobRecord.getRootId());
     List<JobRecord> outputJobRecords = outputLink
             .stream()
