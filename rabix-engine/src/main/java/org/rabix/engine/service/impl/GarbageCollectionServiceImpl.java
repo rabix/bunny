@@ -52,10 +52,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     if (!enabled) return;
 
     try {
-      transactionService.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
-        doGc(rootId);
-        return null;
-      });
+      doGc(rootId);
     } catch (Exception e) {
       logger.warn("Could not perform garbage collection.", e);
     }
