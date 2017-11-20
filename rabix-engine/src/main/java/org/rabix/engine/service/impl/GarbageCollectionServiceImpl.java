@@ -10,8 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class GarbageCollectionServiceImpl implements GarbageCollectionService {
@@ -26,8 +24,6 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final VariableRecordRepository variableRecordRepository;
   private final LinkRecordRepository linkRecordRepository;
   private final DAGRepository dagRepository;
-
-  private final ExecutorService executorService = Executors.newSingleThreadExecutor(runnable -> new Thread(runnable, "GarbageCollectionService"));
 
   private final boolean enabled;
 
@@ -55,16 +51,14 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   public void gc(UUID rootId) {
     if (!enabled) return;
 
-    executorService.submit(() -> {
-      try {
-        transactionService.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
-          doGc(rootId);
-          return null;
-        });
-      } catch (Exception e) {
-        logger.warn("Could not perform garbage collection.", e);
-      }
-    });
+    try {
+      transactionService.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
+        doGc(rootId);
+        return null;
+      });
+    } catch (Exception e) {
+      logger.warn("Could not perform garbage collection.", e);
+    }
   }
 
   private void doGc(UUID rootId) {
