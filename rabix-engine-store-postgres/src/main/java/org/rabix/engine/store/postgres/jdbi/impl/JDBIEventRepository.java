@@ -20,7 +20,7 @@ import java.util.UUID;
 public interface JDBIEventRepository extends EventRepository {
 
   @Override
-  @SqlUpdate("insert into event (id,event,status) values (:id,:event,:status::event_status)")
+  @SqlUpdate("insert into event (id,event,status,root_id) values (:id,:event,:status::event_status,:root_id)")
   void insert(@BindEvent EventRecord eventRecord);
 
 
@@ -61,6 +61,7 @@ public interface JDBIEventRepository extends EventRepository {
             q.bind("id", event.getGroupId());
             q.bind("event", JSONHelper.writeObject(event.getEvent()).getBytes());
             q.bind("status", event.getStatus().toString());
+            q.bind("root_id", event.getRootId());
           }
         };
       }
