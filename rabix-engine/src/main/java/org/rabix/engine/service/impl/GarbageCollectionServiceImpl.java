@@ -110,7 +110,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
-    return outputJobRecords.stream().allMatch(outputRecord -> {
+    return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(outputRecord -> {
       if (outputRecord.isScatterWrapper()) {
         return isGarbage(outputRecord);
       }
