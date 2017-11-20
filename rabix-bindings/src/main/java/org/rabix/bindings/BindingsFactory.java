@@ -1,21 +1,21 @@
 package org.rabix.bindings;
 
-import java.util.Comparator;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.apache.commons.lang.NotImplementedException;
 import org.rabix.bindings.model.Application;
 import org.rabix.bindings.model.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Comparator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 public class BindingsFactory {
 
   private final static Logger logger = LoggerFactory.getLogger(BindingsFactory.class);
-  
+
   public static final String MULTIPROTOCOL_KEY = "rabix.multiprotocol";
-  
+
   private static SortedSet<Bindings> bindings = new TreeSet<>(new Comparator<Bindings>() {
     @Override
     public int compare(Bindings b1, Bindings b2) {
@@ -41,7 +41,7 @@ public class BindingsFactory {
     }
   }
 
-  public static synchronized Bindings create(String appURL) throws BindingException {
+  public static Bindings create(String appURL) throws BindingException {
     int wrongVersions = 0;
     Exception finalException = null;
     for (Bindings binding : bindings) {
@@ -86,11 +86,11 @@ public class BindingsFactory {
     throw new BindingException("Unknown error when parsing the app!");
   }
 
-  public static synchronized Bindings create(Job job) throws BindingException {
+  public static Bindings create(Job job) throws BindingException {
     return create(job.getApp());
   }
-  
-  public static synchronized Bindings create(ProtocolType protocol) throws BindingException {
+
+  public static Bindings create(ProtocolType protocol) throws BindingException {
     for(Bindings binding: bindings) {
       if(binding.getProtocolType().equals(protocol)) {
         return binding;
@@ -98,5 +98,4 @@ public class BindingsFactory {
     }
     throw new BindingException("Cannot find binding for the protocol.");
   }
-
 }
