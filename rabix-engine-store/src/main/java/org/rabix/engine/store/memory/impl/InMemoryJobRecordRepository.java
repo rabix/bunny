@@ -158,6 +158,9 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
   @Override
   public List<JobRecord> get(UUID rootId, Set<JobRecord.JobState> states) {
     Map<UUID, JobRecord> jobs = jobRecordsPerRoot.get(rootId);
+    if (jobs == null) {
+      return Collections.emptyList();
+    }
     return jobs.values().stream().filter(p -> states.contains(p.getState())).collect(Collectors.toList());
   }
 
