@@ -95,7 +95,7 @@ public class Draft2StageInputProcessorCallback implements Draft2PortProcessorCal
       throw new BindingException("Failed to stage input file path " + path + ". File with the same name already exists.");
     }
     logger.info("Stage input file {} to {}.", file, destinationFile);
-    switch (stageInput) { // just copy for now
+    switch (stageInput) {
     case COPY:
       try {
         if (file.isFile()) {
@@ -109,7 +109,7 @@ public class Draft2StageInputProcessorCallback implements Draft2PortProcessorCal
       return destinationFile.getAbsolutePath();
     case LINK:
         try {
-          Files.createLink(destinationFile.toPath(), file.toPath());
+          Files.createSymbolicLink(destinationFile.toPath(), file.toPath());
         } catch (IOException e) {
           throw new BindingException(e);
         }

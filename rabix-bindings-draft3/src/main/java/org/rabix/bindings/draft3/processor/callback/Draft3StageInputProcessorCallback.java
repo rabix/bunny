@@ -109,7 +109,7 @@ public class Draft3StageInputProcessorCallback implements Draft3PortProcessorCal
       return destinationFile.getAbsolutePath();
     case LINK:
         try {
-          Files.createLink(destinationFile.toPath(), file.toPath());
+          Files.createSymbolicLink(destinationFile.toPath(), file.toPath());
         } catch (IOException e) {
           throw new BindingException(e);
         }

@@ -98,17 +98,17 @@ public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback 
     switch (stageInput) { // just copy for now
     case COPY:
       try {
-          Files.copy(file, destinationFile);
+        Files.copy(file, destinationFile);
       } catch (IOException e) {
         throw new BindingException(e);
       }
       return destinationFile.toString();
     case LINK:
-        try {
-          Files.createLink(destinationFile, file);
-        } catch (IOException e) {
-          throw new BindingException(e);
-        }
+      try {
+        Files.createSymbolicLink(destinationFile, file);
+      } catch (IOException e) {
+        throw new BindingException(e);
+      }
      return destinationFile.toString();
     default:
       throw new BindingException("Failed to stage input files. StageInput " + stageInput + " is not supported");
