@@ -10,7 +10,6 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
-import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.metrics.MetricsHelper;
@@ -18,6 +17,7 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.service.*;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
+import org.rabix.engine.store.model.EventRecord;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.repository.JobRepository;
 import org.rabix.engine.store.repository.JobRepository.JobEntity;
@@ -111,8 +111,9 @@ public class JobServiceImpl implements JobService {
           default:
             break;
         }
-        eventProcessor.persist(statusEvent);
-        eventProcessor.addToExternalQueue(statusEvent);
+
+        EventRecord eventRecord = eventProcessor.persist(statusEvent);
+        eventProcessor.addToExternalQueue(eventRecord);
         return null;
       });
     } catch (Exception e) {
@@ -125,37 +126,36 @@ public class JobServiceImpl implements JobService {
   public Job start(final Job job, Map<String, Object> config) throws JobServiceException {
     logger.debug("Start Job {}", job);
     try {
-      final AtomicReference<Job> jobWrapper = new AtomicReference<Job>(job);
-      final AtomicReference<Event> eventWrapper = new AtomicReference<Event>(null);
+      final AtomicReference<Job> jobWrapper = new AtomicReference<>(job);
+      final AtomicReference<EventRecord> eventWrapper = new AtomicReference<>(null);
+
       final AtomicBoolean isSuccessful = new AtomicBoolean(false);
-      transactionHelper.doInTransaction(new TransactionHelper.TransactionCallback<Void>() {
-        @Override
-        public Void call() throws Exception {
-          UUID rootId = job.getRootId();
-          if (rootId == null)
-            rootId = UUID.randomUUID();
+      transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
+        UUID rootId = job.getRootId();
+        if (rootId == null)
+          rootId = UUID.randomUUID();
 
-          Job updatedJob = Job.cloneWithIds(job, rootId, rootId);
-          updatedJob = Job.cloneWithName(updatedJob, InternalSchemaHelper.ROOT_NAME);
+        Job updatedJob = Job.cloneWithIds(job, rootId, rootId);
+        updatedJob = Job.cloneWithName(updatedJob, InternalSchemaHelper.ROOT_NAME);
 
-          Bindings bindings = null;
-          bindings = BindingsFactory.create(updatedJob);
+        Bindings bindings = null;
+        bindings = BindingsFactory.create(updatedJob);
 
-          DAGNode node = bindings.translateToDAG(updatedJob);
-          appService.loadDB(node);
-          String dagHash = dagNodeService.put(node, rootId);
+        DAGNode node = bindings.translateToDAG(updatedJob);
+        appService.loadDB(node);
+        String dagHash = dagNodeService.put(node, rootId);
 
-          updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.PENDING);
-          updatedJob = Job.cloneWithConfig(updatedJob, config);
-          jobRepository.insert(updatedJob, updatedJob.getRootId(), null);
+        updatedJob = Job.cloneWithStatus(updatedJob, JobStatus.PENDING);
+        updatedJob = Job.cloneWithConfig(updatedJob, config);
+        jobRepository.insert(updatedJob, updatedJob.getRootId(), null);
 
-          InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, InternalSchemaHelper.ROOT_NAME);
-          eventProcessor.persist(initEvent);
-          eventWrapper.set(initEvent);
-          jobWrapper.set(updatedJob);
-          isSuccessful.set(true);
-          return null;
-        }
+        InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, InternalSchemaHelper.ROOT_NAME);
+        EventRecord initEventRecord = eventProcessor.persist(initEvent);
+
+        eventWrapper.set(initEventRecord);
+        jobWrapper.set(updatedJob);
+        isSuccessful.set(true);
+        return null;
       });
       logger.info("Job {} rootId: {} started", job.getName(), job.getRootId());
       if (isSuccessful.get()) {
