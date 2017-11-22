@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class JobServiceImpl implements JobService {
 
@@ -229,6 +230,8 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      jobRepository.delete(rootId, jobs.stream().map(Job::getId).collect(Collectors.toSet()));
     }
   }
 

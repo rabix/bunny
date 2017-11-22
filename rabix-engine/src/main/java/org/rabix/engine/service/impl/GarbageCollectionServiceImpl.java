@@ -62,7 +62,6 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     List<JobRecord> jobRecords = jobRecordRepository
             .get(rootId, terminalStates())
             .stream()
-            .filter(jobRecord -> !jobRecord.isScattered())
             .collect(Collectors.toList());
     jobRecords.stream().filter(this::isGarbage).forEach(this::collect);
   }
@@ -71,6 +70,9 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     logger.info("Collecting garbage of {} with id {}", jobRecord.getId(), jobRecord.getExternalId());
 
     UUID rootId = jobRecord.getRootId();
+    List<JobRecord> garbage = new ArrayList<>();
+    garbage.add(jobRecord);
+
     if (jobRecord.isRoot()) {
       dagRepository.delete(rootId);
       linkRecordRepository.deleteByRootId(rootId);
@@ -78,15 +80,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       eventRepository.deleteByRootId(rootId);
 
       List<JobRecord> all = jobRecordRepository.get(rootId);
-      flush(all);
-    }
-
-    List<JobRecord> garbage = new ArrayList<>();
-    garbage.add(jobRecord);
-
-    if (jobRecord.isScatterWrapper()) {
-      List<JobRecord> scattered = jobRecordRepository.getByParent(jobRecord.getExternalId(), rootId);
-      garbage.addAll(scattered);
+      garbage.addAll(all);
     }
 
     flush(garbage);
