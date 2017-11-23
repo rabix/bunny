@@ -87,7 +87,7 @@ public class MultiEventProcessorImpl implements EventProcessor {
 
   @Override
   public int eventsQueueSize() {
-    return (int) eventProcessors.values().stream().mapToInt(EventProcessor::eventsQueueSize).count();
+    return (int) eventProcessors.values().stream().mapToInt(EventProcessor::eventsQueueSize).sum();
   }
 
   @Override

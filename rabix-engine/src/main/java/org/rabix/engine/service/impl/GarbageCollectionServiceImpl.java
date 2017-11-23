@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class GarbageCollectionServiceImpl implements GarbageCollectionService {
@@ -26,6 +28,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final DAGRepository dagRepository;
 
   private final MetricsHelper metricsHelper;
+  private final ExecutorService executorService;
 
   private final boolean enabled;
 
@@ -46,7 +49,14 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     this.variableRecordRepository = variableRecordRepository;
     this.linkRecordRepository = linkRecordRepository;
     this.dagRepository = dagRepository;
+
     this.metricsHelper = metricsHelper;
+    this.executorService = Executors.newSingleThreadExecutor(r -> {
+      Thread thread = new Thread(r, "GarbageCollectionThread");
+      thread.setDaemon(true);
+      return thread;
+    });
+
     this.enabled = configuration.getBoolean("gc.enabled", true);
   }
 
@@ -54,7 +64,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     if (!enabled) return;
 
     try {
-      metricsHelper.time(() -> doGc(rootId), "gc");
+      executorService.submit(() -> metricsHelper.time(() -> doGc(rootId), "gc"));
     } catch (Exception e) {
       logger.warn("Could not perform garbage collection.", e);
     }
