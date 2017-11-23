@@ -2,6 +2,7 @@ package org.rabix.engine.service.impl;
 
 import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
+import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.service.GarbageCollectionService;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.LinkRecord;
@@ -16,7 +17,6 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private final static Logger logger = LoggerFactory.getLogger(GarbageCollectionServiceImpl.class);
 
-  private final TransactionHelper transactionService;
   private final JobRepository jobRepository;
   private final JobRecordRepository jobRecordRepository;
   private final JobStatsRecordRepository jobStatsRecordRepository;
@@ -24,6 +24,8 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final VariableRecordRepository variableRecordRepository;
   private final LinkRecordRepository linkRecordRepository;
   private final DAGRepository dagRepository;
+
+  private final MetricsHelper metricsHelper;
 
   private final boolean enabled;
 
@@ -35,16 +37,16 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
                                       VariableRecordRepository variableRecordRepository,
                                       LinkRecordRepository linkRecordRepository,
                                       DAGRepository dagRepository,
-                                      TransactionHelper transactionService,
+                                      MetricsHelper metricsHelper,
                                       Configuration configuration) {
     this.jobRepository = jobRepository;
     this.jobRecordRepository = jobRecordRepository;
     this.jobStatsRecordRepository = jobStatsRecordRepository;
-    this.transactionService = transactionService;
     this.eventRepository = eventRepository;
     this.variableRecordRepository = variableRecordRepository;
     this.linkRecordRepository = linkRecordRepository;
     this.dagRepository = dagRepository;
+    this.metricsHelper = metricsHelper;
     this.enabled = configuration.getBoolean("gc.enabled", true);
   }
 
@@ -52,7 +54,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     if (!enabled) return;
 
     try {
-      doGc(rootId);
+      metricsHelper.time(() -> doGc(rootId), "gc");
     } catch (Exception e) {
       logger.warn("Could not perform garbage collection.", e);
     }

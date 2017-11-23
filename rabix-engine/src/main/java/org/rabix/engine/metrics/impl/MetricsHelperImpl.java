@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.function.Supplier;
 
 /**
  * A helper class for working with metrics.
@@ -78,6 +79,11 @@ public class MetricsHelperImpl implements MetricsHelper {
         } finally {
             context.stop();
         }
+    }
+
+    @Override
+    public void gauge(Supplier<Integer> supplier, String name) {
+        metricRegistry.register(name, (Gauge<Integer>) supplier::get);
     }
 
     private String getName(String prefix, String name) {

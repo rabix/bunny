@@ -5,6 +5,8 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 
+import java.util.function.Supplier;
+
 public interface MetricsHelper {
 
     Timer timer(String prefix, String name);
@@ -24,4 +26,6 @@ public interface MetricsHelper {
     Histogram histogram(String name);
 
     void time(Runnable runnable, String name);
+
+    void gauge(Supplier<Integer> supplier, String name);
 }

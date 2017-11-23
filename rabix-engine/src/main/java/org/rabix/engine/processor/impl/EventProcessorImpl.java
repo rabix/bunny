@@ -75,6 +75,8 @@ public class EventProcessorImpl implements EventProcessor {
     this.jobService = jobService;
     this.metricsHelper = metricsHelper;
     this.garbageCollectionService = garbageCollectionService;
+
+    metricsHelper.gauge(events::size, "EventProcessorImpl.events.queue.size");
   }
 
   public void start() {
@@ -223,5 +225,4 @@ public class EventProcessorImpl implements EventProcessor {
     }
     this.externalEvents.add(event);
   }
-
 }
