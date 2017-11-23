@@ -12,6 +12,7 @@ import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
 import org.rabix.engine.service.*;
 import org.rabix.engine.service.impl.*;
 import org.rabix.engine.store.event.sourcing.EventSourcingModule;
+import org.rabix.engine.store.event.sourcing.EventSourcingTransactionHelper;
 import org.rabix.engine.store.lru.dag.DAGCache;
 import org.rabix.engine.store.memory.InMemoryRepositoryModule;
 import org.rabix.engine.store.memory.InMemoryRepositoryRegistry;
@@ -40,7 +41,7 @@ public class EngineModule extends AbstractModule {
       bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     } else if (persistence.equals("EVENT_SOURCING")) {
       install(new EventSourcingModule(new InMemoryRepositoryModule(), new JDBIRepositoryModule()));
-      bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
+      bind(TransactionHelper.class).to(EventSourcingTransactionHelper.class).in(Scopes.SINGLETON);
     }
     bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
 

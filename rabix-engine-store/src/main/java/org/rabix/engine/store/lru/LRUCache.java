@@ -1,67 +1,50 @@
 package org.rabix.engine.store.lru;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import java.util.concurrent.TimeUnit;
 
 public class LRUCache<K, V> {
 
-  private Map<K, V> cache;
-  private int DEFAULT_CACHE_SIZE = 16;
+  private static final int DEFAULT_CACHE_SIZE = 1000;
+
+  private Cache<K, V> cache;
+
   private int cacheSize;
   private String cacheName;
 
   public LRUCache(String cacheName) {
-    this.cacheName = cacheName;
-    this.cacheSize = DEFAULT_CACHE_SIZE;
-    cache = new LinkedHashMap<K, V>(DEFAULT_CACHE_SIZE, 1, true);
+    this(cacheName, DEFAULT_CACHE_SIZE);
   }
 
   public LRUCache(String cacheName, int cacheSize) {
     this.cacheName = cacheName;
     this.cacheSize = cacheSize;
-    cache = new LinkedHashMap<K, V>(cacheSize, 1, true);
+    this.cache = CacheBuilder.newBuilder().maximumSize(cacheSize).expireAfterAccess(3, TimeUnit.DAYS).build();
   }
 
-  public synchronized String getCacheName() {
+  public String getCacheName() {
     return cacheName;
   }
-  
-  public synchronized int getCacheSize() {
+
+  public int getCacheSize() {
     return cacheSize;
   }
 
-  public synchronized V get(K key) {
-    return cache.get(key) != null ? cache.get(key) : null;
+  public V get(K key) {
+    return cache.getIfPresent(key);
   }
 
-  public synchronized void put(K key, V val) {
-    if (cacheFull()) {
-      remove();
-    }
+  public void put(K key, V val) {
     cache.put(key, val);
   }
-  
-  public synchronized int size() {
-    return cache.size();
+
+  public int size() {
+    return (int) cache.size();
   }
 
-  private synchronized boolean cacheFull() {
-    return cache.size() == cacheSize;
+  public String toString() {
+    return cache.toString();
   }
-  
-  private synchronized void remove() {
-    Iterator<Map.Entry<K, V>> it = cache.entrySet().iterator();
-    Map.Entry<K, V> remove = it.next();
-    cache.remove(remove.getKey(), remove.getValue());
-  }
-  
-  public synchronized String toString() {
-    StringBuffer result =new StringBuffer("Cache: \n");  
-    for(Map.Entry<K, V> entry : cache.entrySet()) {
-      result.append(entry.getKey() + ": " + entry.getValue() + "\n");
-    }
-    return result.toString();
-  }
-  
 }

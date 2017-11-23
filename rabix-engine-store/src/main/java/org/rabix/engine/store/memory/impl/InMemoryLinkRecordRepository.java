@@ -7,7 +7,6 @@ import org.rabix.engine.store.repository.LinkRecordRepository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class InMemoryLinkRecordRepository extends LinkRecordRepository {
 
@@ -103,7 +102,6 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
     getLinkRecords(linkRecord.getRootId()).add(linkRecord);
   }
 
-
   @Override
   public List<LinkRecord> getBySource(String sourceJobId, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
@@ -134,7 +132,7 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   }
 
   private Collection<LinkRecord> getLinkRecords(UUID contextId) {
-    return linkRecordRepository.computeIfAbsent(contextId, k -> new LinkedBlockingQueue<>());
+    return linkRecordRepository.computeIfAbsent(contextId, k -> new ArrayList<>());
   }
 
   @Override

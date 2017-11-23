@@ -110,7 +110,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
             .collect(Collectors.toList());
 
     return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(outputRecord -> {
-      if (outputRecord.isScatterWrapper()) {
+      if (outputRecord.isScatterWrapper() && outputRecord.isCompleted()) {
         return isGarbage(outputRecord);
       }
       return outputRecord.isCompleted();
