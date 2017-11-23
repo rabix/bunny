@@ -45,7 +45,7 @@ public interface JDBIEventRepository extends EventRepository {
   void updateStatus(@Bind("id") UUID groupId, @Bind("status") EventRecord.Status status);
 
   @Override
-  @SqlQuery("select * from event where status <> 'FAILED' order by created_at asc")
+  @SqlQuery("select * from event where status::text != 'FAILED' order by created_at asc")
   List<EventRecord> getPendingEvents();
 
   public static class EventMapper implements ResultSetMapper<EventRecord> {
