@@ -29,6 +29,8 @@ public interface EventProcessor {
 
   boolean isReplayMode();
 
+  int eventsQueueSize();
+
   class EventProcessorDispatcher {
 
     public static int dispatch(UUID rootId, int numberOfEventProcessors) {

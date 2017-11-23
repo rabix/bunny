@@ -75,8 +75,6 @@ public class EventProcessorImpl implements EventProcessor {
     this.jobService = jobService;
     this.metricsHelper = metricsHelper;
     this.garbageCollectionService = garbageCollectionService;
-
-    metricsHelper.gauge(events::size, "EventProcessorImpl.events.queue.size");
   }
 
   public void start() {
@@ -217,6 +215,11 @@ public class EventProcessorImpl implements EventProcessor {
   @Override
   public boolean isReplayMode() {
     return this.mode.get() == EventHandlingMode.REPLAY;
+  }
+
+  @Override
+  public int eventsQueueSize() {
+    return events.size();
   }
 
   public void addToExternalQueue(EventRecord event) {

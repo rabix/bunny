@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.event.Event;
+import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
@@ -26,12 +27,16 @@ public class MultiEventProcessorImpl implements EventProcessor {
   private volatile boolean isRunning = false;
 
   @Inject
-  public MultiEventProcessorImpl(Provider<EventProcessorImpl> singleEventProcessorProvider, Configuration configuration) {
+  public MultiEventProcessorImpl(Provider<EventProcessorImpl> singleEventProcessorProvider,
+                                 Configuration configuration,
+                                 MetricsHelper metricsHelper) {
     this.eventProcessorCount = configuration.getInt("engine.event_processor.count", Runtime.getRuntime().availableProcessors());
     this.eventProcessors = new ConcurrentHashMap<>(eventProcessorCount);
     for (int i = 0; i < eventProcessorCount; i++) {
       this.eventProcessors.put(i, singleEventProcessorProvider.get());
     }
+
+    metricsHelper.gauge(this::eventsQueueSize, "EventProcessorImpl.events.queue.size");
   }
 
   @Override
@@ -78,6 +83,11 @@ public class MultiEventProcessorImpl implements EventProcessor {
   @Override
   public boolean isReplayMode() {
     return eventProcessors.values().stream().allMatch(EventProcessorImpl::isReplayMode);
+  }
+
+  @Override
+  public int eventsQueueSize() {
+    return (int) eventProcessors.values().stream().mapToInt(EventProcessor::eventsQueueSize).count();
   }
 
   @Override
