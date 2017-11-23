@@ -13,7 +13,7 @@ public interface EventRepository {
 
   void deleteGroup(UUID groupId);
 
-  void deleteByGroupIds(Set<UUID> groupIds);
+  void deleteByGroupIds(UUID rootId, Set<UUID> groupIds);
 
   void deleteByRootId(UUID rootId);
 

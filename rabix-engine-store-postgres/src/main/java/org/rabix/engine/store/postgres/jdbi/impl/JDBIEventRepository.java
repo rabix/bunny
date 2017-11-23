@@ -7,6 +7,7 @@ import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.skife.jdbi.v2.unstable.BindIn;
 
@@ -19,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @RegisterMapper(value = JDBIEventRepository.EventMapper.class)
+@UseStringTemplate3StatementLocator
 public interface JDBIEventRepository extends EventRepository {
 
   @Override
@@ -35,8 +37,8 @@ public interface JDBIEventRepository extends EventRepository {
   void deleteByRootId(@Bind("root_id") UUID rootId);
 
   @Override
-  @SqlUpdate("delete from event where id in (<ids>)")
-  void deleteByGroupIds(@BindIn("ids") Set<UUID> groupIds);
+  @SqlUpdate("delete from event where root_id=:root_id and id in (<ids>)")
+  void deleteByGroupIds(@Bind("root_id") UUID rootId, @BindIn("ids") Set<UUID> groupIds);
 
   @Override
   @SqlUpdate("update event set status=:status::event_status where id=:id")

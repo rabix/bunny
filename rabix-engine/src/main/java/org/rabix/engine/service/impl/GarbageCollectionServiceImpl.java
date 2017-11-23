@@ -28,6 +28,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final LinkRecordRepository linkRecordRepository;
   private final DAGRepository dagRepository;
 
+  private final TransactionHelper transactionHelper;
   private final MetricsHelper metricsHelper;
   private final ExecutorService executorService;
   private final Set<UUID> pendingGCs;
@@ -42,6 +43,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
                                       VariableRecordRepository variableRecordRepository,
                                       LinkRecordRepository linkRecordRepository,
                                       DAGRepository dagRepository,
+                                      TransactionHelper transactionHelper,
                                       MetricsHelper metricsHelper,
                                       Configuration configuration) {
     this.jobRepository = jobRepository;
@@ -52,6 +54,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     this.linkRecordRepository = linkRecordRepository;
     this.dagRepository = dagRepository;
 
+    this.transactionHelper = transactionHelper;
     this.metricsHelper = metricsHelper;
     this.executorService = Executors.newSingleThreadExecutor(r -> {
       Thread thread = new Thread(r, "GarbageCollectionThread");
@@ -66,18 +69,15 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   public void gc(UUID rootId) {
     if (!enabled || pendingGCs.contains(rootId)) return;
 
-    try {
-      pendingGCs.add(rootId);
-      executorService.submit(() -> {
-        try {
-          metricsHelper.time(() -> doGc(rootId), "gc");
-        } finally {
-          pendingGCs.remove(rootId);
-        }
-      });
-    } catch (Exception e) {
-      logger.warn("Could not perform garbage collection.", e);
-    }
+    pendingGCs.add(rootId);
+    Runnable gcRun = () -> {
+      try {
+        metricsHelper.time(() -> inTransaction(() -> doGc(rootId)), "gc");
+      } finally {
+        pendingGCs.remove(rootId);
+      }
+    };
+    executorService.submit(gcRun);
   }
 
   private void doGc(UUID rootId) {
@@ -105,10 +105,10 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       garbage.addAll(all);
     }
 
-    flush(garbage);
+    flush(rootId, garbage);
   }
 
-  private void flush(List<JobRecord> garbage) {
+  private void flush(UUID rootId, List<JobRecord> garbage) {
     garbage.forEach(record -> {
       variableRecordRepository.delete(record.getId(), record.getRootId());
       jobRecordRepository.delete(record.getExternalId(), record.getRootId());
@@ -117,7 +117,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
     Set<UUID> groupIds = garbage.stream().map(JobRecord::getExternalId).collect(Collectors.toSet());
     if (!groupIds.isEmpty()) {
-      eventRepository.deleteByGroupIds(groupIds);
+      eventRepository.deleteByGroupIds(rootId, groupIds);
     }
   }
 
@@ -144,5 +144,16 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private Set<JobRecord.JobState> terminalStates() {
     return new HashSet<>(
             Arrays.asList(JobRecord.JobState.COMPLETED, JobRecord.JobState.ABORTED, JobRecord.JobState.FAILED));
+  }
+
+  void inTransaction(Runnable runnable) {
+    try {
+      transactionHelper.doInTransaction(() -> {
+        runnable.run();
+        return null;
+      });
+    } catch (Exception e) {
+      logger.warn("Exception in gc transaction.", e);
+    }
   }
 }
