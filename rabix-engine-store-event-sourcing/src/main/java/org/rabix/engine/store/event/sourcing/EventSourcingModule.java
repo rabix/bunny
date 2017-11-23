@@ -24,39 +24,39 @@ public class EventSourcingModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public JDBIRepositoryRegistry provideJDBIRepositoryRegistry(Configuration configuration) {
-        DBI dbi = jdbiRepositoryModule.provideDBI(configuration);
-        return dbi.onDemand(JDBIRepositoryRegistry.class);
+    public DBI provideDBI(Configuration configuration) {
+        return jdbiRepositoryModule.provideDBI(configuration);
+    }
+
+    @Singleton
+    @Provides
+    public JDBIRepositoryRegistry provideJDBIRepositoryRegistry(DBI dbi) {
+        return dbi.open(JDBIRepositoryRegistry.class);
     }
 
     /* JDBI REPOS */
 
     @Provides
-    @Singleton
     public EventRepository provideEventRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
         return jdbiRepositoryRegistry.eventRepository();
     }
 
     @Provides
-    @Singleton
     public DAGRepository provideDAGRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
         return jdbiRepositoryRegistry.dagRepository();
     }
 
     @Provides
-    @Singleton
     public AppRepository provideAppRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
         return jdbiRepositoryRegistry.applicationRepository();
     }
 
     @Provides
-    @Singleton
     public ContextRecordRepository provideContextRecordRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
         return jdbiRepositoryRegistry.contextRecordRepository();
     }
 
     @Provides
-    @Singleton
     public BackendRepository provideBackendRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
         return jdbiRepositoryRegistry.backendRepository();
     }
