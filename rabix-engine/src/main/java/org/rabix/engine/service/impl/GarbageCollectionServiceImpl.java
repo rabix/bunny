@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private final MetricsHelper metricsHelper;
   private final ExecutorService executorService;
+  private final Set<UUID> pendingGCs;
 
   private final boolean enabled;
 
@@ -57,14 +59,22 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       return thread;
     });
 
+    this.pendingGCs = Collections.newSetFromMap(new ConcurrentHashMap<>());
     this.enabled = configuration.getBoolean("gc.enabled", true);
   }
 
   public void gc(UUID rootId) {
-    if (!enabled) return;
+    if (!enabled || pendingGCs.contains(rootId)) return;
 
     try {
-      executorService.submit(() -> metricsHelper.time(() -> doGc(rootId), "gc"));
+      pendingGCs.add(rootId);
+      executorService.submit(() -> {
+        try {
+          metricsHelper.time(() -> doGc(rootId), "gc");
+        } finally {
+          pendingGCs.remove(rootId);
+        }
+      });
     } catch (Exception e) {
       logger.warn("Could not perform garbage collection.", e);
     }
@@ -101,10 +111,12 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private void flush(List<JobRecord> garbage) {
     garbage.forEach(record -> {
       variableRecordRepository.delete(record.getId(), record.getRootId());
-      eventRepository.deleteGroup(record.getExternalId());
       jobRecordRepository.delete(record.getExternalId(), record.getRootId());
       jobRepository.delete(record.getRootId(), new HashSet<>(Collections.singletonList(record.getExternalId())));
     });
+
+    Set<UUID> groupIds = garbage.stream().map(JobRecord::getExternalId).collect(Collectors.toSet());
+    eventRepository.deleteByGroupIds(groupIds);
   }
 
   private boolean isGarbage(JobRecord jobRecord) {
@@ -112,8 +124,8 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       return true;
     }
 
-    List<LinkRecord> outputLink = linkRecordRepository.getBySource(jobRecord.getId(), jobRecord.getRootId());
-    List<JobRecord> outputJobRecords = outputLink
+    List<LinkRecord> outputLinks = linkRecordRepository.getBySource(jobRecord.getId(), jobRecord.getRootId());
+    List<JobRecord> outputJobRecords = outputLinks
             .stream()
             .map(link -> jobRecordRepository.get(link.getDestinationJobId(), link.getRootId()))
             .filter(Objects::nonNull)

@@ -8,12 +8,14 @@ import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import org.skife.jdbi.v2.unstable.BindIn;
 
 import java.lang.annotation.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RegisterMapper(value = JDBIEventRepository.EventMapper.class)
@@ -31,6 +33,10 @@ public interface JDBIEventRepository extends EventRepository {
   @Override
   @SqlUpdate("delete from event where root_id=:root_id")
   void deleteByRootId(@Bind("root_id") UUID rootId);
+
+  @Override
+  @SqlUpdate("delete from event where id in (<ids>)")
+  void deleteByGroupIds(@BindIn("ids") Set<UUID> groupIds);
 
   @Override
   @SqlUpdate("update event set status=:status::event_status where id=:id")

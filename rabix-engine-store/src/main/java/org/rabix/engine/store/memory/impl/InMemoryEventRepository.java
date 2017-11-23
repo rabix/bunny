@@ -28,6 +28,11 @@ public class InMemoryEventRepository implements EventRepository {
   }
 
   @Override
+  public void deleteByGroupIds(Set<UUID> groupIds) {
+    groupIds.forEach(this::deleteGroup);
+  }
+
+  @Override
   public void deleteByRootId(UUID rootId) {
     eventRepository.values().removeIf(e -> rootId.equals(e.getRootId()));
   }
