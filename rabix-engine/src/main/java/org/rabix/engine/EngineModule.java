@@ -40,7 +40,7 @@ public class EngineModule extends AbstractModule {
       bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
     } else if (persistence.equals("EVENT_SOURCING")) {
       install(new EventSourcingModule(new InMemoryRepositoryModule(), new JDBIRepositoryModule()));
-      bind(TransactionHelper.class).to(InMemoryRepositoryRegistry.class).in(Scopes.SINGLETON);
+      bind(TransactionHelper.class).to(JDBIRepositoryRegistry.class).in(Scopes.SINGLETON);
     }
     bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
 

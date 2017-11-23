@@ -28,10 +28,9 @@ public class EventSourcingModule extends AbstractModule {
         return jdbiRepositoryModule.provideDBI(configuration);
     }
 
-    @Singleton
     @Provides
     public JDBIRepositoryRegistry provideJDBIRepositoryRegistry(DBI dbi) {
-        return dbi.open(JDBIRepositoryRegistry.class);
+        return dbi.onDemand(JDBIRepositoryRegistry.class);
     }
 
     /* JDBI REPOS */
