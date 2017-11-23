@@ -116,7 +116,9 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     });
 
     Set<UUID> groupIds = garbage.stream().map(JobRecord::getExternalId).collect(Collectors.toSet());
-    eventRepository.deleteByGroupIds(groupIds);
+    if (!groupIds.isEmpty()) {
+      eventRepository.deleteByGroupIds(groupIds);
+    }
   }
 
   private boolean isGarbage(JobRecord jobRecord) {
