@@ -47,6 +47,10 @@ public abstract class JDBIVariableRecordRepository extends VariableRecordReposit
   public abstract void delete(@Bind("id") String id, @Bind("root_id") UUID rootId);
 
   @Override
+  @SqlBatch("delete from variable_record where context_id=:root_id")
+  public abstract void deleteByRootId(@Bind("root_id") UUID rootId);
+
+  @Override
   @SqlQuery("select * from variable_record where job_id=:job_id and port_id=:port_id and type=:type::port_type and context_id=:context_id")
   public abstract VariableRecord get(@Bind("job_id") String jobId, @Bind("port_id") String portId, @Bind("type") LinkPortType type, @Bind("context_id") UUID rootId);
 

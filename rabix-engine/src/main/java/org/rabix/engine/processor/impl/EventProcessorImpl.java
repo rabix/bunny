@@ -150,7 +150,7 @@ public class EventProcessorImpl implements EventProcessor {
     } catch (EventHandlerException e) {
       throw new TransactionException(e);
     } finally {
-      garbageCollectionService.gc(rootId);
+      if (mode != EventHandlingMode.REPLAY) garbageCollectionService.gc(rootId);
     }
 
     return true;

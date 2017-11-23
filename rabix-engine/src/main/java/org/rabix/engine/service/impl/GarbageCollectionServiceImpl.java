@@ -100,6 +100,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       linkRecordRepository.deleteByRootId(rootId);
       jobStatsRecordRepository.delete(rootId);
       eventRepository.deleteByRootId(rootId);
+      variableRecordRepository.deleteByRootId(rootId);
 
       List<JobRecord> all = jobRecordRepository.get(rootId);
       garbage.addAll(all);
@@ -110,7 +111,6 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private void flush(UUID rootId, List<JobRecord> garbage) {
     garbage.forEach(record -> {
-      variableRecordRepository.delete(record.getId(), record.getRootId());
       jobRecordRepository.delete(record.getExternalId(), record.getRootId());
       jobRepository.delete(record.getRootId(), new HashSet<>(Collections.singletonList(record.getExternalId())));
     });

@@ -19,6 +19,8 @@ public abstract class VariableRecordRepository {
 
   public abstract void delete(String id, UUID rootId);
 
+  public abstract void deleteByRootId(UUID rootId);
+
   public abstract VariableRecord get(String jobId, String portId, LinkPortType type, UUID rootId);
 
   public abstract List<VariableRecord> getByType(String jobId, LinkPortType type, UUID rootId);
