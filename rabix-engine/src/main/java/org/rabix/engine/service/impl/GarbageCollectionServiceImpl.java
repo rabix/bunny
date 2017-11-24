@@ -1,5 +1,6 @@
 package org.rabix.engine.service.impl;
 
+import com.codahale.metrics.Timer;
 import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.metrics.MetricsHelper;
@@ -136,23 +137,24 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   private boolean isGarbage(JobRecord jobRecord) {
-    if (jobRecord.isRoot() && jobRecord.isCompleted()) {
-      return true;
+    Timer.Context context = metricsHelper.timer("GC.isGarbage").time();
+    try {
+      List<LinkRecord> outputLinks = linkRecordRepository.getBySource(jobRecord.getId(), jobRecord.getRootId());
+      List<JobRecord> outputJobRecords = outputLinks
+              .stream()
+              .map(link -> jobRecordRepository.get(link.getDestinationJobId(), link.getRootId()))
+              .filter(Objects::nonNull)
+              .collect(Collectors.toList());
+
+      return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(outputRecord -> {
+        if (outputRecord.isScatterWrapper() && outputRecord.isCompleted()) {
+          return isGarbage(outputRecord);
+        }
+        return outputRecord.isCompleted();
+      });
+    } finally {
+      context.stop();
     }
-
-    List<LinkRecord> outputLinks = linkRecordRepository.getBySource(jobRecord.getId(), jobRecord.getRootId());
-    List<JobRecord> outputJobRecords = outputLinks
-            .stream()
-            .map(link -> jobRecordRepository.get(link.getDestinationJobId(), link.getRootId()))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-
-    return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(outputRecord -> {
-      if (outputRecord.isScatterWrapper() && outputRecord.isCompleted()) {
-        return isGarbage(outputRecord);
-      }
-      return outputRecord.isCompleted();
-    });
   }
 
   private Set<JobRecord.JobState> terminalStates() {
