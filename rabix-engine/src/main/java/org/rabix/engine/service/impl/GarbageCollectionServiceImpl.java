@@ -59,11 +59,12 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
     this.transactionHelper = transactionHelper;
     this.metricsHelper = metricsHelper;
-    this.executorService = buildExecutorService();
 
     this.pendingGCs = Collections.newSetFromMap(new ConcurrentHashMap<>());
     this.enabled = configuration.getBoolean("gc.enabled", true);
     this.numberOfGcThreads = configuration.getInt("gc.threads.number", Runtime.getRuntime().availableProcessors() + 1);
+
+    this.executorService = buildExecutorService();
   }
 
   public void gc(UUID rootId) {
