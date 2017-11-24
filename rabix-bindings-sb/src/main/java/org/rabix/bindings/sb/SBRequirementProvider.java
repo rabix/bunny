@@ -102,21 +102,20 @@ public class SBRequirementProvider implements ProtocolRequirementProvider {
   public List<Requirement> getRequirements(Job job) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     SBJobApp sbJobApp = sbJob.getApp();
-    return convertRequirements(job, sbJobApp.getRequirements());
+    return convertRequirements(sbJob, sbJobApp.getRequirements());
   }
   
   @Override
   public List<Requirement> getHints(Job job) throws BindingException {
     SBJob sbJob = SBJobHelper.getSBJob(job);
     SBJobApp sbJobApp = sbJob.getApp();
-    return convertRequirements(job, sbJobApp.getHints());
+    return convertRequirements(sbJob, sbJobApp.getHints());
   }
   
-  private List<Requirement> convertRequirements(Job job, List<SBResource> resources) throws BindingException {
+  private List<Requirement> convertRequirements(SBJob sbJob, List<SBResource> resources) throws BindingException {
     if (resources == null) {
-      return Collections.<Requirement> emptyList();
+      return Collections.<Requirement>emptyList();
     }
-    SBJob sbJob = SBJobHelper.getSBJob(job);
 
     List<Requirement> result = new ArrayList<>();
     for (SBResource sbResource : resources) {
