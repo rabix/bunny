@@ -8,7 +8,6 @@ import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.store.model.EventRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +64,10 @@ public class MultiEventProcessorImpl implements EventProcessor {
     getEventProcessor(event.getContextId()).addToQueue(event);
   }
 
+
   @Override
-  public EventRecord persist(Event event) {
-    return getEventProcessor(event.getContextId()).persist(event);
+  public void persist(Event event) {
+    getEventProcessor(event.getContextId()).persist(event);
   }
 
   @Override
@@ -87,12 +87,17 @@ public class MultiEventProcessorImpl implements EventProcessor {
 
   @Override
   public int eventsQueueSize() {
-    return (int) eventProcessors.values().stream().mapToInt(EventProcessor::eventsQueueSize).sum();
+    return eventProcessors.values().stream().mapToInt(EventProcessor::eventsQueueSize).sum();
   }
 
   @Override
-  public void addToExternalQueue(EventRecord eventRecord) {
-    getEventProcessor(eventRecord.getRootId()).addToExternalQueue(eventRecord);
+  public void addToExternalQueue(Event event) {
+    addToExternalQueue(event, null);
+  }
+
+  @Override
+  public void addToExternalQueue(Event event, Runnable onProcessed) {
+    getEventProcessor(event.getContextId()).addToExternalQueue(event, onProcessed);
   }
 
   @Override

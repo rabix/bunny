@@ -1,12 +1,13 @@
 package org.rabix.engine.service.impl;
 
 import com.google.inject.Inject;
+import org.rabix.common.helper.JSONHelper;
+import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BootstrapService;
 import org.rabix.engine.service.BootstrapServiceException;
 import org.rabix.engine.service.GarbageCollectionService;
-import org.rabix.engine.store.model.EventRecord;
 import org.rabix.engine.store.repository.EventRepository;
 import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.transport.backend.Backend;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BootstrapServiceImpl implements BootstrapService {
 
@@ -64,9 +66,13 @@ public class BootstrapServiceImpl implements BootstrapService {
   }
 
   private void replayEvents() {
-    List<EventRecord> events = eventRepository.getPendingEvents();
+    List<Event> events = eventRepository
+            .getPendingEvents()
+            .stream()
+            .map(eventRecord -> JSONHelper.convertToObject(eventRecord.getEvent(), Event.class))
+            .collect(Collectors.toList());
 
-    for (EventRecord event : events) {
+    for (Event event : events) {
       eventProcessor.addToExternalQueue(event);
     }
   }

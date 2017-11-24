@@ -258,44 +258,43 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
           public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
             String message = new String(body, "UTF-8");
             try {
-              callback.handleReceive(BeanSerializer.deserialize(message, clazz));
+              callback.handleReceive(BeanSerializer.deserialize(message, clazz), () -> {
+                try {
+                  channel.basicAck(envelope.getDeliveryTag(), false);
+                } catch (IOException e) {
+                  reconnect(queueName);
+                }
+              });
             } catch (TransportPluginException e) {
               logger.error("Could not handle receive", e);
               channel.basicNack(envelope.getDeliveryTag(), false, false);
-
-              return;
             }
-            channel.basicAck(envelope.getDeliveryTag(), false);
           }
         };
-
         channel.basicConsume(queueName, false, consumer);
       } catch (BeanProcessorException e) {
         logger.error("Failed to deserialize message payload", e);
         errorCallback.handleError(e);
       } catch (Exception e) {
-        while (!isStopped) {
-          try {
-            logger.error("Failed to receive a message from " + queue, e);
-            Thread.sleep(RETRY_TIMEOUT * 1000);
-          } catch (InterruptedException e1) {
-            // Ignore
-          }
-
-          try {
-            initConnection();
-            logger.info("Reconnected to {}", queueName);
-            break;
-          } catch (TransportPluginException e1) {
-            logger.info("Receiver reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
-          }
-        }
+        reconnect(queueName);
       }
     }
 
     void stop() {
       isStopped = true;
     }
-  }
 
+    private void reconnect(String queueName) {
+      while (!isStopped) {
+        try {
+          Thread.sleep(RETRY_TIMEOUT * 1000);
+          initConnection();
+          logger.info("Reconnected to {}", queueName);
+          break;
+        } catch (Exception e) {
+          logger.info("Receiver reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
+        }
+      }
+    }
+  }
 }

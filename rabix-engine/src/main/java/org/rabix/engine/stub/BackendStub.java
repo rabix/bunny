@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T extends TransportPlugin<Q>> {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  
+
   protected JobService jobService;
-  
+
   protected B backend;
   protected T transportPlugin;
 
@@ -29,35 +29,28 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
 
   protected boolean enableControlMessages;
   protected boolean cleanup;
-  
-  
+
+
   public static interface HeartbeatCallback {
     void save(HeartbeatInfo info) throws Exception;
   }
-  
+
   public void start(HeartbeatCallback heartbeatCallback, ReceiveCallback<Job> receiveCallback, ErrorCallback errorCallback) {
     transportPlugin.startReceiver(receiveFromBackendQueue, Job.class, receiveCallback, errorCallback);
 
     transportPlugin.startReceiver(receiveFromBackendHeartbeatQueue, HeartbeatInfo.class,
-        new ReceiveCallback<HeartbeatInfo>() {
-          @Override
-          public void handleReceive(HeartbeatInfo entity) throws TransportPluginException {
-            logger.trace("Got heartbeat info from {}", entity.getId());
-            try {
-              heartbeatCallback.save(entity);
-            } catch (Exception e) {
-              logger.error("Failed to update heartbeat", e);
-              throw new TransportPluginException(e);
-            }
-          }
-        }, new ErrorCallback() {
-          @Override
-          public void handleError(Exception error) {
-            logger.error("Failed to receive message.", error);
-          }
-        });
+            (entity, onHandled) -> {
+              logger.trace("Got heartbeat info from {}", entity.getId());
+              try {
+                heartbeatCallback.save(entity);
+                onHandled.run();
+              } catch (Exception e) {
+                logger.error("Failed to update heartbeat", e);
+                throw new TransportPluginException(e);
+              }
+            }, error -> logger.error("Failed to receive message.", error));
   }
-  
+
   public void stop() {
     if(cleanup){
       transportPlugin.stopReceiver(receiveFromBackendHeartbeatQueue);
@@ -68,7 +61,7 @@ public abstract class BackendStub<Q extends TransportQueue, B extends Backend, T
   public void send(Job job) {
     this.transportPlugin.send(sendToBackendQueue, job);
   }
-  
+
   public void send(Object message) {
     this.transportPlugin.send(sendToBackendQueue, message);
   }

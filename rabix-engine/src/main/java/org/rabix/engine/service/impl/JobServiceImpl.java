@@ -10,6 +10,7 @@ import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.engine.JobHelper;
+import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.metrics.MetricsHelper;
@@ -17,7 +18,6 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.service.*;
 import org.rabix.engine.status.EngineStatusCallback;
 import org.rabix.engine.status.EngineStatusCallbackException;
-import org.rabix.engine.store.model.EventRecord;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.repository.JobRepository;
 import org.rabix.engine.store.repository.JobRepository.JobEntity;
@@ -84,10 +84,15 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void update(Job job) throws JobServiceException {
-    metricsHelper.time(() -> doUpdate(job), "JobServiceImpl.update");
+    metricsHelper.time(() -> doUpdate(job, null), "JobServiceImpl.update");
   }
 
-  private void doUpdate(Job job) {
+  @Override
+  public void update(Job job, Runnable onUpdatedCallback) throws JobServiceException {
+    metricsHelper.time(() -> doUpdate(job, onUpdatedCallback), "JobServiceImpl.update");
+  }
+
+  private void doUpdate(Job job, Runnable onUpdatedCallback) {
     logger.debug("Update job id:{}, name:{}, root:{}", job.getId(), job.getName(), job.getRootId());
     try {
       transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
@@ -112,9 +117,7 @@ public class JobServiceImpl implements JobService {
           default:
             break;
         }
-
-        EventRecord eventRecord = eventProcessor.persist(statusEvent);
-        eventProcessor.addToExternalQueue(eventRecord);
+        eventProcessor.addToExternalQueue(statusEvent, onUpdatedCallback);
         return null;
       });
     } catch (Exception e) {
@@ -128,7 +131,7 @@ public class JobServiceImpl implements JobService {
     logger.debug("Start Job {}", job);
     try {
       final AtomicReference<Job> jobWrapper = new AtomicReference<>(job);
-      final AtomicReference<EventRecord> eventWrapper = new AtomicReference<>(null);
+      final AtomicReference<Event> eventWrapper = new AtomicReference<>(null);
 
       final AtomicBoolean isSuccessful = new AtomicBoolean(false);
       transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
@@ -151,9 +154,9 @@ public class JobServiceImpl implements JobService {
         jobRepository.insert(updatedJob, updatedJob.getRootId(), null);
 
         InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, InternalSchemaHelper.ROOT_NAME);
-        EventRecord initEventRecord = eventProcessor.persist(initEvent);
+        eventProcessor.persist(initEvent);
 
-        eventWrapper.set(initEventRecord);
+        eventWrapper.set(initEvent);
         jobWrapper.set(updatedJob);
         isSuccessful.set(true);
         return null;

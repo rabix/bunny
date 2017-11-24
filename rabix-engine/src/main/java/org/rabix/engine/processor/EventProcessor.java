@@ -3,7 +3,6 @@ package org.rabix.engine.processor;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.store.model.EventRecord;
 
 import java.util.UUID;
 
@@ -19,9 +18,11 @@ public interface EventProcessor {
 
   void addToQueue(Event event);
 
-  void addToExternalQueue(EventRecord event);
+  void addToExternalQueue(Event event);
 
-  EventRecord persist(Event event);
+  void addToExternalQueue(Event event, Runnable onProcessed);
+
+  void persist(Event event);
 
   boolean hasWork();
 

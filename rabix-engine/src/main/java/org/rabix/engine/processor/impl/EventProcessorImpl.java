@@ -42,7 +42,7 @@ public class EventProcessorImpl implements EventProcessor {
   private static final Logger logger = LoggerFactory.getLogger(EventProcessorImpl.class);
 
   private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
-  private final BlockingQueue<EventRecord> externalEvents = new LinkedBlockingQueue<>();
+  private final BlockingQueue<ExternalEvent> externalEvents = new LinkedBlockingQueue<>();
 
   private final ExecutorService executorService =
           Executors.newSingleThreadExecutor((Runnable r) -> new Thread(r, "EventProcessorThread" + r.hashCode()));
@@ -81,10 +81,10 @@ public class EventProcessorImpl implements EventProcessor {
     executorService.execute(() -> {
       while (!stop.get()) {
         try {
-          EventRecord event = externalEvents.take();
+          ExternalEvent externalEvent = externalEvents.take();
           running.set(true);
 
-          metricsHelper.time(() -> doProcessEvent(event), "EventProcessorImpl.processEvent");
+          metricsHelper.time(() -> doProcessEvent(externalEvent), "EventProcessorImpl.processEvent");
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
@@ -92,8 +92,8 @@ public class EventProcessorImpl implements EventProcessor {
     });
   }
 
-  private void doProcessEvent(final EventRecord eventRecord) {
-    final Event event = JSONHelper.convertToObject(eventRecord.getEvent(), Event.class);
+  private void doProcessEvent(final ExternalEvent externalEvent) {
+    final Event event = externalEvent.event;
 
     try {
       transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
@@ -106,7 +106,7 @@ public class EventProcessorImpl implements EventProcessor {
           jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
         }
 
-        updateEventRecordStatus(eventRecord);
+        persist(event);
         return null;
       });
     } catch (Exception e) {
@@ -127,12 +127,8 @@ public class EventProcessorImpl implements EventProcessor {
       } catch (Exception ehe) {
         logger.error("Failed to invalidate Context {}.", event.getContextId(), ehe);
       }
-    }
-  }
-
-  private void updateEventRecordStatus(EventRecord eventRecord) {
-    if (eventRecord.getStatus() != EventRecord.Status.PROCESSED) {
-      eventRepository.updateStatus(eventRecord.getGroupId(), EventRecord.Status.PROCESSED);
+    } finally {
+      if (externalEvent.callback != null) externalEvent.callback.run();
     }
   }
 
@@ -192,14 +188,25 @@ public class EventProcessorImpl implements EventProcessor {
   }
 
   @Override
-  public EventRecord persist(Event event) {
+  public void addToExternalQueue(Event event) {
+    addToExternalQueue(event, null);
+  }
+
+  @Override
+  public void addToExternalQueue(Event event, Runnable onProcessed) {
     if (stop.get()) {
-      return null;
+      return;
+    }
+    this.externalEvents.add(new ExternalEvent(event, onProcessed));
+  }
+
+  @Override
+  public void persist(Event event) {
+    if (stop.get()) {
+      return;
     }
     EventRecord er = new EventRecord(event.getContextId(), event.getEventGroupId(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
     eventRepository.insert(er);
-
-    return er;
   }
 
   @Override
@@ -222,10 +229,17 @@ public class EventProcessorImpl implements EventProcessor {
     return events.size();
   }
 
-  public void addToExternalQueue(EventRecord event) {
-    if (stop.get()) {
-      return;
+  /**
+   * A callback of an event is called when the event is completely processed
+   */
+  private static class ExternalEvent {
+
+    private final Runnable callback;
+    private final Event event;
+
+    private ExternalEvent(Event event, Runnable callback) {
+      this.event = event;
+      this.callback = callback;
     }
-    this.externalEvents.add(event);
   }
 }
