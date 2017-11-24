@@ -98,6 +98,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       List<JobRecord> jobRecords = jobRecordRepository
               .get(rootId, terminalStates())
               .stream()
+              .filter(jobRecord -> !jobRecord.isScattered())
               .collect(Collectors.toList());
       jobRecords.stream().filter(this::isGarbage).forEach(this::collect);
     }
@@ -120,6 +121,8 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
       List<JobRecord> all = jobRecordRepository.get(rootId);
       garbage.addAll(all);
+    } else if(jobRecord.isScatterWrapper()) {
+      garbage.addAll(jobRecordRepository.getByParent(jobRecord.getExternalId(), rootId));
     }
 
     flush(rootId, garbage);
