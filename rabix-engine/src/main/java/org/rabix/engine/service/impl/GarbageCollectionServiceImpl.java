@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 
 public class GarbageCollectionServiceImpl implements GarbageCollectionService {
@@ -34,6 +35,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final Set<UUID> pendingGCs;
 
   private final boolean enabled;
+  private final int numberOfGcThreads;
 
   @Inject
   public GarbageCollectionServiceImpl(JobRepository jobRepository,
@@ -56,18 +58,24 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
     this.transactionHelper = transactionHelper;
     this.metricsHelper = metricsHelper;
-    this.executorService = Executors.newSingleThreadExecutor(r -> {
-      Thread thread = new Thread(r, "GarbageCollectionThread");
-      thread.setDaemon(true);
-      return thread;
-    });
+    this.executorService = buildExecutorService();
 
     this.pendingGCs = Collections.newSetFromMap(new ConcurrentHashMap<>());
     this.enabled = configuration.getBoolean("gc.enabled", true);
+    this.numberOfGcThreads = configuration.getInt("gc.threads.number", Runtime.getRuntime().availableProcessors() + 1);
   }
 
   public void gc(UUID rootId) {
-    if (!enabled || pendingGCs.contains(rootId)) return;
+    if (!enabled) {
+      return;
+    }
+
+    logger.info("gc(rootId={})", rootId);
+
+    if (pendingGCs.contains(rootId)) {
+      logger.info("gc already scheduled for {}", rootId);
+      return;
+    }
 
     pendingGCs.add(rootId);
     Runnable gcRun = () -> {
@@ -81,11 +89,16 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   private void doGc(UUID rootId) {
-    List<JobRecord> jobRecords = jobRecordRepository
-            .get(rootId, terminalStates())
-            .stream()
-            .collect(Collectors.toList());
-    jobRecords.stream().filter(this::isGarbage).forEach(this::collect);
+    JobRecord root = jobRecordRepository.getRoot(rootId);
+    if (root.isCompleted()) {
+      collect(root);
+    } else {
+      List<JobRecord> jobRecords = jobRecordRepository
+              .get(rootId, terminalStates())
+              .stream()
+              .collect(Collectors.toList());
+      jobRecords.stream().filter(this::isGarbage).forEach(this::collect);
+    }
   }
 
   private void collect(JobRecord jobRecord) {
@@ -101,6 +114,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       jobStatsRecordRepository.delete(rootId);
       eventRepository.deleteByRootId(rootId);
       variableRecordRepository.deleteByRootId(rootId);
+      linkRecordRepository.deleteByRootId(rootId);
 
       List<JobRecord> all = jobRecordRepository.get(rootId);
       garbage.addAll(all);
@@ -155,5 +169,17 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     } catch (Exception e) {
       logger.warn("Exception in gc transaction.", e);
     }
+  }
+
+  private ExecutorService buildExecutorService() {
+    return Executors.newFixedThreadPool(numberOfGcThreads, new ThreadFactory() {
+      int count;
+      @Override
+      public Thread newThread(Runnable r) {
+        Thread thread = new Thread(r, "GarbageCollectionThread" + ++count);
+        thread.setDaemon(true);
+        return thread;
+      }
+    });
   }
 }
