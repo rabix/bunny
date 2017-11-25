@@ -21,7 +21,9 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
 
   @Override
   public int insert(JobRecord jobRecord) {
-    update(jobRecord);
+    if (get(jobRecord.getId(), jobRecord.getRootId()) == null) {
+      update(jobRecord);
+    }
     return 1;
   }
 

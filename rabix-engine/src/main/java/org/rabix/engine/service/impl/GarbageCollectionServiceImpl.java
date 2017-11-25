@@ -1,6 +1,5 @@
 package org.rabix.engine.service.impl;
 
-import com.codahale.metrics.Timer;
 import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.metrics.MetricsHelper;
@@ -37,6 +36,11 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private final boolean enabled;
   private final int numberOfGcThreads;
+
+  private final Set<JobRecord.JobState> terminalStates = new HashSet<>(Arrays.asList(
+          JobRecord.JobState.COMPLETED,
+          JobRecord.JobState.ABORTED,
+          JobRecord.JobState.FAILED));
 
   @Inject
   public GarbageCollectionServiceImpl(JobRepository jobRepository,
@@ -92,11 +96,11 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private void doGc(UUID rootId) {
     JobRecord root = jobRecordRepository.getRoot(rootId);
-    if (root.isCompleted()) {
+    if (inTerminalState(root)) {
       collect(root);
     } else {
       List<JobRecord> jobRecords = jobRecordRepository
-              .get(rootId, terminalStates())
+              .get(rootId, terminalStates)
               .stream()
               .filter(jobRecord -> !jobRecord.isScattered())
               .collect(Collectors.toList());
@@ -141,29 +145,18 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   private boolean isGarbage(JobRecord jobRecord) {
-    Timer.Context context = metricsHelper.timer("GC.isGarbage").time();
-    try {
-      List<LinkRecord> outputLinks = linkRecordRepository.getBySource(jobRecord.getId(), jobRecord.getRootId());
-      List<JobRecord> outputJobRecords = outputLinks
-              .stream()
-              .map(link -> jobRecordRepository.get(link.getDestinationJobId(), link.getRootId()))
-              .filter(Objects::nonNull)
-              .collect(Collectors.toList());
+    List<LinkRecord> outputLinks = linkRecordRepository.getBySource(jobRecord.getId(), jobRecord.getRootId());
+    List<JobRecord> outputJobRecords = outputLinks
+            .stream()
+            .map(link -> jobRecordRepository.get(link.getDestinationJobId(), link.getRootId()))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
-      return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(outputRecord -> {
-        if (outputRecord.isScatterWrapper() && outputRecord.isCompleted()) {
-          return isGarbage(outputRecord);
-        }
-        return outputRecord.isCompleted();
-      });
-    } finally {
-      context.stop();
-    }
+    return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(this::inTerminalState);
   }
 
-  private Set<JobRecord.JobState> terminalStates() {
-    return new HashSet<>(
-            Arrays.asList(JobRecord.JobState.COMPLETED, JobRecord.JobState.ABORTED, JobRecord.JobState.FAILED));
+  private boolean inTerminalState(JobRecord jobRecord) {
+    return terminalStates.contains(jobRecord.getState());
   }
 
   void inTransaction(Runnable runnable) {

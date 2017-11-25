@@ -60,6 +60,7 @@ public class EngineModule extends AbstractModule {
     bind(InputEventHandler.class).in(Scopes.SINGLETON);
     bind(OutputEventHandler.class).in(Scopes.SINGLETON);
     bind(JobStatusEventHandler.class).in(Scopes.SINGLETON);
+    bind(ScatterJobEventHandler.class).in(Scopes.SINGLETON);
     bind(ContextStatusEventHandler.class).in(Scopes.SINGLETON);
 
     bind(HandlerFactory.class).in(Scopes.SINGLETON);
