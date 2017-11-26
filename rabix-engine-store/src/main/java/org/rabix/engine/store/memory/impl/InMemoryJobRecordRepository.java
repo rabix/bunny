@@ -56,29 +56,26 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
   }
 
   @Override
-  public int deleteByStatus(JobRecord.JobState state) {
-    int count = 0;
-    for (Map<UUID, JobRecord> records : jobRecordsPerRootByExternalId.values()) {
-      for (Iterator<JobRecord> iterator = records.values().iterator(); iterator.hasNext();) {
-        JobRecord jobRecord = iterator.next();
-        if (jobRecord.getState().equals(state)) {
-          iterator.remove();
-          count++;
-        }
-      }
-    }
-    return count;
-  }
-
-  @Override
   public void delete(UUID id, UUID rootId) {
     Map<UUID, JobRecord> jobRecords = jobRecordsPerRootByExternalId.get(rootId);
+    JobRecord deleted = null;
     if (jobRecords != null) {
-      jobRecords.remove(id);
+      deleted = jobRecords.remove(id);
     }
 
     if (id.equals(rootId)) {
       jobRecordsPerRootByExternalId.remove(id);
+    }
+
+    if (deleted != null) {
+      Map<String, JobRecord> jobRecordsById = jobRecordsPerRootById.get(rootId);
+      if (jobRecordsById != null) {
+        jobRecordsById.remove(deleted.getId());
+      }
+
+      if (id.equals(rootId)) {
+        jobRecordsPerRootById.remove(id);
+      }
     }
   }
 

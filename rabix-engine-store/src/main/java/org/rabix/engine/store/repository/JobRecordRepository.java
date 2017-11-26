@@ -17,8 +17,6 @@ public abstract class JobRecordRepository {
 
   public abstract void updateBatch(Iterator<JobRecord> records);
 
-  public abstract int deleteByStatus(JobRecord.JobState state);
-
   public abstract void delete(UUID externalId, UUID rootId);
 
   public abstract List<JobRecord> get(UUID rootId);

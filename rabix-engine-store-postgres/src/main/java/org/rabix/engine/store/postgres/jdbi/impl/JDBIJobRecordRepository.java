@@ -52,10 +52,6 @@ public abstract class JDBIJobRecordRepository extends JobRecordRepository {
   public abstract void updateStatus(@Bind("root_id") UUID rootId, @Bind("state") JobRecord.JobState state, @BindIn("states") Set<JobRecord.JobState> whereStates);
 
   @Override
-  @SqlUpdate("delete from job_record where job_state=:state::job_record_state")
-  public abstract int deleteByStatus(@Bind("state") JobRecord.JobState state);
-
-  @Override
   @SqlBatch("delete from job_record where external_id=:external_id and root_id=:root_id")
   public abstract void delete(@Bind("external_id") UUID externalId, @Bind("root_id") UUID rootId);
 
