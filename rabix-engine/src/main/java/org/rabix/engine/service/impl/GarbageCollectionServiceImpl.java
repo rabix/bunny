@@ -156,7 +156,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   private boolean inTerminalState(JobRecord jobRecord) {
-    return terminalStates.contains(jobRecord.getState());
+    return jobRecord == null || terminalStates.contains(jobRecord.getState());
   }
 
   void inTransaction(Runnable runnable) {
