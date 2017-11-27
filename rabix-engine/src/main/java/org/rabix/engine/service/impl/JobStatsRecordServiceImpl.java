@@ -1,6 +1,7 @@
 package org.rabix.engine.service.impl;
 
 import com.google.inject.Inject;
+import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.service.JobStatsRecordService;
 import org.rabix.engine.store.lru.stats.JobStatsRecordCache;
 import org.rabix.engine.store.model.JobStatsRecord;
@@ -14,14 +15,22 @@ public class JobStatsRecordServiceImpl implements JobStatsRecordService {
 
   private JobStatsRecordCache jobStatsRecordCache;
 
+  private EventProcessor eventProcessor;
+
   @Inject
   public JobStatsRecordServiceImpl(JobStatsRecordRepository jobStatsRecordRepository,
-                                   JobStatsRecordCache jobStatsRecordCache) {
+                                   JobStatsRecordCache jobStatsRecordCache,
+                                   EventProcessor eventProcessor) {
     this.jobStatsRecordRepository = jobStatsRecordRepository;
     this.jobStatsRecordCache = jobStatsRecordCache;
+    this.eventProcessor = eventProcessor;
   }
 
   public void create(JobStatsRecord jobStatsRecord) {
+    if (eventProcessor.isReplayMode()) {
+      return;
+    }
+
     int inserted = jobStatsRecordRepository.insert(jobStatsRecord);
     if (inserted > 0) {
       jobStatsRecordCache.put(jobStatsRecord.getRootId(), jobStatsRecord);
@@ -29,6 +38,10 @@ public class JobStatsRecordServiceImpl implements JobStatsRecordService {
   }
 
   public void update(JobStatsRecord jobStatsRecord) {
+    if (eventProcessor.isReplayMode()) {
+      return;
+    }
+
     int updated = jobStatsRecordRepository.update(jobStatsRecord);
     if (updated > 0) {
       jobStatsRecordCache.put(jobStatsRecord.getRootId(), jobStatsRecord);
