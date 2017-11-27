@@ -22,13 +22,17 @@ public class JobStatsRecordServiceImpl implements JobStatsRecordService {
   }
 
   public void create(JobStatsRecord jobStatsRecord) {
-    jobStatsRecordRepository.insert(jobStatsRecord);
-    jobStatsRecordCache.put(jobStatsRecord.getRootId(), jobStatsRecord);
+    int inserted = jobStatsRecordRepository.insert(jobStatsRecord);
+    if (inserted > 0) {
+      jobStatsRecordCache.put(jobStatsRecord.getRootId(), jobStatsRecord);
+    }
   }
 
   public void update(JobStatsRecord jobStatsRecord) {
-    jobStatsRecordRepository.update(jobStatsRecord);
-    jobStatsRecordCache.put(jobStatsRecord.getRootId(), jobStatsRecord);
+    int updated = jobStatsRecordRepository.update(jobStatsRecord);
+    if (updated > 0) {
+      jobStatsRecordCache.put(jobStatsRecord.getRootId(), jobStatsRecord);
+    }
   }
 
   public JobStatsRecord find(UUID rootId) {
