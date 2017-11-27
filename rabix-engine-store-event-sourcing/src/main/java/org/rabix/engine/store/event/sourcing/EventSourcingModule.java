@@ -60,6 +60,12 @@ public class EventSourcingModule extends AbstractModule {
         return jdbiRepositoryRegistry.backendRepository();
     }
 
+    @Provides
+    @Singleton
+    public JobStatsRecordRepository provideJobStatsRecordRepository(JDBIRepositoryRegistry jdbiRepositoryRegistry) {
+        return jdbiRepositoryRegistry.jobStatsRecordRepository();
+    }
+
     /* IN MEMORY REPOS */
 
     @Provides
@@ -84,12 +90,6 @@ public class EventSourcingModule extends AbstractModule {
     @Singleton
     public VariableRecordRepository provideVariableRecordRepository() {
         return inMemoryRepositoryModule.provideVariableRecordRepository();
-    }
-
-    @Provides
-    @Singleton
-    public JobStatsRecordRepository provideJobStatsRecordRepository() {
-        return inMemoryRepositoryModule.provideJobStatsRecordRepository();
     }
 
     @Provides

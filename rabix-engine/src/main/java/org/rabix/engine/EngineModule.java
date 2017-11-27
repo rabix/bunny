@@ -12,7 +12,10 @@ import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
 import org.rabix.engine.service.*;
 import org.rabix.engine.service.impl.*;
 import org.rabix.engine.store.event.sourcing.EventSourcingModule;
+import org.rabix.engine.store.lru.app.AppCache;
+import org.rabix.engine.store.lru.context.ContextRecordCache;
 import org.rabix.engine.store.lru.dag.DAGCache;
+import org.rabix.engine.store.lru.stats.JobStatsRecordCache;
 import org.rabix.engine.store.memory.InMemoryRepositoryModule;
 import org.rabix.engine.store.memory.InMemoryRepositoryRegistry;
 import org.rabix.engine.store.postgres.jdbi.JDBIRepositoryModule;
@@ -45,6 +48,9 @@ public class EngineModule extends AbstractModule {
     bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
 
     bind(DAGCache.class).in(Scopes.SINGLETON);
+    bind(AppCache.class).in(Scopes.SINGLETON);
+    bind(ContextRecordCache.class).in(Scopes.SINGLETON);
+    bind(JobStatsRecordCache.class).in(Scopes.SINGLETON);
     bind(DAGNodeService.class).to(DAGNodeServiceImpl.class).in(Scopes.SINGLETON);
     bind(AppService.class).to(AppServiceImpl.class).in(Scopes.SINGLETON);
     bind(JobRecordService.class).to(JobRecordServiceImpl.class).in(Scopes.SINGLETON);

@@ -47,4 +47,8 @@ public class LRUCache<K, V> {
   public String toString() {
     return cache.toString();
   }
+
+  public void remove(K key) {
+    cache.invalidate(key);
+  }
 }
