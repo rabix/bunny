@@ -51,8 +51,13 @@ public class JobStatsRecordServiceImpl implements JobStatsRecordService {
   public JobStatsRecord find(UUID rootId) {
     JobStatsRecord jobStatsRecord = jobStatsRecordCache.get(rootId);
     if (jobStatsRecord == null) {
-      jobStatsRecordRepository.get(rootId);
+      jobStatsRecord = jobStatsRecordRepository.get(rootId);
     }
+
+    if (jobStatsRecord != null) {
+      jobStatsRecordCache.put(rootId, jobStatsRecord);
+    }
+
     return jobStatsRecord;
   }
 
