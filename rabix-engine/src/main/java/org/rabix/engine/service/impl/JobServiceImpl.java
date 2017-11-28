@@ -189,7 +189,8 @@ public class JobServiceImpl implements JobService {
   @Override
   public void stop(UUID id) throws JobServiceException {
     Job job = jobRepository.get(id);
-    stop(job);
+    job = Job.cloneWithStatus(job, JobStatus.ABORTED);
+    update(job);
   }
 
   @Override
