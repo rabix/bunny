@@ -202,7 +202,7 @@ public class EventProcessorImpl implements EventProcessor {
 
   @Override
   public void persist(Event event) {
-    if (stop.get() || mode.get() == EventHandlingMode.REPLAY) {
+    if (stop.get() || mode.get() == EventHandlingMode.REPLAY || event.getType() == EventType.INIT) {
       return;
     }
     EventRecord er = new EventRecord(event.getContextId(), event.getEventGroupId(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
