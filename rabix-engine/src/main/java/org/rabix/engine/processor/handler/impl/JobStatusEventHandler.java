@@ -113,7 +113,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       if (jobRecord.getScatterStrategy() != null && jobRecord.getScatterStrategy().skipScatter()) {
         break;
       }
-      if (shouldGenerateReadyJob(mode, jobRecord)) {
+      if (shouldGenerateReadyJob(jobRecord)) {
         Job job = null;
         try {
           job = jobHelper.createReadyJob(jobRecord, JobStatus.READY, setResources);
@@ -150,6 +150,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     case COMPLETED:
       jobRecord.setState(JobRecord.JobState.COMPLETED);
       jobRecordService.update(jobRecord);
+      jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
+
       if (jobStatsRecord != null) {
         jobStatsRecord.increaseCompleted();
         jobStatsRecordService.update(jobStatsRecord);
@@ -248,8 +250,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
   }
 
-  private boolean shouldGenerateReadyJob(EventHandlingMode mode, JobRecord jobRecord) {
-    return mode != EventHandlingMode.REPLAY && !jobRecord.isContainer() && !jobRecord.isScatterWrapper();
+  private boolean shouldGenerateReadyJob(JobRecord jobRecord) {
+    return !jobRecord.isContainer() && !jobRecord.isScatterWrapper();
   }
 
   /*
@@ -259,7 +261,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     job.setState(JobRecord.JobState.READY);
 
     UUID rootId = event.getContextId();
-    DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), rootId, job.getDagHash());
 
     if (!job.isScattered() && job.getScatterPorts().size() > 0) {
       job.setState(JobRecord.JobState.RUNNING);
@@ -272,6 +273,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       }
     } else if (job.isContainer()) {
+      DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), rootId, job.getDagHash());
+
       job.setState(JobRecord.JobState.RUNNING);
 
       DAGContainer containerNode = (DAGContainer) node;

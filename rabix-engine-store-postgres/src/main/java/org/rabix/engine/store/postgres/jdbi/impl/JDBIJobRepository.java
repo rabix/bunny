@@ -103,6 +103,10 @@ public interface JDBIJobRepository extends JobRepository {
   @SqlUpdate("delete from job where root_id in (<ids>)")
   void deleteByRootIds(@BindIn("ids") Set<UUID> rootIds);
 
+  @Override
+  @SqlQuery("select * from job where status=:status::job_status")
+  Set<JobEntity> getByStatus(@Bind("status") JobStatus status);
+
   public static class JobMapper implements ResultSetMapper<Job> {
     public Job map(int index, ResultSet r, StatementContext ctx) throws SQLException {
       UUID id = r.getObject("id", UUID.class);

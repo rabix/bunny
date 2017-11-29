@@ -48,6 +48,8 @@ public interface JobRepository {
 
   void deleteByRootIds(Set<UUID> rootIds);
 
+  Set<JobEntity> getByStatus(JobStatus status);
+
   class JobEntity {
 
     Job job;

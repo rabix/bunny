@@ -202,4 +202,14 @@ public class InMemoryJobRepository implements JobRepository {
   public void deleteByRootIds(Set<UUID> rootIds) {
     rootIds.forEach(jobRepository::remove);
   }
+
+  @Override
+  public Set<JobEntity> getByStatus(JobStatus status) {
+    return jobRepository
+            .values()
+            .stream()
+            .flatMap(map -> map.values().stream())
+            .filter(value -> value.getJob().getStatus() == status)
+            .collect(Collectors.toSet());
+  }
 }

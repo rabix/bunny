@@ -20,7 +20,7 @@ public interface JobService {
 
   void stop(UUID id) throws JobServiceException;
 
-  void delete(UUID jobId);
+  void delete(UUID rootId, UUID jobId);
 
   void updateBackend(UUID jobId, UUID backendId);
 

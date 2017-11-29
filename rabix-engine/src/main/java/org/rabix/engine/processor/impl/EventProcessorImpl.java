@@ -6,7 +6,6 @@ import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.Event.EventType;
 import org.rabix.engine.event.impl.ContextStatusEvent;
-import org.rabix.engine.event.impl.InitEvent;
 import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.processor.EventProcessor;
@@ -20,19 +19,22 @@ import org.rabix.engine.store.model.EventRecord;
 import org.rabix.engine.store.model.JobRecord.JobState;
 import org.rabix.engine.store.repository.EventRepository;
 import org.rabix.engine.store.repository.JobRepository;
+import org.rabix.engine.store.repository.JobRepository.JobEntity;
 import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.store.repository.TransactionHelper.TransactionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Event processor implementation
@@ -101,11 +103,8 @@ public class EventProcessorImpl implements EventProcessor {
           eventRepository.deleteGroup(event.getEventGroupId());
           return null;
         }
-        if (checkForReadyJobs(event)) {
-          Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
-          jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
-        }
 
+        processReadyJobs(event);
         persist(event);
         return null;
       });
@@ -132,8 +131,23 @@ public class EventProcessorImpl implements EventProcessor {
     }
   }
 
+  private void processReadyJobs(Event event) {
+    if (checkForReadyJobs(event)) {
+      if (isReplayMode() && !hasWork()) {
+        readyJobsByRootId().forEach((rootId, readyJobs) -> {
+          groupByProducedBy(readyJobs).forEach((producedBy, ready) -> {
+            jobService.handleJobsReady(ready.stream().map(JobEntity::getJob).collect(Collectors.toSet()), rootId, producedBy);
+          });
+        });
+      } else {
+        Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
+        jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
+      }
+    }
+  }
+
   private boolean checkForReadyJobs(Event event) {
-    return (event instanceof InitEvent || (event instanceof JobStatusEvent && ((JobStatusEvent) event).getState().equals(JobState.COMPLETED)));
+    return (event.getType() == EventType.INIT || (event.getType() == EventType.JOB_STATUS_UPDATE && ((JobStatusEvent) event).getState().equals(JobState.COMPLETED)));
   }
 
   private boolean handle(Event event, EventHandlingMode mode) throws TransactionException {
@@ -202,9 +216,12 @@ public class EventProcessorImpl implements EventProcessor {
 
   @Override
   public void persist(Event event) {
-    if (stop.get() || mode.get() == EventHandlingMode.REPLAY || event.getType() == EventType.INIT) {
+    if (stop.get() || mode.get() == EventHandlingMode.REPLAY) {
       return;
     }
+
+    logger.debug("persist(event={})", event.toString());
+
     EventRecord er = new EventRecord(event.getContextId(), event.getEventGroupId(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
     eventRepository.insert(er);
   }
@@ -227,6 +244,17 @@ public class EventProcessorImpl implements EventProcessor {
   @Override
   public int eventsQueueSize() {
     return events.size();
+  }
+
+  private Map<UUID, List<JobEntity>> readyJobsByRootId() {
+    return jobRepository
+            .getByStatus(Job.JobStatus.READY)
+            .stream()
+            .collect(groupingBy(jobEntity -> jobEntity.getJob().getRootId()));
+  }
+
+  private Map<String, List<JobEntity>> groupByProducedBy(List<JobEntity> jobEntities) {
+    return jobEntities.stream().collect(groupingBy(JobEntity::getProducedByNode));
   }
 
   /**

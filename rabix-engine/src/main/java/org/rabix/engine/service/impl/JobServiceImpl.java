@@ -154,7 +154,6 @@ public class JobServiceImpl implements JobService {
         jobRepository.insert(updatedJob, updatedJob.getRootId(), null);
 
         InitEvent initEvent = new InitEvent(rootId, updatedJob.getInputs(), updatedJob.getRootId(), updatedJob.getConfig(), dagHash, InternalSchemaHelper.ROOT_NAME);
-        eventProcessor.persist(initEvent);
 
         eventWrapper.set(initEvent);
         jobWrapper.set(updatedJob);
@@ -203,8 +202,8 @@ public class JobServiceImpl implements JobService {
     return jobRepository.get(id);
   }
 
-  public void delete(UUID jobId) {
-    // TODO think about it
+  public void delete(UUID rootId, UUID jobId) {
+    jobRepository.delete(rootId, Sets.newHashSet(jobId));
   }
 
   public void updateBackend(UUID jobId, UUID backendId) {
@@ -229,7 +228,8 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode){
+  public void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode) {
+    logger.debug("handleJobsReady(jobs={}, rootId={})", jobs.stream().map(Job::getName).collect(Collectors.toList()), rootId);
     try {
       engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
     } catch (EngineStatusCallbackException e) {
