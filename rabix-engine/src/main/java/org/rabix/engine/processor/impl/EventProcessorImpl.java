@@ -134,21 +134,25 @@ public class EventProcessorImpl implements EventProcessor {
   }
 
   private void processReadyJobs(Event event) {
-    if (checkForReadyJobs(event)) {
-      if (isReplayMode() && !hasWork()) {
+    if (!shouldProcessReadyJobs(event)) {
+      return;
+    }
+
+    if (isReplayMode()) {
+      if (!hasWork()) {
         readyJobsByRootId().forEach((rootId, readyJobs) -> {
           groupByProducedBy(readyJobs).forEach((producedBy, ready) -> {
             jobService.handleJobsReady(ready.stream().map(JobEntity::getJob).collect(Collectors.toSet()), rootId, producedBy);
           });
         });
-      } else {
-        Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
-        jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
       }
+    } else {
+      Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
+      jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
     }
   }
 
-  private boolean checkForReadyJobs(Event event) {
+  private boolean shouldProcessReadyJobs(Event event) {
     return (event.getType() == EventType.INIT || (event.getType() == EventType.JOB_STATUS_UPDATE && ((JobStatusEvent) event).getState().equals(JobState.COMPLETED)));
   }
 
