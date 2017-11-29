@@ -105,7 +105,9 @@ public class EventProcessorImpl implements EventProcessor {
         }
 
         processReadyJobs(event);
-        persist(event);
+        if (event.getType() != EventType.INIT) {
+          persist(event);
+        }
         return null;
       });
     } catch (Exception e) {
