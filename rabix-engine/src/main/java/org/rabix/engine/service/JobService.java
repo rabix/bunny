@@ -46,6 +46,8 @@ public interface JobService {
 
   void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode);
 
+  void handlePendingReadyJobs();
+
   void handleJobContainerReady(Job containerJob);
 
   void handleJobRootAborted(Job rootJob);

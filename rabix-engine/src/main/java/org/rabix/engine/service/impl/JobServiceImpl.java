@@ -25,13 +25,12 @@ import org.rabix.engine.store.repository.TransactionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 public class JobServiceImpl implements JobService {
 
@@ -241,6 +240,15 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
+  public void handlePendingReadyJobs() {
+    readyJobsByRootId().forEach((rootId, readyJobs) -> {
+      groupByProducedBy(readyJobs).forEach((producedBy, ready) -> {
+        handleJobsReady(ready.stream().map(JobEntity::getJob).collect(Collectors.toSet()), rootId, producedBy);
+      });
+    });
+  }
+
+  @Override
   public void handleJobFailed(final Job failedJob){
     logger.warn("Job {}, rootId: {} failed: {}", failedJob.getName(), failedJob.getRootId(), failedJob.getMessage());
     intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()));
@@ -343,5 +351,16 @@ public class JobServiceImpl implements JobService {
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
     }
+  }
+
+  private Map<UUID, List<JobEntity>> readyJobsByRootId() {
+    return jobRepository
+            .getByStatus(Job.JobStatus.READY)
+            .stream()
+            .collect(groupingBy(jobEntity -> jobEntity.getJob().getRootId()));
+  }
+
+  private Map<String, List<JobEntity>> groupByProducedBy(List<JobEntity> jobEntities) {
+    return jobEntities.stream().collect(groupingBy(JobEntity::getProducedByNode));
   }
 }

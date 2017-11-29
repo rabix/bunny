@@ -19,22 +19,19 @@ import org.rabix.engine.store.model.EventRecord;
 import org.rabix.engine.store.model.JobRecord.JobState;
 import org.rabix.engine.store.repository.EventRepository;
 import org.rabix.engine.store.repository.JobRepository;
-import org.rabix.engine.store.repository.JobRepository.JobEntity;
 import org.rabix.engine.store.repository.TransactionHelper;
 import org.rabix.engine.store.repository.TransactionHelper.TransactionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Event processor implementation
@@ -134,22 +131,12 @@ public class EventProcessorImpl implements EventProcessor {
   }
 
   private void processReadyJobs(Event event) {
-    if (!shouldProcessReadyJobs(event)) {
+    if (!shouldProcessReadyJobs(event) || isReplayMode()) {
       return;
     }
 
-    if (isReplayMode()) {
-      if (!hasWork()) {
-        readyJobsByRootId().forEach((rootId, readyJobs) -> {
-          groupByProducedBy(readyJobs).forEach((producedBy, ready) -> {
-            jobService.handleJobsReady(ready.stream().map(JobEntity::getJob).collect(Collectors.toSet()), rootId, producedBy);
-          });
-        });
-      }
-    } else {
-      Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
-      jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
-    }
+    Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
+    jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
   }
 
   private boolean shouldProcessReadyJobs(Event event) {
@@ -250,17 +237,6 @@ public class EventProcessorImpl implements EventProcessor {
   @Override
   public int eventsQueueSize() {
     return events.size();
-  }
-
-  private Map<UUID, List<JobEntity>> readyJobsByRootId() {
-    return jobRepository
-            .getByStatus(Job.JobStatus.READY)
-            .stream()
-            .collect(groupingBy(jobEntity -> jobEntity.getJob().getRootId()));
-  }
-
-  private Map<String, List<JobEntity>> groupByProducedBy(List<JobEntity> jobEntities) {
-    return jobEntities.stream().collect(groupingBy(JobEntity::getProducedByNode));
   }
 
   /**
