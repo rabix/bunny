@@ -237,7 +237,9 @@ public class JobServiceImpl implements JobService {
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     } finally {
-      jobRepository.delete(rootId, jobs.stream().map(Job::getId).collect(Collectors.toSet()));
+      if (!jobs.isEmpty()) {
+        jobRepository.delete(rootId, jobs.stream().map(Job::getId).collect(Collectors.toSet()));
+      }
     }
   }
 

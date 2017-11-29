@@ -109,6 +109,10 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   private void collect(JobRecord jobRecord) {
+    if (jobRecord == null) {
+      return;
+    }
+
     logger.info("Collecting garbage of {} with id {}", jobRecord.getId(), jobRecord.getExternalId());
 
     UUID rootId = jobRecord.getRootId();
@@ -159,7 +163,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     return jobRecord == null || terminalStates.contains(jobRecord.getState());
   }
 
-  void inTransaction(Runnable runnable) {
+  private void inTransaction(Runnable runnable) {
     try {
       transactionHelper.doInTransaction(() -> {
         runnable.run();
