@@ -56,7 +56,7 @@ public class InitEventHandler implements EventHandler<InitEvent> {
     JobRecord job = new JobRecord(event.getContextId(), node.getId(), event.getContextId(), null, JobRecord.JobState.PENDING, node instanceof DAGContainer, false, true, false, event.getDagHash());
 
     jobRecordService.create(job);
-    if (job.isRoot()) {
+    if (job.isRoot() && mode != EventHandlingMode.REPLAY) {
       JobStatsRecord jobStatsRecord = jobStatsRecordService.findOrCreate(job.getRootId());
       if (node instanceof DAGContainer) {
         jobStatsRecord.setTotal(((DAGContainer) node).getChildren().size());

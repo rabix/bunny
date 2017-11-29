@@ -95,8 +95,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
 
     JobStatsRecord jobStatsRecord = null;
-    if ((jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId())) || (jobRecord.isRoot()))
+    if (mode != EventHandlingMode.REPLAY && (jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId())) || (jobRecord.isRoot())) {
       jobStatsRecord = jobStatsRecordService.findOrCreate(jobRecord.getRootId());
+    }
+    
     try {
       JobStateValidator.checkState(jobRecord, event.getState());
     } catch (JobStateValidationException e) {

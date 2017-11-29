@@ -14,7 +14,7 @@ public class JobStatsRecordCache extends LRUCache<UUID, JobStatsRecord> {
 
     private final Logger logger = LoggerFactory.getLogger(DAGCache.class);
     private final static String CACHE_NAME = "JobStatsCache";
-    private static int DEFAULT_CACHE_SIZE = 5000;
+    private static int DEFAULT_CACHE_SIZE = 2000;
 
     @Inject
     public JobStatsRecordCache(Configuration configuration) {
