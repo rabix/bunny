@@ -298,7 +298,7 @@ public class JobServiceImpl implements JobService {
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     } finally {
-      garbageCollectionService.gc(job.getRootId());
+      garbageCollectionService.forceGc(job.getRootId());
     }
   }
 
@@ -324,7 +324,7 @@ public class JobServiceImpl implements JobService {
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     } finally {
-      garbageCollectionService.gc(job.getRootId());
+      garbageCollectionService.forceGc(job.getRootId());
     }
   }
 
@@ -352,7 +352,7 @@ public class JobServiceImpl implements JobService {
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     } finally {
-      garbageCollectionService.gc(rootJob.getRootId());
+      garbageCollectionService.forceGc(rootJob.getRootId());
     }
   }
 

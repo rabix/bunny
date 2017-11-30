@@ -99,6 +99,15 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     executorService.submit(gcRun);
   }
 
+  @Override
+  public void forceGc(UUID rootId) {
+    if (!enabled) {
+      return;
+    }
+
+    flushAll(rootId);
+  }
+
   private void doGc(UUID rootId) {
     JobRecord root = jobRecordRepository.getRoot(rootId);
 
