@@ -145,6 +145,8 @@ public class EventProcessorImpl implements EventProcessor {
 
   private boolean handle(Event event, EventHandlingMode mode) throws TransactionException {
     UUID rootId = event.getContextId();
+    EventType type = event.getType();
+
     try {
       while (event != null) {
         handlerFactory.get(event.getType()).handle(event, mode);
@@ -153,7 +155,7 @@ public class EventProcessorImpl implements EventProcessor {
     } catch (EventHandlerException e) {
       throw new TransactionException(e);
     } finally {
-      if (mode != EventHandlingMode.REPLAY) garbageCollectionService.gc(rootId);
+      if (mode != EventHandlingMode.REPLAY && type != EventType.INIT) garbageCollectionService.gc(rootId);
     }
 
     return true;

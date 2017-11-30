@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.service.GarbageCollectionService;
+import org.rabix.engine.store.model.ContextRecord;
+import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.LinkRecord;
 import org.rabix.engine.store.repository.*;
@@ -28,6 +30,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final VariableRecordRepository variableRecordRepository;
   private final LinkRecordRepository linkRecordRepository;
   private final DAGRepository dagRepository;
+  private final ContextRecordRepository contextRecordRepository;
 
   private final TransactionHelper transactionHelper;
   private final MetricsHelper metricsHelper;
@@ -50,6 +53,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
                                       VariableRecordRepository variableRecordRepository,
                                       LinkRecordRepository linkRecordRepository,
                                       DAGRepository dagRepository,
+                                      ContextRecordRepository contextRecordRepository,
                                       TransactionHelper transactionHelper,
                                       MetricsHelper metricsHelper,
                                       Configuration configuration) {
@@ -60,6 +64,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     this.variableRecordRepository = variableRecordRepository;
     this.linkRecordRepository = linkRecordRepository;
     this.dagRepository = dagRepository;
+    this.contextRecordRepository = contextRecordRepository;
 
     this.transactionHelper = transactionHelper;
     this.metricsHelper = metricsHelper;
@@ -96,8 +101,9 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private void doGc(UUID rootId) {
     JobRecord root = jobRecordRepository.getRoot(rootId);
-    if (inTerminalState(root)) {
-      collect(root);
+
+    if (root == null || isRootCompleted(root)) {
+      flushAll(rootId);
     } else {
       List<JobRecord> jobRecords = jobRecordRepository
               .get(rootId, terminalStates)
@@ -109,31 +115,21 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   }
 
   private void collect(JobRecord jobRecord) {
-    if (jobRecord == null) {
-      return;
-    }
-
     logger.info("Collecting garbage of {} with id {}", jobRecord.getId(), jobRecord.getExternalId());
 
     UUID rootId = jobRecord.getRootId();
-    List<JobRecord> garbage = new ArrayList<>();
-    garbage.add(jobRecord);
-
     if (jobRecord.isRoot()) {
-      dagRepository.delete(rootId);
-      linkRecordRepository.deleteByRootId(rootId);
-      jobStatsRecordRepository.delete(rootId);
-      eventRepository.deleteByRootId(rootId);
-      variableRecordRepository.deleteByRootId(rootId);
-      linkRecordRepository.deleteByRootId(rootId);
+      flushAll(rootId);
+    } else {
+      List<JobRecord> garbage = new ArrayList<>();
+      garbage.add(jobRecord);
 
-      List<JobRecord> all = jobRecordRepository.get(rootId);
-      garbage.addAll(all);
-    } else if(jobRecord.isScatterWrapper()) {
-      garbage.addAll(jobRecordRepository.getByParent(jobRecord.getExternalId(), rootId));
+      if(jobRecord.isScatterWrapper()) {
+        garbage.addAll(jobRecordRepository.getByParent(jobRecord.getExternalId(), rootId));
+      }
+
+      flush(rootId, garbage);
     }
-
-    flush(rootId, garbage);
   }
 
   private void flush(UUID rootId, List<JobRecord> garbage) {
@@ -146,6 +142,21 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     if (!groupIds.isEmpty()) {
       eventRepository.deleteByGroupIds(rootId, groupIds);
     }
+  }
+
+  private void flushAll(UUID rootId) {
+    logger.info("flushAll(rootId={})", rootId);
+
+    dagRepository.delete(rootId);
+    linkRecordRepository.deleteByRootId(rootId);
+    jobStatsRecordRepository.delete(rootId);
+    eventRepository.deleteByRootId(rootId);
+    variableRecordRepository.deleteByRootId(rootId);
+    linkRecordRepository.deleteByRootId(rootId);
+    contextRecordRepository.delete(rootId);
+
+    List<JobRecord> all = jobRecordRepository.get(rootId);
+    flush(rootId, all);
   }
 
   private boolean isGarbage(JobRecord jobRecord) {
@@ -172,6 +183,14 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     } catch (Exception e) {
       logger.warn("Exception in gc transaction.", e);
     }
+  }
+
+  private boolean isRootCompleted(JobRecord root) {
+    if (inTerminalState(root)) {
+      return true;
+    }
+    ContextRecord contextRecord = contextRecordRepository.get(root.getRootId());
+    return contextRecord == null || contextRecord.getStatus() != ContextStatus.RUNNING;
   }
 
   private ExecutorService buildExecutorService() {

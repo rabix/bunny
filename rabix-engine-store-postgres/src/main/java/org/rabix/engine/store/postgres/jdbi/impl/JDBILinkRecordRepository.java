@@ -43,7 +43,7 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   public abstract void deleteByDestinationIdAndType(@Bind("id") String destinationId, @Bind("source_type") LinkPortType linkPortType, @Bind("root_id") UUID rootId);
 
   @Override
-  @SqlBatch("delete from link_record where context_id=:root_id")
+  @SqlUpdate("delete from link_record where context_id=:root_id")
   public abstract void deleteByRootId(@Bind("root_id") UUID rootId);
 
   @Override

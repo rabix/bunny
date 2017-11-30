@@ -45,6 +45,7 @@ public class JobServiceImpl implements JobService {
   private final EventProcessor eventProcessor;
   private final TransactionHelper transactionHelper;
   private final MetricsHelper metricsHelper;
+  private final GarbageCollectionService garbageCollectionService;
 
   private boolean deleteFilesUponExecution;
   private boolean isLocalBackend;
@@ -67,7 +68,8 @@ public class JobServiceImpl implements JobService {
                         Configuration configuration,
                         IntermediaryFilesService intermediaryFilesService,
                         JobHelper jobHelper,
-                        MetricsHelper metricsHelper) {
+                        MetricsHelper metricsHelper,
+                        GarbageCollectionService garbageCollectionService) {
     this.dagNodeService = dagNodeService;
     this.appService = appService;
     this.eventProcessor = eventProcessor;
@@ -77,6 +79,7 @@ public class JobServiceImpl implements JobService {
     this.intermediaryFilesService = intermediaryFilesService;
     this.jobHelper = jobHelper;
     this.metricsHelper = metricsHelper;
+    this.garbageCollectionService = garbageCollectionService;
 
     setResources = configuration.getBoolean("engine.set_resources", false);
   }
@@ -276,7 +279,7 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public void handleJobRootCompleted(Job job){
+  public void handleJobRootCompleted(Job job) {
     logger.info("Root job {} completed.", job.getId());
     if (deleteFilesUponExecution) {
       if (isLocalBackend) {
@@ -294,6 +297,8 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootCompleted(job.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      garbageCollectionService.gc(job.getRootId());
     }
   }
 
@@ -318,6 +323,8 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootFailed(job.getRootId(), job.getMessage());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      garbageCollectionService.gc(job.getRootId());
     }
   }
 
@@ -344,6 +351,8 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobRootAborted(rootJob.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
+    } finally {
+      garbageCollectionService.gc(rootJob.getRootId());
     }
   }
 
