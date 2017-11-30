@@ -126,7 +126,13 @@ public class EventProcessorImpl implements EventProcessor {
         logger.error("Failed to invalidate Context {}.", event.getContextId(), ehe);
       }
     } finally {
-      if (externalEvent.callback != null) externalEvent.callback.run();
+      if (externalEvent.callback != null) {
+        externalEvent.callback.run();
+      }
+
+      if (mode.get() != EventHandlingMode.REPLAY && event.getType() != EventType.INIT) {
+        garbageCollectionService.gc(event.getContextId());
+      }
     }
   }
 
@@ -144,9 +150,6 @@ public class EventProcessorImpl implements EventProcessor {
   }
 
   private boolean handle(Event event, EventHandlingMode mode) throws TransactionException {
-    UUID rootId = event.getContextId();
-    EventType type = event.getType();
-
     try {
       while (event != null) {
         handlerFactory.get(event.getType()).handle(event, mode);
@@ -154,8 +157,6 @@ public class EventProcessorImpl implements EventProcessor {
       }
     } catch (EventHandlerException e) {
       throw new TransactionException(e);
-    } finally {
-      if (mode != EventHandlingMode.REPLAY && type != EventType.INIT) garbageCollectionService.gc(rootId);
     }
 
     return true;
