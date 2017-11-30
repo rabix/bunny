@@ -31,6 +31,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final LinkRecordRepository linkRecordRepository;
   private final DAGRepository dagRepository;
   private final ContextRecordRepository contextRecordRepository;
+  private final IntermediaryFilesRepository intermediaryFilesRepository;
 
   private final TransactionHelper transactionHelper;
   private final MetricsHelper metricsHelper;
@@ -54,6 +55,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
                                       LinkRecordRepository linkRecordRepository,
                                       DAGRepository dagRepository,
                                       ContextRecordRepository contextRecordRepository,
+                                      IntermediaryFilesRepository intermediaryFilesRepository,
                                       TransactionHelper transactionHelper,
                                       MetricsHelper metricsHelper,
                                       Configuration configuration) {
@@ -65,6 +67,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     this.linkRecordRepository = linkRecordRepository;
     this.dagRepository = dagRepository;
     this.contextRecordRepository = contextRecordRepository;
+    this.intermediaryFilesRepository = intermediaryFilesRepository;
 
     this.transactionHelper = transactionHelper;
     this.metricsHelper = metricsHelper;
@@ -163,6 +166,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     variableRecordRepository.deleteByRootId(rootId);
     linkRecordRepository.deleteByRootId(rootId);
     contextRecordRepository.delete(rootId);
+    intermediaryFilesRepository.delete(rootId);
 
     List<JobRecord> all = jobRecordRepository.get(rootId);
     flush(rootId, all);
