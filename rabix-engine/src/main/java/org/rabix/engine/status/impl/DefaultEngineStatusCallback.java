@@ -16,8 +16,12 @@ public class DefaultEngineStatusCallback implements EngineStatusCallback {
 
   private final static Logger logger = LoggerFactory.getLogger(DefaultEngineStatusCallback.class);
 
+  private final BackendService backendService;
+
   @Inject
-  private BackendService backendService;
+  public DefaultEngineStatusCallback(BackendService backendService) {
+    this.backendService = backendService;
+  }
 
   @Override
   public void onJobReady(Job job) throws EngineStatusCallbackException {

@@ -98,7 +98,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     if (mode != EventHandlingMode.REPLAY && (jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId())) || (jobRecord.isRoot())) {
       jobStatsRecord = jobStatsRecordService.findOrCreate(jobRecord.getRootId());
     }
-    
+
     try {
       JobStateValidator.checkState(jobRecord, event.getState());
     } catch (JobStateValidationException e) {
@@ -152,7 +152,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     case COMPLETED:
       jobRecord.setState(JobRecord.JobState.COMPLETED);
       jobRecordService.update(jobRecord);
-      jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
+
+      if (!jobRecord.isRoot()) {
+        jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
+      }
 
       if (jobStatsRecord != null) {
         jobStatsRecord.increaseCompleted();
