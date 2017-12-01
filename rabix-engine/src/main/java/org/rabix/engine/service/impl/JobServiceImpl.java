@@ -194,6 +194,8 @@ public class JobServiceImpl implements JobService {
     if (job != null) {
       job = Job.cloneWithStatus(job, JobStatus.ABORTED);
       update(job);
+    } else {
+      logger.warn("Unknown job {}. Nothing to stop.", id);
     }
   }
 

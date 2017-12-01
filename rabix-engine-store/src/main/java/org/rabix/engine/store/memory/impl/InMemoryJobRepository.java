@@ -122,7 +122,7 @@ public class InMemoryJobRepository implements JobRepository {
     Set<Job> groupIdJobs = new HashSet<>();
     for(Map<UUID, JobEntity> rootJobs: jobRepository.values()) {
       for(JobEntity job: rootJobs.values()) {
-        if(job.getGroupId() != null && job.getGroupId().equals(groupId) && !job.getJob().isRoot()) {
+        if(job.getGroupId() != null && job.getGroupId().equals(groupId) && job.getJob().getStatus() == JobStatus.READY) {
           groupIdJobs.add(job.getJob());
         }
       }
