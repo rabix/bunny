@@ -104,21 +104,20 @@ public class Draft3RequirementProvider implements ProtocolRequirementProvider {
   public List<Requirement> getRequirements(Job job) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     Draft3JobApp draft3JobApp = draft3Job.getApp();
-    return convertRequirements(job, draft3JobApp.getRequirements());
+    return convertRequirements(draft3Job, draft3JobApp.getRequirements());
   }
 
   @Override
   public List<Requirement> getHints(Job job) throws BindingException {
     Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
     Draft3JobApp draft3JobApp = draft3Job.getApp();
-    return convertRequirements(job, draft3JobApp.getHints());
+    return convertRequirements(draft3Job, draft3JobApp.getHints());
   }
 
-  private List<Requirement> convertRequirements(Job job, List<Draft3Resource> resources) throws BindingException {
+  private List<Requirement> convertRequirements(Draft3Job draft3Job, List<Draft3Resource> resources) throws BindingException {
     if (resources == null) {
       return Collections.<Requirement> emptyList();
     }
-    Draft3Job draft3Job = Draft3JobHelper.getDraft3Job(job);
 
     List<Requirement> result = new ArrayList<>();
     for (Draft3Resource draft3Resource : resources) {

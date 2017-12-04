@@ -136,22 +136,21 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
   public List<Requirement> getRequirements(Job job) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     CWLJobApp cwlJobApp = cwlJob.getApp();
-    return convertRequirements(job, cwlJobApp.getRequirements());
+    return convertRequirements(cwlJob, cwlJobApp.getRequirements());
   }
 
   @Override
   public List<Requirement> getHints(Job job) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
     CWLJobApp cwlJobApp = cwlJob.getApp();
-    return convertRequirements(job, cwlJobApp.getHints());
+    return convertRequirements(cwlJob, cwlJobApp.getHints());
   }
 
-  private List<Requirement> convertRequirements(Job job, List<CWLResource> resources) throws BindingException {
+  private List<Requirement> convertRequirements(CWLJob cwlJob, List<CWLResource> resources) throws BindingException {
     EnvironmentVariableRequirement environmentVariableRequirement = null;
     if (resources == null) {
       return Collections.<Requirement> emptyList();
     }
-    CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
 
     List<Requirement> result = new ArrayList<>();
     for (CWLResource cwlResource : resources) {
