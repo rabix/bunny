@@ -7,4 +7,8 @@ public interface GarbageCollectionService {
   void gc(UUID rootId);
 
   void forceGc(UUID rootId);
+
+  void enable();
+
+  void disable();
 }

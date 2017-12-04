@@ -38,7 +38,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final ExecutorService executorService;
   private final Set<UUID> pendingGCs;
 
-  private final boolean enabled;
+  private volatile boolean enabled;
   private final int numberOfGcThreads;
 
   private final Set<JobRecord.JobState> terminalStates = new HashSet<>(Arrays.asList(
@@ -109,6 +109,16 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     }
 
     flushAll(rootId);
+  }
+
+  @Override
+  public void enable() {
+    this.enabled = true;
+  }
+
+  @Override
+  public void disable() {
+    this.enabled = false;
   }
 
   private void doGc(UUID rootId) {

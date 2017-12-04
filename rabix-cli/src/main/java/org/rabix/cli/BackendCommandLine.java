@@ -231,6 +231,8 @@ public class BackendCommandLine {
             }
           });
 
+      injector.getInstance(GarbageCollectionService.class).disable();
+
       // Load app from JSON
       Bindings bindings = null;
       Application application = null;
