@@ -119,13 +119,22 @@ public class EventProcessorImpl implements EventProcessor {
         logger.error("Failed to call jobFailed handler for job after event {} failed.", e, ex);
       }
     } finally {
+      triggerGC(event);
+
       if (externalEvent.callback != null) {
         externalEvent.callback.run();
       }
+    }
+  }
 
-      if (mode.get() != EventHandlingMode.REPLAY && event.getType() != EventType.INIT) {
-        garbageCollectionService.gc(event.getContextId());
-      }
+  private void triggerGC(Event event) {
+    if (event.getType() != EventType.JOB_STATUS_UPDATE || mode.get() == EventHandlingMode.REPLAY) {
+      return;
+    }
+
+    JobState jobState = ((JobStatusEvent) event).getState();
+    if (jobState == JobState.COMPLETED || jobState == JobState.ABORTED || jobState == JobState.FAILED) {
+      garbageCollectionService.gc(event.getContextId());
     }
   }
 
