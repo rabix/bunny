@@ -1,4 +1,4 @@
-package org.rabix.engine.store.event.sourcing;
+package org.rabix.engine.storage;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;

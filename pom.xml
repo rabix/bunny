@@ -64,7 +64,6 @@
 		<module>rabix-engine-store-postgres</module>
 		<module>rabix-backend-api</module>
 		<module>rabix-backend-tes</module>
-        <module>rabix-engine-store-event-sourcing</module>
     </modules>
 
 	<properties>

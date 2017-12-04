@@ -41,11 +41,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.rabix</groupId>
-			<artifactId>rabix-engine-store-event-sourcing</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.rabix</groupId>
 			<artifactId>rabix-backend-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>

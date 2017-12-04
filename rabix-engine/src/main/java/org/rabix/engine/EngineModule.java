@@ -11,7 +11,7 @@ import org.rabix.engine.processor.handler.impl.*;
 import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
 import org.rabix.engine.service.*;
 import org.rabix.engine.service.impl.*;
-import org.rabix.engine.store.event.sourcing.EventSourcingModule;
+import org.rabix.engine.storage.EventSourcingModule;
 import org.rabix.engine.store.lru.app.AppCache;
 import org.rabix.engine.store.lru.context.ContextRecordCache;
 import org.rabix.engine.store.lru.dag.DAGCache;
