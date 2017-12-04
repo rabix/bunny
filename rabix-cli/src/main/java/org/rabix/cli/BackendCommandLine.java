@@ -1,6 +1,5 @@
 package org.rabix.cli;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.*;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.Configuration;
@@ -15,7 +14,6 @@ import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.ProtocolType;
 import org.rabix.bindings.model.*;
-import org.rabix.bindings.model.Job.JobStatus;
 import org.rabix.cli.service.LocalDownloadServiceImpl;
 import org.rabix.cli.status.LocalBackendEngineStatusCallback;
 import org.rabix.common.config.ConfigModule;
@@ -30,7 +28,6 @@ import org.rabix.engine.EngineModule;
 import org.rabix.engine.service.*;
 import org.rabix.engine.service.impl.*;
 import org.rabix.engine.status.EngineStatusCallback;
-import org.rabix.engine.store.model.ContextRecord;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
 import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
@@ -362,7 +359,6 @@ public class BackendCommandLine {
       final BootstrapService bootstrapService = injector.getInstance(BootstrapService.class);
 
       final JobService jobService = injector.getInstance(JobService.class);
-      final ContextRecordService contextRecordService = injector.getInstance(ContextRecordService.class);
 
       bootstrapService.start();
       Object commonInputs = null;
@@ -373,53 +369,14 @@ public class BackendCommandLine {
         System.exit(10);
       }
 
-      final Job job = jobService.start(new Job(fullUri, (Map<String, Object>) commonInputs), contextConfig);
-
-      final Bindings finalBindings = bindings;
-      Thread checker = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          ContextRecord contextRecord = contextRecordService.find(job.getId());
-
-          while (contextRecord == null || contextRecord.getStatus().equals(ContextRecord.ContextStatus.RUNNING)) {
-            try {
-              Thread.sleep(1000);
-              contextRecord = contextRecordService.find(job.getId());
-            } catch (InterruptedException e) {
-              logger.error("Failed to wait for root Job to finish", e);
-              throw new RuntimeException(e);
-            }
-          }
-          Job rootJob = jobService.get(job.getId());
-          if (rootJob.getStatus().equals(JobStatus.COMPLETED)) {
-            try {
-              try {
-                Map<String, Object> outputs = (Map<String, Object>) finalBindings.translateToSpecific(rootJob.getOutputs());
-                System.out.println(JSONHelper.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
-                System.exit(0);
-              } catch (BindingException e) {
-                logger.error("Failed to translate common outputs to native", e);
-                throw new RuntimeException(e);
-              }
-            } catch (JsonProcessingException e) {
-              logger.error("Failed to write outputs to standard out", e);
-              System.exit(10);
-            }
-          } else {
-            VerboseLogger.log("Failed to execute a Job");
-            System.exit(10);
-          }
-        }
-      });
-      checker.start();
-      checker.join();
+      jobService.start(new Job(fullUri, (Map<String, Object>) commonInputs), contextConfig);
     } catch (ParseException e) {
       logger.error("Encountered an error while parsing using Posix parser.", e);
       System.exit(10);
     } catch (IOException e) {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
-    } catch (JobServiceException | InterruptedException | BootstrapServiceException | URISyntaxException e) {
+    } catch (JobServiceException | BootstrapServiceException | URISyntaxException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }
