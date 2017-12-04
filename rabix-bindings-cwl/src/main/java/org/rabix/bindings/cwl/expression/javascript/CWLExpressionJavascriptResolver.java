@@ -70,8 +70,7 @@ public class CWLExpressionJavascriptResolver {
       }
       return castResult(result);
     } catch (Exception e) {
-      String msg = String.format("Failed evaluating expression %s.", expr);
-      throw new CWLExpressionException(msg, e);
+      throw new CWLExpressionException(e.getMessage() + " encountered while resolving expression: " + expr, e);
     } finally {
       Context.exit();
     }

@@ -27,9 +27,27 @@ import org.rabix.common.service.download.DownloadService;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
 import org.rabix.engine.EngineModule;
-import org.rabix.engine.service.*;
-import org.rabix.engine.service.impl.*;
+import org.rabix.engine.service.BackendService;
+import org.rabix.engine.service.BootstrapService;
+import org.rabix.engine.service.BootstrapServiceException;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.IntermediaryFilesHandler;
+import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobService;
+import org.rabix.engine.service.JobServiceException;
+import org.rabix.engine.service.SchedulerService;
+import org.rabix.engine.service.SchedulerService.SchedulerJobBackendAssigner;
+import org.rabix.engine.service.SchedulerService.SchedulerMessageCreator;
+import org.rabix.engine.service.SchedulerService.SchedulerMessageSender;
+import org.rabix.engine.service.impl.BackendServiceImpl;
+import org.rabix.engine.service.impl.BootstrapServiceImpl;
+import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
+import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
+import org.rabix.engine.service.impl.JobReceiverImpl;
+import org.rabix.engine.service.impl.JobServiceImpl;
+import org.rabix.engine.service.impl.SchedulerServiceImpl;
 import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
 import org.rabix.engine.store.model.ContextRecord;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
@@ -37,19 +55,12 @@ import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Scopes;
+import com.google.inject.TypeLiteral;
 
 /**
  * Local command line executor
@@ -367,20 +378,17 @@ public class BackendCommandLine {
       bootstrapService.start();
       Object commonInputs = null;
       try {
-        inputs = (Map<String, Object>) processInputs(inputs, filePath.getParent());
         commonInputs = bindings.translateToCommon(inputs);
       } catch (BindingException e1) {
         VerboseLogger.log("Failed to translate inputs to the common Rabix format");
         System.exit(10);
       }
 
-      @SuppressWarnings("unchecked")
       final Job job = jobService.start(new Job(fullUri, (Map<String, Object>) commonInputs), contextConfig);
 
       final Bindings finalBindings = bindings;
       Thread checker = new Thread(new Runnable() {
         @Override
-        @SuppressWarnings("unchecked")
         public void run() {
           ContextRecord contextRecord = contextRecordService.find(job.getId());
 
@@ -427,46 +435,7 @@ public class BackendCommandLine {
       System.exit(10);
     }
   }
-  static String keyPath = "path";
-  static String keyLocation = "location";
 
-  private static Object processInputs(Object value, Path appLocation) {
-    if (value instanceof FileValue) {
-      FileValue file = ((FileValue) value);
-      Path resolved = appLocation.resolve((String) file.getPath());
-      file.setPath(resolved.toString());
-      file.setLocation(resolved.toUri().toString());
-    }
-
-    if (value instanceof Map<?, ?>) {
-      Map<String, Object> map = (Map<String, Object>) value;
-      if (map.containsKey(keyPath)) {
-        String pathValue = (String) map.get(keyPath);
-        Path resolved = appLocation.resolve(pathValue);
-        map.put(keyPath, resolved.toString());
-      }
-      if (map.containsKey(keyLocation)) {
-        String pathValue = (String) map.get(keyPath);
-        Path resolved;
-        if (pathValue == null) {
-          resolved = appLocation.resolve((String) map.get(keyLocation));
-          map.put(keyPath, resolved.toString());
-        } else {
-          resolved = appLocation.resolve((String) map.get(keyLocation));
-        }
-        map.put(keyLocation, resolved.toUri().toString());
-      }
-      for (Object mapValue : map.values()) {
-        processInputs(mapValue, appLocation);
-      }
-    }
-    if (value instanceof List<?>) {
-      for (Object listValue : ((List<Object>) value)) {
-        processInputs(listValue, appLocation);
-      }
-    }
-    return value;
-  }
 
   /**
    * Prints resolved application on standard out
@@ -568,7 +537,7 @@ public class BackendCommandLine {
   }
 
   private static void printVersionAndExit(Options posixOptions) {
-    System.out.println("Rabix 1.0.1");
+    System.out.println("Rabix 1.0.3");
     System.exit(0);
   }
 

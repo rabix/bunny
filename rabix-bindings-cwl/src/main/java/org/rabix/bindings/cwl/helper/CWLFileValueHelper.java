@@ -362,47 +362,58 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   public static void buildMissingInfo(Object value, HashAlgorithm alg, Path workDir) throws IOException, URISyntaxException {
     String path = getPath(value);
     String location = getLocation(value);
-    Path pPath, lPath;
+    Path actual = null;
+
     if (path == null) {
-      if (location == null)
-        return;
-
-      URI uri = URI.create(location);
-      if (uri.getScheme() == null) {
-        uri = new URI("file", uri.getSchemeSpecificPart(), null);
-      }
-      if (uri.isOpaque()) {
-        pPath = workDir.resolve(location).toAbsolutePath();
-        location = pPath.toUri().toString();
-      } else {
+      if (location != null) {
+        URI uri = URI.create(location);
+        if (uri.getScheme() == null) {
+          uri = new URI("file", location, null);
+        }
+        if (uri.isOpaque()) {
+          uri = new URI("file", workDir.resolve(uri.getSchemeSpecificPart()).toAbsolutePath().toString(), null);
+        }
         location = uri.toString();
-        pPath = Paths.get(uri).toAbsolutePath();
+        actual = Paths.get(uri);
+        if (!actual.isAbsolute()) {
+          actual = workDir.resolve(actual).toAbsolutePath();
+        }
+        path = actual.toString();
+      } else {
+        return;
       }
+    }
+    
+    if (location == null) {
+      actual = workDir.resolve(path);
+      location = actual.toUri().toString();
     } else {
-      pPath = Paths.get(path);
+      actual = Paths.get(URI.create(location));
     }
-
-    if (location == null || URI.create(location).getScheme()==null) {
-      location = pPath.toUri().toString();
+    if(!Paths.get(path).isAbsolute()){
+      path=workDir.resolve(path).toAbsolutePath().toString();
     }
-
-    if (!pPath.isAbsolute()) {
-      pPath = workDir.resolve(pPath).toAbsolutePath().normalize();
-    }
-
-    setLocation(location, value);
-
+    
     String name = getName(value);
-    if (name == null)
-      setNames(pPath, value);
+    if (name == null) {
+      setNames(actual, value);
+    } else {
+      if (!path.endsWith(name)) {
+        path = Paths.get(path).resolveSibling(name).toString();
+      }
+    }
+    
+    setPath(path, value);
+    setLocation(location, value);
+    
     if (getSize(value) == null)
-      setSize(Files.size(Paths.get(URI.create(location))), value);
+      setSize(Files.size(actual), value);
 
     if (CWLSchemaHelper.isDirectoryFromValue(value)) {
-      setListing(pPath, value, alg, workDir);
+      setListing(actual, value, alg, workDir);
     } else {
       if (alg != null) {
-        setChecksum(pPath, value, alg);
+        setChecksum(actual, value, alg);
       }
     }
 
@@ -412,10 +423,9 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         buildMissingInfo(secondaryFileValue, alg, workDir);
       }
     }
-    if (name != null && !pPath.endsWith(name)) {
-      pPath = pPath.resolveSibling(name);
+    if (name != null && !actual.endsWith(name)) {
+      setPath(Paths.get(path).resolveSibling(name).toString(), value);
     }
-    setPath(pPath.toString(), value);
   }
 
   private static void setNames(Path path, Object value) throws IOException {
@@ -430,8 +440,8 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       if (getNameroot(value) == null)
         setNameroot(name.substring(0, dotIndex), value);
     }
-
-    setDirname(path.getParent().toString(), value);
+    if (path.getParent() != null)
+      setDirname(path.getParent().toString(), value);
   }
 
   private static void setListing(Path path, Object value, HashAlgorithm hash, Path workDir) throws IOException, URISyntaxException {
@@ -459,27 +469,8 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     } else {
       setFileType(fileValue);
     }
-
-    setPath(file.toString(), fileValue);
+    setLocation(file.toUri().toString(), fileValue);
     buildMissingInfo(fileValue, hash, workDir);
-    // if (Files.isDirectory(file)) {
-    // Map<String, Object> directory = new HashMap<>();
-    // CWLDirectoryValueHelper.setDirectoryType(directory);
-    // CWLDirectoryValueHelper.setSize(Files.size(file), directory);
-    // setNames(file, directory);
-    // CWLDirectoryValueHelper.setPath(file.toString(), directory);
-    // setLocation(file.toUri().toString(), directory);
-    // setListing(file, directory);
-    // return directory;
-    // }
-    //
-    // Map<String, Object> fileData = new HashMap<>();
-    // setFileType(fileData);
-    // setSize(Files.size(file), fileData);
-    // setNames(file, fileData);
-    // setPath(file.toString(), fileData);
-    // setLocation(file.toUri().toString(), fileData);
-    // setDirname(file.getParent().toString(), fileData);
     return fileValue;
   }
 }

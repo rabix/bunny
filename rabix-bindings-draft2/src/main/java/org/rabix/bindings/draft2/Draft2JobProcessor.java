@@ -45,6 +45,10 @@ public class Draft2JobProcessor implements BeanProcessor<Draft2Job> {
     }
     processElements(null, job);
 
+    if(job.getApp().getAppFileLocation() == null && parentJob != null) {
+      job.getApp().setAppFileLocation(parentJob.getApp().getAppFileLocation());
+    }
+    
     if (job.getApp().isWorkflow()) {
       Draft2Workflow workflow = (Draft2Workflow) job.getApp();
       for (Draft2Step step : workflow.getSteps()) {

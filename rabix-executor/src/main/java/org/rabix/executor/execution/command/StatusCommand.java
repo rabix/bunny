@@ -35,8 +35,7 @@ public class StatusCommand extends JobHandlerCommand {
 
   @Override
   public Result run(JobData jobData, JobHandler jobHandler, UUID rootId) {
-    UUID jobId = jobData.getJob().getId();
-    logger.debug("Check status for {} command line tool.", jobId);
+    String jobId = jobData.getJob().getName();
 
     if (!JobDataStatus.STARTED.equals(jobData.getStatus())) {
       logger.info("Command line tool {} is not started yet.", jobId);
@@ -45,18 +44,18 @@ public class StatusCommand extends JobHandlerCommand {
     try {
       Job job = jobData.getJob();
       if (jobHandler.isRunning()) {
-        logger.info("Command line tool {} for context {} is still running.", job.getId(), job.getRootId());
+        logger.info("Command line tool {} for context {} is still running.", jobId, job.getRootId());
         return new Result(false);
       }
       
       String message = null;
       job = jobHandler.postprocess(jobData.isTerminal());
       if (!jobHandler.isSuccessful()) {
-        message = String.format("Job %s failed with exit code %d.", job.getId(), jobHandler.getExitStatus());
+        message = String.format("Job %s failed with exit code %d.", jobId, jobHandler.getExitStatus());
         jobData = jobDataService.save(jobData, message, JobDataStatus.FAILED);
         failed(jobData, message, jobHandler.getEngineStub(), null);
       } else {
-        message = String.format("Job %s completed successfully.", job.getId());
+        message = String.format("Job %s completed successfully.", jobId);
         jobData = jobDataService.save(jobData, message, JobDataStatus.COMPLETED);
         completed(jobData, message, job.getOutputs(), jobHandler.getEngineStub());
       }

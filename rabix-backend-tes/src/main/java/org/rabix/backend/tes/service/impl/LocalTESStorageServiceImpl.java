@@ -3,12 +3,14 @@ package org.rabix.backend.tes.service.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.backend.tes.service.TESStorageException;
@@ -23,7 +25,9 @@ import org.rabix.bindings.transformer.FileTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.upplication.s3fs.AmazonS3Factory;
 
 public class LocalTESStorageServiceImpl implements TESStorageService {
 
@@ -34,8 +38,17 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
 
   @Inject
   public LocalTESStorageServiceImpl(Configuration configuration) {
+    if (configuration.containsKey(AmazonS3Factory.ACCESS_KEY) && configuration.containsKey(AmazonS3Factory.SECRET_KEY)) {
+      Map<String, ?> env = ImmutableMap.<String, Object>builder().put(AmazonS3Factory.ACCESS_KEY, configuration.getString(AmazonS3Factory.ACCESS_KEY))
+          .put(AmazonS3Factory.SECRET_KEY, configuration.getString(AmazonS3Factory.SECRET_KEY)).build();
+      try {
+        FileSystem newFileSystem = FileSystems.newFileSystem(URI.create("s3:/"), env, Thread.currentThread().getContextClassLoader());
+      } catch (IOException e) {
+        logger.error("Failed to register s3 filesystem");
+      }
+    }
+    
     localFileStorage = Paths.get(configuration.getString("backend.execution.directory"));
-
     URI uri = URI.create(configuration.getString("rabix.tes.storage.base", localFileStorage.toString()));
     if (uri.getScheme() == null) {
       try {
@@ -76,9 +89,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
     return flat;
   }
 
-  @Override
   public void stageFile(Path workdir, FileValue fileValue, List<FileValue> flat) throws TESStorageException {
-//    checkName(fileValue, fileValue.getName());
     String path = fileValue.getPath();
     String location = fileValue.getLocation();
     URI locationUri;
@@ -93,11 +104,12 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
     }
     if ((location == null || locationUri.getScheme().equals("file")) && !fileValue.getType().equals(FileType.Directory)) {
       try {
-        Path staged = workdir.resolve("./" + path).normalize();
+        Path staged = workdir.resolveSibling("stagedinputs" + workdir.hashCode()).resolve("./" + path).normalize();
         if (!Files.exists(staged)) {
+          Files.createDirectories(staged.getParent());
           Files.copy(locationPath, staged);
-          fileValue.setLocation(staged.toUri().toString());
         }
+        fileValue.setLocation(staged.toUri().toString());
       } catch (IOException e) {
         throw new TESStorageException(e.getMessage());
       }
@@ -112,39 +124,6 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
       }
     }
     flat.add(fileValue);
-  }
-
-  private void checkName(FileValue fileValue, String bottom) {
-    if (!fileValue.getPath().endsWith(bottom)) {
-      Path path = Paths.get(fileValue.getPath());
-      Path newPath = path.resolveSibling(bottom);
-      fileValue.setPath(newPath.toString());
-
-      if (fileValue instanceof DirectoryValue) {
-        ((DirectoryValue) fileValue).getListing().forEach(f -> {
-          checkName(f, newPath.resolve(path.relativize(Paths.get(f.getPath()))).toString());
-        });
-      }
-      fileValue.getSecondaryFiles().forEach(f -> f.setPath(newPath.resolve(f.getName()).toString()));
-    }
-  }
-
-  @Override
-  public void downloadDirectory(Path localDir, Path outDir) throws TESStorageException {
-    try {
-      Files.createDirectories(localDir);
-      Path[] array = Files.list(outDir).toArray(Path[]::new);
-      for (Path p : array) {
-        Path resolved = localDir.resolve(outDir.relativize(p.toAbsolutePath()).toString());
-        if (!Files.isDirectory(p)) {
-          Files.copy(p.toAbsolutePath(), resolved, StandardCopyOption.REPLACE_EXISTING);
-        } else {
-          downloadDirectory(resolved, p.toAbsolutePath());
-        }
-      }
-    } catch (IOException e1) {
-      throw new TESStorageException(e1);
-    }
   }
 
   @Override

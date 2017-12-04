@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,15 +24,21 @@ import java.util.concurrent.Future;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.CommandLine;
+import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
+import org.rabix.bindings.model.DirectoryValue;
+import org.rabix.bindings.model.FileValue;
+import org.rabix.bindings.model.FileValue.FileType;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
+import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.container.ContainerException;
@@ -59,6 +68,22 @@ public class LocalContainerHandler implements ContainerHandler {
     this.workingDir = storageConfig.getWorkingDir(job);
   }
 
+  private void stageFile(FileValue file) {
+    Path path = Paths.get(file.getPath());
+    if (!Files.exists(path)) {
+      try {
+        Files.copy(Paths.get(URI.create(file.getLocation())), path);
+      } catch (IOException e) {
+        logger.error("Failed to stage file: " + file.getLocation(), e);
+      }
+    }
+    file.getSecondaryFiles().forEach((FileValue sec) -> stageFile(sec));
+    
+    if(file instanceof DirectoryValue){
+      ((DirectoryValue)file).getListing().forEach(f->stageFile(f));
+    }
+  }
+  
   @Override
   public synchronized void start() throws ContainerException {
     try {
@@ -89,12 +114,18 @@ public class LocalContainerHandler implements ContainerHandler {
         }
       }
       
+      
       EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
       if (environmentVariableResource != null) {
         for (Entry<String, String> envVariableEntry : environmentVariableResource.getVariables().entrySet()) {
           env.put(envVariableEntry.getKey(), envVariableEntry.getValue());
         }
       }
+
+      FileValueHelper.updateFileValues(job.getInputs(), (FileValue f) -> {
+        stageFile(f);
+        return f;
+      });
 
       commandLineString = commandLine.build();
       processBuilder.directory(workingDir);

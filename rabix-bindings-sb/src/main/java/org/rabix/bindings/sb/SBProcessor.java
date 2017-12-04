@@ -64,7 +64,7 @@ public class SBProcessor implements ProtocolProcessor {
     SBPortProcessorHelper portProcessorHelper = new SBPortProcessorHelper(sbJob);
     try {
       Map<String, Object> inputs = sbJob.getInputs();
-      inputs = portProcessorHelper.setFileSize(inputs);
+      inputs = portProcessorHelper.setFileProperties(inputs);
       inputs = portProcessorHelper.loadInputContents(inputs);
       inputs = portProcessorHelper.setInputSecondaryFiles(inputs, sbJob, null);
 
@@ -130,7 +130,8 @@ public class SBProcessor implements ProtocolProcessor {
       }
 
       if (executionFilePathMapper != null) {
-        Map<String, Object> mappedInputs = new SBPortProcessor(sbJob).processInputs(sbJob.getInputs(), new SBFilePathMapProcessorCallback(executionFilePathMapper, job.getConfig()));
+        Map<String, Object> mappedInputs = new SBPortProcessor(sbJob).processInputs(sbJob.getInputs(),
+            new SBFilePathMapProcessorCallback(executionFilePathMapper, job.getConfig()));
         sbJob.setInputs(mappedInputs);
       }
       outputs = new SBPortProcessorHelper(sbJob).fixOutputMetadata(sbJob.getInputs(), outputs);
@@ -144,7 +145,8 @@ public class SBProcessor implements ProtocolProcessor {
     }
   }
 
-  private Map<String, Object> collectOutputs(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper executionFilePathMapper, Map<String, Object> config) throws SBGlobException, SBExpressionException, IOException, BindingException, SBPortProcessorException {
+  private Map<String, Object> collectOutputs(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, FilePathMapper executionFilePathMapper,
+      Map<String, Object> config) throws SBGlobException, SBExpressionException, IOException, BindingException, SBPortProcessorException {
     File resultFile = new File(workingDir, RESULT_FILENAME);
 
     if (resultFile.exists()) {
@@ -204,7 +206,8 @@ public class SBProcessor implements ProtocolProcessor {
   }
 
   @SuppressWarnings("unchecked")
-  private Object collectOutput(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, SBOutputPort outputPort) throws SBGlobException, SBExpressionException, BindingException {
+  private Object collectOutput(SBJob job, File workingDir, HashAlgorithm hashAlgorithm, Object schema, Object binding, SBOutputPort outputPort)
+      throws SBGlobException, SBExpressionException, BindingException {
     if (binding == null) {
       binding = SBSchemaHelper.getOutputBinding(schema);
     }
@@ -266,12 +269,12 @@ public class SBProcessor implements ProtocolProcessor {
     if (result instanceof List<?>) {
       if (SBSchemaHelper.isFileFromSchema(schema)) {
         switch (((List<?>) result).size()) {
-        case 0:
-          result = null;
-          break;
-        case 1:
-          result = ((List<?>) result).get(0);
-          break;
+          case 0:
+            result = null;
+            break;
+          case 1:
+            result = ((List<?>) result).get(0);
+            break;
         }
       }
     }
@@ -281,7 +284,8 @@ public class SBProcessor implements ProtocolProcessor {
   /**
    * Extracts files from a directory based on GLOB expression
    */
-  private List<Map<String, Object>> globFiles(final SBJob job, final File workingDir, HashAlgorithm hashAlgorithm, final SBOutputPort outputPort, Object outputBinding) throws SBGlobException {
+  private List<Map<String, Object>> globFiles(final SBJob job, final File workingDir, HashAlgorithm hashAlgorithm, final SBOutputPort outputPort,
+      Object outputBinding) throws SBGlobException {
     if (outputPort.getOutputBinding() != null) {
       outputBinding = outputPort.getOutputBinding(); // override
     }
@@ -350,7 +354,8 @@ public class SBProcessor implements ProtocolProcessor {
   /**
    * Gets secondary files (absolute paths)
    */
-  public static List<Map<String, Object>> getSecondaryFiles(SBJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName, Object binding) throws SBExpressionException {
+  public static List<Map<String, Object>> getSecondaryFiles(SBJob job, HashAlgorithm hashAlgorithm, Map<String, Object> fileValue, String fileName,
+      Object binding) throws SBExpressionException {
     List<String> secondaryFileSufixes = SBBindingHelper.getSecondaryFiles(binding);
 
     if (secondaryFileSufixes == null) {

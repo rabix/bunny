@@ -1,0 +1,48 @@
+{
+  "app" : {
+    "contributor" : [ ],
+    "owner" : [ ],
+    "cwlVersion" : "sbg:draft-2",
+    "inputs" : [ {
+      "id" : "#inputfile",
+      "type" : "File"
+    } ],
+    "outputs" : [ {
+      "id" : "#output",
+      "type" : "File",
+      "outputBinding" : {
+        "glob" : "out.txt",
+        "sbg:inheritMetadataFrom" : "#inputfile",
+        "sbg:metadata" : {
+          "key1" : "value1",
+          "key2" : "value2"
+        }
+      }
+    } ],
+    "hints" : [ ],
+    "requirements" : [ ],
+    "successCodes" : [ ],
+    "baseCommand" : [ "touch", "out.txt" ],
+    "arguments" : [ ],
+    "label" : "inherittool",
+    "class" : "CommandLineTool"
+  },
+  "inputs" : {
+    "inputfile" : {
+      "checksum" : null,
+      "class" : "File",
+      "contents" : null,
+      "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/draft-sb",
+      "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/draft-sb/bplib.fa",
+      "metadata" : {
+        "key0" : "value0",
+        "key1" : "overrideme"
+      },
+      "name" : "bplib.fa",
+      "path" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/draft-sb/bplib.fa",
+      "secondaryFiles" : [ ],
+      "size" : 0
+    }
+  },
+  "id" : "root"
+}

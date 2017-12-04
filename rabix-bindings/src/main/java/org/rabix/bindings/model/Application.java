@@ -12,11 +12,14 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.URIHelper;
 import org.rabix.common.helper.JSONHelper;
+import org.rabix.common.json.BeanPropertyView;
 import org.rabix.common.json.BeanSerializer;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,6 +50,18 @@ public abstract class Application {
 
   @JsonIgnore
   public abstract ValidationReport validate();
+  
+  @JsonProperty("appFileLocation")
+  @JsonView(BeanPropertyView.Full.class)
+  protected String appFileLocation;
+
+  public String getAppFileLocation() {
+    return appFileLocation;
+  }
+
+  public void setAppFileLocation(String appFileLocation) {
+    this.appFileLocation = appFileLocation;
+  }
   
   protected Map<String, Object> raw = new HashMap<>();
   

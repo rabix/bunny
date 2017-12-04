@@ -1,5 +1,7 @@
 package org.rabix.bindings.sb.helper;
 
+import java.net.URI;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import org.rabix.bindings.BindingException;
@@ -16,9 +18,12 @@ public class SBJobHelper {
 
   @SuppressWarnings("unchecked")
   public static SBJob getSBJob(Job job) throws BindingException {
-    String resolvedAppStr = SBDocumentResolver.resolve(job.getApp());
+    String appPath = job.getApp();
+    String resolvedAppStr = SBDocumentResolver.resolve(appPath);
     SBJobApp app = BeanSerializer.deserialize(resolvedAppStr, SBJobApp.class);
-    
+    if (appPath.startsWith("file")) {
+      app.setAppFileLocation(Paths.get(appPath.replaceAll("file:", "")).toString());
+    }
     Map<String, Object> nativeInputs = (Map<String, Object>) SBValueTranslator.translateToSpecific(job.getInputs());
     Map<String, Object> nativeOutputs = (Map<String, Object>) SBValueTranslator.translateToSpecific(job.getOutputs());
     

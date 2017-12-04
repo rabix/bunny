@@ -1,9 +1,6 @@
 package org.rabix.backend.tes.model;
 
-import org.rabix.bindings.model.FileValue.FileType;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TESTaskParameter {
@@ -17,24 +14,23 @@ public class TESTaskParameter {
   @JsonProperty("path")
   private String path;
   @JsonProperty("type")
-  private String clazz;
-  @JsonProperty("create")
-  private Boolean create;
-//  @JsonProperty("contents")
-//  private String contents;
-  
+  private TESFileType type;
+  @JsonProperty("contents")
+  private String contents;
+
   @JsonCreator
-  public TESTaskParameter(@JsonProperty("name") String name, @JsonProperty("description") String description, @JsonProperty("url") String location, @JsonProperty("path") String path, @JsonProperty("type") String clazz, @JsonProperty("create") Boolean create) {
+  public TESTaskParameter(@JsonProperty("name") String name,
+                          @JsonProperty("description") String description,
+                          @JsonProperty("url") String location,
+                          @JsonProperty("path") String path,
+                          @JsonProperty("type") TESFileType type,
+                          @JsonProperty("contents") String contents) {
     this.name = name;
     this.description = description;
     this.location = location;
     this.path = path;
-    this.clazz = clazz;
-    this.create = create;
-  }
-
-  public TESTaskParameter(String name, String description, String location, String path, FileType type, boolean create) {
-    this(name, description, location, path, type.name().toUpperCase(), create);
+    this.type = type;
+    this.contents = contents;
   }
 
   public String getName() {
@@ -69,35 +65,33 @@ public class TESTaskParameter {
     this.path = path;
   }
 
-  @JsonIgnore
-  public String getClazz() {
-    return clazz;
+  public TESFileType getType() {
+    return type;
   }
 
-  @JsonIgnore
-  public void setClazz(String clazz) {
-    this.clazz = clazz;
+  public void setType(TESFileType type) {
+    this.type = type;
   }
 
-  public Boolean isCreate() {
-    return create;
+  public String getContents() {
+    return contents;
   }
 
-  public void setCreate(Boolean create) {
-    this.create = create;
+  public void setContents(String contents) {
+    this.contents = contents;
   }
 
   @Override
   public String toString() {
-    return "TESTaskParameter [name=" + name + ", description=" + description + ", location=" + location + ", path=" + path + ", clazz=" + clazz + ", create=" + create + "]";
+    return "TESTaskParameter [name=" + name + ", description=" + description + ", location=" + location + ", path=" + path + ", type=" + type + ", contents=" + contents + "]";
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((clazz == null) ? 0 : clazz.hashCode());
-    result = prime * result + ((create == null) ? 0 : create.hashCode());
+    result = prime * result + ((type == null) ? 0 : type.hashCode());
+    result = prime * result + ((contents == null) ? 0 : contents.hashCode());
     result = prime * result + ((description == null) ? 0 : description.hashCode());
     result = prime * result + ((location == null) ? 0 : location.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
@@ -114,15 +108,15 @@ public class TESTaskParameter {
     if (getClass() != obj.getClass())
       return false;
     TESTaskParameter other = (TESTaskParameter) obj;
-    if (clazz == null) {
-      if (other.clazz != null)
+    if (type == null) {
+      if (other.type != null)
         return false;
-    } else if (!clazz.equals(other.clazz))
+    } else if (!type.equals(other.type))
       return false;
-    if (create == null) {
-      if (other.create != null)
+    if (contents == null) {
+      if (other.contents != null)
         return false;
-    } else if (!create.equals(other.create))
+    } else if (!contents.equals(other.contents))
       return false;
     if (description == null) {
       if (other.description != null)

@@ -2,13 +2,11 @@ package org.rabix.backend.tes.client;
 
 import java.io.IOException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.rabix.backend.tes.config.TESConfig;
-import org.rabix.backend.tes.model.TESJob;
-import org.rabix.backend.tes.model.TESJobId;
-import org.rabix.backend.tes.model.TESJobListRequest;
-import org.rabix.backend.tes.model.TESJobListResponse;
-import org.rabix.backend.tes.model.TESServiceInfo;
+import org.rabix.backend.tes.model.TESCancelTaskRequest;
+import org.rabix.backend.tes.model.TESCancelTaskResponse;
+import org.rabix.backend.tes.model.TESCreateTaskResponse;
+import org.rabix.backend.tes.model.TESGetTaskRequest;
 import org.rabix.backend.tes.model.TESTask;
 import org.rabix.common.helper.JSONHelper;
 
@@ -34,28 +32,10 @@ public class TESHttpClient {
     this.host = tesConfig.getHost();
     this.port = tesConfig.getPort();
     this.scheme = tesConfig.getScheme();
-    
     this.httpClient = new OkHttpClient();
   }
-  
-  public TESServiceInfo getServiceInfo() throws TESHTTPClientException {
-    HttpUrl httpURL = new HttpUrl.Builder()
-        .scheme(scheme)
-        .host(host)
-        .port(port)
-        .addPathSegment("v1")
-        .addPathSegment("jobs-service")
-        .build();
-    
-    Request request = new Request.Builder().url(httpURL).get().build();
-    try (Response response = httpClient.newCall(request).execute()) {
-      return JSONHelper.readObject(response.body().string(), TESServiceInfo.class);
-    } catch (IOException e) {
-      throw new TESHTTPClientException("Failed to get ServiceInfo entity", e);
-    }
-  }
-  
-  public TESJobId runTask(TESTask task) throws TESHTTPClientException {
+
+  public TESCreateTaskResponse runTask(TESTask task) throws TESHTTPClientException {
     HttpUrl.Builder httpURLBuilder = new HttpUrl.Builder()
         .scheme(scheme)
         .host(host)
@@ -67,7 +47,7 @@ public class TESHttpClient {
     Request request = new Request.Builder().url(httpURLBuilder.build()).post(RequestBody.create(MediaType.parse("JSON"), serialized)).build();
     try (Response response = httpClient.newCall(request).execute()) {
       if (response.isSuccessful()) {
-        return JSONHelper.readObject(response.body().string(), TESJobId.class);
+        return JSONHelper.readObject(response.body().string(), TESCreateTaskResponse.class);
       } else {
         throw new TESHTTPClientException("Failed to run a Task: " + response.body().string());
       }
@@ -75,94 +55,41 @@ public class TESHttpClient {
       throw new TESHTTPClientException("Failed to run Task", e);
     }
   }
-  
-  public TESJobListResponse listJobs(TESJobListRequest jobListRequest) throws TESHTTPClientException {
-    HttpUrl.Builder httpURLBuilder = new HttpUrl.Builder()
-        .scheme(scheme)
-        .host(host)
-        .port(port)
-        .addPathSegment("v1")
-        .addPathSegment("tasks");
-    
-    if (jobListRequest != null) {
-      if (StringUtils.isEmpty(jobListRequest.getNamePrefix())) {
-        httpURLBuilder.setQueryParameter("namePrefix", jobListRequest.getNamePrefix());
-      }
-      if (StringUtils.isEmpty(jobListRequest.getProjectId())) {
-        httpURLBuilder.setQueryParameter("projectID", jobListRequest.getProjectId());
-      }
-      if (jobListRequest.getPageSize() != null) {
-        httpURLBuilder.setQueryParameter("pageSize", jobListRequest.getPageSize().toString());
-      }
-      if (StringUtils.isEmpty(jobListRequest.getPageToken())) {
-        httpURLBuilder.setQueryParameter("pageToken", jobListRequest.getPageToken());
-      }
-    }
-    
-    Request request = new Request.Builder().url(httpURLBuilder.build()).get().build();
-    try (Response response = httpClient.newCall(request).execute()) {
-      if (response.isSuccessful()) {
-        return JSONHelper.readObject(response.body().string(), TESJobListResponse.class);
-      } else {
-        throw new TESHTTPClientException("Failed to run a Task");
-      }
-    } catch (IOException e) {
-      throw new TESHTTPClientException("Failed to get ServiceInfo entity", e);
-    }
-  }
-  
-  public TESJob getJob(TESJobId jobId) throws TESHTTPClientException {
+
+  public TESTask getTask(TESGetTaskRequest req) throws TESHTTPClientException {
     HttpUrl httpURL = new HttpUrl.Builder()
         .scheme(scheme)
         .host(host)
         .port(port)
         .addPathSegment("v1")
         .addPathSegment("tasks")
-        .addPathSegment(jobId.getValue())
-        .addQueryParameter("view", "FULL")
-        .build();
-    
-    Request request = new Request.Builder().url(httpURL).build();
-    try (Response response = httpClient.newCall(request).execute()) {
-      return JSONHelper.readObject(response.body().string(), TESJob.class);
-    } catch (IOException e) {
-      throw new TESHTTPClientException("Failed to get ServiceInfo entity", e);
-    }
-  }  
-  public TESTask getTask(TESJobId jobId) throws TESHTTPClientException {
-    HttpUrl httpURL = new HttpUrl.Builder()
-        .scheme(scheme)
-        .host(host)
-        .port(port)
-        .addPathSegment("v1")
-        .addPathSegment("tasks")
-        .addPathSegment(jobId.getValue())
-        .addQueryParameter("view", "FULL")
+        .addPathSegment(req.getId())
+        .addQueryParameter("view", req.getView().name())
         .build();
     
     Request request = new Request.Builder().url(httpURL).build();
     try (Response response = httpClient.newCall(request).execute()) {
       return JSONHelper.readObject(response.body().string(), TESTask.class);
     } catch (IOException e) {
-      throw new TESHTTPClientException("Failed to get ServiceInfo entity", e);
+      throw new TESHTTPClientException("Failed to get Task entity", e);
     }
   }
   
-  public TESJobId cancelJob(TESJobId jobId) throws TESHTTPClientException {
+  public TESCancelTaskResponse cancelTask(TESCancelTaskRequest req) throws TESHTTPClientException {
     HttpUrl httpURL = new HttpUrl.Builder()
         .scheme(scheme)
         .host(host)
         .port(port)
         .addPathSegment("v1")
         .addPathSegment("tasks")
-        .addPathSegment(jobId.getValue())
+        .addPathSegment(req.getId() + ":cancel")
         .build();
     
-    Request request = new Request.Builder().url(httpURL).method("DELETE", null).build();
+    Request request = new Request.Builder().url(httpURL).method("POST", null).build();
     try (Response response = httpClient.newCall(request).execute()) {
-      return JSONHelper.readObject(response.body().string(), TESJobId.class);
+      return JSONHelper.readObject(response.body().string(), TESCancelTaskResponse.class);
     } catch (IOException e) {
-      throw new TESHTTPClientException("Failed to get ServiceInfo entity", e);
+      throw new TESHTTPClientException("Failed to get CancelTaskResponse entity", e);
     }
   }
   

@@ -6,33 +6,30 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
-import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
-import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
@@ -62,7 +59,6 @@ import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.AuthConfig;
 import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerExit;
 import com.spotify.docker.client.messages.ContainerInfo;
 import com.spotify.docker.client.messages.ContainerState;
@@ -101,22 +97,33 @@ public class DockerContainerHandler implements ContainerHandler {
 
   private Integer overrideResultStatus = null;
 
-  private StorageConfiguration storageConfig;
   private WorkerStatusCallback statusCallback;
   
   private String commandLine;
+
+  private boolean setPermissions;
+  private String user;
   
   private FilePathMapper mapper;
   
-  public DockerContainerHandler(Job job, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
+  public DockerContainerHandler(Job job, Configuration configuration, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig, DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
     this.dockerClient = dockerClient;
     this.dockerResource = dockerResource;
     this.statusCallback = statusCallback;
-    this.storageConfig = storageConfig;
     this.workingDir = storageConfig.getWorkingDir(job);
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
     this.removeContainers = dockerConfig.removeContainers();
+
+    this.setPermissions = configuration.getBoolean("executor.set_permissions", false);
+    
+    if (setPermissions) {
+      user = configuration.getString("executor.permission.uid");
+      String gid = configuration.getString("executor.permission.gid");
+      if (gid != null)
+        user = user + ":" + gid;
+    }
+    
     if (SystemUtils.IS_OS_WINDOWS) {
       mapper = (String path, Map<String, Object> config) -> {
         return path.startsWith("/") ? path : "/" + path.replace(":", "").replace("\\", "/");
@@ -172,6 +179,25 @@ public class DockerContainerHandler implements ContainerHandler {
     return image.contains(TAG_SEPARATOR) ? image : image + TAG_SEPARATOR + LATEST;
   }
 
+  private String getUser() throws IOException {
+    if (user == null) {
+      user = getId("u");
+      String gid = getId("g");
+      if (gid != null) {
+        user = user + ":" + gid;
+      }
+    }
+    return user;
+  }
+
+  private String getId(String param) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    InputStream stream = Runtime.getRuntime().exec(sb.append("id -").append(param).append(" ").append(System.getProperty("user.name")).toString()).getInputStream();
+    @SuppressWarnings("unchecked")
+    List<String> readLines = IOUtils.readLines(stream);
+    return readLines.get(0);
+  }
+  
   @Override
   public void start() throws ContainerException {
     String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
@@ -179,37 +205,33 @@ public class DockerContainerHandler implements ContainerHandler {
     try {
       pull(dockerPull);
       
-      Set<String> volumes = new HashSet<>();
-      String physicalPath = storageConfig.getPhysicalExecutionBaseDir().getAbsolutePath();
-      volumes.add(physicalPath);
-
       ContainerConfig.Builder builder = ContainerConfig.builder();
       builder.image(dockerPull);
 
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
-      volumes = normalizeVolumes(job, volumes);
       
-      Set<String> toBindSet = new HashSet<>();
-      toBindSet.addAll(volumes);
-      if(dockerResource.getDockerOutputDirectory() != null) {
-        volumes.add(dockerResource.getDockerOutputDirectory());
-        hostConfigBuilder.binds(workingDir + ":" + dockerResource.getDockerOutputDirectory() + ":" + DIRECTORY_MAP_MODE);
-        toBindSet.remove(workingDir);
-        toBindSet.remove(dockerResource.getDockerOutputDirectory());
-        toBindSet.remove(physicalPath);
+      if(setPermissions && !SystemUtils.IS_OS_WINDOWS){
+        builder.user(getUser());
+        hostConfigBuilder.capAdd("DAC_OVERRIDE");
       }
       
-
       if (SystemUtils.IS_OS_WINDOWS) {
-        Function<? super String, ? extends String> mapper2 = input -> input.replace("\\", "/");
-        toBindSet = toBindSet.stream().map(input -> input + ":/" + input.replace(":", "") + ":" + DIRECTORY_MAP_MODE).map(mapper2).collect(Collectors.toSet());
-        volumes = volumes.stream().map(mapper2).collect(Collectors.toSet());
+        FileValueHelper.getInputFiles(job).forEach(f -> {
+          hostConfigBuilder.appendBinds((URI.create(f.getLocation()).getPath() + ":" + f.getPath().replace(":", "")).replace("\\", "/"));
+          f.getSecondaryFiles().forEach(sec -> hostConfigBuilder.appendBinds(URI.create(sec.getLocation()).getPath() + ":" + sec.getPath()));
+        });
       } else {
-        toBindSet = toBindSet.stream().map(input -> input + ":" + input + ":" + DIRECTORY_MAP_MODE).collect(Collectors.toSet());
+        FileValueHelper.getInputFiles(job).forEach(f -> {
+          hostConfigBuilder.appendBinds(URI.create(f.getLocation()).getPath() + ":" + f.getPath());
+          f.getSecondaryFiles().forEach(sec -> hostConfigBuilder.appendBinds(URI.create(sec.getLocation()).getPath() + ":" + sec.getPath()));
+        });
+        if (dockerResource.getDockerOutputDirectory() != null) {
+          hostConfigBuilder.binds(workingDir.getAbsolutePath() + ":" + dockerResource.getDockerOutputDirectory());
+        } else {
+          hostConfigBuilder.appendBinds(workingDir.getAbsolutePath() + ":" + workingDir.getAbsolutePath());
+        }
       }
-      
-      hostConfigBuilder.binds(new ArrayList<String>(toBindSet));
-      
+            
       HostConfig hostConfig = hostConfigBuilder.build();
       builder.hostConfig(hostConfig);
       
@@ -237,7 +259,7 @@ public class DockerContainerHandler implements ContainerHandler {
         return;
       }
 
-      builder.workingDir(mapper.map(workingDir.getAbsolutePath(), null)).volumes(volumes).cmd("-c", commandLine);
+      builder.workingDir(mapper.map(workingDir.getAbsolutePath(), null)).cmd("-c", commandLine);
         
       List<Requirement> combinedRequirements = new ArrayList<>();
       combinedRequirements.addAll(bindings.getHints(job));
@@ -256,18 +278,16 @@ public class DockerContainerHandler implements ContainerHandler {
       }
       
       builder.env(transformEnvironmentVariables(environmentVariables));
-      ContainerCreation creation = null;
       try {
         VerboseLogger.log(String.format("Running command line: %s", commandLine));
-        creation = dockerClient.createContainer(builder.build());
+        containerId = dockerClient.createContainer(builder.build());
       } catch (DockerException | InterruptedException e) {
         logger.error("Failed to create Docker container.", e);
         throw new ContainerException("Failed to create Docker container.");
       }
-      containerId = creation.id();
       try {
         dockerClient.startContainer(containerId);
-      } catch (DockerException | InterruptedException e) {
+      } catch (Exception e) {
         logger.error("Failed to start Docker container " + containerId, e);
         throw new ContainerException("Failed to start Docker container " + containerId);
       }
@@ -302,43 +322,6 @@ public class DockerContainerHandler implements ContainerHandler {
       commandLine = entryPointString + commandLine;
     }
     return commandLine;
-  }
-  
-  private Set<String> normalizeVolumes(Job job, Set<String> volumes) throws BindingException {
-    Set<String> paths = new HashSet<>();
-    Set<FileValue> files = flattenFiles(FileValueHelper.getInputFiles(job));
-    
-    for (FileValue fileValue : files) {
-      paths.add(Paths.get(fileValue.getPath()).getParent().toAbsolutePath().toString());
-    }
-    paths.addAll(volumes);
-    
-    List<String> toRemove = new ArrayList<>();
-    for (String pathA : paths) {
-      for (String pathB : paths) {
-        if (pathA.equals(pathB)) {
-          continue;
-        }
-        if (pathB.startsWith(pathA)) {
-          toRemove.add(pathB);
-        }
-      }
-    }
-    for (String path : toRemove) {
-      paths.remove(path);
-    }
-    return paths;
-  }
-  
-  private Set<FileValue> flattenFiles(Set<FileValue> fileValues) {
-    Set<FileValue> flattenedFileValues = new HashSet<>();
-    for (FileValue fileValue : fileValues) {
-      flattenedFileValues.add(fileValue);
-      if (fileValue.getSecondaryFiles() != null) {
-        flattenedFileValues.addAll(fileValue.getSecondaryFiles());
-      }
-    }
-    return flattenedFileValues;
   }
   
   private List<String> transformEnvironmentVariables(Map<String, String> variables) {
@@ -556,13 +539,21 @@ public class DockerContainerHandler implements ContainerHandler {
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
-    public synchronized ContainerCreation createContainer(ContainerConfig containerConfig) throws DockerException, InterruptedException {
-      return dockerClient.createContainer(containerConfig);
+    public synchronized String createContainer(ContainerConfig containerConfig) throws DockerException, InterruptedException {
+      return dockerClient.createContainer(containerConfig).id();
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)
     public synchronized void startContainer(String containerId) throws DockerException, InterruptedException {
-      dockerClient.startContainer(containerId);
+      try {
+        dockerClient.startContainer(containerId);
+      } catch (DockerException e) {
+        ContainerInfo inspect = dockerClient.inspectContainer(containerId);
+        if (inspect == null || inspect.state().startedAt() == null) {
+          throw e;
+        }
+        logger.warn("Start container method timed-out but still started the container, recovering.");
+      }
     }
     
     @Retry(times = RETRY_TIMES, methodTimeoutMillis = METHOD_TIMEOUT, exponentialBackoff = true)

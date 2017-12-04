@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
@@ -54,13 +53,11 @@ import org.rabix.executor.container.ContainerException;
 import org.rabix.executor.container.ContainerHandler;
 import org.rabix.executor.container.ContainerHandlerFactory;
 import org.rabix.executor.container.impl.CompletedContainerHandler;
-import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.handler.JobHandler;
 import org.rabix.executor.model.JobData;
 import org.rabix.executor.pathmapper.InputFileMapper;
 import org.rabix.executor.pathmapper.OutputFileMapper;
 import org.rabix.executor.service.CacheService;
-import org.rabix.executor.service.FilePermissionService;
 import org.rabix.executor.service.JobDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,30 +88,25 @@ public class JobHandlerImpl implements JobHandler {
   private DockerConfigation dockerConfig;
   private StorageConfiguration storageConfiguration;
   private ContainerHandler containerHandler;
-  private DockerClientLockDecorator dockerClient;
 
   private final WorkerStatusCallback statusCallback;
-  
-  private final FilePermissionService filePermissionService;
+ 
   private final CacheService cacheService;
+
+  private ContainerHandlerFactory containerHandlerFactory;
 
   @Inject
   public JobHandlerImpl(
-      @Assisted Job job, @Assisted EngineStub<?, ?, ?> engineStub, 
-      JobDataService jobDataService, Configuration configuration, StorageConfiguration storageConfig, 
-      DockerConfigation dockerConfig, FileConfiguration fileConfiguration, 
-      DockerClientLockDecorator dockerClient, WorkerStatusCallback statusCallback,
-      CacheService cacheService, FilePermissionService filePermissionService, 
-      UploadService uploadService, DownloadService downloadService,
-      @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper) {
+      @Assisted Job job, @Assisted EngineStub<?, ?, ?> engineStub, JobDataService jobDataService,
+      StorageConfiguration storageConfig, DockerConfigation dockerConfig, FileConfiguration fileConfiguration,
+      WorkerStatusCallback statusCallback, CacheService cacheService, UploadService uploadService, DownloadService downloadService,
+      @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper, ContainerHandlerFactory containerHandlerFactory) {
     this.job = job;
     this.engineStub = engineStub;
     this.storageConfiguration = storageConfig;
     this.dockerConfig = dockerConfig;
     this.jobDataService = jobDataService;
-    this.dockerClient = dockerClient;
     this.statusCallback = statusCallback;
-    this.filePermissionService = filePermissionService;
     this.cacheService = cacheService;
     this.workingDir = storageConfig.getWorkingDir(job);
     this.uploadService = uploadService;
@@ -123,6 +115,7 @@ public class JobHandlerImpl implements JobHandler {
     this.outputFileMapper = outputFileMapper;
     this.enableHash = fileConfiguration.calculateFileChecksum();
     this.hashAlgorithm = fileConfiguration.checksumAlgorithm();
+    this.containerHandlerFactory = containerHandlerFactory;
   }
 
   @Override
@@ -150,17 +143,10 @@ public class JobHandlerImpl implements JobHandler {
       }
 
       Bindings bindings = BindingsFactory.create(job);
-      statusCallback.onInputFilesDownloadStarted(job);
-      try {
-        downloadInputFiles(job, bindings);
-      } catch (Exception e) {
-        statusCallback.onInputFilesDownloadFailed(job);
-        throw e;
-      }
-      statusCallback.onInputFilesDownloadCompleted(job);
+
+      job = bindings.preprocess(job, workingDir, null);
 
       job = FileValueHelper.mapInputFilePaths(job, inputFileMapper);
-      job = bindings.preprocess(job, workingDir, null);
 
       /*
        * Cache service is enabled but mocking is not.
@@ -192,67 +178,13 @@ public class JobHandlerImpl implements JobHandler {
         if (containerRequirement == null || !dockerConfig.isDockerSupported()) {
           containerRequirement = new LocalContainerRequirement();
         }
-        containerHandler = ContainerHandlerFactory.create(job, containerRequirement, dockerClient, statusCallback, storageConfiguration, dockerConfig);
+        containerHandler = containerHandlerFactory.create(job, containerRequirement);
       }
       containerHandler.start();
     } catch (Exception e) {
       String message = String.format("Execution failed for %s. %s", job.getId(), e.getMessage());
       throw new ExecutorException(message, e);
     }
-  }
-
-  private void downloadInputFiles(final Job job, final Bindings bindings) throws BindingException, DownloadServiceException {
-    Set<FileValue> fileValues = flattenFiles(FileValueHelper.getInputFiles(job));
-    fileValues.forEach(file->download(file, job.getConfig()));
-  }
-  
-  private void download(FileValue file, Map<String, Object> config) {
-    String path2 = file.getPath();
-    if (path2 == null)
-      return;
-
-    Path path = Paths.get(path2);
-
-    String location = file.getLocation();
-    String name = file.getName();
-    if (name == null)
-      name = path.getFileName().toString();
-    if (!Files.exists(path) || !path.endsWith(name)) {
-      Path locationPath;
-      if (location != null) {
-        locationPath = Paths.get(URI.create(location));
-      } else {
-        locationPath = path;
-      }
-      if(!path.isAbsolute())
-        return;
-      
-      Path resolved = path.getParent().resolve(name);
-      if(!downloadFile(locationPath, resolved)){
-        return;
-      }
-      file.setPath(resolved.toString());
-    }
-  }
-
-  private boolean downloadFile(Path locationPath, Path resolved) {
-    if (!Files.isDirectory(locationPath)) {
-      try {
-        if (!Files.exists(resolved.getParent()))
-          Files.createDirectories(resolved);
-        Files.copy(locationPath, resolved, StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException e) {
-        return false;
-      }
-    } else {
-      try {
-        List<Boolean> all = Files.list(locationPath).map(f -> downloadFile(f, resolved.resolve(locationPath.relativize(f)))).collect(Collectors.toList());
-        return all.stream().reduce(true, (x, y) -> x && y);
-      } catch (IOException e) {
-        return false;
-      }
-    }
-    return true;
   }
   
   private void stageFileRequirements(List<Requirement> requirements) throws ExecutorException, FileMappingException {
@@ -270,8 +202,6 @@ public class JobHandlerImpl implements JobHandler {
       Map<String, String> stagedFiles = new HashMap<>();
 
       for (SingleFileRequirement fileRequirement : fileRequirements) {
-        logger.info("Process file requirement {}", fileRequirement);
-
         File destinationFile = new File(workingDir, fileRequirement.getFilename());
         if (fileRequirement instanceof SingleTextFileRequirement) {
           FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent());
@@ -313,7 +243,9 @@ public class JobHandlerImpl implements JobHandler {
       try {
         job = FileValueHelper.updateInputFiles(job, fileValue -> {
           if (stagedFiles.containsKey(fileValue.getPath())) {
-            fileValue.setPath(stagedFiles.get(fileValue.getPath()));
+            String path = stagedFiles.get(fileValue.getPath());
+            fileValue.setPath(path);
+            fileValue.setLocation(Paths.get(path).toUri().toString());
           }
 
           return fileValue;
@@ -356,8 +288,6 @@ public class JobHandlerImpl implements JobHandler {
         uploadOutputFiles(job, bindings);
         return job;
       }
-      
-      filePermissionService.execute(job);
       
       job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
       
@@ -409,7 +339,7 @@ public class JobHandlerImpl implements JobHandler {
     if (storageConfiguration.getBackendStore().equals(BackendStore.LOCAL)) {
       return;
     }
-    Set<FileValue> fileValues = flattenFiles(FileValueHelper.getOutputFiles(job));
+    Set<FileValue> fileValues = FileValueHelper.getOutputFiles(job);
     fileValues.addAll(bindings.getProtocolFiles(workingDir));
     
     File cmdFile = new File(workingDir, COMMAND_LOG);
@@ -502,17 +432,4 @@ public class JobHandlerImpl implements JobHandler {
   public EngineStub<?, ?, ?> getEngineStub() {
     return engineStub;
   }
-  
-  private Set<FileValue> flattenFiles(Set<FileValue> fileValues) {
-    Set<FileValue> flattenedFileValues = new HashSet<>();
-    for (FileValue fileValue : fileValues) {
-      flattenedFileValues.add(fileValue);
-      if (fileValue.getSecondaryFiles() != null) {
-        flattenedFileValues.addAll(fileValue.getSecondaryFiles());
-      }
-    }
-    return flattenedFileValues;
-  }
-
-
 }

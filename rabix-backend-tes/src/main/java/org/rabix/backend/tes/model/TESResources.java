@@ -6,41 +6,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TESResources {
 
   @JsonProperty("cpu_cores")
-  private Integer minimumCpuCores;
+  private Integer cpuCores;
   @JsonProperty("preemptible")
   private boolean preemptible;
   @JsonProperty("ram_gb")
-  private Double minimumRamGb;
+  private Double ramGb;
   @JsonProperty("size_gb")
-  private Double disk;
-  // @JsonProperty("volumes")
-  // private List<TESVolume> volumes;
+  private Double diskGb;
   @JsonProperty("zones")
   private String zones;
 
   @JsonCreator
-  public TESResources(@JsonProperty("cpu_cores") Integer minimumCpuCores, @JsonProperty("preemptible") boolean preemptible,
-      @JsonProperty("ram_gb") Double minimumRamGb, @JsonProperty("size_gb") Double disk, @JsonProperty("zones") String zones) {
-    this.minimumCpuCores = minimumCpuCores;
+  public TESResources(@JsonProperty("cpu_cores") Integer cpuCores,
+                      @JsonProperty("preemptible") boolean preemptible,
+                      @JsonProperty("ram_gb") Double ramGb,
+                      @JsonProperty("size_gb") Double diskGb,
+                      @JsonProperty("zones") String zones) {
+    this.cpuCores = cpuCores;
     this.preemptible = preemptible;
-    this.minimumRamGb = minimumRamGb;
+    this.ramGb = ramGb;
     this.zones = zones;
   }
 
-  public Double getDisk() {
-    return disk;
+  public Integer getCpuCores() {
+    return cpuCores;
   }
 
-  public void setDisk(Double disk) {
-    this.disk = disk;
-  }
-
-  public Integer getMinimumCpuCores() {
-    return minimumCpuCores;
-  }
-
-  public void setMinimumCpuCores(Integer minimumCpuCores) {
-    this.minimumCpuCores = minimumCpuCores;
+  public void setCpuCores(Integer cpuCores) {
+    this.cpuCores = cpuCores;
   }
 
   public boolean isPreemptible() {
@@ -51,12 +44,20 @@ public class TESResources {
     this.preemptible = preemptible;
   }
 
-  public Double getMinimumRamGb() {
-    return minimumRamGb;
+  public Double getRamGb() {
+    return ramGb;
   }
 
-  public void setMinimumRamGb(Double minimumRamGb) {
-    this.minimumRamGb = minimumRamGb;
+  public void setRamGb(Double ramGb) {
+    this.ramGb = ramGb;
+  }
+
+  public Double getDiskGb() {
+    return diskGb;
+  }
+
+  public void setDiskGb(Double diskGb) {
+    this.diskGb = diskGb;
   }
 
   public String getZones() {
@@ -69,7 +70,7 @@ public class TESResources {
 
   @Override
   public String toString() {
-    return "TESResources [minimumCpuCores=" + minimumCpuCores + ", preemptible=" + preemptible + ", minimumRamGb=" + minimumRamGb + ", zones=" + zones + "]";
+    return "TESResources [cpuCores=" + cpuCores + ", ramGb=" + ramGb + ", diskGb=" + diskGb + ", preemptible=" + preemptible + ", zones=" + zones + "]";
   }
 
 }
