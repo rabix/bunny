@@ -30,7 +30,7 @@ public class DefaultEngineStatusCallback implements EngineStatusCallback {
   }
 
   @Override
-  public void onJobsReady(Set<Job> jobs, UUID rootId, String producedByNode) throws EngineStatusCallbackException {
+  public void onJobsReady(Set<Job> jobs, UUID rootId, UUID producedByNode) throws EngineStatusCallbackException {
     for (Job job : jobs) {
       onJobReady(job);
     }

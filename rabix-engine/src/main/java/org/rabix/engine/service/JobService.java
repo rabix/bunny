@@ -44,7 +44,7 @@ public interface JobService {
 
   void handleJobFailed(Job failedJob);
 
-  void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode);
+  void handleJobsReady(Set<Job> jobs, UUID rootId, UUID producedByNode);
 
   void handlePendingReadyJobs();
 

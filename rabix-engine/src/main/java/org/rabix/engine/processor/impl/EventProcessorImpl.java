@@ -135,7 +135,7 @@ public class EventProcessorImpl implements EventProcessor {
     }
 
     Set<Job> readyJobs = jobRepository.getReadyJobsByGroupId(event.getEventGroupId());
-    jobService.handleJobsReady(readyJobs, event.getContextId(), event.getProducedByNode());
+    jobService.handleJobsReady(readyJobs, event.getContextId(), event.getEventGroupId());
   }
 
   private boolean shouldProcessReadyJobs(Event event) {

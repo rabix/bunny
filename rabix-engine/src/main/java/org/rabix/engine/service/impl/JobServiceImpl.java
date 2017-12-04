@@ -235,7 +235,7 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public void handleJobsReady(Set<Job> jobs, UUID rootId, String producedByNode) {
+  public void handleJobsReady(Set<Job> jobs, UUID rootId, UUID producedByNode) {
     logger.debug("handleJobsReady(jobs={}, rootId={})", jobs.stream().map(Job::getName).collect(Collectors.toList()), rootId);
     try {
       engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
@@ -252,7 +252,7 @@ public class JobServiceImpl implements JobService {
   public void handlePendingReadyJobs() {
     readyJobsByRootId().forEach((rootId, readyJobs) -> {
       groupByProducedBy(readyJobs).forEach((producedBy, ready) -> {
-        handleJobsReady(ready.stream().map(JobEntity::getJob).collect(Collectors.toSet()), rootId, producedBy);
+        handleJobsReady(ready.stream().map(JobEntity::getJob).collect(Collectors.toSet()), rootId, ready.get(0).getGroupId());
       });
     });
   }

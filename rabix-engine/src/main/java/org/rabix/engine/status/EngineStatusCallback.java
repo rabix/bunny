@@ -10,7 +10,7 @@ public interface EngineStatusCallback {
 
   void onJobReady(Job job) throws EngineStatusCallbackException;
 
-  void onJobsReady(Set<Job> jobs, UUID rootId, String producedByNode) throws EngineStatusCallbackException;
+  void onJobsReady(Set<Job> jobs, UUID rootId, UUID producedByNode) throws EngineStatusCallbackException;
 
   void onJobCompleted(UUID jobId, UUID rootId) throws EngineStatusCallbackException;
 
