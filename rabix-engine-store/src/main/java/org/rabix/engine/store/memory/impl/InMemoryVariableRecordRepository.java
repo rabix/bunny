@@ -8,6 +8,7 @@ import org.rabix.engine.store.repository.VariableRecordRepository;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class InMemoryVariableRecordRepository extends VariableRecordRepository {
 
@@ -81,7 +82,7 @@ public class InMemoryVariableRecordRepository extends VariableRecordRepository {
   }
 
   public Collection<VariableRecord> getVariableRecords(UUID contextId) {
-    return variableRecordsPerContext.computeIfAbsent(contextId, k -> new ArrayList<>());
+    return variableRecordsPerContext.computeIfAbsent(contextId, k -> new LinkedBlockingQueue<>());
   }
 
   @Override

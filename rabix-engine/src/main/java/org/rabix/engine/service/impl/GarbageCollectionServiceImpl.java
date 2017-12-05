@@ -148,6 +148,8 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     garbage.forEach(record -> {
       jobRecordRepository.delete(record.getExternalId(), record.getRootId());
       jobRepository.delete(record.getRootId(), new HashSet<>(Collections.singletonList(record.getExternalId())));
+      linkRecordRepository.delete(record.getId(), rootId);
+      variableRecordRepository.delete(record.getId(), rootId);
     });
 
     Set<UUID> groupIds = garbage.stream().map(JobRecord::getExternalId).collect(Collectors.toSet());
@@ -160,7 +162,6 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     logger.info("flushAll(rootId={})", rootId);
 
     dagRepository.delete(rootId);
-    linkRecordRepository.deleteByRootId(rootId);
     jobStatsRecordRepository.delete(rootId);
     eventRepository.deleteByRootId(rootId);
     variableRecordRepository.deleteByRootId(rootId);

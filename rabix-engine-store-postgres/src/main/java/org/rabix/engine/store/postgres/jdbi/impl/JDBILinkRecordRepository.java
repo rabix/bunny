@@ -47,6 +47,10 @@ public abstract class JDBILinkRecordRepository extends LinkRecordRepository {
   public abstract void deleteByRootId(@Bind("root_id") UUID rootId);
 
   @Override
+  @SqlUpdate("delete from link_record where context_id=:root_id and (destination_job_id=:id or source_job_id=:id)")
+  public abstract void delete(@Bind("id") String jobId, @Bind("root_id") UUID rootId);
+
+  @Override
   @SqlQuery("select * from link_record where source_job_id=:source_job_id and source_job_port_id=:source_job_port_id and context_id=:context_id")
   public abstract List<LinkRecord> getBySource(@Bind("source_job_id") String sourceJobId, @Bind("source_job_port_id") String sourceJobPortId, @Bind("context_id") UUID rootId);
 
