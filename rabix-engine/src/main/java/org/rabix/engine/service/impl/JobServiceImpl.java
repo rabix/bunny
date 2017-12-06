@@ -252,7 +252,7 @@ public class JobServiceImpl implements JobService {
   public void handlePendingReadyJobs() {
     readyJobsByRootId().forEach((rootId, readyJobs) -> {
       groupByProducedBy(readyJobs).forEach((producedBy, ready) -> {
-        handleJobsReady(ready.stream().map(JobEntity::getJob).collect(Collectors.toSet()), rootId, producedBy);
+        handleJobsReady(ready.stream().map(JobEntity::getJob).collect(Collectors.toSet()), rootId, producedBy.isPresent() ? producedBy.get() : null);
       });
     });
   }
@@ -375,7 +375,7 @@ public class JobServiceImpl implements JobService {
             .collect(groupingBy(jobEntity -> jobEntity.getJob().getRootId()));
   }
 
-  private Map<String, List<JobEntity>> groupByProducedBy(List<JobEntity> jobEntities) {
-    return jobEntities.stream().collect(groupingBy(JobEntity::getProducedByNode));
+  private Map<Optional<String>, List<JobEntity>> groupByProducedBy(List<JobEntity> jobEntities) {
+    return jobEntities.stream().collect(groupingBy(jobEntity -> Optional.ofNullable(jobEntity.getProducedByNode())));
   }
 }
