@@ -196,6 +196,7 @@ public class JobServiceImpl implements JobService {
       update(job);
     } else {
       logger.warn("Unknown job {}. Nothing to stop.", id);
+      garbageCollectionService.forceGc(id);
     }
   }
 
