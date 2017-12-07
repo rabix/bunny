@@ -136,7 +136,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
       List<JobRecord> garbage = new ArrayList<>();
       garbage.add(jobRecord);
 
-      if(jobRecord.isScatterWrapper()) {
+      if(jobRecord.isScatterWrapper() || jobRecord.isContainer()) {
         garbage.addAll(jobRecordRepository.getByParent(jobRecord.getExternalId(), rootId));
       }
 
@@ -181,7 +181,12 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
-    return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(this::inTerminalState);
+    return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(outputJobRecord -> {
+      if (!inTerminalState(outputJobRecord)) {
+        return false;
+      }
+      return !outputJobRecord.isContainer() || isGarbage(outputJobRecord);
+    });
   }
 
   private boolean inTerminalState(JobRecord jobRecord) {
