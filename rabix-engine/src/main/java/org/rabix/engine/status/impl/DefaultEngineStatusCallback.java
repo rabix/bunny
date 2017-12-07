@@ -52,7 +52,7 @@ public class DefaultEngineStatusCallback implements EngineStatusCallback {
   }
 
   @Override
-  public void onJobRootPartiallyCompleted(UUID rootId, Map<String,Object> outputs, String producedBy) throws EngineStatusCallbackException {
+  public void onJobRootPartiallyCompleted(UUID rootId, Map<String,Object> outputs, UUID producedBy) throws EngineStatusCallbackException {
     logger.debug("onJobRootPartiallyCompleted(jobId={})", rootId);
   }
 

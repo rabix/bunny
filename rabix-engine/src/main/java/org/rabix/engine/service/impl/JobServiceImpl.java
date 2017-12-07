@@ -331,7 +331,7 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public void handleJobRootPartiallyCompleted(UUID rootId, Map<String, Object> outputs, String producedBy){
+  public void handleJobRootPartiallyCompleted(UUID rootId, Map<String, Object> outputs, UUID producedBy){
     logger.info("Root {} is partially completed.", rootId);
     try{
       engineStatusCallback.onJobRootPartiallyCompleted(rootId, outputs, producedBy);

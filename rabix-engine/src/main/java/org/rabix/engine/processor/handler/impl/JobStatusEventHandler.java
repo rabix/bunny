@@ -174,7 +174,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         try {
           Job rootJob = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
           if(!jobRecord.isContainer())
-            jobService.handleJobRootPartiallyCompleted(jobRecord.getRootId(), rootJob.getOutputs(), jobRecord.getId());
+            jobService.handleJobRootPartiallyCompleted(jobRecord.getRootId(), rootJob.getOutputs(), jobRecord.getExternalId());
           jobService.handleJobRootCompleted(rootJob);
         } catch (BindingException e) {
           // TODO Auto-generated catch block
@@ -251,7 +251,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     rootLinks.forEach(link -> outs.put(link.getDestinationJobPort(), variableRecordService.find(InternalSchemaHelper.ROOT_NAME, link.getDestinationJobPort(), LinkPortType.OUTPUT, jobRecord.getRootId()).getValue()));
 
     if (!outs.isEmpty()) {
-      jobService.handleJobRootPartiallyCompleted(jobRecord.getRootId(), outs, jobRecord.getId());
+      jobService.handleJobRootPartiallyCompleted(jobRecord.getRootId(), outs, jobRecord.getExternalId());
     }
   }
 

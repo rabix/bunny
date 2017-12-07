@@ -20,7 +20,7 @@ public interface EngineStatusCallback {
 
   void onJobRootCompleted(UUID rootId) throws EngineStatusCallbackException;
 
-  void onJobRootPartiallyCompleted(UUID rootId, Map<String, Object> outputs, String producedBy) throws EngineStatusCallbackException;
+  void onJobRootPartiallyCompleted(UUID rootId, Map<String, Object> outputs, UUID producedBy) throws EngineStatusCallbackException;
 
   void onJobRootFailed(UUID rootId, String message) throws EngineStatusCallbackException;
 

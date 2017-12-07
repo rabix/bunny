@@ -36,7 +36,7 @@ public interface JobService {
 
   void handleJobCompleted(Job job);
 
-  void handleJobRootPartiallyCompleted(UUID uuid, Map<String, Object> outputs, String producedBy);
+  void handleJobRootPartiallyCompleted(UUID uuid, Map<String, Object> outputs, UUID producedBy);
 
   void handleJobRootFailed(Job job);
 
