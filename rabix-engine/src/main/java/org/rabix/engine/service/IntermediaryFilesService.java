@@ -16,13 +16,16 @@ public interface IntermediaryFilesService {
 
   void handleUnusedFiles(Job job);
 
-  void handleContainerReady(Job containerJob, boolean keepInputFiles);
-
   void handleJobCompleted(Job job);
 
-  void handleJobFailed(Job job, Job rootJob, boolean keepInputFiles);
+  void handleJobFailed(Job job, Job rootJob);
 
   void extractPathsFromFileValue(Set<String> paths, FileValue file);
+  
+  void handleInputSent(UUID rootId, Object input);
 
+  void handleDanglingOutput(UUID rootId, Object input);
+
+  void handleInputSent(UUID rootId, Object input, int count);   
 }
 

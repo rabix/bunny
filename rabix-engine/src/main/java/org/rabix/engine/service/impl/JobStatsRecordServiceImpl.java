@@ -1,33 +1,51 @@
 package org.rabix.engine.service.impl;
 
-import java.util.UUID;
-
+import com.google.inject.Inject;
+import org.rabix.engine.service.JobStatsRecordService;
+import org.rabix.engine.store.lru.stats.JobStatsRecordCache;
 import org.rabix.engine.store.model.JobStatsRecord;
 import org.rabix.engine.store.repository.JobStatsRecordRepository;
-import org.rabix.engine.service.JobStatsRecordService;
 
-import com.google.inject.Inject;
+import java.util.UUID;
 
 public class JobStatsRecordServiceImpl implements JobStatsRecordService {
 
   private JobStatsRecordRepository jobStatsRecordRepository;
 
-  @Inject
-  public JobStatsRecordServiceImpl(JobStatsRecordRepository jobStatsRecordRepository) {
-    this.jobStatsRecordRepository = jobStatsRecordRepository;
-  }
+  private JobStatsRecordCache jobStatsRecordCache;
 
+  @Inject
+  public JobStatsRecordServiceImpl(JobStatsRecordRepository jobStatsRecordRepository,
+                                   JobStatsRecordCache jobStatsRecordCache) {
+    this.jobStatsRecordRepository = jobStatsRecordRepository;
+    this.jobStatsRecordCache = jobStatsRecordCache;
+  }
 
   public void create(JobStatsRecord jobStatsRecord) {
-    jobStatsRecordRepository.insert(jobStatsRecord);
+    int inserted = jobStatsRecordRepository.insert(jobStatsRecord);
+    if (inserted > 0) {
+      jobStatsRecordCache.put(jobStatsRecord.getRootId(), jobStatsRecord);
+    }
   }
-  
+
   public void update(JobStatsRecord jobStatsRecord) {
-    jobStatsRecordRepository.update(jobStatsRecord);
+    int updated = jobStatsRecordRepository.update(jobStatsRecord);
+    if (updated > 0) {
+      jobStatsRecordCache.put(jobStatsRecord.getRootId(), jobStatsRecord);
+    }
   }
-  
+
   public JobStatsRecord find(UUID rootId) {
-    return jobStatsRecordRepository.get(rootId);
+    JobStatsRecord jobStatsRecord = jobStatsRecordCache.get(rootId);
+    if (jobStatsRecord == null) {
+      jobStatsRecord = jobStatsRecordRepository.get(rootId);
+    }
+
+    if (jobStatsRecord != null) {
+      jobStatsRecordCache.put(rootId, jobStatsRecord);
+    }
+
+    return jobStatsRecord;
   }
 
   @Override public JobStatsRecord findOrCreate(UUID rootId) {
@@ -41,6 +59,7 @@ public class JobStatsRecordServiceImpl implements JobStatsRecordService {
 
   public void delete(UUID rootId) {
     jobStatsRecordRepository.delete(rootId);
+    jobStatsRecordCache.remove(rootId);
   }
 
 }

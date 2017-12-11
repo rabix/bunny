@@ -1,104 +1,65 @@
 package org.rabix.engine.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.inject.Inject;
 import org.rabix.bindings.model.dag.DAGLinkPort;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.JobRecordService;
-import org.rabix.engine.store.cache.Cachable;
-import org.rabix.engine.store.cache.Cache;
-import org.rabix.engine.store.cache.CacheItem.Action;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.JobRecord.PortCounter;
 import org.rabix.engine.store.repository.JobRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class JobRecordServiceImpl implements JobRecordService {
 
   private final static Logger logger = LoggerFactory.getLogger(JobRecordServiceImpl.class);
+  private JobRecordRepository repo;
 
-  private CacheService cacheService;
-  private JobRecordRepository jobRecordRepository;
-  
   @Inject
-  public JobRecordServiceImpl(JobRecordRepository jobRecordRepository, CacheService cacheService) {
-    this.cacheService = cacheService;
-    this.jobRecordRepository = jobRecordRepository;
-  }
-  
-  public void create(JobRecord jobRecord) {
-    Cache cache = cacheService.getCache(jobRecord.getRootId(), jobRecord.getCacheEntityName());
-    cache.put(jobRecord, Action.INSERT);
+  public JobRecordServiceImpl(JobRecordRepository jobRecordRepository) {
+    this.repo = jobRecordRepository;
   }
 
-  public void delete(UUID rootId) {
+  public void create(JobRecord jobRecord) {
+    repo.insert(jobRecord);
   }
-  
+
+  public void delete(UUID rootId) {}
+
   public void update(JobRecord jobRecord) {
-    Cache cache = cacheService.getCache(jobRecord.getRootId(), jobRecord.getCacheEntityName());
-    cache.put(jobRecord, Action.UPDATE);
+    repo.update(jobRecord);
   }
-  
+
   public List<JobRecord> findReady(UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
-    List<Cachable> jobRecords = cache.get(new JobRecord.JobCacheKey(null, rootId));
-    List<JobRecord> readyJobRecords = new ArrayList<>();
-    for (Cachable jobRecord : jobRecords) {
-      if (((JobRecord) jobRecord).isReady()) {
-        readyJobRecords.add((JobRecord) jobRecord);
-      }
-    }
-    return readyJobRecords;
+    return repo.getReady(rootId);
   }
 
   public List<JobRecord> findByParent(UUID parentId, UUID rootId) {
-    List<JobRecord> recordsByParent = jobRecordRepository.getByParent(parentId, rootId);
-
-    if (recordsByParent != null) {
-      Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
-      return cache.<JobRecord> merge(recordsByParent, JobRecord.class);
-    }
-    return recordsByParent;
+    return repo.getByParent(parentId, rootId);
   }
-  
+
   @Override
   public List<JobRecord> find(UUID rootId, Set<JobRecord.JobState> statuses) {
-    List<JobRecord> records = jobRecordRepository.get(rootId, statuses);
+    return repo.get(rootId, statuses);
+  }
 
-    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
-    return cache.<JobRecord> merge(records, JobRecord.class);
-  }
-  
   public JobRecord find(String id, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(id, rootId));
-    if (!records.isEmpty()) {
-      return (JobRecord) records.get(0);
-    }
-    JobRecord record = jobRecordRepository.get(id, rootId);
-    cache.put(record, Action.NOOP);
-    return record;
+    return repo.get(id, rootId);
   }
-  
+
+  @Override
+  public JobRecord findByExternalId(UUID externalId, UUID rootId) {
+    return repo.getByExternalId(externalId, rootId);
+  }
+
   public JobRecord findRoot(UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, JobRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new JobRecord.JobCacheKey(InternalSchemaHelper.ROOT_NAME, rootId));
-    if (!records.isEmpty()) {
-      return (JobRecord) records.get(0);
-    }
-    JobRecord record = jobRecordRepository.getRoot(rootId);
-    cache.put(record, Action.NOOP);
-    return record;
+    return repo.getRoot(rootId);
   }
-  
+
   public void increaseInputPortIncoming(JobRecord jobRecord, String port) {
     for (PortCounter portCounter : jobRecord.getInputCounters()) {
       if (portCounter.port.equals(port)) {
@@ -107,7 +68,7 @@ public class JobRecordServiceImpl implements JobRecordService {
       }
     }
   }
-  
+
   public void increaseOutputPortIncoming(JobRecord jobRecord, String port) {
     for (PortCounter portCounter : jobRecord.getOutputCounters()) {
       if (portCounter.port.equals(port)) {
@@ -116,7 +77,7 @@ public class JobRecordServiceImpl implements JobRecordService {
       }
     }
   }
-  
+
   public void incrementPortCounter(JobRecord jobRecord, DAGLinkPort port, LinkPortType type) {
     List<PortCounter> counters = type.equals(LinkPortType.INPUT) ? jobRecord.getInputCounters() : jobRecord.getOutputCounters();
 
@@ -128,7 +89,7 @@ public class JobRecordServiceImpl implements JobRecordService {
           if (pc.updatedAsSourceCounter > 0) {
             pc.updatedAsSourceCounter = pc.updatedAsSourceCounter--;
             return;
-          } else { 
+          } else {
             if (type.equals(LinkPortType.OUTPUT)) {
               if (jobRecord.isScatterWrapper()) {
                 pc.counter = pc.counter + 1;
@@ -144,7 +105,7 @@ public class JobRecordServiceImpl implements JobRecordService {
     PortCounter portCounter = new PortCounter(port.getId(), 1, port.isScatter());
     counters.add(portCounter);
   }
-  
+
   public void decrementPortCounter(JobRecord jobRecord, String portId, LinkPortType type) {
     List<PortCounter> counters = type.equals(LinkPortType.INPUT) ? jobRecord.getInputCounters() : jobRecord.getOutputCounters();
     for (PortCounter portCounter : counters) {
@@ -176,7 +137,7 @@ public class JobRecordServiceImpl implements JobRecordService {
       }
     }
   }
-  
+
   public void resetInputPortCounter(JobRecord jobRecord, int value, String port) {
     for (PortCounter pc : jobRecord.getInputCounters()) {
       if (pc.port.equals(port)) {
@@ -201,7 +162,7 @@ public class JobRecordServiceImpl implements JobRecordService {
       }
     }
   }
-  
+
   public void resetOutputPortCounter(JobRecord jobRecord, int value, String port) {
     for (PortCounter pc : jobRecord.getOutputCounters()) {
       if (pc.port.equals(port)) {
@@ -223,7 +184,7 @@ public class JobRecordServiceImpl implements JobRecordService {
       }
     }
   }
-  
+
   public void resetOutputPortCounters(JobRecord jobRecord, int value) {
     if (jobRecord.getNumberOfGlobalOutputs() == value) {
       return;
@@ -246,5 +207,5 @@ public class JobRecordServiceImpl implements JobRecordService {
       }
     }
   }
-  
+
 }

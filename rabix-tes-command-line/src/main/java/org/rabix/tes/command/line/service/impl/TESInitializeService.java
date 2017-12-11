@@ -33,8 +33,6 @@ public class TESInitializeService implements TESCommandLineService {
 
   private final static Logger logger = LoggerFactory.getLogger(TESInitializeService.class);
   
-  public static final String HOME_ENV_VAR = "HOME";
-  public static final String TMPDIR_ENV_VAR = "TMPDIR";
 
   public void execute(Job job, File workingDir) throws TESCommandLineException {
     try {
@@ -53,26 +51,6 @@ public class TESInitializeService implements TESCommandLineService {
 
       File resultFile = new File(workingDir, "command.sh");
 
-      EnvironmentVariableRequirement environmentVariableResource = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
-      Map<String, String> environmentVariables = environmentVariableResource != null ? environmentVariableResource.getVariables() : new HashMap<String, String>();
-      Resources resources = job.getResources();
-      if (resources != null) {
-        if (resources.getWorkingDir() != null) {
-          environmentVariables.put(HOME_ENV_VAR, resources.getWorkingDir());
-        }
-        if (resources.getTmpDir() != null) {
-          environmentVariables.put(TMPDIR_ENV_VAR, resources.getTmpDir());
-        }
-      }
-
-      StringBuilder envVarContentBuilder = new StringBuilder();
-      if (environmentVariables != null) {
-        for (Entry<String, String> variableEntry : environmentVariables.entrySet()) {
-          envVarContentBuilder.append("export ").append(variableEntry.getKey()).append("=").append(variableEntry.getValue()).append("\n");
-        }
-      }
-      FileUtils.writeStringToFile(resultFile, envVarContentBuilder.toString());
-
       String commandLine = bindings.buildCommandLineObject(job, workingDir, new FilePathMapper() {
         @Override
         public String map(String path, Map<String, Object> config) throws FileMappingException {
@@ -80,7 +58,7 @@ public class TESInitializeService implements TESCommandLineService {
         }
       }).build();
 
-      FileUtils.writeStringToFile(resultFile, envVarContentBuilder.toString() + "\n" + commandLine);
+      FileUtils.writeStringToFile(resultFile, commandLine);
 
     } catch (BindingException e) {
       logger.error("Failed to use Bindings", e);

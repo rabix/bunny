@@ -1,17 +1,5 @@
 package org.rabix.engine.store.postgres.jdbi.impl;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.UUID;
-
 import org.postgresql.util.PGobject;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.engine.store.model.ContextRecord;
@@ -19,26 +7,29 @@ import org.rabix.engine.store.postgres.jdbi.impl.JDBIContextRecordRepository.Con
 import org.rabix.engine.store.repository.ContextRecordRepository;
 import org.skife.jdbi.v2.SQLStatement;
 import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.Binder;
-import org.skife.jdbi.v2.sqlobject.BinderFactory;
-import org.skife.jdbi.v2.sqlobject.BindingAnnotation;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+
+import java.lang.annotation.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.UUID;
 
 @RegisterMapper(ContextRecordMapper.class)
 public interface JDBIContextRecordRepository extends ContextRecordRepository {
 
   @Override
-  @SqlUpdate("insert into context_record (id,status,config,created_at,modified_at) values (:id,:status::context_record_status,:config,:created_at,:modified_at)")
+  @SqlUpdate("insert into context_record (id,status,config,created_at,modified_at) values (:id,:status::context_record_status,:config,:created_at,:modified_at) on conflict do nothing")
   int insert(@BindContextRecord ContextRecord contextRecord);
-  
+
   @Override
   @SqlUpdate("update context_record set status=:status::context_record_status,config=:config,modified_at='now' where id=:id")
   int update(@BindContextRecord ContextRecord contextRecord);
-  
+
   @Override
   @SqlQuery("select * from context_record where id=:id")
   ContextRecord get(@Bind("id") UUID id);
@@ -72,7 +63,7 @@ public interface JDBIContextRecordRepository extends ContextRecordRepository {
       }
     }
   }
-  
+
   public static class ContextRecordMapper implements ResultSetMapper<ContextRecord> {
     public ContextRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
       UUID id = resultSet.getObject("ID", UUID.class);

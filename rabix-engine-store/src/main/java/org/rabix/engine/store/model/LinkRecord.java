@@ -4,10 +4,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.store.cache.Cachable;
-import org.rabix.engine.store.cache.CacheKey;
 
-public class LinkRecord extends TimestampedModel implements Cachable {
+public class LinkRecord extends TimestampedModel {
 
   public final static String CACHE_NAME = "LINK_RECORD";
   
@@ -154,79 +152,4 @@ public class LinkRecord extends TimestampedModel implements Cachable {
   public String toString() {
     return "LinkRecord [contextId=" + rootId + ", sourceJobId=" + sourceJobId + ", sourceJobPort=" + sourceJobPort + ", sourceVarType=" + sourceVarType + ", destinationJobId=" + destinationJobId + ", destinationJobPort=" + destinationJobPort + ", destinationVarType=" + destinationVarType + ", position=" + position + "]";
   }
-
-  @Override
-  public CacheKey getCacheKey() {
-    return new LinkRecordCacheKey(this);
-  }
-
-  @Override
-  public String getCacheEntityName() {
-    return CACHE_NAME;
-  }
-  
-  public static class LinkRecordCacheKey implements CacheKey {
-
-    public final UUID rootId;
-    
-    public final String sourceJobId;
-    public final String sourceJobPort;
-    public final LinkPortType sourceVarType;
-    
-    public final String destinationJobId;
-    public final String destinationJobPort;
-    public final LinkPortType destinationVarType;
-    
-    public LinkRecordCacheKey(UUID rootId, String sourceJobId, String sourceJobPort, LinkPortType sourceVarType, String destinationJobId, String destinationJobPort, LinkPortType destinationVarType) {
-      this.rootId = rootId;
-      this.sourceJobId = sourceJobId;
-      this.sourceJobPort = sourceJobPort;
-      this.sourceVarType = sourceVarType;
-      this.destinationJobId = destinationJobId;
-      this.destinationJobPort = destinationJobPort;
-      this.destinationVarType = destinationVarType;
-    }
-
-    public LinkRecordCacheKey(LinkRecord linkRecord) {
-      this.rootId = linkRecord.rootId;
-      this.sourceJobId = linkRecord.sourceJobId;
-      this.sourceJobPort = linkRecord.sourceJobPort;
-      this.sourceVarType = linkRecord.sourceVarType;
-      this.destinationJobId = linkRecord.destinationJobId;
-      this.destinationJobPort = linkRecord.destinationJobPort;
-      this.destinationVarType = linkRecord.destinationVarType;
-    }
-
-    @Override
-    public boolean satisfies(CacheKey key) {
-      if (key instanceof LinkRecordCacheKey) {
-        LinkRecordCacheKey key2 = (LinkRecordCacheKey) key;
-        if (!rootId.equals(key2.rootId) && key2.rootId != null) {
-          return false;
-        }
-        if (!sourceJobId.equals(key2.sourceJobId) && key2.sourceJobId != null) {
-          return false;
-        }
-        if (!sourceJobPort.equals(key2.sourceJobPort) && key2.sourceJobPort != null) {
-          return false;
-        }
-        if (!sourceVarType.equals(key2.sourceVarType) && key2.sourceVarType != null) {
-          return false;
-        }
-        if (!destinationJobId.equals(key2.destinationJobId) && key2.destinationJobId != null) {
-          return false;
-        }
-        if (!destinationJobPort.equals(key2.destinationJobPort) && key2.destinationJobPort != null) {
-          return false;
-        }
-        if (!destinationVarType.equals(key2.destinationVarType) && key2.destinationVarType != null) {
-          return false;
-        }
-        return true;
-      }
-      return false;
-    }
-    
-  }
-  
 }

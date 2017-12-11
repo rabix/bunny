@@ -14,14 +14,24 @@ public class EventRecord {
     FAILED
   }
 
+  private UUID rootId;
   private UUID groupId;
   private Status status;
   private Map<String, ?> event;
 
-  public EventRecord(UUID groupId, Status status, Map<String, ?> event) {
+  public EventRecord(UUID rootId, UUID groupId, Status status, Map<String, ?> event) {
+    this.rootId = rootId;
     this.groupId = groupId;
     this.status = status;
     this.event = event;
+  }
+
+  public UUID getRootId() {
+    return rootId;
+  }
+
+  public void setRootId(UUID rootId) {
+    this.rootId = rootId;
   }
 
   public UUID getGroupId() {

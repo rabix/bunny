@@ -1,20 +1,5 @@
 package org.rabix.transport.mechanism.impl.activemq;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.jms.Connection;
-import javax.jms.DeliveryMode;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-
 import org.apache.activemq.pool.PooledConnectionFactory;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.json.BeanSerializer;
@@ -25,14 +10,20 @@ import org.rabix.transport.mechanism.TransportPluginType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jms.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class TransportPluginActiveMQ implements TransportPlugin<TransportQueueActiveMQ> {
 
   private static final Logger logger = LoggerFactory.getLogger(TransportConfigActiveMQ.class);
-  
+
   private PooledConnectionFactory connectionFactory;
-  
+
   private ConcurrentMap<TransportQueueActiveMQ, Receiver<?>> receivers = new ConcurrentHashMap<>();
-  
+
   private ExecutorService receiverThreadPool = Executors.newCachedThreadPool();
 
   public TransportPluginActiveMQ(Configuration configuration) throws TransportPluginException {
@@ -43,7 +34,7 @@ public class TransportPluginActiveMQ implements TransportPlugin<TransportQueueAc
     connectionFactory.setMaximumActiveSessionPerConnection(5000);
     connectionFactory.start();
   }
-  
+
   @Override
   public <T> ResultPair<T> send(TransportQueueActiveMQ queue, T entity) {
     Session session = null;
@@ -88,7 +79,7 @@ public class TransportPluginActiveMQ implements TransportPlugin<TransportQueueAc
       public void run() {
         receiver.start();
       }
-    });    
+    });
   }
 
   @Override
@@ -133,7 +124,7 @@ public class TransportPluginActiveMQ implements TransportPlugin<TransportQueueAc
           Message message = consumer.receive();
           TextMessage textMessage = (TextMessage) message;
           String text = textMessage.getText();
-          callback.handleReceive(BeanSerializer.deserialize(text, clazz));
+          callback.handleReceive(BeanSerializer.deserialize(text, clazz), () -> {});
         }
       } catch (JMSException e) {
         logger.error("Failed to receive a message from " + queue, e);

@@ -6,17 +6,17 @@ import java.util.UUID;
 
 public class ContextRecord extends TimestampedModel {
 
-  public static enum ContextStatus {
+  public enum ContextStatus {
     RUNNING,
     COMPLETED,
     FAILED,
     ABORTED
   }
-  
+
   private UUID id;
   private Map<String, Object> config;
   private ContextStatus status;
-  
+
   public ContextRecord(final UUID id, Map<String, Object> config, ContextStatus status) {
     this(id, config, status, LocalDateTime.now(), LocalDateTime.now());
   }
@@ -27,7 +27,11 @@ public class ContextRecord extends TimestampedModel {
     this.config = config;
     this.status = status;
   }
-  
+
+  public boolean isRunning() {
+    return status == ContextStatus.RUNNING;
+  }
+
   public UUID getId() {
     return id;
   }

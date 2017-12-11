@@ -1,5 +1,39 @@
 package org.rabix.cli;
 
+import com.google.inject.*;
+import org.apache.commons.cli.*;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
+import org.rabix.backend.api.BackendModule;
+import org.rabix.backend.api.callback.WorkerStatusCallback;
+import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
+import org.rabix.bindings.BindingException;
+import org.rabix.bindings.Bindings;
+import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.ProtocolType;
+import org.rabix.bindings.model.*;
+import org.rabix.cli.service.LocalDownloadServiceImpl;
+import org.rabix.cli.status.LocalBackendEngineStatusCallback;
+import org.rabix.common.config.ConfigModule;
+import org.rabix.common.helper.JSONHelper;
+import org.rabix.common.json.BeanSerializer;
+import org.rabix.common.jvm.ClasspathScanner;
+import org.rabix.common.logging.VerboseLogger;
+import org.rabix.common.service.download.DownloadService;
+import org.rabix.common.service.upload.UploadService;
+import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
+import org.rabix.engine.EngineModule;
+import org.rabix.engine.service.*;
+import org.rabix.engine.service.impl.*;
+import org.rabix.engine.status.EngineStatusCallback;
+import org.rabix.engine.stub.BackendStubFactory;
+import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -12,81 +46,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
-import org.rabix.backend.api.BackendModule;
-import org.rabix.backend.api.callback.WorkerStatusCallback;
-import org.rabix.backend.api.callback.impl.NoOpWorkerStatusCallback;
-import org.rabix.bindings.BindingException;
-import org.rabix.bindings.Bindings;
-import org.rabix.bindings.BindingsFactory;
-import org.rabix.bindings.ProtocolType;
-import org.rabix.bindings.model.Application;
-import org.rabix.bindings.model.ApplicationPort;
-import org.rabix.bindings.model.DataType;
-import org.rabix.bindings.model.FileValue;
-import org.rabix.bindings.model.Job;
-import org.rabix.bindings.model.Job.JobStatus;
-import org.rabix.bindings.model.Resources;
-import org.rabix.cli.service.LocalDownloadServiceImpl;
-import org.rabix.common.config.ConfigModule;
-import org.rabix.common.helper.JSONHelper;
-import org.rabix.common.json.BeanSerializer;
-import org.rabix.common.jvm.ClasspathScanner;
-import org.rabix.common.logging.VerboseLogger;
-import org.rabix.common.service.download.DownloadService;
-import org.rabix.common.service.upload.UploadService;
-import org.rabix.common.service.upload.impl.NoOpUploadServiceImpl;
-import org.rabix.engine.EngineModule;
-import org.rabix.engine.service.BackendService;
-import org.rabix.engine.service.BootstrapService;
-import org.rabix.engine.service.BootstrapServiceException;
-import org.rabix.engine.service.ContextRecordService;
-import org.rabix.engine.service.IntermediaryFilesHandler;
-import org.rabix.engine.service.IntermediaryFilesService;
-import org.rabix.engine.service.JobService;
-import org.rabix.engine.service.JobServiceException;
-import org.rabix.engine.service.SchedulerService;
-import org.rabix.engine.service.SchedulerService.SchedulerJobBackendAssigner;
-import org.rabix.engine.service.SchedulerService.SchedulerMessageCreator;
-import org.rabix.engine.service.SchedulerService.SchedulerMessageSender;
-import org.rabix.engine.service.impl.BackendServiceImpl;
-import org.rabix.engine.service.impl.BootstrapServiceImpl;
-import org.rabix.engine.service.impl.IntermediaryFilesLocalHandler;
-import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
-import org.rabix.engine.service.impl.JobReceiverImpl;
-import org.rabix.engine.service.impl.JobServiceImpl;
-import org.rabix.engine.service.impl.SchedulerServiceImpl;
-import org.rabix.engine.status.EngineStatusCallback;
-import org.rabix.engine.status.impl.DefaultEngineStatusCallback;
-import org.rabix.engine.store.model.ContextRecord;
-import org.rabix.engine.stub.BackendStubFactory;
-import org.rabix.engine.stub.impl.BackendStubFactoryImpl;
-import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Scopes;
-import com.google.inject.TypeLiteral;
+import java.util.*;
 
 /**
  * Local command line executor
@@ -95,7 +55,7 @@ public class BackendCommandLine {
 
   private static final Logger logger = LoggerFactory.getLogger(BackendCommandLine.class);
   private static String configDir = "/.bunny/config";
-  
+
 
   @SuppressWarnings("unchecked")
   public static void main(String[] commandLineArguments) {
@@ -105,7 +65,7 @@ public class BackendCommandLine {
     CommandLine commandLine;
     List<String> commandLineArray = Arrays.asList(commandLineArguments);
     String[] inputArguments = null;
-    
+
     if (commandLineArray.contains("--")) {
       commandLineArguments = commandLineArray.subList(0, commandLineArray.indexOf("--")).toArray(new String[0]);
       inputArguments = commandLineArray.subList(commandLineArray.indexOf("--") + 1, commandLineArray.size()).toArray(new String[0]);
@@ -122,7 +82,7 @@ public class BackendCommandLine {
       if (!checkCommandLine(commandLine)) {
         printUsageAndExit(posixOptions);
       }
-      
+
       final String app = commandLine.getArgList().get(0);
 
       Path filePath = null;
@@ -136,12 +96,12 @@ public class BackendCommandLine {
       } else {
         filePath = Paths.get(new URI(appUri.getScheme(), appUri.getSchemeSpecificPart(), null)).toAbsolutePath();
       }
-      
+
       if (!Files.exists(filePath)) {
         VerboseLogger.log(String.format("Application file %s does not exist.", appUri.toString()));
         printUsageAndExit(posixOptions);
       }
-      
+
 
       String fullUri = appUri.toString();
       if (commandLine.hasOption("resolve-app")) {
@@ -167,10 +127,10 @@ public class BackendCommandLine {
 
       Map<String, Object> configOverrides = new HashMap<>();
       configOverrides.put("cleaner.backend.period", 5000L);
-      
+
       String directoryName = generateDirectoryName(app);
       configOverrides.put("backend.execution.directory.name", directoryName);
-          
+
       String executionDirPath = commandLine.getOptionValue("basedir");
       if (executionDirPath != null) {
         File executionDir = new File(executionDirPath);
@@ -209,7 +169,7 @@ public class BackendCommandLine {
           VerboseLogger.log("TES URL is empty");
           System.exit(10);
         }
-        
+
         try {
           URL url = new URL(tesURL);
           String host = url.getHost();
@@ -228,37 +188,36 @@ public class BackendCommandLine {
           VerboseLogger.log("TES URL is invalid");
           System.exit(-10);
         }
-      }      
+      }
       String tesStorageURL = commandLine.getOptionValue("tes-storage");
       if (tesStorageURL != null) {
         configOverrides.put("rabix.tes.storage.base", tesStorageURL);
       }
-      
+
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
+      Configuration configuration = configModule.provideConfig();
       Injector injector = Guice.createInjector(
           new EngineModule(configModule),
           new AbstractModule() {
             @Override
             protected void configure() {
               install(configModule);
-              
-              bind(IntermediaryFilesService.class).to(IntermediaryFilesServiceImpl.class).in(Scopes.SINGLETON);
-              bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
-              
+
+              if (configuration.getBoolean("engine.delete_intermediary_files", false)) {
+                bind(IntermediaryFilesHandler.class).to(IntermediaryFilesLocalHandler.class).in(Scopes.SINGLETON);
+              } else {
+                bind(IntermediaryFilesHandler.class).to(NoOpIntermediaryFilesServiceHandler.class).in(Scopes.SINGLETON);
+              }
               bind(JobService.class).to(JobServiceImpl.class).in(Scopes.SINGLETON);
               bind(BackendService.class).to(BackendServiceImpl.class).in(Scopes.SINGLETON);
-              bind(SchedulerService.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
-              bind(SchedulerMessageCreator.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
-              bind(SchedulerJobBackendAssigner.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
-              bind(SchedulerMessageSender.class).to(SchedulerServiceImpl.class).in(Scopes.SINGLETON);
-              bind(EngineStatusCallback.class).to(DefaultEngineStatusCallback.class).in(Scopes.SINGLETON);
+              bind(EngineStatusCallback.class).to(LocalBackendEngineStatusCallback.class).in(Scopes.SINGLETON);
               bind(DownloadService.class).to(LocalDownloadServiceImpl.class).in(Scopes.SINGLETON);
               bind(UploadService.class).to(NoOpUploadServiceImpl.class).in(Scopes.SINGLETON);
               bind(WorkerStatusCallback.class).to(NoOpWorkerStatusCallback.class).in(Scopes.SINGLETON);
 
               bind(BackendStubFactory.class).to(BackendStubFactoryImpl.class).in(Scopes.SINGLETON);
               bind(new TypeLiteral<ReceiveCallback<Job>>(){}).to(JobReceiverImpl.class).in(Scopes.SINGLETON);
-              
+
               Set<Class<BackendModule>> backendModuleClasses = ClasspathScanner.<BackendModule>scanSubclasses(BackendModule.class);
               for (Class<BackendModule> backendModuleClass : backendModuleClasses) {
                 try {
@@ -272,10 +231,12 @@ public class BackendCommandLine {
             }
           });
 
+      injector.getInstance(GarbageCollectionService.class).disable();
+
       // Load app from JSON
       Bindings bindings = null;
       Application application = null;
-      
+
       try {
         bindings = BindingsFactory.create(appUri.toString());
         application = bindings.loadAppObject(fullUri);
@@ -382,7 +343,7 @@ public class BackendCommandLine {
         VerboseLogger.log("Required inputs missing: " + StringUtils.join(missingRequiredFields, ", "));
         printAppUsageAndExit(appInputOptions);
       }
-      
+
       Resources resources = null;
       Map<String, Object> contextConfig = null;
 
@@ -398,74 +359,34 @@ public class BackendCommandLine {
       }
 
       final BootstrapService bootstrapService = injector.getInstance(BootstrapService.class);
-      
+
       final JobService jobService = injector.getInstance(JobService.class);
-      final ContextRecordService contextRecordService = injector.getInstance(ContextRecordService.class);
-      
+
       bootstrapService.start();
       Object commonInputs = null;
-      try {       
+      try {
         commonInputs = bindings.translateToCommon(inputs);
       } catch (BindingException e1) {
         VerboseLogger.log("Failed to translate inputs to the common Rabix format");
         System.exit(10);
       }
-      
-      final Job job = jobService.start(new Job(fullUri, (Map<String, Object>) commonInputs), contextConfig);
 
-      final Bindings finalBindings = bindings;
-      Thread checker = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          ContextRecord contextRecord = contextRecordService.find(job.getId());
-          
-          while (contextRecord == null || contextRecord.getStatus().equals(ContextRecord.ContextStatus.RUNNING)) {
-            try {
-              Thread.sleep(1000);
-              contextRecord = contextRecordService.find(job.getId());
-            } catch (InterruptedException e) {
-              logger.error("Failed to wait for root Job to finish", e);
-              throw new RuntimeException(e);
-            }
-          }
-          Job rootJob = jobService.get(job.getId());
-          if (rootJob.getStatus().equals(JobStatus.COMPLETED)) {
-            try {
-              try {
-                Map<String, Object> outputs = (Map<String, Object>) finalBindings.translateToSpecific(rootJob.getOutputs());
-                System.out.println(JSONHelper.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(outputs));
-                System.exit(0);
-              } catch (BindingException e) {
-                logger.error("Failed to translate common outputs to native", e);
-                throw new RuntimeException(e);
-              }
-            } catch (JsonProcessingException e) {
-              logger.error("Failed to write outputs to standard out", e);
-              System.exit(10);
-            }
-          } else {
-            VerboseLogger.log("Failed to execute a Job");
-            System.exit(10);
-          }
-        }
-      });
-      checker.start();
-      checker.join();
+      jobService.start(new Job(fullUri, (Map<String, Object>) commonInputs), contextConfig);
     } catch (ParseException e) {
       logger.error("Encountered an error while parsing using Posix parser.", e);
       System.exit(10);
     } catch (IOException e) {
       logger.error("Encountered an error while reading a file.", e);
       System.exit(10);
-    } catch (JobServiceException | InterruptedException | BootstrapServiceException | URISyntaxException e) {
+    } catch (JobServiceException | BootstrapServiceException | URISyntaxException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
     }
   }
-  
+
 
   /**
-   * Prints resolved application on standard out 
+   * Prints resolved application on standard out
    */
   private static void printResolvedAppAndExit(String appUrl) {
     Bindings bindings = null;
@@ -473,7 +394,7 @@ public class BackendCommandLine {
     try {
       bindings = BindingsFactory.create(appUrl);
       application = bindings.loadAppObject(appUrl);
-      
+
       System.out.println(BeanSerializer.serializePartial(application));
       System.exit(0);
     } catch (NotImplementedException e) {
@@ -484,7 +405,7 @@ public class BackendCommandLine {
       System.exit(10);
     }
   }
-  
+
   /**
    * Reads content from a file
    */
@@ -562,7 +483,7 @@ public class BackendCommandLine {
     h.printHelp("Inputs for selected tool are: ", options);
     System.exit(10);
   }
-  
+
   private static void printVersionAndExit(Options posixOptions) {
     System.out.println("Rabix 1.0.3");
     System.exit(0);
@@ -639,7 +560,7 @@ public class BackendCommandLine {
       return value[0];
     }
   }
-  
+
   /**
    * Returns a directory name containing the current date and app name
    */
