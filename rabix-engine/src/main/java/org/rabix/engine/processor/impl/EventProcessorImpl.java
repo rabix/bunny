@@ -12,8 +12,10 @@ import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler.EventHandlingMode;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.rabix.engine.processor.handler.HandlerFactory;
+import org.rabix.engine.service.ContextRecordService;
 import org.rabix.engine.service.GarbageCollectionService;
 import org.rabix.engine.service.JobService;
+import org.rabix.engine.store.model.ContextRecord;
 import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.store.model.EventRecord;
 import org.rabix.engine.store.model.JobRecord.JobState;
@@ -58,6 +60,7 @@ public class EventProcessorImpl implements EventProcessor {
   private final JobService jobService;
   private final MetricsHelper metricsHelper;
   private final GarbageCollectionService garbageCollectionService;
+  private final ContextRecordService contextRecordService;
 
   @Inject
   public EventProcessorImpl(HandlerFactory handlerFactory,
@@ -66,7 +69,8 @@ public class EventProcessorImpl implements EventProcessor {
                             JobRepository jobRepository,
                             JobService jobService,
                             MetricsHelper metricsHelper,
-                            GarbageCollectionService garbageCollectionService) {
+                            GarbageCollectionService garbageCollectionService,
+                            ContextRecordService contextRecordService) {
     this.handlerFactory = handlerFactory;
     this.transactionHelper = transactionHelper;
     this.eventRepository = eventRepository;
@@ -74,6 +78,7 @@ public class EventProcessorImpl implements EventProcessor {
     this.jobService = jobService;
     this.metricsHelper = metricsHelper;
     this.garbageCollectionService = garbageCollectionService;
+    this.contextRecordService = contextRecordService;
   }
 
   public void start() {
@@ -93,8 +98,12 @@ public class EventProcessorImpl implements EventProcessor {
 
   private void doProcessEvent(final ExternalEvent externalEvent) {
     final Event event = externalEvent.event;
-
     try {
+      if (!checkContextPrecondition(event)) {
+        logger.warn("Context {} is not active. Discarding {} event for {}", event.getContextId(), event.getType(), event.getEventGroupId());
+        return;
+      }
+
       transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
         if (!handle(event, mode.get())) {
           eventRepository.deleteGroup(event.getEventGroupId());
@@ -119,13 +128,31 @@ public class EventProcessorImpl implements EventProcessor {
         logger.error("Failed to call jobFailed handler for job after event {} failed.", e, ex);
       }
     } finally {
+      triggerGC(event);
+
       if (externalEvent.callback != null) {
         externalEvent.callback.run();
       }
+    }
+  }
 
-      if (mode.get() != EventHandlingMode.REPLAY && event.getType() != EventType.INIT) {
-        garbageCollectionService.gc(event.getContextId());
-      }
+  private boolean checkContextPrecondition(Event event) {
+    if (event.getType() == EventType.INIT) {
+      return true;
+    }
+
+    final ContextRecord contextRecord = contextRecordService.find(event.getContextId());
+    return contextRecord != null && contextRecord.isRunning();
+  }
+
+  private void triggerGC(Event event) {
+    if (event.getType() != EventType.JOB_STATUS_UPDATE || mode.get() == EventHandlingMode.REPLAY) {
+      return;
+    }
+
+    JobState jobState = ((JobStatusEvent) event).getState();
+    if (jobState == JobState.COMPLETED || jobState == JobState.ABORTED || jobState == JobState.FAILED) {
+      garbageCollectionService.gc(event.getContextId());
     }
   }
 

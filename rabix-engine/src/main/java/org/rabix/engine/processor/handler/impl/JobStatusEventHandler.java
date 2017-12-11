@@ -429,6 +429,18 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       handleLinkPort(jobRecordService.find(sourceNodeId, contextId), link.getSource(), true);
       handleLinkPort(jobRecordService.find(destinationNodeId, contextId), link.getDestination(), false);
     }
+    for (DAGNode node : containerNode.getChildren()) {
+      String newJobId = InternalSchemaHelper.concatenateIds(job.getId(), InternalSchemaHelper.getLastPart(node.getId()));   
+      JobRecord childJob = jobRecordService.find(newJobId, contextId);
+      if(childJob.isReady() && !childJob.isContainer()){
+        JobStatusEvent jobStatusEvent = new JobStatusEvent(childJob.getId(), job.getRootId(), JobRecord.JobState.READY, job.getRootId(), null);
+        try {
+          eventProcessor.send(jobStatusEvent);
+        } catch (EventHandlerException e) {
+          logger.error("Failed to start ready job:"+childJob.getId(), e);
+        }
+      }
+    }
   }
 
   /**

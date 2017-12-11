@@ -15,6 +15,8 @@ public abstract class LinkRecordRepository {
 
   public abstract void deleteByDestinationIdAndType(String destinationId, LinkPortType linkPortType, UUID rootId);
 
+  public abstract void delete(String jobId, UUID rootId);
+
   public abstract int insert(LinkRecord linkRecord);
 
   public abstract int update(LinkRecord linkRecord);

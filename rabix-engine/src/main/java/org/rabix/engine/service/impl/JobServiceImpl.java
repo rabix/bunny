@@ -196,6 +196,7 @@ public class JobServiceImpl implements JobService {
       update(job);
     } else {
       logger.warn("Unknown job {}. Nothing to stop.", id);
+      garbageCollectionService.forceGc(id);
     }
   }
 
@@ -375,8 +376,8 @@ public class JobServiceImpl implements JobService {
             .collect(groupingBy(jobEntity -> jobEntity.getJob().getRootId()));
   }
 
-  private Map<String, List<JobEntity>> groupByProducedBy(List<JobEntity> jobEntities) {
-    return jobEntities.stream().collect(groupingBy(JobEntity::getProducedByNode));
+  private Map<Optional<String>, List<JobEntity>> groupByProducedBy(List<JobEntity> jobEntities) {
+    return jobEntities.stream().collect(groupingBy(jobEntity -> Optional.ofNullable(jobEntity.getProducedByNode())));
   }
 
   private UUID getGroupIdOfFirstOrNull(List<JobEntity> jobEntityList){

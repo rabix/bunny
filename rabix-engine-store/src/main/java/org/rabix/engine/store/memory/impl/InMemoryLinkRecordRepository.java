@@ -40,6 +40,15 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   }
 
   @Override
+  public void delete(String jobId, UUID rootId) {
+    Collection<LinkRecord> linkRecords = linkRecordRepository.get(rootId);
+    if (linkRecords != null) {
+      linkRecords.removeIf(linkRecord ->
+              linkRecord.getDestinationJobId().equals(jobId) || linkRecord.getSourceJobId().equals(jobId));
+    }
+  }
+
+  @Override
   public int insert(LinkRecord linkRecord) {
     insertLinkRecord(linkRecord);
     return 1;

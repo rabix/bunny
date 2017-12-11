@@ -34,10 +34,16 @@ public class ContextRecordServiceImpl implements ContextRecordService {
     if (contextRecord == null) {
       contextRecord = contextRecordRepository.get(id);
     }
+
+    if (contextRecord != null) {
+      contextRecordCache.put(id, contextRecord);
+    }
+
     return contextRecord;
   }
 
   public void delete(UUID id) {
     contextRecordRepository.delete(id);
+    contextRecordCache.remove(id);
   }
 }
