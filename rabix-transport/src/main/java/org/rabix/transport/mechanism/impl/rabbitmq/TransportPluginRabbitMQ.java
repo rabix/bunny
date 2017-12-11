@@ -1,11 +1,5 @@
 package org.rabix.transport.mechanism.impl.rabbitmq;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import com.rabbitmq.client.*;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.json.BeanSerializer;
@@ -16,9 +10,13 @@ import org.rabix.transport.mechanism.TransportPluginType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.concurrent.*;
+
 public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRabbitMQ> {
 
   public static final String DEFAULT_ENCODING = "UTF-8";
+  public static final String CONSUMER_THREAD_PREFIX = "TransportPluginRabbitMQConsumerThread-";
   public static final int RETRY_TIMEOUT = 5; // Seconds
 
   private static final Logger logger = LoggerFactory.getLogger(TransportPluginRabbitMQ.class);
@@ -28,8 +26,10 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
   private Configuration configuration;
 
   private ConcurrentMap<TransportQueueRabbitMQ, Receiver<?>> receivers = new ConcurrentHashMap<>();
-  
+
   private ExecutorService receiverThreadPool = Executors.newCachedThreadPool();
+
+  private ThreadLocal<Channel> channels = new ThreadLocal<>();
 
   private boolean durable;
 
@@ -70,10 +70,35 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
         }
       }
       durable = TransportConfigRabbitMQ.durableQueues(configuration);
-      connection = factory.newConnection();
+      connection = factory.newConnection(getConsumersExecutor());
     } catch (Exception e) {
       throw new TransportPluginException("Failed to initialize TransportPluginRabbitMQ", e);
     }
+  }
+
+  private ExecutorService getConsumersExecutor() {
+    int nThreads = TransportConfigRabbitMQ.consumersThreadPoolSize(configuration);
+    ThreadFactory threadFactory = new ThreadFactory() {
+      int threadNum;
+      @Override
+      public Thread newThread(Runnable runnable) {
+        return new Thread(runnable, CONSUMER_THREAD_PREFIX + ++threadNum);
+      }
+    };
+    return Executors.newFixedThreadPool(nThreads, threadFactory);
+  }
+
+  private Channel getChannel() throws TransportPluginException {
+    Channel channel = channels.get();
+    if (channel == null) {
+      try {
+        channel = connection.createChannel();
+        channels.set(channel);
+      } catch (IOException e) {
+        throw new TransportPluginException("Failed to create new channel.", e);
+      }
+    }
+    return channel;
   }
 
   /**
@@ -150,40 +175,28 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
 
   @Override
   public <T> ResultPair<T> send(TransportQueueRabbitMQ queue, T entity) {
-    Channel channel = null;
     String payload = BeanSerializer.serializeFull(entity);
-    try {
+    while (true) {
+      try {
+        getChannel().basicPublish(queue.getExchange(), queue.getRoutingKey(), MessageProperties.PERSISTENT_TEXT_PLAIN, payload.getBytes(DEFAULT_ENCODING));
+        return ResultPair.success();
+      } catch (Exception e) {
+        logger.error("Failed to send a message to " + queue, e);
 
-      while (true) {
-        try {
-          channel = connection.createChannel();
-          channel.basicPublish(queue.getExchange(), queue.getRoutingKey(), MessageProperties.PERSISTENT_TEXT_PLAIN, payload.getBytes(DEFAULT_ENCODING));
-          return ResultPair.success();
-        } catch (Exception e) {
-          logger.error("Failed to send a message to " + queue, e);
-
-          while (true) {
-            try {
-              Thread.sleep(RETRY_TIMEOUT*1000);
-            } catch (InterruptedException e1) {
-              // Ignore
-            }
-
-            try {
-              initConnection();
-              logger.info("Reconnected to {}", queue);
-              break;
-            } catch (TransportPluginException e1) {
-              logger.info("Sender reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
-            }
+        while (true) {
+          try {
+            Thread.sleep(RETRY_TIMEOUT*1000);
+          } catch (InterruptedException e1) {
+            // Ignore
           }
-        }
-      }
-    } finally {
-      if (channel != null) {
-        try {
-          channel.close();
-        } catch (Exception ignore) {
+
+          try {
+            initConnection();
+            logger.info("Reconnected to {}", queue);
+            break;
+          } catch (TransportPluginException e1) {
+            logger.info("Sender reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
+          }
         }
       }
     }
@@ -205,7 +218,7 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
       }
     });
   }
-  
+
   @Override
   public void stopReceiver(TransportQueueRabbitMQ queue) {
     Receiver<?> receiver = receivers.get(queue);
@@ -233,60 +246,55 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
     }
 
     void start() {
-      QueueingConsumer consumer = null;
-
+      DefaultConsumer consumer;
       String queueName = queue.getQueueName();
-      boolean initChannel = true;
 
-        while (!isStopped) {
-          try {
-            if (initChannel) {
-              final Channel channel = connection.createChannel();
-              consumer = new QueueingConsumer(channel) {
-                @Override public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-                  String message = new String(body, "UTF-8");
-                  try {
-                    callback.handleReceive(BeanSerializer.deserialize(message, clazz));
-                  } catch (TransportPluginException e) {
-                    throw new IOException();
-                  }
+      try {
+        Channel channel = connection.createChannel();
+        channel.basicQos(configuration.getInt("rabbitmq.prefetch.count", 1000));
+
+        consumer = new DefaultConsumer(channel) {
+          @Override
+          public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+            String message = new String(body, "UTF-8");
+            try {
+              callback.handleReceive(BeanSerializer.deserialize(message, clazz), () -> {
+                try {
                   channel.basicAck(envelope.getDeliveryTag(), false);
+                } catch (IOException e) {
+                  reconnect(queueName);
                 }
-              };
-
-              channel.basicConsume(queueName, false, consumer);
-              initChannel = false;
-            }
-            consumer.nextDelivery();
-          } catch (BeanProcessorException e) {
-            logger.error("Failed to deserialize message payload", e);
-            errorCallback.handleError(e);
-          } catch (Exception e) {
-            while (!isStopped) {
-              try {
-                logger.error("Failed to receive a message from " + queue, e);
-                Thread.sleep(RETRY_TIMEOUT * 1000);
-              } catch (InterruptedException e1) {
-                // Ignore
-              }
-
-              try {
-                initConnection();
-                logger.info("Reconnected to {}", queueName);
-                initChannel = true;
-                break;
-              } catch (TransportPluginException e1) {
-                logger.info("Receiver reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
-              }
+              });
+            } catch (TransportPluginException e) {
+              logger.error("Could not handle receive", e);
+              channel.basicNack(envelope.getDeliveryTag(), false, false);
             }
           }
-        }
-
+        };
+        channel.basicConsume(queueName, false, consumer);
+      } catch (BeanProcessorException e) {
+        logger.error("Failed to deserialize message payload", e);
+        errorCallback.handleError(e);
+      } catch (Exception e) {
+        reconnect(queueName);
+      }
     }
+
     void stop() {
       isStopped = true;
     }
 
+    private void reconnect(String queueName) {
+      while (!isStopped) {
+        try {
+          Thread.sleep(RETRY_TIMEOUT * 1000);
+          initConnection();
+          logger.info("Reconnected to {}", queueName);
+          break;
+        } catch (Exception e) {
+          logger.info("Receiver reconnect failed. Trying again in {} seconds.", RETRY_TIMEOUT);
+        }
+      }
+    }
   }
-
 }

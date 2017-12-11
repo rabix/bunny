@@ -1,10 +1,5 @@
 package org.rabix.transport.mechanism.impl.local;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.VMQueues;
 import org.rabix.common.json.BeanSerializer;
@@ -15,14 +10,19 @@ import org.rabix.transport.mechanism.TransportPluginType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class TransportPluginLocal implements TransportPlugin<TransportQueueLocal> {
 
   private static final Logger logger = LoggerFactory.getLogger(TransportPluginLocal.class);
-  
+
   private ConcurrentMap<TransportQueueLocal, Receiver<?>> receivers = new ConcurrentHashMap<>();
-  
+
   private ExecutorService receiverThreadPool = Executors.newCachedThreadPool();
-  
+
   public TransportPluginLocal(Configuration configuration) throws TransportPluginException {
   }
 
@@ -62,7 +62,7 @@ public class TransportPluginLocal implements TransportPlugin<TransportQueueLocal
       receivers.remove(queue);
     }
   }
-  
+
   private class Receiver<T> {
 
     private Class<T> clazz;
@@ -83,7 +83,7 @@ public class TransportPluginLocal implements TransportPlugin<TransportQueueLocal
       try {
         while (!isStopped) {
           String payload = VMQueues.<String> getQueue(queue.getQueue()).take();
-          callback.handleReceive(BeanSerializer.deserialize(payload, clazz));
+          callback.handleReceive(BeanSerializer.deserialize(payload, clazz), () -> {});
         }
       } catch (InterruptedException e) {
         logger.error("Failed to receive a message from " + queue, e);

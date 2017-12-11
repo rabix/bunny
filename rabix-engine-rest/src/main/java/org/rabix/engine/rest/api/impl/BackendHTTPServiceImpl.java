@@ -34,7 +34,9 @@ public class BackendHTTPServiceImpl implements BackendHTTPService {
   @POST
   public Response create(Backend backend) {
     try {
-      return ok(backendService.create(backend));
+      Backend create = backendService.create(backend);
+      backendService.startBackend(backend);
+      return ok(create);
     } catch (Exception e) {
       logger.error("Failed to create Backend", e);
       return error();

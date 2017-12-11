@@ -1,36 +1,41 @@
 package org.rabix.engine.processor.impl;
 
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.event.Event;
+import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.processor.EventProcessor;
+import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class MultiEventProcessorImpl implements EventProcessor {
 
   private final static Logger logger = LoggerFactory.getLogger(MultiEventProcessorImpl.class);
-  
+
   private int eventProcessorCount;
-  
+
   private final ConcurrentMap<Integer, EventProcessorImpl> eventProcessors;
 
   private volatile boolean isRunning = false;
-  
+
   @Inject
-  public MultiEventProcessorImpl(Provider<EventProcessorImpl> singleEventProcessorProvider, Configuration configuration) {
+  public MultiEventProcessorImpl(Provider<EventProcessorImpl> singleEventProcessorProvider,
+                                 Configuration configuration,
+                                 MetricsHelper metricsHelper) {
     this.eventProcessorCount = configuration.getInt("engine.event_processor.count", Runtime.getRuntime().availableProcessors());
     this.eventProcessors = new ConcurrentHashMap<>(eventProcessorCount);
     for (int i = 0; i < eventProcessorCount; i++) {
       this.eventProcessors.put(i, singleEventProcessorProvider.get());
     }
+
+    metricsHelper.gauge(this::eventsQueueSize, "EventProcessorImpl.events.queue.size");
   }
 
   @Override
@@ -58,17 +63,43 @@ public class MultiEventProcessorImpl implements EventProcessor {
   public void addToQueue(Event event) {
     getEventProcessor(event.getContextId()).addToQueue(event);
   }
-  
+
+
   @Override
   public void persist(Event event) {
     getEventProcessor(event.getContextId()).persist(event);
   }
-  
+
+  @Override
+  public boolean hasWork() {
+    return eventProcessors.values().stream().anyMatch(EventProcessorImpl::hasWork);
+  }
+
+  @Override
+  public void setEventHandlingMode(EventHandler.EventHandlingMode mode) {
+    eventProcessors.values().forEach(eventProcessor -> eventProcessor.setEventHandlingMode(mode));
+  }
+
+  @Override
+  public boolean isReplayMode() {
+    return eventProcessors.values().stream().allMatch(EventProcessorImpl::isReplayMode);
+  }
+
+  @Override
+  public int eventsQueueSize() {
+    return eventProcessors.values().stream().mapToInt(EventProcessor::eventsQueueSize).sum();
+  }
+
   @Override
   public void addToExternalQueue(Event event) {
-    getEventProcessor(event.getContextId()).addToExternalQueue(event);
+    addToExternalQueue(event, null);
   }
-  
+
+  @Override
+  public void addToExternalQueue(Event event, Runnable onProcessed) {
+    getEventProcessor(event.getContextId()).addToExternalQueue(event, onProcessed);
+  }
+
   @Override
   public boolean isRunning() {
     return isRunning;
@@ -76,14 +107,13 @@ public class MultiEventProcessorImpl implements EventProcessor {
 
   /**
    * Gets {@link EventProcessor} based on Root ID
-   * TODO: discuss load balancing algorithm 
-   * 
+   * TODO: discuss load balancing algorithm
+   *
    * @param rootId  Root ID
    * @return        EventProcessor instance
    */
   private EventProcessor getEventProcessor(UUID rootId) {
     int index = EventProcessorDispatcher.dispatch(rootId, eventProcessorCount);
-    logger.debug("Root Job {} goes to EventProcessor {}", rootId, index);
     return eventProcessors.get(index);
   }
 

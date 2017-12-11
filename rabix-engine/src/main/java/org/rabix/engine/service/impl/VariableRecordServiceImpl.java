@@ -2,96 +2,48 @@ package org.rabix.engine.service.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.store.cache.Cachable;
-import org.rabix.engine.store.cache.Cache;
-import org.rabix.engine.store.cache.CacheItem.Action;
-import org.rabix.engine.store.model.VariableRecord;
-import org.rabix.engine.store.model.VariableRecord.VariableRecordCacheKey;
-import org.rabix.engine.store.repository.VariableRecordRepository;
-import org.rabix.engine.service.CacheService;
 import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.store.model.VariableRecord;
+import org.rabix.engine.store.repository.VariableRecordRepository;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class VariableRecordServiceImpl implements VariableRecordService {
 
-  private CacheService cacheService;
-  private VariableRecordRepository variableRecordRepository;
+  private VariableRecordRepository repo;
 
   @Inject
-  public VariableRecordServiceImpl(VariableRecordRepository variableRecordRepository, CacheService cacheService) {
-    this.cacheService = cacheService;
-    this.variableRecordRepository = variableRecordRepository;
+  public VariableRecordServiceImpl(VariableRecordRepository variableRecordRepository) {
+    this.repo = variableRecordRepository;
   }
-  
+
   public void create(VariableRecord variableRecord) {
-    Cache cache = cacheService.getCache(variableRecord.getRootId(), VariableRecord.CACHE_NAME);
-    cache.put(variableRecord, Action.INSERT);
+    repo.insert(variableRecord);
   }
-  
+
   public void update(VariableRecord variableRecord) {
-    Cache cache = cacheService.getCache(variableRecord.getRootId(), VariableRecord.CACHE_NAME);
-    cache.put(variableRecord, Action.UPDATE);
+    repo.update(variableRecord);
   }
-  
+
   public List<VariableRecord> find(String jobId, LinkPortType type, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, VariableRecord.CACHE_NAME);
-    List<VariableRecord> fromCache = Lists.transform(cache.get(new VariableRecordCacheKey(jobId, null, rootId, type)), new Function<Cachable, VariableRecord>() {
-      @Override
-      public VariableRecord apply(Cachable input) {
-        return (VariableRecord) input;
-      }
-    });
-    List<VariableRecord> fromDB = variableRecordRepository.getByType(jobId, type, rootId);
-    for (VariableRecord variableRecord : fromDB) {
-      cache.putIfAbsent(variableRecord, Action.NOOP);
-    }
-    Set<VariableRecord> result = new HashSet<>();
-    result.addAll(fromCache);
-    result.addAll(fromDB);
-    return new ArrayList<VariableRecord>(result);
+    return repo.getByType(jobId, type, rootId);
   }
-  
+
   public List<VariableRecord> find(String jobId, String portId, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, VariableRecord.CACHE_NAME);
-    List<VariableRecord> fromCache = Lists.transform(cache.get(new VariableRecordCacheKey(jobId, portId, rootId, null)), new Function<Cachable, VariableRecord>() {
-      @Override
-      public VariableRecord apply(Cachable input) {
-        return (VariableRecord) input;
-      }
-    });
-    List<VariableRecord> fromDB = variableRecordRepository.getByPort(jobId, portId, rootId);
-    for (VariableRecord variableRecord : fromDB) {
-      cache.putIfAbsent(variableRecord, Action.NOOP);
-    }
-    Set<VariableRecord> result = new HashSet<>();
-    result.addAll(fromCache);
-    result.addAll(fromDB);
-    return new ArrayList<VariableRecord>(result);
+    return repo.getByPort(jobId, portId, rootId);
   }
 
   public VariableRecord find(String jobId, String portId, LinkPortType type, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, VariableRecord.CACHE_NAME);
-    List<Cachable> records = cache.get(new VariableRecordCacheKey(jobId, portId, rootId, type));
-    if (!records.isEmpty()) {
-      return (VariableRecord) records.get(0);
-    }
-    VariableRecord record = variableRecordRepository.get(jobId, portId, type, rootId);
-    cache.put(record, Action.NOOP);
-    return record;
+    return repo.get(jobId, portId, type, rootId);
   }
 
   @SuppressWarnings("unchecked")
   public void addValue(VariableRecord variableRecord, Object value, Integer position, boolean wrap) {
-    variableRecord.setNumberOfTimesUpdated(variableRecord.getNumberOfTimesUpdated()+1);
+    variableRecord.setNumberOfTimesUpdated(variableRecord.getNumberOfTimesUpdated() + 1);
 
     if (variableRecord.isDefault()) {
       variableRecord.setValue(null);
@@ -127,15 +79,15 @@ public class VariableRecordServiceImpl implements VariableRecordService {
       }
     }
   }
-  
+
   public Object linkMerge(VariableRecord variableRecord) {
     switch (variableRecord.getLinkMerge()) {
-    case merge_nested:
-      return variableRecord.getValue();
-    case merge_flattened:
-      return mergeFlatten(variableRecord.getValue());
-    default:
-      return variableRecord.getValue();
+      case merge_nested:
+        return variableRecord.getValue();
+      case merge_flattened:
+        return mergeFlatten(variableRecord.getValue());
+      default:
+        return variableRecord.getValue();
     }
   }
 
@@ -173,12 +125,12 @@ public class VariableRecordServiceImpl implements VariableRecordService {
     }
     return flattenedValues;
   }
-  
+
   public Object getValue(VariableRecord variableRecord) {
     if (variableRecord.getLinkMerge() == null) {
       return variableRecord.getValue();
     }
     return linkMerge(variableRecord);
   }
-  
+
 }

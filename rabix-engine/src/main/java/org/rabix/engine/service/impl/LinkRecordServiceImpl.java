@@ -1,164 +1,61 @@
 package org.rabix.engine.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.store.cache.Cachable;
-import org.rabix.engine.store.cache.Cache;
-import org.rabix.engine.store.cache.CacheItem.Action;
-import org.rabix.engine.store.model.LinkRecord;
-import org.rabix.engine.store.model.LinkRecord.LinkRecordCacheKey;
-import org.rabix.engine.store.repository.LinkRecordRepository;
-import org.rabix.engine.service.CacheService;
-import org.rabix.engine.service.LinkRecordService;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.repository.LinkRecordRepository;
+
+import java.util.List;
+import java.util.UUID;
 
 public class LinkRecordServiceImpl implements LinkRecordService {
 
-  private CacheService cacheService;
   private LinkRecordRepository linkRecordRepository;
-  
+
   @Inject
-  public LinkRecordServiceImpl(LinkRecordRepository linkRecordRepository, CacheService cacheService) {
-    this.cacheService = cacheService;
+  public LinkRecordServiceImpl(LinkRecordRepository linkRecordRepository) {
     this.linkRecordRepository = linkRecordRepository;
   }
-  
+
   public void create(LinkRecord link) {
-    Cache cache = cacheService.getCache(link.getRootId(), LinkRecord.CACHE_NAME);
-    cache.put(link, Action.INSERT);
+    linkRecordRepository.insert(link);
   }
 
   public List<LinkRecord> findBySourceJobId(String jobId, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
-    List<LinkRecord> fromCache = Lists.transform(
-        cache.get(new LinkRecordCacheKey(rootId, jobId, null, null, null, null, null)),
-        new Function<Cachable, LinkRecord>() {
-          @Override
-          public LinkRecord apply(Cachable input) {
-            return (LinkRecord) input;
-          }
-        });
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceJobId(jobId, rootId);
-    Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromCache);
-    result.addAll(fromDB);
-    return new ArrayList<>(result);
+    return linkRecordRepository.getBySourceJobId(jobId, rootId);
   }
 
   public List<LinkRecord> findBySourceAndSourceType(String jobId, LinkPortType varType, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
-    List<LinkRecord> fromCache = Lists.transform(
-        cache.get(new LinkRecordCacheKey(rootId, jobId, null, varType, null, null, null)),
-        new Function<Cachable, LinkRecord>() {
-          @Override
-          public LinkRecord apply(Cachable input) {
-            return (LinkRecord) input;
-          }
-        });
-    ;
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, varType, rootId);
-    Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromCache);
-    result.addAll(fromDB);
-    return new ArrayList<>(result);
+    return linkRecordRepository.getBySourceAndSourceType(jobId, varType, rootId);
   }
-  
+
   public List<LinkRecord> findBySource(String jobId, String portId, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
-    List<LinkRecord> fromCache = Lists.transform(
-        cache.get(new LinkRecordCacheKey(rootId, jobId, portId, null, null, null, null)),
-        new Function<Cachable, LinkRecord>() {
-          @Override
-          public LinkRecord apply(Cachable input) {
-            return (LinkRecord) input;
-          }
-        });
-    ;
-    List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, portId, rootId);
-    Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromCache);
-    result.addAll(fromDB);
-    return new ArrayList<>(result);
+    return linkRecordRepository.getBySource(jobId, portId, rootId);
   }
-  
+
   public int findBySourceCount(String jobId, String portId, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
-    List<LinkRecord> fromCache = Lists.transform(
-        cache.get(new LinkRecordCacheKey(rootId, jobId, portId, null, null, null, null)),
-        new Function<Cachable, LinkRecord>() {
-          @Override
-          public LinkRecord apply(Cachable input) {
-            return (LinkRecord) input;
-          }
-        });
-    ;
-    int countFromDB = linkRecordRepository.getBySourceCount(jobId, portId, rootId);
-    return fromCache.size() > countFromDB ? fromCache.size() : countFromDB;
+    return linkRecordRepository.getBySourceCount(jobId, portId, rootId);
   }
-  
-  
+
+
   public List<LinkRecord> findBySourceAndDestinationType(String jobId, String portId, LinkPortType varType, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
-    List<LinkRecord> fromCache = Lists.transform(
-        cache.get(new LinkRecordCacheKey(rootId, jobId, portId, null, null, null, varType)),
-        new Function<Cachable, LinkRecord>() {
-          @Override
-          public LinkRecord apply(Cachable input) {
-            return (LinkRecord) input;
-          }
-        });
-    ;
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndDestinationType(jobId, portId, varType, rootId);
-    Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromCache);
-    result.addAll(fromDB);
-    return new ArrayList<>(result);
+    return linkRecordRepository.getBySourceAndDestinationType(jobId, portId, varType, rootId);
+  }
+
+  @Override
+  public void deleteInputLinks(String destinationId, UUID rootId) {
+    linkRecordRepository.deleteByDestinationIdAndType(destinationId, LinkPortType.INPUT, rootId);
   }
 
   @Override
   public List<LinkRecord> findBySource(String jobId, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
-    List<LinkRecord> fromCache = Lists.transform(
-        cache.get(new LinkRecordCacheKey(rootId, jobId, null, null, null, null, null)),
-        new Function<Cachable, LinkRecord>() {
-          @Override
-          public LinkRecord apply(Cachable input) {
-            return (LinkRecord) input;
-          }
-        });
-    ;
-    List<LinkRecord> fromDB = linkRecordRepository.getBySource(jobId, rootId);
-    Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromCache);
-    result.addAll(fromDB);
-    return fromDB;
+    return linkRecordRepository.getBySource(jobId, rootId);
   }
 
   @Override
   public List<LinkRecord> findBySourceAndSourceType(String jobId, String portId, LinkPortType varType, UUID rootId) {
-    Cache cache = cacheService.getCache(rootId, LinkRecord.CACHE_NAME);
-    List<LinkRecord> fromCache = Lists.transform(
-        cache.get(new LinkRecordCacheKey(rootId, jobId, portId, varType, null, null, null)),
-        new Function<Cachable, LinkRecord>() {
-          @Override
-          public LinkRecord apply(Cachable input) {
-            return (LinkRecord) input;
-          }
-        });
-    ;
-    List<LinkRecord> fromDB = linkRecordRepository.getBySourceAndSourceType(jobId, portId, varType, rootId);
-    Set<LinkRecord> result = new HashSet<>();
-    result.addAll(fromCache);
-    result.addAll(fromDB);
-    return new ArrayList<>(result);
+    return linkRecordRepository.getBySourceAndSourceType(jobId, portId, varType, rootId);
   }
 
 }

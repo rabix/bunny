@@ -1,6 +1,8 @@
 package org.rabix.engine.service.impl;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -8,12 +10,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.rabix.backend.api.WorkerService;
-import org.rabix.common.helper.JSONHelper;
+import org.rabix.bindings.model.Job;
 import org.rabix.common.json.BeanSerializer;
 import org.rabix.common.jvm.ClasspathScanner;
 import org.rabix.engine.service.BackendService;
 import org.rabix.engine.service.BackendServiceException;
-import org.rabix.engine.service.SchedulerService;
 import org.rabix.engine.store.model.BackendRecord;
 import org.rabix.engine.store.repository.BackendRepository;
 import org.rabix.engine.store.repository.TransactionHelper;
@@ -22,12 +23,13 @@ import org.rabix.engine.stub.BackendStub;
 import org.rabix.engine.stub.BackendStubFactory;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.Backend.BackendStatus;
-import org.rabix.transport.backend.Backend.BackendType;
 import org.rabix.transport.backend.HeartbeatInfo;
 import org.rabix.transport.backend.impl.BackendLocal;
 import org.rabix.transport.backend.impl.BackendRabbitMQ;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.BackendConfiguration;
 import org.rabix.transport.backend.impl.BackendRabbitMQ.EngineConfiguration;
+import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 import org.rabix.transport.mechanism.TransportPluginException;
 import org.rabix.transport.mechanism.impl.rabbitmq.TransportConfigRabbitMQ;
 import org.slf4j.Logger;
@@ -40,7 +42,8 @@ public class BackendServiceImpl implements BackendService {
 
   private final static Logger logger = LoggerFactory.getLogger(BackendServiceImpl.class);
 
-  private final SchedulerService scheduler;
+  private Set<BackendStub> backendStubs;
+
   private final BackendStubFactory backendStubFactory;
   private final TransactionHelper transactionHelper;
   private final Configuration configuration;
@@ -48,16 +51,23 @@ public class BackendServiceImpl implements BackendService {
   private final BackendRepository backendRepository;
   
   private final Injector injector;
+
+  private ReceiveCallback<Job> jobReceiver;
+  private ErrorCallback errorCallback;
   
   @Inject
-  public BackendServiceImpl(BackendStubFactory backendStubFactory, SchedulerService backendDispatcher,
-      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration, Injector injector) {
-    this.injector = injector;
-    this.scheduler = backendDispatcher;
+  public BackendServiceImpl(BackendStubFactory backendStubFactory,
+      TransactionHelper transactionHelper, BackendRepository backendRepository, Configuration configuration, Injector injector, ReceiveCallback<Job> jobReceiver) {
+    this.injector = injector;;
     this.backendStubFactory = backendStubFactory;
     this.transactionHelper = transactionHelper;
     this.configuration = configuration;
     this.backendRepository = backendRepository;
+    this.backendStubs = Collections.synchronizedSet(new HashSet<>());
+    this.jobReceiver = jobReceiver;
+    this.errorCallback = (Exception e)->{
+      
+    };
   }
   
   @Override
@@ -72,6 +82,7 @@ public class BackendServiceImpl implements BackendService {
           injector.injectMembers(backendAPI);
           BackendLocal backendLocal = new BackendLocal(Integer.toString(prefix++));
           create(backendLocal);
+          startBackend(backendLocal);
           backendAPI.start(backendLocal);
         }
       } catch (InstantiationException | IllegalAccessException | BackendServiceException e) {
@@ -93,12 +104,10 @@ public class BackendServiceImpl implements BackendService {
                 backend.getId(),
                 backend.getName(),
                 Instant.now(),
-                JSONHelper.convertToMap(backend),
+                BeanSerializer.serializePartial(backend),
                 BackendRecord.Status.ACTIVE,
                 BackendRecord.Type.valueOf(backend.getType().toString()));
             backendRepository.insert(br);
-            BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
-            scheduler.addBackendStub(backendStub);
             logger.info("Backend {} registered.", populated.getId());
             return backend;
           } catch (BackendServiceException e) {
@@ -115,7 +124,12 @@ public class BackendServiceImpl implements BackendService {
     try {
       backendRepository.updateStatus(backend.getId(), BackendRecord.Status.ACTIVE);
       updateHeartbeatInfo(backend.getId(), Instant.now());
-      scheduler.addBackendStub(backendStubFactory.create(backend));
+      BackendStub<?, ?, ?> backendStub = backendStubFactory.create(backend);
+      
+      backendStub.start(info -> {
+        updateHeartbeatInfo(backendStub.getBackend().getId(), Instant.ofEpochMilli(info.getTimestamp()));
+      }, jobReceiver, errorCallback);
+      this.backendStubs.add(backendStub);
     } catch (TransportPluginException e) {
       throw new BackendServiceException(e);
     }
@@ -189,14 +203,26 @@ public class BackendServiceImpl implements BackendService {
   @Override
   public List<Backend> getActiveBackends() {
     return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().map(
-        br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
+        br -> {
+          Backend backend = BeanSerializer.deserialize(br.getBackendConfig(), Backend.class);
+          backend.setId(br.getId());
+          backend.setName(br.getName());
+          backend.setStatus(BackendStatus.ACTIVE);
+          return backend;
+        }
     ).collect(Collectors.toList());
   }
 
   @Override
   public List<Backend> getActiveRemoteBackends() {
     return backendRepository.getByStatus(BackendRecord.Status.ACTIVE).stream().filter(b -> !b.getType().equals(BackendRecord.Type.LOCAL))
-        .map(br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)).collect(Collectors.toList());
+        .map(br -> {
+          Backend backend = BeanSerializer.deserialize(br.getBackendConfig(), Backend.class);
+          backend.setId(br.getId());
+          backend.setName(br.getName());
+          backend.setStatus(BackendStatus.ACTIVE);
+          return backend;
+        }).collect(Collectors.toList());
   }
 
   @Override
@@ -206,9 +232,13 @@ public class BackendServiceImpl implements BackendService {
 
   @Override
   public List<Backend> getAllBackends() {
-    return backendRepository.getAll().stream().map(
-        br -> JSONHelper.convertToObject(br.getBackendConfig(), Backend.class)
-    ).collect(Collectors.toList());
+    return backendRepository.getAll().stream().map(br -> {
+      Backend backend = BeanSerializer.deserialize(br.getBackendConfig(), Backend.class);
+      backend.setId(br.getId());
+      backend.setName(br.getName());
+      backend.setStatus(BackendStatus.ACTIVE);
+      return backend;
+    }).collect(Collectors.toList());
   }
 
   @Override
@@ -221,5 +251,11 @@ public class BackendServiceImpl implements BackendService {
     }
     return false;
   }
-  
+
+  @Override
+  public void sendToExecution(Job job) {
+    synchronized (backendStubs) {
+      backendStubs.iterator().next().send(job);
+    }
+  }
 }

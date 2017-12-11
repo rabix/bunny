@@ -49,13 +49,13 @@ public class JobHelper {
   private DAGNodeService dagNodeService;
   @Inject
   private AppService appService;
-  
+
   private static Logger logger = LoggerFactory.getLogger(JobHelper.class);
-  
+
   public static String generateId() {
     return UUID.randomUUID().toString();
   }
-  
+
   public static JobStatus transformStatus(JobRecord.JobState state) {
     switch (state) {
     case COMPLETED:
@@ -73,7 +73,7 @@ public class JobHelper {
     }
     return null;
   }
-  
+
   public static JobRecord.JobState transformStatus(JobStatus status) {
     switch (status) {
     case COMPLETED:
@@ -93,7 +93,7 @@ public class JobHelper {
     }
     return null;
   }
-  
+
   public Set<Job> createReadyJobs(UUID rootId, boolean setResources) {
     Set<Job> jobs = new HashSet<>();
     List<JobRecord> jobRecords = jobRecordService.findReady(rootId);
@@ -105,12 +105,12 @@ public class JobHelper {
         } catch (BindingException e) {
           logger.debug("Failed to create job", e);
         }
-        
+
       }
     }
     return jobs;
   }
-  
+
   public Job createReadyJob(JobRecord jobRecord, JobStatus status, boolean setResources) throws BindingException {
     Job job = createJob(jobRecord, status, true);
     if (setResources) {
@@ -128,11 +128,11 @@ public class JobHelper {
     }
     return job;
   }
-  
+
   public Job createJob(JobRecord job, JobStatus status) throws BindingException {
     return createJob(job, status, getOutputs(job));
   }
-  
+
   public Job createJob(JobRecord job, JobStatus status, Map<String, Object> outputs) throws BindingException {
     Job completedJob;
     if(job.isContainer() || job.isScatterWrapper()) {
@@ -147,20 +147,20 @@ public class JobHelper {
   public Job createJob(JobRecord job, JobStatus status, boolean processVariables) throws BindingException {
     DAGNode node = dagNodeService.get(InternalSchemaHelper.normalizeId(job.getId()), job.getRootId(), job.getDagHash());
 
-    
+
     Map<String, Object> inputs = new HashMap<>();
-    
+
     List<VariableRecord> inputVariables = variableRecordService.find(job.getId(), LinkPortType.INPUT, job.getRootId());
-    
+
     Map<String, Object> preprocesedInputs = new HashMap<>();
     for (VariableRecord inputVariable : inputVariables) {
       Object value = variableRecordService.getValue(inputVariable);
       preprocesedInputs.put(inputVariable.getPortId(), value);
     }
-    
+
     ContextRecord contextRecord = contextRecordService.find(job.getRootId());
     String encodedApp = URIHelper.createDataURI(JSONHelper.writeObject(appService.get(node.getAppHash())));
-    
+
     Job newJob = new Job(job.getExternalId(), job.getParentId(), job.getRootId(), job.getId(), encodedApp, status, null, preprocesedInputs, null, contextRecord.getConfig(), null, null);
     if (processVariables) {
       inputs = processVariables(node, inputVariables, encodedApp, newJob);
@@ -173,13 +173,13 @@ public class JobHelper {
   private Map<String, Object> processVariables(DAGNode node, List<VariableRecord> inputVariables, String encodedApp, Job newJob) throws BindingException {
 
     boolean autoBoxingEnabled = false;   // get from configuration
-    
+
     Application application = appService.get(node.getAppHash());
 
     Map<String, Object> inputs = new HashMap<>();
     try {
         Bindings bindings = BindingsFactory.create(encodedApp);
-        
+
         for (VariableRecord inputVariable : inputVariables) {
           Object value = CloneHelper.deepCopy(variableRecordService.getValue(inputVariable));
           ApplicationPort port = application.getInput(inputVariable.getPortId());
@@ -213,7 +213,7 @@ public class JobHelper {
     }
     return inputs;
   }
-  
+
   public Job fillOutputs(Job job) {
     JobRecord jobRecord = jobRecordService.findRoot(job.getRootId());
     Map<String, Object> outputs = getOutputs(jobRecord);
@@ -222,7 +222,7 @@ public class JobHelper {
 
   private Map<String, Object> getOutputs(JobRecord jobRecord) {
     List<VariableRecord> outputVariables = variableRecordService.find(jobRecord.getId(), LinkPortType.OUTPUT, jobRecord.getRootId());
-    
+
     Map<String, Object> outputs = new HashMap<>();
     for (VariableRecord outputVariable : outputVariables) {
       outputs.put(outputVariable.getPortId(), variableRecordService.getValue(outputVariable));

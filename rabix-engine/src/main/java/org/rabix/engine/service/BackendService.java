@@ -4,8 +4,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.rabix.bindings.model.Job;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.HeartbeatInfo;
+import org.rabix.transport.mechanism.TransportPlugin.ErrorCallback;
+import org.rabix.transport.mechanism.TransportPlugin.ReceiveCallback;
 
 public interface BackendService {
 
@@ -32,5 +35,7 @@ public interface BackendService {
   List<Backend> getActiveRemoteBackends();
   
   List<Backend> getAllBackends();
+  
+  public void sendToExecution(Job job);
 
 }

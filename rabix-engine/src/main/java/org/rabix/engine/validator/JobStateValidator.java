@@ -1,15 +1,11 @@
 package org.rabix.engine.validator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.rabix.engine.store.model.JobRecord;
 
+import java.util.*;
+
 public class JobStateValidator {
-  
+
   private static Map<JobRecord.JobState, List<JobRecord.JobState>> transitions = new HashMap<JobRecord.JobState, List<JobRecord.JobState>>();
 
   static {
@@ -35,16 +31,16 @@ public class JobStateValidator {
     List<JobRecord.JobState> transitionFromAborted = new ArrayList<JobRecord.JobState>();
     transitionFromAborted.add(JobRecord.JobState.COMPLETED);
     transitions.put(JobRecord.JobState.ABORTED, transitionFromAborted);
-    
+
     transitions = Collections.unmodifiableMap(transitions);
   }
-  
+
   public static JobRecord.JobState checkState(JobRecord jobRecord, JobRecord.JobState jobState) throws JobStateValidationException {
     return checkState(jobRecord.getState(), jobState);
   }
-  
+
   public static JobRecord.JobState checkState(JobRecord.JobState currentState, JobRecord.JobState jobState) throws JobStateValidationException {
-    if (transitions.get(currentState).contains(jobState)) {
+    if (currentState.equals(jobState) || transitions.get(currentState).contains(jobState)) {
       return jobState;
     } else {
       throw new JobStateValidationException("Job state cannot transition from " + currentState + " to " + jobState);
