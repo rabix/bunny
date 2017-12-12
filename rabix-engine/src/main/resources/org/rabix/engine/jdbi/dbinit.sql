@@ -254,13 +254,37 @@ CREATE INDEX context_record_id_index ON context_record USING btree (id);
 CREATE INDEX context_record_status_index ON context_record USING btree (status);
 --rollback DROP INDEX context_record_status_index;
 
+--changeset bunny:1487849040814-30 dbms:postgresql
+CREATE UNIQUE INDEX event_id_type_index ON event USING btree (id, type);
+--rollback DROP INDEX event_id_type_index;
+
+--changeset bunny:1487849040814-31 dbms:postgresql
+CREATE INDEX event_status_index ON event USING btree (status);
+--rollback DROP INDEX event_status_index;
+
+--changeset bunny:1487849040814-32 dbms:postgresql
+CREATE INDEX job_backend_index ON job USING btree (backend_id);
+--rollback DROP INDEX job_backend_index;
+
 --changeset bunny:1487849040814-33 dbms:postgresql
 CREATE INDEX job_backend_status_index ON job USING btree (backend_id, status);
 --rollback DROP INDEX job_backend_status_index;
 
+--changeset bunny:1487849040814-34 dbms:postgresql
+CREATE INDEX job_backend_status_root_index ON job USING btree (backend_id, status, root_id);
+--rollback DROP INDEX job_backend_status_root_index;
+
+--changeset bunny:1487849040814-35 dbms:postgresql
+CREATE INDEX job_group_index ON job USING btree (group_id);
+--rollback DROP INDEX job_group_index;
+
 --changeset bunny:1487849040814-36 dbms:postgresql
 CREATE INDEX job_id_index ON job USING btree (id);
 --rollback DROP INDEX job_id_index;
+
+--changeset bunny:1487849040814-37 dbms:postgresql
+CREATE INDEX job_parent_index ON job USING btree (parent_id);
+--rollback DROP INDEX job_parent_index;
 
 --changeset bunny:1487849040814-38 dbms:postgresql
 CREATE UNIQUE INDEX job_record_name_index ON job_record USING btree (root_id, id);
@@ -282,6 +306,10 @@ CREATE INDEX job_record_state_index ON job_record USING btree (root_id, job_stat
 CREATE INDEX job_root_index ON job USING btree (root_id);
 --rollback DROP INDEX job_root_index;
 
+--changeset bunny:1487849040814-43 dbms:postgresql
+CREATE UNIQUE INDEX job_root_name_index ON job USING btree (root_id, name);
+--rollback DROP
+
 --changeset bunny:1487849040814-44 dbms:postgresql
 CREATE INDEX job_status_index ON job USING btree (status);
 --rollback DROP INDEX job_status_index;
@@ -294,13 +322,45 @@ CREATE INDEX link_record_context_index ON link_record USING btree (context_id);
 CREATE INDEX link_record_destination_job_index ON link_record USING btree (context_id, destination_job_id);
 --rollback DROP INDEX link_record_destination_job_index;
 
+--changeset bunny:1487849040814-47 dbms:postgresql
+CREATE UNIQUE INDEX link_record_index ON link_record USING btree (context_id, source_job_id, source_job_port_id, source_type, destination_job_id, destination_job_port_id, destination_type);
+--rollback DROP INDEX link_record_index;
+
+--changeset bunny:1487849040814-48 dbms:postgresql
+CREATE INDEX link_record_source_index ON link_record USING btree (context_id, source_job_id, source_job_port_id);
+--rollback DROP INDEX link_record_source_index;
+
 --changeset bunny:1487849040814-49 dbms:postgresql
 CREATE INDEX link_record_source_job_index ON link_record USING btree (context_id, source_job_id);
 --rollback DROP INDEX link_record_source_job_index;
 
+--changeset bunny:1487849040814-50 dbms:postgresql
+CREATE INDEX link_record_source_port_destination_type_index ON link_record USING btree (context_id, source_job_id, source_job_port_id, destination_type);
+--rollback DROP INDEX link_record_source_port_destination_type_index;
+
+--changeset bunny:1487849040814-51 dbms:postgresql
+CREATE INDEX link_record_source_type_index ON link_record USING btree (context_id, source_job_id, source_type);
+--rollback DROP INDEX link_record_source_type_index;
+
+--changeset bunny:1487849040814-52 dbms:postgresql
+CREATE INDEX variable_record_context_index ON variable_record USING btree (context_id);
+--rollback DROP INDEX variable_record_context_index;
+
+--changeset bunny:1487849040814-53 dbms:postgresql
+CREATE UNIQUE INDEX variable_record_index ON variable_record USING btree (job_id, port_id, type, context_id);
+--rollback DROP INDEX variable_record_index;
+
 --changeset bunny:1487849040814-54 dbms:postgresql
 CREATE INDEX variable_record_job_index ON variable_record USING btree (job_id, context_id);
 --rollback DROP INDEX variable_record_job_index;
+
+--changeset bunny:1487849040814-55 dbms:postgresql
+CREATE INDEX variable_record_port_index ON variable_record USING btree (job_id, port_id, context_id);
+--rollback DROP INDEX variable_record_port_index;
+
+--changeset bunny:1487849040814-56 dbms:postgresql
+CREATE INDEX variable_record_type_index ON variable_record USING btree (job_id, type, context_id);
+--rollback DROP INDEX variable_record_type_index;
 
 --changeset bunny:1487849040814-57 dbms:postgresql
 ALTER TABLE ONLY job
@@ -378,11 +438,9 @@ alter table job alter column inputs  type bytea using convert_to(inputs::text,'U
 alter table event alter column event  type bytea using convert_to(event::text,'UTF8');
 alter table variable_record alter column value  type bytea using convert_to(value::text,'UTF8');
 
-
 --changeset bunny:1487849040814-71 dbms:postgresql
 alter table backend alter column configuration type text
 --rollback alter table backend alter column configuration type jsonb USING configuration::jsonb
-
 
 --changeset bunny:1487849040814-72 dbms:postgresql
 ALTER TABLE intermediary_files ADD CONSTRAINT key PRIMARY KEY (root_id, filename);
@@ -401,3 +459,10 @@ ALTER TABLE job_stats ADD CONSTRAINT job_stats_context_fkey FOREIGN KEY (root_id
 --changeset bunny:1487849040814-75 dbms:postgresql
 ALTER TABLE event ADD COLUMN root_id uuid;
 --rollback ALTER TABLE event drop column root_id;
+
+--changeset bunny:1487849040814-76 dbms:postgresql
+DROP INDEX event_status_index;
+DROP INDEX event_id_type_index;
+DROP INDEX backend_id_index;
+DROP INDEX context_record_id_index;
+DROP INDEX context_record_status_index;
