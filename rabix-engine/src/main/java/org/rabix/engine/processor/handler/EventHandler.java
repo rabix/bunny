@@ -7,11 +7,16 @@ import org.rabix.engine.event.Event;
  */
 public interface EventHandler<T extends Event> {
 
+  enum EventHandlingMode {
+    REPLAY,
+    NORMAL
+  }
+
   /**
    * Handles the event
    * @param event
    * @throws EventHandlerException
    */
-  void handle(T event) throws EventHandlerException;
+  void handle(T event, EventHandlingMode mode) throws EventHandlerException;
 
 }

@@ -1,12 +1,5 @@
 package org.rabix.backend.api.engine;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import org.rabix.backend.api.WorkerService;
 import org.rabix.bindings.model.Job;
 import org.rabix.common.engine.control.EngineControlFreeMessage;
@@ -19,12 +12,19 @@ import org.rabix.transport.mechanism.TransportQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T extends TransportPlugin<Q>> {
 
   public final static long DEFAULT_HEARTBEAT_TIME = 60000L;
-  
+
   protected final Logger logger = LoggerFactory.getLogger(getClass());
-  
+
   protected B backend;
   protected T transportPlugin;
 
@@ -34,18 +34,18 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
   protected Q sendToBackendControlQueue;
   protected Q receiveFromBackendQueue;
   protected Q receiveFromBackendHeartbeatQueue;
-  
-  protected Long heartbeatTimeMills;
-  
-  protected WorkerService executorService;
-  
-  public void start() {
-    transportPlugin.startReceiver(sendToBackendQueue, Job.class, 
-        job -> executorService.submit(job, job.getRootId()),
-        error -> logger.error("Failed to receive message.", error));
 
-    transportPlugin.startReceiver(sendToBackendControlQueue, EngineControlMessage.class, controlMessage -> {
-        switch (controlMessage.getType()) {
+  protected Long heartbeatTimeMills;
+
+  protected WorkerService executorService;
+
+  public void start() {
+    transportPlugin.startReceiver(sendToBackendQueue, Job.class,
+            (job, onHandled) -> executorService.submit(job, job.getRootId()),
+            error -> logger.error("Failed to receive message.", error));
+
+    transportPlugin.startReceiver(sendToBackendControlQueue, EngineControlMessage.class, (controlMessage, onHandled) -> {
+      switch (controlMessage.getType()) {
         case STOP:
           List<UUID> ids = new ArrayList<>();
           ids.add(((EngineControlStopMessage)controlMessage).getId());
@@ -56,7 +56,7 @@ public abstract class EngineStub<Q extends TransportQueue, B extends Backend, T 
           break;
         default:
           break;
-        }
+      }
     }, error -> logger.error("Failed to execute control message.", error));
 
     scheduledHeartbeatService.scheduleAtFixedRate(

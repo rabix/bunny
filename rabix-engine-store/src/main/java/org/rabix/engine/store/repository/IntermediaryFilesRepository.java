@@ -18,6 +18,8 @@ public interface IntermediaryFilesRepository {
   
   List<IntermediaryFileEntity> get(UUID rootId);
   
+  void decrement(UUID rootId, String filename);
+  
   public class IntermediaryFileEntity {
     
     UUID rootId;
@@ -54,5 +56,7 @@ public interface IntermediaryFilesRepository {
       return "IntermediaryFileEntity [filename=" + filename + ", count=" + count + "]";
     }
   }
+
+  void increment(UUID rootId, String filename);
   
 }

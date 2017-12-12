@@ -1,31 +1,25 @@
 package org.rabix.engine.store.memory.impl;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.engine.store.repository.LinkRecordRepository;
-import org.rabix.engine.store.model.JobRecord.JobIdRootIdPair;
-import org.rabix.engine.store.model.LinkRecord;
-
 import com.google.inject.Inject;
+import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
+import org.rabix.engine.store.model.LinkRecord;
+import org.rabix.engine.store.repository.LinkRecordRepository;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class InMemoryLinkRecordRepository extends LinkRecordRepository {
 
-  Map<UUID, List<LinkRecord>> linkRecordRepository;
-  
+  private final Map<UUID, Collection<LinkRecord>> linkRecordRepository;
+
   @Inject
   public InMemoryLinkRecordRepository() {
-    this.linkRecordRepository = new ConcurrentHashMap<UUID, List<LinkRecord>>();
+    this.linkRecordRepository = new ConcurrentHashMap<>();
   }
 
   @Override
-  public synchronized void insertBatch(Iterator<LinkRecord> records) {
+  public void insertBatch(Iterator<LinkRecord> records) {
     while(records.hasNext()) {
       LinkRecord record = records.next();
       insertLinkRecord(record);
@@ -33,27 +27,45 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   }
 
   @Override
-  public synchronized void updateBatch(Iterator<LinkRecord> records) {
+  public void updateBatch(Iterator<LinkRecord> records) {
+    records.forEachRemaining(this::update);
   }
 
   @Override
-  public synchronized void delete(Set<JobIdRootIdPair> pairs) {
-    
+  public void deleteByDestinationIdAndType(String destinationId, LinkPortType linkPortType, UUID rootId) {
+    Collection<LinkRecord> linkRecords = linkRecordRepository.get(rootId);
+    if (linkRecords != null) {
+      linkRecords.removeIf(linkRecord -> linkRecord.getDestinationVarType() == linkPortType && linkRecord.getDestinationJobId().equals(destinationId));
+    }
   }
 
   @Override
-  public synchronized int insert(LinkRecord linkRecord) {
+  public void delete(String jobId, UUID rootId) {
+    Collection<LinkRecord> linkRecords = linkRecordRepository.get(rootId);
+    if (linkRecords != null) {
+      linkRecords.removeIf(linkRecord ->
+              linkRecord.getDestinationJobId().equals(jobId) || linkRecord.getSourceJobId().equals(jobId));
+    }
+  }
+
+  @Override
+  public int insert(LinkRecord linkRecord) {
     insertLinkRecord(linkRecord);
     return 1;
   }
 
-  @Override 
-  public synchronized int update(LinkRecord linkRecord) {
+  @Override
+  public int update(LinkRecord linkRecord) {
     return 1;
   }
 
   @Override
-  public synchronized List<LinkRecord> getBySource(String sourceJobId, String sourceJobPortId, UUID rootId) {
+  public void deleteByRootId(UUID rootId) {
+    linkRecordRepository.remove(rootId);
+  }
+
+  @Override
+  public List<LinkRecord> getBySource(String sourceJobId, String sourceJobPortId, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
     for (LinkRecord lr : getLinkRecords(rootId)) {
       if (lr.getSourceJobId().equals(sourceJobId) && lr.getSourceJobPort().equals(sourceJobPortId)) {
@@ -63,10 +75,8 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
     return result;
   }
 
-  
-  
   @Override
-  public synchronized List<LinkRecord> getBySourceJobId(String sourceJobId, UUID rootId) {
+  public List<LinkRecord> getBySourceJobId(String sourceJobId, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
     for (LinkRecord lr : getLinkRecords(rootId)) {
       if (lr.getSourceJobId().equals(sourceJobId) && lr.getRootId().equals(rootId)) {
@@ -77,7 +87,7 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   }
 
   @Override
-  public synchronized List<LinkRecord> getBySourceAndSourceType(String sourceJobId, LinkPortType sourceType, UUID rootId) {
+  public List<LinkRecord> getBySourceAndSourceType(String sourceJobId, LinkPortType sourceType, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
     for (LinkRecord lr : getLinkRecords(rootId)) {
       if (lr.getSourceJobId().equals(sourceJobId) && lr.getSourceVarType().equals(sourceType)) {
@@ -88,7 +98,7 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
   }
 
   @Override
-  public synchronized List<LinkRecord> getBySourceAndDestinationType(String sourceJobId, String sourceJobPortId, LinkPortType destinationType, UUID rootId) {
+  public List<LinkRecord> getBySourceAndDestinationType(String sourceJobId, String sourceJobPortId, LinkPortType destinationType, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
     for (LinkRecord lr : getLinkRecords(rootId)) {
       if (lr.getSourceJobId().equals(sourceJobId) && lr.getSourceJobPort().equals(sourceJobPortId) && lr.getDestinationVarType().equals(destinationType)) {
@@ -97,16 +107,15 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
     }
     return result;
   }
-  
-  private synchronized void insertLinkRecord(LinkRecord linkRecord) {
+
+  private void insertLinkRecord(LinkRecord linkRecord) {
     getLinkRecords(linkRecord.getRootId()).add(linkRecord);
   }
-  
 
   @Override
   public List<LinkRecord> getBySource(String sourceJobId, UUID rootId) {
     List<LinkRecord> result = new ArrayList<>();
-    List<LinkRecord> links = getLinkRecords(rootId);
+    Collection<LinkRecord> links = getLinkRecords(rootId);
     for(LinkRecord link: links) {
       if(link.getSourceJobId().equals(sourceJobId)) {
         result.add(link);
@@ -114,19 +123,26 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
     }
     return new ArrayList<>(result);
   }
-  
+
+  @Override
+  public List<LinkRecord> getByDestination(String destinationJobId, UUID rootId) {
+    List<LinkRecord> result = new ArrayList<>();
+    Collection<LinkRecord> links = getLinkRecords(rootId);
+    for(LinkRecord link: links) {
+      if(link.getDestinationJobId().equals(destinationJobId)) {
+        result.add(link);
+      }
+    }
+    return new ArrayList<>(result);
+  }
+
   @Override
   public int getBySourceCount(String sourceJobId, String sourceJobPortId, UUID rootId) {
     return getBySource(sourceJobId, sourceJobPortId, rootId).size();
   }
-  
-  private List<LinkRecord> getLinkRecords(UUID contextId) {
-    List<LinkRecord> linkList = linkRecordRepository.get(contextId);
-    if (linkList == null) {
-      linkList = new ArrayList<>();
-      linkRecordRepository.put(contextId, linkList);
-    }
-    return linkList;
+
+  private Collection<LinkRecord> getLinkRecords(UUID contextId) {
+    return linkRecordRepository.computeIfAbsent(contextId, k -> new LinkedBlockingQueue<>());
   }
 
   @Override
@@ -139,5 +155,5 @@ public class InMemoryLinkRecordRepository extends LinkRecordRepository {
     }
     return result;
   }
-  
+
 }

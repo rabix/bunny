@@ -18,13 +18,13 @@ import java.util.UUID;
 public interface JDBIJobStatsRecordRepository extends JobStatsRecordRepository {
 
   @Override
-  @SqlUpdate("insert into job_stats (root_id,completed,running, total) values (:root_id,:completed,:running,:total)")
+  @SqlUpdate("insert into job_stats (root_id,completed,running, total) values (:root_id,:completed,:running,:total) on conflict do nothing")
   int insert(@BindJobStatsRecord JobStatsRecord jobStatsRecord);
-  
+
   @Override
   @SqlUpdate("update job_stats set completed=:completed,running=:running,total=:total where root_id=:root_id")
   int update(@BindJobStatsRecord JobStatsRecord jobStatsRecord);
-  
+
   @Override
   @SqlQuery("select * from job_stats where root_id=:root_id")
   JobStatsRecord get(@Bind("root_id") UUID id);
@@ -50,7 +50,7 @@ public interface JDBIJobStatsRecordRepository extends JobStatsRecordRepository {
       }
     }
   }
-  
+
   public static class JobStatsRecordMapper implements ResultSetMapper<JobStatsRecord> {
     public JobStatsRecord map(int index, ResultSet resultSet, StatementContext ctx) throws SQLException {
       UUID id = resultSet.getObject("ROOT_ID", UUID.class);

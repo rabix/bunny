@@ -16,9 +16,9 @@ public class ContextStatusEventHandler implements EventHandler<ContextStatusEven
   public ContextStatusEventHandler(ContextRecordService contextRecordService) {
     this.contextRecordService = contextRecordService;
   }
-  
+
   @Override
-  public void handle(ContextStatusEvent event) throws EventHandlerException {
+  public void handle(ContextStatusEvent event, EventHandlingMode mode) throws EventHandlerException {
     ContextRecord contextRecord = contextRecordService.find(event.getContextId());
     contextRecord.setStatus(event.getStatus());
     contextRecordService.update(contextRecord);

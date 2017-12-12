@@ -20,25 +20,25 @@ public abstract class JDBIRepositoryRegistry extends TransactionHelper {
 
   @CreateSqlObject
   public abstract JDBIAppRepository applicationRepository();
-  
+
   @CreateSqlObject
   public abstract JDBIBackendRepository backendRepository();
-  
+
   @CreateSqlObject
   public abstract JDBIDAGRepository dagRepository();
-  
+
   @CreateSqlObject
   public abstract JDBIJobRepository jobRepository();
 
   @CreateSqlObject
   public abstract JDBIJobRecordRepository jobRecordRepository();
-  
+
   @CreateSqlObject
   public abstract JDBILinkRecordRepository linkRecordRepository();
-  
+
   @CreateSqlObject
   public abstract JDBIVariableRecordRepository variableRecordRepository();
-  
+
   @CreateSqlObject
   public abstract JDBIContextRecordRepository contextRecordRepository();
 
@@ -47,13 +47,13 @@ public abstract class JDBIRepositoryRegistry extends TransactionHelper {
 
   @CreateSqlObject
   public abstract JDBIEventRepository eventRepository();
-  
+
   @CreateSqlObject
   public abstract JDBIIntermediaryFilesRepository intermediaryFilesRepository();
-  
-  @Transaction(TransactionIsolationLevel.READ_UNCOMMITTED)
+
+  @Transaction
   public <Result> Result doInTransaction(TransactionCallback<Result> callback) throws Exception {
     return callback.call();
   }
-  
+
 }

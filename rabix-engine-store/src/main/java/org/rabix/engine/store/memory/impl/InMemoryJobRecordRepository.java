@@ -1,58 +1,46 @@
 package org.rabix.engine.store.memory.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import com.google.inject.Inject;
+import org.rabix.engine.store.model.JobRecord;
+import org.rabix.engine.store.repository.JobRecordRepository;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.rabix.engine.store.model.JobRecord;
-import org.rabix.engine.store.model.JobRecord.JobIdRootIdPair;
-import org.rabix.engine.store.repository.JobRecordRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.Inject;
-
 public class InMemoryJobRecordRepository extends JobRecordRepository {
 
-  private final static Logger logger = LoggerFactory.getLogger(InMemoryJobRecordRepository.class);
-
-  Map<UUID, Map<UUID, JobRecord>> jobRecordsPerRoot;
+  private Map<UUID, Map<UUID, JobRecord>> jobRecordsPerRootByExternalId;
+  private Map<UUID, Map<String, JobRecord>> jobRecordsPerRootById;
 
   @Inject
   public InMemoryJobRecordRepository() {
-    this.jobRecordsPerRoot = new ConcurrentHashMap<UUID, Map<UUID, JobRecord>>();
+    this.jobRecordsPerRootByExternalId = new ConcurrentHashMap<>();
+    this.jobRecordsPerRootById = new ConcurrentHashMap<>();
   }
 
   @Override
-  public synchronized int insert(JobRecord jobRecord) {
-    Map<UUID, JobRecord> rootJobs = jobRecordsPerRoot.get(jobRecord.getRootId());
-    if (rootJobs == null) {
-      rootJobs = new HashMap<UUID, JobRecord>();
-      jobRecordsPerRoot.put(jobRecord.getRootId(), rootJobs);
+  public int insert(JobRecord jobRecord) {
+    if (get(jobRecord.getId(), jobRecord.getRootId()) == null) {
+      update(jobRecord);
     }
-    rootJobs.put(jobRecord.getExternalId(), jobRecord);
     return 1;
   }
 
   @Override
-  public synchronized int update(JobRecord jobRecord) {
-    Map<UUID, JobRecord> rootJobs = jobRecordsPerRoot.get(jobRecord.getRootId());
-    if (rootJobs == null) {
-      rootJobs = new HashMap<UUID, JobRecord>();
-      jobRecordsPerRoot.put(jobRecord.getRootId(), rootJobs);
-    }
-    rootJobs.put(jobRecord.getExternalId(), jobRecord);
+  public int update(JobRecord jobRecord) {
+    jobRecordsPerRootByExternalId
+            .computeIfAbsent(jobRecord.getRootId(), k -> new ConcurrentHashMap<>())
+            .put(jobRecord.getExternalId(), jobRecord);
+
+    jobRecordsPerRootById
+            .computeIfAbsent(jobRecord.getRootId(), k -> new ConcurrentHashMap<>())
+            .put(jobRecord.getId(), jobRecord);
     return 1;
   }
 
   @Override
-  public synchronized void insertBatch(Iterator<JobRecord> records) {
+  public void insertBatch(Iterator<JobRecord> records) {
     while (records.hasNext()) {
       JobRecord jobRecord = records.next();
       insert(jobRecord);
@@ -60,7 +48,7 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
   }
 
   @Override
-  public synchronized void updateBatch(Iterator<JobRecord> records) {
+  public void updateBatch(Iterator<JobRecord> records) {
     while (records.hasNext()) {
       JobRecord jobRecord = records.next();
       update(jobRecord);
@@ -68,66 +56,73 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
   }
 
   @Override
-  public synchronized int deleteByStatus(JobRecord.JobState state) {
-    int count = 0;
-    for (Map<UUID, JobRecord> records : jobRecordsPerRoot.values()) {
-      for (Iterator<JobRecord> iterator = records.values().iterator(); iterator.hasNext();) {
-        JobRecord jobRecord = iterator.next();
-        if (jobRecord.getState().equals(state)) {
-          iterator.remove();
-          count++;
-        }
+  public void delete(UUID id, UUID rootId) {
+    Map<UUID, JobRecord> jobRecords = jobRecordsPerRootByExternalId.get(rootId);
+    JobRecord deleted = null;
+    if (jobRecords != null) {
+      deleted = jobRecords.remove(id);
+    }
+
+    if (id.equals(rootId)) {
+      jobRecordsPerRootByExternalId.remove(id);
+    }
+
+    if (deleted != null) {
+      Map<String, JobRecord> jobRecordsById = jobRecordsPerRootById.get(rootId);
+      if (jobRecordsById != null) {
+        jobRecordsById.remove(deleted.getId());
+      }
+
+      if (id.equals(rootId)) {
+        jobRecordsPerRootById.remove(id);
       }
     }
-    return count;
   }
 
   @Override
-  public synchronized void delete(Set<JobIdRootIdPair> externalIDs) {
-    for (JobIdRootIdPair job : externalIDs) {
-      jobRecordsPerRoot.get(job.rootId).remove(job.id);
-      if (job.id.equals(job.rootId)) {
-        jobRecordsPerRoot.remove(job.rootId);
-      }
-    }
-  }
-
-  @Override
-  public synchronized List<JobRecord> get(UUID rootId) {
-    Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRoot.get(rootId);
+  public List<JobRecord> get(UUID rootId) {
+    Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRootByExternalId.get(rootId);
     if (recordsPerRoot == null) {
       return new ArrayList<>();
     }
-    List<JobRecord> records = new ArrayList<>();
-    records.addAll(recordsPerRoot.values());
-    return records;
+    return recordsPerRoot
+            .values()
+            .stream()
+            .filter(jobRecord -> !jobRecord.getExternalId().equals(rootId))
+            .collect(Collectors.toList());
   }
 
   @Override
-  public synchronized JobRecord getRoot(UUID rootId) {
-    Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRoot.get(rootId);
+  public JobRecord getRoot(UUID rootId) {
+    Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRootByExternalId.get(rootId);
     return recordsPerRoot != null ? recordsPerRoot.get(rootId) : null;
   }
 
   @Override
-  public synchronized JobRecord get(String id, UUID rootId) {
-    Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRoot.get(rootId);
+  public JobRecord get(String id, UUID rootId) {
+    Map<String, JobRecord> recordsPerRoot = jobRecordsPerRootById.get(rootId);
     if (recordsPerRoot != null) {
-      for (JobRecord job : jobRecordsPerRoot.get(rootId).values()) {
-        if (job.getId().equals(id)) {
-          return job;
-        }
-      }
+      return recordsPerRoot.get(id);
     }
-    logger.debug("Failed to find jobRecord {} for root {}", id, rootId);
     return null;
   }
 
   @Override
-  public synchronized List<JobRecord> getByParent(UUID parentId, UUID rootId) {
-    List<JobRecord> jobsByParent = new ArrayList<JobRecord>();
-    if (jobRecordsPerRoot.get(rootId) != null) {
-      for (JobRecord job : jobRecordsPerRoot.get(rootId).values()) {
+  public JobRecord getByExternalId(UUID externalId, UUID rootId) {
+    Map<UUID, JobRecord> records = jobRecordsPerRootByExternalId.get(rootId);
+    if (records != null) {
+      return records.get(externalId);
+    }
+    return null;
+  }
+
+  @Override
+  public List<JobRecord> getByParent(UUID parentId, UUID rootId) {
+    List<JobRecord> jobsByParent = new ArrayList<>();
+    Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRootByExternalId.get(rootId);
+
+    if (recordsPerRoot != null) {
+      for (JobRecord job : recordsPerRoot.values()) {
         if (job.getParentId() != null && job.getParentId().equals(parentId)) {
           jobsByParent.add(job);
         }
@@ -137,8 +132,8 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
   }
 
   @Override
-  public synchronized List<JobRecord> getReady(UUID rootId) {
-    Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRoot.get(rootId);
+  public List<JobRecord> getReady(UUID rootId) {
+    Map<UUID, JobRecord> recordsPerRoot = jobRecordsPerRootByExternalId.get(rootId);
     if (recordsPerRoot == null) {
       return new ArrayList<>();
     }
@@ -153,7 +148,7 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
 
   @Override
   public void updateStatus(UUID rootId, JobRecord.JobState state, Set<JobRecord.JobState> whereStates) {
-    Map<UUID, JobRecord> jobs = jobRecordsPerRoot.get(rootId);
+    Map<UUID, JobRecord> jobs = jobRecordsPerRootByExternalId.get(rootId);
     jobs.values().stream().filter(p -> whereStates.contains(p.getState())).forEach(p -> {
       p.setState(state);
     });
@@ -161,7 +156,10 @@ public class InMemoryJobRecordRepository extends JobRecordRepository {
 
   @Override
   public List<JobRecord> get(UUID rootId, Set<JobRecord.JobState> states) {
-    Map<UUID, JobRecord> jobs = jobRecordsPerRoot.get(rootId);
+    Map<UUID, JobRecord> jobs = jobRecordsPerRootByExternalId.get(rootId);
+    if (jobs == null) {
+      return Collections.emptyList();
+    }
     return jobs.values().stream().filter(p -> states.contains(p.getState())).collect(Collectors.toList());
   }
 
