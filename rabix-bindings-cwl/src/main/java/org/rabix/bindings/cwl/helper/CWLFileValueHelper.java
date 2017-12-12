@@ -383,17 +383,23 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         return;
       }
     }
-    
+
     if (location == null) {
       actual = workDir.resolve(path);
       location = actual.toUri().toString();
     } else {
-      actual = Paths.get(URI.create(location));
-    }
-    if(!Paths.get(path).isAbsolute()){
-      path=workDir.resolve(path).toAbsolutePath().toString();
+      URI temp = URI.create(location);
+      if (temp.getScheme() != null) {
+        actual = Paths.get(temp);
+      } else {
+        actual = workDir.resolve(path);
+      }
     }
     
+    if (!Paths.get(path).isAbsolute()) {
+      path = workDir.resolve(path).toAbsolutePath().toString();
+    }
+
     String name = getName(value);
     if (name == null) {
       setNames(actual, value);
@@ -402,10 +408,10 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         path = Paths.get(path).resolveSibling(name).toString();
       }
     }
-    
+
     setPath(path, value);
     setLocation(location, value);
-    
+
     if (getSize(value) == null)
       setSize(Files.size(actual), value);
 

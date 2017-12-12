@@ -117,7 +117,8 @@ public class SBPortProcessorHelper {
 
   public Map<String, Object> setFileProperties(Map<String, Object> inputs) throws SBPortProcessorException {
     try {
-      return portProcessor.processInputs(inputs, new SBFilePropertiesProcessorCallback(Paths.get(sbJob.getApp().getAppFileLocation())));
+      String appFileLocation = sbJob.getApp().getAppFileLocation();
+      return portProcessor.processInputs(inputs, new SBFilePropertiesProcessorCallback(Paths.get(appFileLocation == null ? "." : appFileLocation).toAbsolutePath().normalize()));
     } catch (SBPortProcessorException e) {
       throw new SBPortProcessorException("Failed to set inputs properties.", e);
     }
