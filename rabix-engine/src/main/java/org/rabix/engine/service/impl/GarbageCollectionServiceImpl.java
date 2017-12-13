@@ -1,5 +1,6 @@
 package org.rabix.engine.service.impl;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.engine.metrics.MetricsHelper;
@@ -178,6 +179,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     linkRecordRepository.deleteByRootId(rootId);
     contextRecordRepository.delete(rootId);
     intermediaryFilesRepository.delete(rootId);
+    jobRepository.deleteByRootIds(Sets.newHashSet(rootId));
 
     List<JobRecord> all = jobRecordRepository.get(rootId);
     flush(rootId, all);
