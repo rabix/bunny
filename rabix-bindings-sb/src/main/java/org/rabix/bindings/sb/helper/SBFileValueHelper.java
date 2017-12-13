@@ -285,7 +285,7 @@ public class SBFileValueHelper extends SBBeanHelper {
       }
     }
 
-    setPath(path, value);
+    setPath(path.replace(" ", "\\ "), value);
     setLocation(location, value);
 
     if (getSize(value) == null && Files.exists(actual)) {

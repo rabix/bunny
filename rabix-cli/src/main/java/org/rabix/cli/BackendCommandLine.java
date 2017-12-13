@@ -87,7 +87,7 @@ public class BackendCommandLine {
       final String app = commandLine.getArgList().get(0);
 
       Path filePath = null;
-      URI appUri = URI.create(app);
+      URI appUri = URI.create(app.replaceAll(" ", "%20"));
       if (appUri.getScheme() == null) {
         appUri = new URI("file", appUri.getSchemeSpecificPart(), appUri.getFragment());
       }

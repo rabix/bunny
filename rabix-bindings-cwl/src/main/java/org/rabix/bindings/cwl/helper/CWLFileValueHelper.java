@@ -409,7 +409,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       }
     }
 
-    setPath(path, value);
+    setPath(path.replace(" ", "\\ "), value);
     setLocation(location, value);
 
     if (getSize(value) == null)
