@@ -194,7 +194,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
             .collect(Collectors.toList());
 
     return outputJobRecords.isEmpty() || outputJobRecords.stream().allMatch(outputJobRecord -> {
-      if (!inTerminalState(outputJobRecord)) {
+      if (!outputJobRecord.isReady() || !inTerminalState(outputJobRecord)) {
         return false;
       }
       return !outputJobRecord.isContainer() || isGarbage(outputJobRecord);
