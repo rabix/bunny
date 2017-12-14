@@ -157,10 +157,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
       }
 
-      if (jobStatsRecord != null) {
-        jobStatsRecord.increaseCompleted();
-        jobStatsRecordService.update(jobStatsRecord);
-      }
+      updateJobStats(jobRecord, jobStatsRecord);
 
       if ((!jobRecord.isScatterWrapper() || jobRecord.isRoot()) && !jobRecord.isContainer()) {
         for (PortCounter portCounter : jobRecord.getOutputCounters()) {
@@ -234,6 +231,13 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       break;
     default:
       break;
+    }
+  }
+
+  private void updateJobStats(JobRecord jobRecord, JobStatsRecord jobStatsRecord) {
+    if (jobStatsRecord != null && !(jobRecord.isRoot() && jobRecord.isContainer())) {
+      jobStatsRecord.increaseCompleted();
+      jobStatsRecordService.update(jobStatsRecord);
     }
   }
 
@@ -430,7 +434,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       handleLinkPort(jobRecordService.find(destinationNodeId, contextId), link.getDestination(), false);
     }
     for (DAGNode node : containerNode.getChildren()) {
-      String newJobId = InternalSchemaHelper.concatenateIds(job.getId(), InternalSchemaHelper.getLastPart(node.getId()));   
+      String newJobId = InternalSchemaHelper.concatenateIds(job.getId(), InternalSchemaHelper.getLastPart(node.getId()));
       JobRecord childJob = jobRecordService.find(newJobId, contextId);
       if(childJob.isReady() && !childJob.isContainer()){
         JobStatusEvent jobStatusEvent = new JobStatusEvent(childJob.getId(), job.getRootId(), JobRecord.JobState.READY, job.getRootId(), null);
