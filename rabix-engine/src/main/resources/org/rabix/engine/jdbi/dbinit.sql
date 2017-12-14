@@ -461,8 +461,8 @@ ALTER TABLE event ADD COLUMN root_id uuid;
 --rollback ALTER TABLE event drop column root_id;
 
 --changeset bunny:1487849040814-76 dbms:postgresql
-DROP INDEX event_status_index;
-DROP INDEX event_id_type_index;
-DROP INDEX backend_id_index;
-DROP INDEX context_record_id_index;
-DROP INDEX context_record_status_index;
+DROP INDEX IF EXISTS event_status_index;
+DROP INDEX IF EXISTS event_id_type_index;
+DROP INDEX IF EXISTS backend_id_index;
+DROP INDEX IF EXISTS context_record_id_index;
+DROP INDEX IF EXISTS context_record_status_index;
