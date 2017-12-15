@@ -412,14 +412,16 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     setPath(path, value);
     setLocation(location, value);
 
-    if (getSize(value) == null)
-      setSize(Files.size(actual), value);
+    if (Files.exists(actual)) {
+      if (getSize(value) == null)
+        setSize(Files.size(actual), value);
 
-    if (CWLSchemaHelper.isDirectoryFromValue(value)) {
-      setListing(actual, value, alg, workDir);
-    } else {
-      if (alg != null) {
-        setChecksum(actual, value, alg);
+      if (CWLSchemaHelper.isDirectoryFromValue(value)) {
+        setListing(actual, value, alg, workDir);
+      } else {
+        if (alg != null) {
+          setChecksum(actual, value, alg);
+        }
       }
     }
 
