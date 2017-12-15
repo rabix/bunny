@@ -138,7 +138,7 @@ public class ScatterHandler {
     if (ScatterMethod.isBlocking(node.getScatterMethod())) {
       isBlocking = true;
     }
-    return new JobRecord(contextId, id, JobRecordService.generateUniqueId(), parentId, JobRecord.JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking, dagCache);
+    return new JobRecord(contextId, id, UUID.nameUUIDFromBytes((contextId+id).getBytes()), parentId, JobRecord.JobState.PENDING, node instanceof DAGContainer, isScattered, false, isBlocking, dagCache);
   }
 
   private void createScatteredJobs(JobRecord job, Event event, String port, Object value, DAGNode node, Integer numberOfScattered, Integer position) throws EventHandlerException {
