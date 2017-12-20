@@ -150,15 +150,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
-      jobRecord.setState(JobRecord.JobState.COMPLETED);
-      jobRecordService.update(jobRecord);
-
-      if (!jobRecord.isRoot()) {
-        jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
-      }
-
-      updateJobStats(jobRecord, jobStatsRecord);
-
       if ((!jobRecord.isScatterWrapper() || jobRecord.isRoot()) && !jobRecord.isContainer()) {
         for (PortCounter portCounter : jobRecord.getOutputCounters()) {
           Object output = event.getResult().get(portCounter.getPort());
@@ -186,6 +177,15 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           }
         }
       }
+
+      jobRecord.setState(JobRecord.JobState.COMPLETED);
+      jobRecordService.update(jobRecord);
+
+      if (!jobRecord.isRoot()) {
+        jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
+      }
+      updateJobStats(jobRecord, jobStatsRecord);
+
       break;
     case ABORTED:
       Set<JobRecord.JobState> jobRecordStatuses = new HashSet<>();
