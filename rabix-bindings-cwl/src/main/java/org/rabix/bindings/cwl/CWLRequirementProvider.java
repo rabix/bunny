@@ -119,11 +119,6 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
       }      
       if (listingObj instanceof FileValue) {
         FileValue fileValue = (FileValue) listingObj;
-        String runtime = cwlJob.getRuntime().getOutdir();
-        if (runtime != null) {
-          Path workDir = Paths.get(runtime);
-          fileValue.setPath(workDir.resolve(fileValue.getName()).toString());
-        }
         processFileValue(result, false, (String) fileValue.getName(), (FileValue) listingObj);
         continue;
       }
