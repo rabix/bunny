@@ -222,7 +222,7 @@ public class DockerContainerHandler implements ContainerHandler {
         });
       } else {
         FileValueHelper.getInputFiles(job).forEach(f -> {
-          hostConfigBuilder.appendBinds(URI.create(f.getLocation()).getPath() + ":" + f.getPath());
+          hostConfigBuilder.appendBinds(URI.create(f.getLocation()).getPath() + ":" + f.getPath().replaceAll("\\\\ ", " "));
           f.getSecondaryFiles().forEach(sec -> hostConfigBuilder.appendBinds(URI.create(sec.getLocation()).getPath() + ":" + sec.getPath()));
         });
         if (dockerResource.getDockerOutputDirectory() != null) {
