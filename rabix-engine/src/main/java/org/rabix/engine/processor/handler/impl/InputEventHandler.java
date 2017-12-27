@@ -47,6 +47,12 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
   public void handle(InputUpdateEvent event, EventHandlingMode mode) throws EventHandlerException {
     logger.debug(event.toString());
     JobRecord job = jobService.find(event.getJobId(), event.getContextId());
+
+    if (job == null) {
+      logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
+      return;
+    }
+
     filesService.handleInputSent(event.getContextId(), event.getValue());
     VariableRecord variable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());
 

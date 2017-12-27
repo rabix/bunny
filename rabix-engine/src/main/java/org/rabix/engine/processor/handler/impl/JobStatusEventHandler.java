@@ -150,9 +150,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
-      jobRecord.setState(JobRecord.JobState.COMPLETED);
-      jobRecordService.update(jobRecord);
-
       if (!jobRecord.isRoot()) {
         jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
       }
@@ -166,6 +163,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
               jobRecord.getNumberOfGlobalOutputs(), 1, event.getEventGroupId(), event.getProducedByNode()));
         }
       }
+      jobRecord.setState(JobRecord.JobState.COMPLETED);
+      jobRecordService.update(jobRecord);
+
       if (jobRecord.isRoot()) {
         eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
         try {

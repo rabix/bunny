@@ -265,9 +265,9 @@ public class TransportPluginRabbitMQ implements TransportPlugin<TransportQueueRa
                   reconnect(queueName);
                 }
               });
-            } catch (TransportPluginException e) {
+            } catch (Exception e) {
               logger.error("Could not handle receive", e);
-              channel.basicNack(envelope.getDeliveryTag(), false, false);
+              channel.basicNack(envelope.getDeliveryTag(), false, true);
             }
           }
         };

@@ -54,6 +54,12 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
   public void handle(final OutputUpdateEvent event, EventHandlingMode mode) throws EventHandlerException {
     logger.debug(event.toString());
     JobRecord sourceJob = jobRecordService.find(event.getJobId(), event.getContextId());
+
+    if (sourceJob == null) {
+      logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
+      return;
+    }
+
     if (sourceJob.isScatterWrapper()) {
       jobRecordService.resetOutputPortCounter(sourceJob, event.getNumberOfScattered(), event.getPortId());
     }
