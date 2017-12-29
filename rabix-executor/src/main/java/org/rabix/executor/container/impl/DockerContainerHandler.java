@@ -406,26 +406,6 @@ public class DockerContainerHandler implements ContainerHandler {
     }
   }
 
-  /**
-   * Does after processing (dumps standard error log for now)
-   */
-  @Override
-  public void dumpContainerLogs(final File logFile) throws ContainerException {
-    if (overrideResultStatus != null) {
-      return;
-    }
-    logger.debug("Saving standard error files for id={}", job.getId());
-
-    if (logFile != null) {
-      try {
-        dumpLog(containerId, logFile);
-      } catch (Exception e) {
-        logger.error("Docker container " + containerId + " failed to create log file", e);
-        throw new ContainerException("Docker container " + containerId + " failed to create log file");
-      }
-    }
-  }
-  
   @Override
   public void removeContainer() {
     try {
@@ -585,7 +565,7 @@ public class DockerContainerHandler implements ContainerHandler {
       }
       return images != null ? images.contains(dockerPull) : false;
     }
-    
+
     public synchronized ImageInfo inspectImage(String dockerPull) throws DockerException, InterruptedException {
       return dockerClient.inspectImage(dockerPull);
     }
@@ -683,6 +663,15 @@ public class DockerContainerHandler implements ContainerHandler {
       FileUtils.writeStringToFile(commandLineFile, commandLine);
     } catch (IOException e) {
       logger.error("Failed to dump command line into " + JobHandler.COMMAND_LOG);
+      throw new ContainerException(e);
+    }
+  }
+
+  @Override
+  public String getProcessExitMessage() throws ContainerException {
+    try {
+      return this.dockerClient.logs(containerId, LogsParam.stderr()).readFully();
+    } catch (DockerException | InterruptedException e) {
       throw new ContainerException(e);
     }
   }

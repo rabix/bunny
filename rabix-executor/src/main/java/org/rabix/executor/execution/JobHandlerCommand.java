@@ -102,9 +102,8 @@ public abstract class JobHandlerCommand {
     }
     jobData = JobData.cloneWithJob(jobData, job);
     jobDataService.save(jobData);
-    engineStub.send(job);
-    
     VerboseLogger.log(String.format("%s", message));
+    engineStub.send(job);
   }
 
   /**

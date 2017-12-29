@@ -1,7 +1,5 @@
 package org.rabix.executor.container;
 
-import java.io.File;
-
 /**
  * Encapsulates container handling functionalities 
  */
@@ -31,16 +29,16 @@ public interface ContainerHandler {
    * Get container exit status 
    */
   public int getProcessExitStatus() throws ContainerException;
+  
+  /**
+   * Get container exit message 
+   */
+  public String getProcessExitMessage() throws ContainerException;
 
   /**
    * Dumps command line into a file 
    */
   public void dumpCommandLine() throws ContainerException;
-  
-  /**
-   * Do post-processing if needed
-   */
-  public void dumpContainerLogs(File errorFile) throws ContainerException;
 
   /**
    * Remove container

@@ -307,7 +307,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobRootFailed(Job job){
-    logger.warn("Root job {} failed.", job.getId());
+    logger.warn("Root job {} failed. {}", job.getId(), job.getMessage());
     synchronized (stoppingRootIds) {
       if (deleteFilesUponExecution) {
         if (isLocalBackend) {

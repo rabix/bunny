@@ -1,12 +1,7 @@
 package org.rabix.executor.container.impl;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,7 +19,6 @@ import java.util.concurrent.Future;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
 import org.rabix.bindings.CommandLine;
@@ -33,12 +27,10 @@ import org.rabix.bindings.mapper.FileMappingException;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.DirectoryValue;
 import org.rabix.bindings.model.FileValue;
-import org.rabix.bindings.model.FileValue.FileType;
 import org.rabix.bindings.model.Job;
 import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
-import org.rabix.bindings.transformer.FileTransformer;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.executor.config.StorageConfiguration;
 import org.rabix.executor.container.ContainerException;
@@ -59,6 +51,7 @@ public class LocalContainerHandler implements ContainerHandler {
 
   private Process process;
   private String commandLineString;
+  private String log;
   
   public static final String HOME_ENV_VAR = "HOME";
   public static final String TMPDIR_ENV_VAR = "TMPDIR";
@@ -145,6 +138,7 @@ public class LocalContainerHandler implements ContainerHandler {
         public Integer call() throws Exception {
           process = processBuilder.start();
           process.waitFor();
+          log = StringUtils.join(IOUtils.readLines(process.getErrorStream()), '\n');
           return process.exitValue();
         }
       });
@@ -209,27 +203,6 @@ public class LocalContainerHandler implements ContainerHandler {
   }
 
   @Override
-  public synchronized void dumpContainerLogs(File errorFile) throws ContainerException {
-
-    try {
-      if (!errorFile.exists()) {
-        errorFile.createNewFile();
-      }
-      if (process == null) {
-        try (Writer outputStream = new FileWriter(errorFile)) {
-          outputStream.write("Process not initiated");
-        }
-      }
-      try (InputStream inputStream = process.getErrorStream(); OutputStream outputStream = new FileOutputStream(errorFile)) {
-        IOUtils.copy(inputStream, outputStream);
-      }
-    } catch (IOException e) {
-      logger.error("Failed to create " + errorFile.getName(), e);
-      throw new ContainerException("Failed to create " + errorFile.getName(), e);
-    }
-  }
-
-  @Override
   public void dumpCommandLine() throws ContainerException {
     try {
       File commandLineFile = new File(workingDir, JobHandler.COMMAND_LOG);
@@ -241,6 +214,10 @@ public class LocalContainerHandler implements ContainerHandler {
   }
 
   @Override
-  public void removeContainer() {
+  public void removeContainer() {}
+
+  @Override
+  public String getProcessExitMessage() throws ContainerException {
+    return log;
   }
 }

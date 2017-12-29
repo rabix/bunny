@@ -54,4 +54,10 @@ public class LocalBackendEngineStatusCallback extends DefaultEngineStatusCallbac
             System.exit(10);
         }
     }
+    
+    @Override
+    public void onJobRootFailed(UUID rootId, String message) throws EngineStatusCallbackException {
+      System.out.println(message);
+      System.exit(1);
+    }
 }

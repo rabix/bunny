@@ -4,16 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -41,7 +38,6 @@ import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.service.download.DownloadService;
-import org.rabix.common.service.download.DownloadServiceException;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.UploadServiceException;
 import org.rabix.executor.ExecutorException;
@@ -284,17 +280,22 @@ public class JobHandlerImpl implements JobHandler {
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
       
+      if (standardErrorLog == null) {
+        try {
+          String processExitMessage = containerHandler.getProcessExitMessage();
+          if (processExitMessage != null)
+            Files.write(workingDir.toPath().resolve(DEFAULT_ERROR_FILE), processExitMessage.getBytes());
+        } catch (IOException e) {
+          throw new ExecutorException("Couldn't write error file", e);
+        }
+      }
+      
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
         return job;
       }
       
-      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
-      
-      if (standardErrorLog == null) {
-        containerHandler.dumpContainerLogs(new File(workingDir, DEFAULT_ERROR_FILE));
-      }
-      
+      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);  
       containerHandler.dumpCommandLine();
       
       statusCallback.onOutputFilesUploadStarted(job);
@@ -407,6 +408,16 @@ public class JobHandlerImpl implements JobHandler {
     logger.debug("getExitStatus()");
     try {
       return containerHandler.getProcessExitStatus();
+    } catch (ContainerException e) {
+      throw new ExecutorException("Couldn't get process exit value.", e);
+    }
+  }
+  
+  @Override
+  public String getErrorLog() throws ExecutorException {
+    logger.debug("getExitStatus()");
+    try {
+      return containerHandler.getProcessExitMessage();
     } catch (ContainerException e) {
       throw new ExecutorException("Couldn't get process exit value.", e);
     }
