@@ -92,7 +92,6 @@ public abstract class JobHandlerCommand {
    * Send notification to master about FAILED event 
    */
   protected void failed(JobData jobData, String message, EngineStub<?,?,?> engineStub, Throwable e) {
-    logger.error(message, e);
     Job job = Job.cloneWithStatus(jobData.getJob(), JobStatus.FAILED);
     job = Job.cloneWithMessage(job, message);
     try {

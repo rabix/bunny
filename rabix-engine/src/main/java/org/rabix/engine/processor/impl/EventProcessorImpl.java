@@ -235,9 +235,6 @@ public class EventProcessorImpl implements EventProcessor {
     if (stop.get() || mode.get() == EventHandlingMode.REPLAY) {
       return;
     }
-
-    logger.debug("persist(event={})", event.toString());
-
     EventRecord er = new EventRecord(event.getContextId(), event.getEventGroupId(), EventRecord.Status.UNPROCESSED, JSONHelper.convertToMap(event));
     eventRepository.insert(er);
   }

@@ -175,7 +175,7 @@ public class JobHandlerImpl implements JobHandler {
       }
       containerHandler.start();
     } catch (Exception e) {
-      String message = String.format("Execution failed for %s. %s", job.getId(), e.getMessage());
+      String message = String.format("Execution failed for %s. %s", job.getName(), e.getMessage());
       throw new ExecutorException(message, e);
     }
   }
@@ -378,7 +378,6 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   public boolean isStarted() throws ExecutorException {
-    logger.debug("isStarted()");
     if (containerHandler == null) {
       logger.debug("Container hasn't started yet.");
       return false;
@@ -404,7 +403,6 @@ public class JobHandlerImpl implements JobHandler {
 
   @Override
   public int getExitStatus() throws ExecutorException {
-    logger.debug("getExitStatus()");
     try {
       return containerHandler.getProcessExitStatus();
     } catch (ContainerException e) {
@@ -414,7 +412,6 @@ public class JobHandlerImpl implements JobHandler {
   
   @Override
   public String getErrorLog() throws ExecutorException {
-    logger.debug("getExitStatus()");
     try {
       return containerHandler.getProcessExitMessage();
     } catch (ContainerException e) {
@@ -424,7 +421,6 @@ public class JobHandlerImpl implements JobHandler {
 
   @Override
   public boolean isSuccessful() throws ExecutorException {
-    logger.debug("isSuccessful()");
     int processExitStatus = getExitStatus();
     return isSuccessful(processExitStatus);
   }

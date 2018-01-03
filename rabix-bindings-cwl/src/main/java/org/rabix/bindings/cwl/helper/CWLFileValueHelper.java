@@ -414,15 +414,17 @@ public class CWLFileValueHelper extends CWLBeanHelper {
 
     setPath(path, value);
     setLocation(location, value);
+    
+    if (Files.exists(actual)) {
+      if (getSize(value) == null)
+        setSize(Files.size(actual), value);
 
-    if (getSize(value) == null)
-      setSize(Files.size(actual), value);
-
-    if (CWLSchemaHelper.isDirectoryFromValue(value)) {
-      setListing(actual, value, alg, workDir);
-    } else {
-      if (alg != null) {
-        setChecksum(actual, value, alg);
+      if (CWLSchemaHelper.isDirectoryFromValue(value)) {
+        setListing(actual, value, alg, workDir);
+      } else {
+        if (alg != null) {
+          setChecksum(actual, value, alg);
+        }
       }
     }
 
@@ -431,9 +433,6 @@ public class CWLFileValueHelper extends CWLBeanHelper {
       for (Map<String, Object> secondaryFileValue : secondaryFiles) {
         buildMissingInfo(secondaryFileValue, alg, workDir);
       }
-    }
-    if (name != null && !actual.endsWith(name)) {
-      setPath(Paths.get(path).resolveSibling(name).toString(), value);
     }
   }
 

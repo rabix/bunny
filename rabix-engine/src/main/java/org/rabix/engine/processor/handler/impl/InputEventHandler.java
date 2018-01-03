@@ -45,7 +45,6 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
   @Override
   public void handle(InputUpdateEvent event, EventHandlingMode mode) throws EventHandlerException {
-    logger.debug(event.toString());
     JobRecord job = jobService.find(event.getJobId(), event.getContextId());
 
     if (job == null) {

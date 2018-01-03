@@ -53,7 +53,7 @@ public class CWLPortProcessor {
         try {
           mappedValue = processValue(value, port, port.getSchema(), port.getBinding(), CWLSchemaHelper.normalizeId(id), portProcessor);
         } catch (Exception e) {
-          throw new CWLPortProcessorException("Failed to process value " + value, e);
+          throw new CWLPortProcessorException("Error: " + e.getMessage() +" while processing value: " + value.toString(), e);
         }
         mappedValues.put(entry.getKey(), mappedValue);
       }
