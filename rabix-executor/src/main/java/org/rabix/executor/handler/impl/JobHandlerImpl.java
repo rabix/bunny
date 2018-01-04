@@ -294,7 +294,6 @@ public class JobHandlerImpl implements JobHandler {
         return job;
       }
       
-      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);  
       containerHandler.dumpCommandLine();
       
       statusCallback.onOutputFilesUploadStarted(job);
