@@ -464,7 +464,9 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         default:
           break;
       }
-      listing.add(pathToRawFile(childFile, hash, workDir));
+      Map<String, Object> raw = pathToRawFile(childFile, hash, workDir);
+      setPath(Paths.get(getPath(value)).resolve(getName(raw)).toString(), raw);
+      listing.add(raw);
     }
     CWLDirectoryValueHelper.setListing(listing, value);
   }
