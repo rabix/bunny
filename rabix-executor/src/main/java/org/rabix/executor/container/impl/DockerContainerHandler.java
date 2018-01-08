@@ -219,12 +219,12 @@ public class DockerContainerHandler implements ContainerHandler {
       } else {
         hostConfigBuilder.appendBinds(workingDir.getAbsolutePath() + ":" + workingDir.getAbsolutePath());
       }
-      
+
       if (SystemUtils.IS_OS_WINDOWS) {
         hostConfigBuilder.binds(hostConfigBuilder.binds().stream().map(s -> s.replace("\\", "/")).collect(Collectors.toList()));
       }
       HostConfig hostConfig = hostConfigBuilder.build();
-      
+
       String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
       pull(dockerPull);
 
@@ -235,7 +235,7 @@ public class DockerContainerHandler implements ContainerHandler {
       if (setPermissions && !SystemUtils.IS_OS_WINDOWS) {
         builder.user(getUser());
       }
-      
+
       Bindings bindings = BindingsFactory.create(job);
       commandLine = bindings.buildCommandLineObject(job, workingDir, mapper).build();
 
@@ -254,7 +254,6 @@ public class DockerContainerHandler implements ContainerHandler {
       List<String> entrypoint = image.containerConfig().entrypoint();
 
       commandLine = addEntrypoint(entrypoint, commandLine);
-
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success
         return;
@@ -280,13 +279,9 @@ public class DockerContainerHandler implements ContainerHandler {
       }
 
       builder.env(transformEnvironmentVariables(environmentVariables));
-      try {
-        VerboseLogger.log(String.format("Running command line: %s", commandLine));
-        containerId = dockerClient.createContainer(builder.build());
-      } catch (DockerException | InterruptedException e) {
-        logger.error("Failed to create Docker container.", e);
-        throw new ContainerException("Failed to create Docker container.");
-      }
+      VerboseLogger.log(String.format("Running command line: %s", commandLine));
+      containerId = dockerClient.createContainer(builder.build());
+
       try {
         dockerClient.startContainer(containerId);
       } catch (Exception e) {
@@ -295,8 +290,7 @@ public class DockerContainerHandler implements ContainerHandler {
       }
       logger.info("Docker container {} has started.", containerId);
     } catch (Exception e) {
-//      logger.warn("Failed to start container : " + e.getMessage(), e);
-      throw new ContainerException("Failed to create a container : " + e.getMessage(), e);
+      throw new ContainerException("Failed to create a container: " + e.getClass() + " " + (e.getMessage() == null ? "" : ": " + e.getMessage()), e);
     }
   }
 
