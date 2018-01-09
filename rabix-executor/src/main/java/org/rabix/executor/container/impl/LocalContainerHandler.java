@@ -123,15 +123,14 @@ public class LocalContainerHandler implements ContainerHandler {
       commandLineString = commandLine.build();
       processBuilder.directory(workingDir);
 
-      if (commandLine.isRunInShell()){
+      if (commandLine.isRunInShell()) {
         List<String> parts = commandLine.getBuiltParts();
         int start = StringUtils.startsWithAny(parts.get(0), "/bin/bash", "/bin/sh") && parts.get(1).startsWith("-c") ? 2 : 0;
         processBuilder.command("/bin/sh", "-c", StringUtils.join(parts.subList(start, parts.size()), " "));
       } else {
         processBuilder.command(commandLine.getParts());
       }
-      redirect(processBuilder, workingDir, commandLine);;
-      
+      redirect(processBuilder, workingDir, commandLine);
       VerboseLogger.log(String.format("Running command line: %s", commandLineString));
       processFuture = executorService.submit(new Callable<Integer>() {
         @Override
@@ -153,13 +152,16 @@ public class LocalContainerHandler implements ContainerHandler {
     String stdIn = commandLine.getStandardIn();
     String stdOut = commandLine.getStandardOut();
     String stdError = commandLine.getStandardError();
-    Path path = workingDir.toPath();
     if (!StringUtils.isEmpty(stdIn))
-      pb.redirectInput(ProcessBuilder.Redirect.from(path.resolve(stdIn).toFile()));
+      pb.redirectInput(ProcessBuilder.Redirect.from(toFile(stdIn)));
     if (!StringUtils.isEmpty(stdOut))
-      pb.redirectOutput(ProcessBuilder.Redirect.to(path.resolve(stdOut).toFile()));
+      pb.redirectOutput(ProcessBuilder.Redirect.to(toFile(stdOut)));
     if (!StringUtils.isEmpty(stdError))
-      pb.redirectError(ProcessBuilder.Redirect.to(path.resolve(stdError).toFile()));
+      pb.redirectError(ProcessBuilder.Redirect.to(toFile(stdError)));
+  }
+
+  private File toFile(String stdIn) {
+    return Paths.get(stdIn.startsWith("'") ? stdIn.substring(1, stdIn.length() - 1) : stdIn).toFile();
   }
 
   @SuppressWarnings("unchecked")

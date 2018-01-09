@@ -417,7 +417,7 @@ public class CWLDocumentResolver {
     }
     ObjectNode appLocationNode = JsonNodeFactory.instance.objectNode();
     if (URIHelper.isFile(appURL)) {
-      appLocationNode.put("base", URIHelper.getURIInfo(appURL));
+      appLocationNode.put("base", URI.create(appURL).getPath());
     } else {
       appLocationNode.put("base", appURL);
     }
