@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -18,7 +19,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.BindingWrongVersionException;
@@ -99,26 +99,22 @@ public class CWLDocumentResolver {
 
   public static String resolve(String appUrl) throws BindingException {
     String appUrlBase = appUrl;
-    try {
-      URI uri = URI.create(appUrl);
-      if (uri.getScheme().equals(URIHelper.DATA_URI_SCHEME)) {
-        appUrlBase = URIHelper.extractBase(appUrl);
-      }
-    } catch (IllegalArgumentException e) {
-
+    URI uri = URI.create(appUrl);
+    if (uri.getScheme().equals(URIHelper.DATA_URI_SCHEME)) {
+      appUrlBase = URIHelper.extractBase(appUrl);
     }
 
     boolean rewriteDefaultPaths = false;
 
-    File file = null;
+    Path file = null;
     JsonNode root = null;
     try {
       boolean isFile = URIHelper.isFile(appUrlBase);
       if (isFile) {
         rewriteDefaultPaths = true;
-        file = new File(URIHelper.getURIInfo(appUrlBase));
+        file = Paths.get(uri.getPath());
       } else {
-        file = new File(".");
+        file = Paths.get(".");
       }
       String input = URIHelper.getData(appUrlBase);
       root = JSONHelper.readJsonNode(input);
@@ -259,7 +255,7 @@ public class CWLDocumentResolver {
     }
   }
 
-  private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode,
+  private static JsonNode traverse(String appUrl, JsonNode root, Path file, JsonNode parentNode, JsonNode currentNode,
       boolean inputsOrOutputs) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
 
@@ -324,8 +320,8 @@ public class CWLDocumentResolver {
         JsonNode referenceDocumentRoot = findDocumentRoot(root, file, referencePath, isJsonPointer);
         ParentChild parentChild = findReferencedNode(referenceDocumentRoot, referencePath);
 
-        Path parentPath = file.getParentFile() != null ? file.getParentFile().toPath() : Paths.get(".");
-        JsonNode resolvedNode = traverse(appUrl, root, parentPath.resolve(referencePath).toFile(), parentChild.parent, parentChild.child, false);
+        Path parentPath = file.getParent() != null ? file.getParent() : Paths.get(".");
+        JsonNode resolvedNode = traverse(appUrl, root, parentPath.resolve(referencePath), parentChild.parent, parentChild.child, false);
         if (resolvedNode == null) {
           return null;
         }
@@ -457,7 +453,7 @@ public class CWLDocumentResolver {
     }
   }
 
-  private static JsonNode findDocumentRoot(JsonNode root, File file, String reference, boolean isJsonPointer)
+  private static JsonNode findDocumentRoot(JsonNode root, Path file, String reference, boolean isJsonPointer)
       throws BindingException {
     JsonNode startNode = root;
     if (isJsonPointer) {
@@ -481,7 +477,7 @@ public class CWLDocumentResolver {
     }
   }
 
-  private static String loadContents(File file, String path) throws BindingException {
+  private static String loadContents(Path file, String path) throws BindingException {
     if (path.startsWith("http")) {
       try {
         URL website = new URL(path);
@@ -507,8 +503,7 @@ public class CWLDocumentResolver {
       }
     } else {
       try {
-        String filePath = new File(file.getParentFile(), path).getCanonicalPath();
-        return FileUtils.readFileToString(new File(filePath), DEFAULT_ENCODING);
+       return new String(Files.readAllBytes(file.resolveSibling(Paths.get(path))));
       } catch (IOException e) {
         throw new BindingException("Couldn't fetch contents from " + path);
       }
@@ -558,7 +553,7 @@ public class CWLDocumentResolver {
     return new ParentChild(parent, child);
   }
 
-  private static JsonNode removeFragmentIdentifier(String appUrl, JsonNode root, File file, JsonNode parentNode,
+  private static JsonNode removeFragmentIdentifier(String appUrl, JsonNode root, Path file, JsonNode parentNode,
       JsonNode currentNode, String fragment) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
     
@@ -575,7 +570,7 @@ public class CWLDocumentResolver {
     return currentNode;
   }
   
-  private static JsonNode removeFragmentIdentifierIDs(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
+  private static JsonNode removeFragmentIdentifierIDs(String appUrl, JsonNode root, Path file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
     if (currentNode.isTextual() && parentNode.has(ID_KEY) && currentNode.asText().equals(parentNode.get(ID_KEY).textValue()) && currentNode.asText().contains("/")) {
       Iterator<Entry<String, JsonNode>> fieldIterator = parentNode.fields();

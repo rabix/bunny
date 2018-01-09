@@ -1,12 +1,14 @@
 package org.rabix.bindings.sb.resolver;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -14,7 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.BindingWrongVersionException;
@@ -35,8 +36,6 @@ public class SBDocumentResolver {
   
   public static final String DOCUMENT_FRAGMENT_SEPARATOR = "#";
   
-  private static final String DEFAULT_ENCODING = "UTF-8";
-  
   private static final Map<String, Map<String, JsonNode>> fragmentsCache = new HashMap<>();
 
   private static final Map<String, Map<String, SBDocumentResolverReference>> referenceCache = new HashMap<>();
@@ -44,23 +43,19 @@ public class SBDocumentResolver {
   
   public static String resolve(String appUrl) throws BindingException {
     String appUrlBase = appUrl;
-    try {
-      URI uri = URI.create(appUrl);
-      if (uri.getScheme().equals(URIHelper.DATA_URI_SCHEME)) {
-        appUrlBase = URIHelper.extractBase(appUrl);
-      }
-    } catch (IllegalArgumentException e) {
-
+    URI uri = URI.create(appUrl);
+    if (uri.getScheme().equals(URIHelper.DATA_URI_SCHEME)) {
+      appUrlBase = URIHelper.extractBase(appUrl);
     }
 
-    File file = null;
+    Path file = null;
     JsonNode root = null;
     try {
       boolean isFile = URIHelper.isFile(appUrlBase);
       if (isFile) {
-        file = new File(URIHelper.getURIInfo(appUrlBase));
+        file = Paths.get(uri.getPath());
       } else {
-        file = new File(".");
+        file = Paths.get(".");
       }
       root = JSONHelper.readJsonNode(URIHelper.getData(appUrlBase));
     } catch (Exception e) {
@@ -107,7 +102,7 @@ public class SBDocumentResolver {
     return JSONHelper.writeObject(root);
   }
   
-  private static JsonNode traverse(String appUrl, JsonNode root, File file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
+  private static JsonNode traverse(String appUrl, JsonNode root, Path file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
 
 
@@ -197,7 +192,7 @@ public class SBDocumentResolver {
     }
   }
 
-  private static JsonNode findDocumentRoot(JsonNode root, File file, String reference, boolean isJsonPointer) throws BindingException {
+  private static JsonNode findDocumentRoot(JsonNode root, Path file, String reference, boolean isJsonPointer) throws BindingException {
     JsonNode startNode = root;
     if (isJsonPointer) {
       startNode = startNode.get(RESOLVER_JSON_POINTER_KEY);
@@ -220,7 +215,7 @@ public class SBDocumentResolver {
     }
   }
   
-  private static String loadContents(File file, String path) throws BindingException {
+  private static String loadContents(Path file, String path) throws BindingException {
     if (path.startsWith("ftp")) {
       try {
         return URIHelper.getData(path);
@@ -253,8 +248,8 @@ public class SBDocumentResolver {
       }
     } else {
       try {
-        String filePath = new File(file.getParentFile(), path).getCanonicalPath();
-        return FileUtils.readFileToString(new File(filePath), DEFAULT_ENCODING);
+        Path filePath = file.getParent().resolve(path);
+        return new String(Files.readAllBytes(filePath));
       } catch (IOException e) {
         throw new BindingException("Couldn't fetch contents from " + path);
       }

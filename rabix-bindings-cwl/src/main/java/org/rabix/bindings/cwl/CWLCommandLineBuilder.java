@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
 import org.rabix.bindings.BindingException;
@@ -69,7 +70,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       if (!stdout.startsWith("/")) {
         try {
           String mappedWorkingDir = filePathMapper.map(workingDir.getAbsolutePath(), job.getConfig());
-          stdout = Paths.get(mappedWorkingDir).resolve(stdout).toString();
+          stdout = Paths.get(mappedWorkingDir).resolve(stdout).toString().replaceAll(" ", Matcher.quoteReplacement("\\ "));
         } catch (FileMappingException e) {
           throw new BindingException(e);
         }
@@ -115,7 +116,6 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
   /**
    * Build command line arguments
    */
-  @SuppressWarnings("rawtypes")
   public List<CommandLine.Part> buildCommandLineParts(CWLJob job, File workingDir, FilePathMapper filePathMapper) throws BindingException {
     logger.debug("Building command line parts...");
 
@@ -181,7 +181,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     return result;
   }
   
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({"rawtypes", "unchecked"})
   private List<CWLCommandLinePart> buildRecordCommandLinePart(CWLJob job, Object value, Object schema, FilePathMapper filePathMapper) throws BindingException {
     List<CWLCommandLinePart> result = new ArrayList<CWLCommandLinePart>();
     Object schemaCopy = !CWLSchemaHelper.isRequired(schema) ? CWLSchemaHelper.getSchemaFromNonRequired(schema) : schema;
