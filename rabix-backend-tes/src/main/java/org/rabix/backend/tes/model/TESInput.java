@@ -3,7 +3,7 @@ package org.rabix.backend.tes.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TESTaskParameter {
+public class TESInput {
 
   @JsonProperty("name")
   private String name;
@@ -15,16 +15,16 @@ public class TESTaskParameter {
   private String path;
   @JsonProperty("type")
   private TESFileType type;
-  @JsonProperty("contents")
+  @JsonProperty("content")
   private String contents;
 
   @JsonCreator
-  public TESTaskParameter(@JsonProperty("name") String name,
+  public TESInput(@JsonProperty("name") String name,
                           @JsonProperty("description") String description,
                           @JsonProperty("url") String location,
                           @JsonProperty("path") String path,
                           @JsonProperty("type") TESFileType type,
-                          @JsonProperty("contents") String contents) {
+                          @JsonProperty("content") String contents) {
     this.name = name;
     this.description = description;
     this.location = location;
@@ -107,7 +107,7 @@ public class TESTaskParameter {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    TESTaskParameter other = (TESTaskParameter) obj;
+    TESInput other = (TESInput) obj;
     if (type == null) {
       if (other.type != null)
         return false;

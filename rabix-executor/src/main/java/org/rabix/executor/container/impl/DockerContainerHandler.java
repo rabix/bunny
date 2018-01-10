@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -213,6 +212,7 @@ public class DockerContainerHandler implements ContainerHandler {
         hostConfigBuilder.appendBinds(createBind(f));
         for (FileValue sec : f.getSecondaryFiles())
           hostConfigBuilder.appendBinds(createBind(sec));
+
       }
       if (dockerResource.getDockerOutputDirectory() != null) {
         hostConfigBuilder.binds(workingDir.getAbsolutePath() + ":" + dockerResource.getDockerOutputDirectory());
@@ -223,19 +223,19 @@ public class DockerContainerHandler implements ContainerHandler {
       if (SystemUtils.IS_OS_WINDOWS) {
         hostConfigBuilder.binds(hostConfigBuilder.binds().stream().map(s -> s.replace("\\", "/")).collect(Collectors.toList()));
       }
-      HostConfig hostConfig = hostConfigBuilder.build();
-
+      
       String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
       pull(dockerPull);
 
       ContainerConfig.Builder builder = ContainerConfig.builder();
       builder.image(dockerPull);
-      builder.hostConfig(hostConfig);
 
       if (setPermissions && !SystemUtils.IS_OS_WINDOWS) {
         builder.user(getUser());
+        hostConfigBuilder.capAdd("DAC_OVERRIDE");
       }
 
+      builder.hostConfig(hostConfigBuilder.build());
       Bindings bindings = BindingsFactory.create(job);
       commandLine = bindings.buildCommandLineObject(job, workingDir, mapper).build();
 
@@ -254,6 +254,7 @@ public class DockerContainerHandler implements ContainerHandler {
       List<String> entrypoint = image.containerConfig().entrypoint();
 
       commandLine = addEntrypoint(entrypoint, commandLine);
+      
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success
         return;

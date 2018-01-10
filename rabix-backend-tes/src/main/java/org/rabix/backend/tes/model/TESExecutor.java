@@ -7,10 +7,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TESExecutor {
-  
-  @JsonProperty("image_name")
+
+  @JsonProperty("image")
   private String imageName;
-  @JsonProperty("cmd")
+  @JsonProperty("command")
   private List<String> commandLineParts;
   @JsonProperty("workdir")
   private String workingDirectory;
@@ -20,11 +20,13 @@ public class TESExecutor {
   private String standardOut;
   @JsonProperty("stderr")
   private String standardError;
-  @JsonProperty("environ")
+  @JsonProperty("env")
   private Map<String, String> environ;
-  
+
   @JsonCreator
-  public TESExecutor(@JsonProperty("image_name") String imageName, @JsonProperty("cmd") List<String> commandLineParts, @JsonProperty("workdir") String workingDirectory, @JsonProperty("stdin") String standardIn, @JsonProperty("stdout") String standardOut, @JsonProperty("stderr") String standardError, @JsonProperty("environ") Map<String, String> environ) {
+  public TESExecutor(@JsonProperty("image") String imageName, @JsonProperty("command") List<String> commandLineParts,
+      @JsonProperty("workdir") String workingDirectory, @JsonProperty("stdin") String standardIn, @JsonProperty("stdout") String standardOut,
+      @JsonProperty("stderr") String standardError, @JsonProperty("env") Map<String, String> environ) {
     this.imageName = imageName;
     this.commandLineParts = commandLineParts;
     this.workingDirectory = workingDirectory;
@@ -34,11 +36,17 @@ public class TESExecutor {
     this.environ = environ;
   }
 
-  public Map<String, String> getEnviron() { return environ; }
+  public Map<String, String> getEnviron() {
+    return environ;
+  }
 
-  public void setEnviron(Map<String, String> environ) { this.environ = environ; }
+  public void setEnviron(Map<String, String> environ) {
+    this.environ = environ;
+  }
 
-  public String getImageName() { return imageName; }
+  public String getImageName() {
+    return imageName;
+  }
 
   public void setImageName(String imageName) {
     this.imageName = imageName;
@@ -86,9 +94,8 @@ public class TESExecutor {
 
   @Override
   public String toString() {
-    return "TESExecutor [imageName=" + imageName + ", commandLineParts=" + commandLineParts
-        + ", workingDirectory=" + workingDirectory + ", standardIn=" + standardIn + ", standardOut=" + standardOut
-        + ", standardError=" + standardError + "]";
+    return "TESExecutor [imageName=" + imageName + ", commandLineParts=" + commandLineParts + ", workingDirectory=" + workingDirectory + ", standardIn="
+        + standardIn + ", standardOut=" + standardOut + ", standardError=" + standardError + "]";
   }
 
 }

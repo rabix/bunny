@@ -14,18 +14,18 @@ public class TESTask {
   private TESState state;
   @JsonProperty("name")
   private String name;
-  @JsonProperty("project")
-  private String project;
   @JsonProperty("description")
   private String description;
   @JsonProperty("inputs")
-  private List<TESTaskParameter> inputs;
+  private List<TESInput> inputs;
   @JsonProperty("outputs")
-  private List<TESTaskParameter> outputs;
+  private List<TESOutput> outputs;
   @JsonProperty("resources")
   private TESResources resources;
   @JsonProperty("executors")
   private List<TESExecutor> executors;
+  @JsonProperty("creation_time")
+  private String createTime;
   @JsonProperty("volumes")
   private List<String> volumes;
   @JsonProperty("tags")
@@ -34,48 +34,48 @@ public class TESTask {
   private List<TESTaskLogs> logs;
 
   public TESTask(@JsonProperty("name") String name,
-                 @JsonProperty("project") String project,
                  @JsonProperty("description") String description,
-                 @JsonProperty("inputs") List<TESTaskParameter> inputs,
-                 @JsonProperty("outputs") List<TESTaskParameter> outputs,
+                 @JsonProperty("inputs") List<TESInput> inputs,
+                 @JsonProperty("outputs") List<TESOutput> outputs,
                  @JsonProperty("resources") TESResources resources,
                  @JsonProperty("executors") List<TESExecutor> executors,
                  @JsonProperty("volumes") List<String> volumes,
-                 @JsonProperty("tags") Map<String, String> tags) {
+                 @JsonProperty("tags") Map<String, String> tags,
+                 @JsonProperty("creation_time") String createTime) {
     this.name = name;
     this.description = description;
-    this.project = project;
     this.inputs = inputs;
     this.outputs = outputs;
     this.resources = resources;
     this.executors = executors;
     this.volumes = volumes;
     this.tags = tags;
+    this.createTime = createTime;
   }
 
   @JsonCreator
   public TESTask(@JsonProperty("id") String id,
                  @JsonProperty("state") TESState state,
                  @JsonProperty("name") String name,
-                 @JsonProperty("project") String project,
                  @JsonProperty("description") String description,
-                 @JsonProperty("inputs") List<TESTaskParameter> inputs,
-                 @JsonProperty("outputs") List<TESTaskParameter> outputs,
+                 @JsonProperty("inputs") List<TESInput> inputs,
+                 @JsonProperty("outputs") List<TESOutput> outputs,
                  @JsonProperty("resources") TESResources resources,
                  @JsonProperty("executors") List<TESExecutor> executors,
                  @JsonProperty("volumes") List<String> volumes,
                  @JsonProperty("tags") Map<String, String> tags,
-                 @JsonProperty("logs") List<TESTaskLogs> logs) {
+                 @JsonProperty("logs") List<TESTaskLogs> logs,
+                 @JsonProperty("creation_time") String createTime) {
     this.id = id;
     this.state = state;
     this.name = name;
     this.description = description;
-    this.project = project;
     this.inputs = inputs;
     this.outputs = outputs;
     this.resources = resources;
     this.executors = executors;
     this.volumes = volumes;
+    this.createTime = createTime;
     this.tags = tags;
     this.logs = logs;
   }
@@ -88,14 +88,6 @@ public class TESTask {
     this.name = name;
   }
 
-  public String getProject() {
-    return project;
-  }
-
-  public void setProject(String project) {
-    this.project = project;
-  }
-
   public String getDescription() {
     return description;
   }
@@ -104,19 +96,19 @@ public class TESTask {
     this.description = description;
   }
 
-  public List<TESTaskParameter> getInputs() {
+  public List<TESInput> getInputs() {
     return inputs;
   }
 
-  public void setInputs(List<TESTaskParameter> inputs) {
+  public void setInputs(List<TESInput> inputs) {
     this.inputs = inputs;
   }
 
-  public List<TESTaskParameter> getOutputs() {
+  public List<TESOutput> getOutputs() {
     return outputs;
   }
 
-  public void setOutputs(List<TESTaskParameter> outputs) {
+  public void setOutputs(List<TESOutput> outputs) {
     this.outputs = outputs;
   }
 
@@ -160,11 +152,15 @@ public class TESTask {
     return state;
   }
 
+  public String getCreateTime() {
+    return createTime;
+  }
+  
   public List<TESTaskLogs> getLogs() { return logs; }
 
   @Override
   public String toString() {
-    return "TESTask [name=" + name + ", project=" + project + ", description=" + description + ", inputs=" + inputs + ", outputs=" + outputs
+    return "TESTask [name=" + name + ", description=" + description + ", inputs=" + inputs + ", outputs=" + outputs
         + ", resources=" + resources + ", executors=" + executors + "]";
   }
 
