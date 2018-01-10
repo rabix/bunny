@@ -14,6 +14,7 @@ import org.rabix.executor.container.impl.CompletedContainerHandler;
 import org.rabix.executor.container.impl.DockerContainerHandler;
 import org.rabix.executor.container.impl.DockerContainerHandler.DockerClientLockDecorator;
 import org.rabix.executor.container.impl.LocalContainerHandler;
+import org.rabix.executor.container.impl.UserDockerContainerHandler;
 
 public class ContainerHandlerFactory {
   @Inject
@@ -29,6 +30,9 @@ public class ContainerHandlerFactory {
 
   public ContainerHandler create(Job job, Requirement requirement) throws ContainerException {
     if (requirement instanceof DockerContainerRequirement) {
+      if (configuration.containsKey(UserDockerContainerHandler.EXECUTOR_OVERRIDE_COMMAND)) {
+        return new UserDockerContainerHandler(job, configuration, (DockerContainerRequirement) requirement, storageConfig, dockerConfig, statusCallback);
+      }
       return new DockerContainerHandler(job, configuration, (DockerContainerRequirement) requirement, storageConfig, dockerConfig, statusCallback,
           dockerClient);
     }
