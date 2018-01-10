@@ -364,14 +364,11 @@ public class BackendCommandLine {
         if (inputsFile != null) {
           final Path finalInputs = inputsFile;
           FileValueHelper.updateFileValues(commonInputs, (FileValue f) -> {
-            String path = f.getPath();
-            if (path != null && !Paths.get(path).isAbsolute()) {
-              f.setPath(finalInputs.resolveSibling(path).normalize().toString());
-            }
-            String location = f.getLocation();
-            if (location != null && URI.create(location).getScheme() == null) {
-              f.setLocation(finalInputs.resolveSibling(location).normalize().toString());
-            }
+            fixPaths(finalInputs, f);
+            if (f.getSecondaryFiles() != null)
+              for (FileValue sec : f.getSecondaryFiles()) {
+                fixPaths(finalInputs, sec);
+              }
             return f;
           });
         }
@@ -390,6 +387,18 @@ public class BackendCommandLine {
     } catch (JobServiceException | BootstrapServiceException | URISyntaxException e) {
       logger.error("Encountered an error while starting local backend.", e);
       System.exit(10);
+    }
+  }
+
+
+  private static void fixPaths(final Path finalInputs, FileValue f) {
+    String path = f.getPath();
+    if (path != null && !Paths.get(path).isAbsolute()) {
+      f.setPath(finalInputs.resolveSibling(path).normalize().toString());
+    }
+    String location = f.getLocation();
+    if (location != null && URI.create(location).getScheme() == null) {
+      f.setLocation(finalInputs.resolveSibling(location).normalize().toString());
     }
   }
 
