@@ -89,8 +89,6 @@ public class CWLDocumentResolver {
 
   public static final String DOCUMENT_FRAGMENT_SEPARATOR = "#";
 
-  private static final String DEFAULT_ENCODING = "UTF-8";
-
   private static boolean graphResolve = false;
 
   private static Map<String, String> namespaces = new HashMap<String, String>();

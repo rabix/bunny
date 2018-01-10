@@ -112,7 +112,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     if (s == null)
       return s;
     else
-      return s.contains(" ") ? "'" + s + "'" : s;// .replaceAll(" ", Matcher.quoteReplacement("\\ "));
+      return s.contains(" ") ? "'" + s + "'" : s;
   }
 
   /**

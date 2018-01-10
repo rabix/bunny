@@ -230,7 +230,7 @@ public class Draft2FileValueHelper extends Draft2BeanHelper {
           uri = new URI("file", location, null);
         }
         if (uri.isOpaque()) {
-          uri = new URI("file", workDir.resolve(uri.getSchemeSpecificPart()).toAbsolutePath().toString(), null);
+          uri = new URI("file", workDir.resolve(location).toAbsolutePath().toString(), null);
         }
         location = uri.toString();
         actual = Paths.get(uri);

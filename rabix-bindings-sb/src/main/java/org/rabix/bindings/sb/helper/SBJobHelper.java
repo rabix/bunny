@@ -22,7 +22,7 @@ public class SBJobHelper {
     String resolvedAppStr = SBDocumentResolver.resolve(appPath);
     SBJobApp app = BeanSerializer.deserialize(resolvedAppStr, SBJobApp.class);
     if (appPath.startsWith("file")) {
-      app.setAppFileLocation(Paths.get(appPath.replaceAll("file:", "")).toString());
+      app.setAppFileLocation(Paths.get(URI.create(appPath).getPath()).toString());
     }
     Map<String, Object> nativeInputs = (Map<String, Object>) SBValueTranslator.translateToSpecific(job.getInputs());
     Map<String, Object> nativeOutputs = (Map<String, Object>) SBValueTranslator.translateToSpecific(job.getOutputs());
