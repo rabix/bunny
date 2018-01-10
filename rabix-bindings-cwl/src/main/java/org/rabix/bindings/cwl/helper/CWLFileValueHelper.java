@@ -413,7 +413,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
 
     setPath(path, value);
-    setLocation(location, value);
+    setLocation(actual.toUri().toString(), value);
     
     if (Files.exists(actual)) {
       if (getSize(value) == null)
