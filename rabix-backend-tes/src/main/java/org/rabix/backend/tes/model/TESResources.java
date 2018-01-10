@@ -11,7 +11,7 @@ public class TESResources {
   private boolean preemptible;
   @JsonProperty("ram_gb")
   private Double ramGb;
-  @JsonProperty("size_gb")
+  @JsonProperty("disk_gb")
   private Double diskGb;
   @JsonProperty("zones")
   private String zones;
@@ -20,7 +20,7 @@ public class TESResources {
   public TESResources(@JsonProperty("cpu_cores") Integer cpuCores,
                       @JsonProperty("preemptible") boolean preemptible,
                       @JsonProperty("ram_gb") Double ramGb,
-                      @JsonProperty("size_gb") Double diskGb,
+                      @JsonProperty("disk_gb") Double diskGb,
                       @JsonProperty("zones") String zones) {
     this.cpuCores = cpuCores;
     this.preemptible = preemptible;

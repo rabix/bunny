@@ -39,10 +39,11 @@ import org.rabix.backend.tes.model.TESCreateTaskResponse;
 import org.rabix.backend.tes.model.TESExecutor;
 import org.rabix.backend.tes.model.TESFileType;
 import org.rabix.backend.tes.model.TESGetTaskRequest;
+import org.rabix.backend.tes.model.TESInput;
+import org.rabix.backend.tes.model.TESOutput;
 import org.rabix.backend.tes.model.TESResources;
 import org.rabix.backend.tes.model.TESState;
 import org.rabix.backend.tes.model.TESTask;
-import org.rabix.backend.tes.model.TESTaskParameter;
 import org.rabix.backend.tes.model.TESView;
 import org.rabix.backend.tes.service.TESServiceException;
 import org.rabix.backend.tes.service.TESStorageException;
@@ -80,7 +81,6 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   private final static Logger logger = LoggerFactory.getLogger(LocalTESWorkerServiceImpl.class);
 
   private final static String TYPE = "TES";
-  public final static String DEFAULT_PROJECT = "default";
   public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
 
   @BindingAnnotation
@@ -113,12 +113,14 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       Bindings bindings = BindingsFactory.create(job);
       Path dir = storage.localDir(job);
       if (!bindings.isSelfExecutable(job)) {
-        TESTaskParameter tesTaskParameter = tesJob.getOutputs().get(0);
-        Path outDir = Paths.get(URI.create(tesTaskParameter.getLocation() + "/"));
+        TESOutput tesTaskParameter = tesJob.getOutputs().get(0);
+
+        URI uri = URI.create(tesTaskParameter.getLocation() + "/");
+        Path outDir = Paths.get(uri);
         dir = outDir;
       }
       job = bindings.postprocess(job, dir, HashAlgorithm.SHA1, (String path, Map<String, Object> config) -> path);
-    } catch (BindingException e) {
+    } catch (Exception e) {
       logger.error("Couldn't process job", e);
       job = Job.cloneWithStatus(job, JobStatus.FAILED);
     }
@@ -242,7 +244,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           return new TESWorkPair(job, new TESTask(null, TESState.COMPLETE, null, null, null, null, null, null, null, null, null, null));
         }
 
-        Set<TESTaskParameter> inputs = new HashSet<>();
+        Set<TESInput> inputs = new HashSet<>(); 
+        
         Map<String, Object> wfInputs = job.getInputs();
         Collection<FileValue> flat = flatten(wfInputs);
         List<Requirement> combinedRequirements = getRequirements(bindings);
@@ -251,7 +254,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         flat.forEach(fileValue -> {
           try {
             storage.stageFile(workDir, fileValue);
-            inputs.add(new TESTaskParameter(fileValue.getName(), null, fileValue.getLocation(), fileValue.getPath(),
+            inputs.add(new TESInput(fileValue.getName(), null, fileValue.getLocation(), fileValue.getPath(),
                 fileValue.getType().equals(FileType.File) ? TESFileType.FILE : TESFileType.DIRECTORY, null));
           } catch (TESStorageException e) {
             e.printStackTrace();
@@ -259,8 +262,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         });
         job = Job.cloneWithInputs(job, wfInputs);
 
-        List<TESTaskParameter> outputs = Collections.singletonList(
-            new TESTaskParameter(localDir.getFileName().toString(), null, workDir.toUri().toString(), localDir.toString(), TESFileType.DIRECTORY, null));
+        List<TESOutput> outputs = Collections.singletonList(
+            new TESOutput(localDir.getFileName().toString(), null, workDir.toUri().toString(), localDir.toString(), TESFileType.DIRECTORY));
 
         CommandLine commandLine = bindings.buildCommandLineObject(job, localDir.toFile(), (String path, Map<String, Object> config) -> path);
 
@@ -279,7 +282,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
             localDir.toString(), commandLine.getStandardIn(), commandLineToolStdout, commandLineToolErrLog, getVariables(combinedRequirements)));
 
         TESResources resources = getResources(combinedRequirements);
-        TESTask task = new TESTask(job.getName(), DEFAULT_PROJECT, null, new ArrayList<TESTaskParameter>(inputs), outputs, resources, command, null, null);
+        TESTask task = new TESTask(job.getName(), null, new ArrayList<>(inputs), outputs, resources, command, null, null, null);
 
         TESCreateTaskResponse tesJobId = tesHttpClient.runTask(task);
 
@@ -461,7 +464,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     }
 
     private boolean isFinished(TESTask tesJob) {
-      return tesJob.getState().equals(TESState.CANCELED) || tesJob.getState().equals(TESState.COMPLETE) || tesJob.getState().equals(TESState.ERROR)
+      return tesJob.getState().equals(TESState.CANCELED) || tesJob.getState().equals(TESState.COMPLETE) || tesJob.getState().equals(TESState.EXECUTOR_ERROR)
           || tesJob.getState().equals(TESState.SYSTEM_ERROR);
     }
   }

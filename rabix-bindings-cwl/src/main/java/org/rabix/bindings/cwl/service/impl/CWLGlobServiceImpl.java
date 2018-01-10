@@ -2,6 +2,7 @@ package org.rabix.bindings.cwl.service.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,10 +59,9 @@ public class CWLGlobServiceImpl implements CWLGlobService {
         files.add(workingDir);
         continue;
       }
-      final PathMatcher matcher = workingDir.getFileSystem().getPathMatcher("glob:" + singleGlob);
-      final Path startDir = workingDir.resolve("./").normalize();
+      final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + singleGlob);
       try {
-        Files.walkFileTree(startDir, new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(workingDir, new SimpleFileVisitor<Path>() {
           @Override
           public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
             if(!file.toAbsolutePath().startsWith(workingDir))
@@ -76,7 +76,7 @@ public class CWLGlobServiceImpl implements CWLGlobService {
           }
           @Override
           public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            if(!dir.toAbsolutePath().startsWith(workingDir) || startDir.equals(dir))
+            if(!dir.toAbsolutePath().startsWith(workingDir) || workingDir.equals(dir))
               return FileVisitResult.CONTINUE;
 
             Path pathRelativeToWorkingDir = dir.subpath(workingDir.getNameCount(), dir.getNameCount());

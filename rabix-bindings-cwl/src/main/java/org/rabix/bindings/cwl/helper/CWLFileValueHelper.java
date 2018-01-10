@@ -381,7 +381,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         if (!actual.isAbsolute()) {
           actual = workDir.resolve(actual).toAbsolutePath();
         }
-        path = actual.toString();
+        path = uri.getPath();
       } else {
         return;
       }
