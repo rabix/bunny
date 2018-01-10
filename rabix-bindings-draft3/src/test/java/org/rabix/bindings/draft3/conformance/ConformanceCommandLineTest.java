@@ -1,5 +1,6 @@
 package org.rabix.bindings.draft3.conformance;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,7 +40,7 @@ public class ConformanceCommandLineTest {
       expectedList.add("rabix/tests/test-files/example_human_Illumina.pe_2.fastq");
 
       Job job = new Job(commandLineToolStr, inputs);      
-      List<?> resultList = new Draft3Bindings().buildCommandLineObject(job, null, null).getParts();
+      List<?> resultList = new Draft3Bindings().buildCommandLineObject(job, new File("."), null).getParts();
       Assert.assertNotNull(resultList);
       Assert.assertEquals(resultList.size(), expectedList.size());
       Assert.assertEquals(resultList, expectedList);
