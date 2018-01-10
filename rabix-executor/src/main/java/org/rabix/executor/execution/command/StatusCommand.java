@@ -51,7 +51,7 @@ public class StatusCommand extends JobHandlerCommand {
       String message = null;
       job = jobHandler.postprocess(jobData.isTerminal());
       if (!jobHandler.isSuccessful()) {
-        message = String.format("Job %s failed with exit code %d.", jobId, jobHandler.getExitStatus());
+        message = String.format("Job %s failed with exit code %d. with message: %s", jobId, jobHandler.getExitStatus(), jobHandler.getErrorLog());
         jobData = jobDataService.save(jobData, message, JobDataStatus.FAILED);
         failed(jobData, message, jobHandler.getEngineStub(), null);
       } else {
@@ -81,5 +81,4 @@ public class StatusCommand extends JobHandlerCommand {
   public JobHandlerCommandType getType() {
     return JobHandlerCommandType.STATUS;
   }
-
 }

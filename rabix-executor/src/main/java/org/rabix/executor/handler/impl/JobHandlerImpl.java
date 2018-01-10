@@ -4,20 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.backend.api.engine.EngineStub;
@@ -40,8 +38,6 @@ import org.rabix.bindings.model.requirement.LocalContainerRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.CloneHelper;
-import org.rabix.common.service.download.DownloadService;
-import org.rabix.common.service.download.DownloadServiceException;
 import org.rabix.common.service.upload.UploadService;
 import org.rabix.common.service.upload.UploadServiceException;
 import org.rabix.executor.ExecutorException;
@@ -76,8 +72,6 @@ public class JobHandlerImpl implements JobHandler {
   private final HashAlgorithm hashAlgorithm;
   
   private final UploadService uploadService;
-  private final DownloadService downloadService;
-  
   private final FilePathMapper inputFileMapper;
   private final FilePathMapper outputFileMapper;
 
@@ -99,7 +93,7 @@ public class JobHandlerImpl implements JobHandler {
   public JobHandlerImpl(
       @Assisted Job job, @Assisted EngineStub<?, ?, ?> engineStub, JobDataService jobDataService,
       StorageConfiguration storageConfig, DockerConfigation dockerConfig, FileConfiguration fileConfiguration,
-      WorkerStatusCallback statusCallback, CacheService cacheService, UploadService uploadService, DownloadService downloadService,
+      WorkerStatusCallback statusCallback, CacheService cacheService, UploadService uploadService,
       @InputFileMapper FilePathMapper inputFileMapper, @OutputFileMapper FilePathMapper outputFileMapper, ContainerHandlerFactory containerHandlerFactory) {
     this.job = job;
     this.engineStub = engineStub;
@@ -110,7 +104,6 @@ public class JobHandlerImpl implements JobHandler {
     this.cacheService = cacheService;
     this.workingDir = storageConfig.getWorkingDir(job);
     this.uploadService = uploadService;
-    this.downloadService = downloadService;
     this.inputFileMapper = inputFileMapper;
     this.outputFileMapper = outputFileMapper;
     this.enableHash = fileConfiguration.calculateFileChecksum();
@@ -182,7 +175,7 @@ public class JobHandlerImpl implements JobHandler {
       }
       containerHandler.start();
     } catch (Exception e) {
-      String message = String.format("Execution failed for %s. %s", job.getId(), e.getMessage());
+      String message = String.format("Execution failed for %s. %s", job.getName(), e.getMessage());
       throw new ExecutorException(message, e);
     }
   }
@@ -281,18 +274,24 @@ public class JobHandlerImpl implements JobHandler {
         job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
         return job;
       }
+
+      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);  
       
       String standardErrorLog = bindings.getStandardErrorLog(job);
+      
+      if (standardErrorLog == null) {
+        try {
+          String processExitMessage = containerHandler.getProcessExitMessage();
+          if (!StringUtils.isEmpty(processExitMessage))
+            Files.write(workingDir.toPath().resolve(DEFAULT_ERROR_FILE), processExitMessage.getBytes());
+        } catch (IOException e) {
+          throw new ExecutorException("Couldn't write error file", e);
+        }
+      }
       
       if (!isSuccessful()) {
         uploadOutputFiles(job, bindings);
         return job;
-      }
-      
-      job = bindings.postprocess(job, workingDir, enableHash? hashAlgorithm : null, null);
-      
-      if (standardErrorLog == null) {
-        containerHandler.dumpContainerLogs(new File(workingDir, DEFAULT_ERROR_FILE));
       }
       
       containerHandler.dumpCommandLine();
@@ -378,7 +377,6 @@ public class JobHandlerImpl implements JobHandler {
   }
 
   public boolean isStarted() throws ExecutorException {
-    logger.debug("isStarted()");
     if (containerHandler == null) {
       logger.debug("Container hasn't started yet.");
       return false;
@@ -404,9 +402,17 @@ public class JobHandlerImpl implements JobHandler {
 
   @Override
   public int getExitStatus() throws ExecutorException {
-    logger.debug("getExitStatus()");
     try {
       return containerHandler.getProcessExitStatus();
+    } catch (ContainerException e) {
+      throw new ExecutorException("Couldn't get process exit value.", e);
+    }
+  }
+  
+  @Override
+  public String getErrorLog() throws ExecutorException {
+    try {
+      return containerHandler.getProcessExitMessage();
     } catch (ContainerException e) {
       throw new ExecutorException("Couldn't get process exit value.", e);
     }
@@ -414,7 +420,6 @@ public class JobHandlerImpl implements JobHandler {
 
   @Override
   public boolean isSuccessful() throws ExecutorException {
-    logger.debug("isSuccessful()");
     int processExitStatus = getExitStatus();
     return isSuccessful(processExitStatus);
   }

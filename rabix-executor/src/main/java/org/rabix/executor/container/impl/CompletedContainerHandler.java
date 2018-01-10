@@ -1,7 +1,5 @@
 package org.rabix.executor.container.impl;
 
-import java.io.File;
-
 import org.rabix.bindings.model.Job;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.executor.container.ContainerException;
@@ -10,7 +8,7 @@ import org.rabix.executor.container.ContainerHandler;
 public class CompletedContainerHandler implements ContainerHandler {
 
   private Job job;
-  
+
   public CompletedContainerHandler(Job job) {
     this.job = job;
   }
@@ -21,8 +19,7 @@ public class CompletedContainerHandler implements ContainerHandler {
   }
 
   @Override
-  public void stop() throws ContainerException {
-  }
+  public void stop() throws ContainerException {}
 
   @Override
   public boolean isStarted() throws ContainerException {
@@ -40,15 +37,13 @@ public class CompletedContainerHandler implements ContainerHandler {
   }
 
   @Override
-  public void dumpContainerLogs(File errorFile) throws ContainerException {
-  }
+  public void dumpCommandLine() throws ContainerException {}
 
   @Override
-  public void dumpCommandLine() throws ContainerException {
-  }
+  public void removeContainer() {}
 
   @Override
-  public void removeContainer() {
+  public String getProcessExitMessage() throws ContainerException {
+    return null;
   }
-
 }

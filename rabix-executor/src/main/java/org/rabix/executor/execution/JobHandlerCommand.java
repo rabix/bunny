@@ -92,7 +92,6 @@ public abstract class JobHandlerCommand {
    * Send notification to master about FAILED event 
    */
   protected void failed(JobData jobData, String message, EngineStub<?,?,?> engineStub, Throwable e) {
-    logger.error(message, e);
     Job job = Job.cloneWithStatus(jobData.getJob(), JobStatus.FAILED);
     job = Job.cloneWithMessage(job, message);
     try {
@@ -102,9 +101,8 @@ public abstract class JobHandlerCommand {
     }
     jobData = JobData.cloneWithJob(jobData, job);
     jobDataService.save(jobData);
-    engineStub.send(job);
-    
     VerboseLogger.log(String.format("%s", message));
+    engineStub.send(job);
   }
 
   /**

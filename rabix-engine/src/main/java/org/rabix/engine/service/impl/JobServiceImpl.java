@@ -95,7 +95,7 @@ public class JobServiceImpl implements JobService {
   }
 
   private void doUpdate(Job job, Runnable onUpdatedCallback) {
-    logger.debug("Update job id:{}, name:{}, root:{}", job.getId(), job.getName(), job.getRootId());
+//    logger.debug("Update job id:{}, name:{}, root:{}", job.getId(), job.getName(), job.getRootId());
     try {
       transactionHelper.doInTransaction((TransactionHelper.TransactionCallback<Void>) () -> {
         JobStatusEvent statusEvent = null;
@@ -260,7 +260,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobFailed(final Job failedJob){
-    logger.warn("Job {}, rootId: {} failed: {}", failedJob.getName(), failedJob.getRootId(), failedJob.getMessage());
+    logger.debug("Job {}, rootId: {} failed: {}", failedJob.getName(), failedJob.getRootId(), failedJob.getMessage());
     intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()));
 
     try {
@@ -307,7 +307,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public void handleJobRootFailed(Job job){
-    logger.warn("Root job {} failed.", job.getId());
+    logger.debug("Root job {} failed. {}", job.getId(), job.getMessage());
     synchronized (stoppingRootIds) {
       if (deleteFilesUponExecution) {
         if (isLocalBackend) {

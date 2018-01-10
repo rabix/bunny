@@ -1,5 +1,6 @@
 package org.rabix.bindings.draft2.helper;
 
+import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public class Draft2JobHelper {
     String resolvedAppStr = Draft2DocumentResolver.resolve(appPath);
     Draft2JobApp app = BeanSerializer.deserialize(resolvedAppStr, Draft2JobApp.class);
     if (appPath.startsWith("file")) {
-      app.setAppFileLocation(Paths.get(appPath.replaceAll("file:", "")).toString());
+      app.setAppFileLocation(Paths.get(URI.create(appPath).getPath()).toString());
     }
     Map<String, Object> nativeInputs = (Map<String, Object>) Draft2ValueTranslator.translateToSpecific(job.getInputs());
     Map<String, Object> nativeOutputs = (Map<String, Object>) Draft2ValueTranslator.translateToSpecific(job.getOutputs());

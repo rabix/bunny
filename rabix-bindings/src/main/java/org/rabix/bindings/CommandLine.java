@@ -83,6 +83,7 @@ public class CommandLine {
 
     public Part(String value) {
       this.value = value;
+      quote = true;
     }
 
     public Part(String value, boolean quote) {

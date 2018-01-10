@@ -1,6 +1,7 @@
 package org.rabix.bindings.draft3;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 
@@ -72,9 +72,20 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
       throw new BindingException("Failed to extract standard outputs.", e);
     }
 
-    CommandLine commandLine = new CommandLine(parts, stdin, stdout, null, parts.stream().anyMatch(p->StringUtils.endsWithAny(p.getValue(),"&&","|")));
+    CommandLine commandLine = new CommandLine(parts, toPath(stdin, workingDir.toPath()), toPath(stdout, workingDir.toPath()), null, parts.stream().anyMatch(p->StringUtils.endsWithAny(p.getValue(),"&&","|")));
     logger.info("Command line built. CommandLine = {}", commandLine);
     return commandLine;
+  }
+
+  private String toPath(String s, Path workDir) {
+    return s == null ? s :  sanitize(workDir.resolve(s).toString());
+  }
+  
+  private String sanitize(String s) {
+    if (s == null)
+      return s;
+    else
+      return s.contains(" ") ? "'" + s + "'" : s;
   }
   
   @Override

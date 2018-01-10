@@ -63,5 +63,7 @@ public interface JobHandler {
    * Remove container
    */
   void removeContainer();
+
+  String getErrorLog() throws ExecutorException;
   
 }

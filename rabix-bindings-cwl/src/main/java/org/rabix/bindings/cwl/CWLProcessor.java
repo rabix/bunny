@@ -404,17 +404,16 @@ public class CWLProcessor implements ProtocolProcessor {
     }
     Object metadata = CWLBindingHelper.getMetadata(outputBinding);
     metadata = metadataService.evaluateMetadataExpressions(job, fileData, metadata);
-    logger.info("Metadata expressions evaluated. Metadata is {}.", metadata);
     if (metadata != null) {
+      logger.info("Metadata expressions evaluated. Metadata is {}.", metadata);
       CWLFileValueHelper.setMetadata(metadata, fileData);
     }
     metadata = metadataService.processMetadata(job, fileData, outputPort, outputBinding);
     if (metadata != null) {
       logger.info("Metadata for {} resolved. Metadata is {}", outputPort.getId(), metadata);
       CWLFileValueHelper.setMetadata(metadata, fileData);
-    } else {
-      logger.info("Metadata for {} output is empty.", outputPort.getId());
     }
+    
     boolean loadContents = CWLBindingHelper.loadContents(outputBinding);
     if (loadContents) {
       CWLFileValueHelper.setContents(fileData);

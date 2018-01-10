@@ -306,12 +306,12 @@ public class SBFileValueHelper extends SBBeanHelper {
   }
 
   private static URI createFullURI(String val, Path parent) throws URISyntaxException {
-    URI uri = URI.create(val);
+    URI uri = URI.create(val.replace(" ", "%20"));
     if (uri.getScheme() == null) {
       uri = new URI("file", val, null);
     }
     if (uri.isOpaque()) {
-      uri = new URI("file", parent.resolve(uri.getSchemeSpecificPart()).toAbsolutePath().toString(), null);
+      uri = new URI("file", parent.resolve(val).toAbsolutePath().toString(), null);
     }
     return uri;
   }

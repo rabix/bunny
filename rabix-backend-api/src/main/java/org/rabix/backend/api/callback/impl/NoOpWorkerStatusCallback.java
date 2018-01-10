@@ -12,77 +12,77 @@ public class NoOpWorkerStatusCallback implements WorkerStatusCallback {
 
   @Override
   public Job onJobReady(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onJobReady(jobId={})", job.getId());
+//    logger.debug("onJobReady(jobId={})", job.getId());
     return job;
   }
   
   @Override
   public Job onJobFailed(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onJobFailed(jobId={})", job.getId());
+//    logger.debug("onJobFailed(jobId={})", job.getId());
     return job;
   }
 
   @Override
   public Job onJobStarted(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onJobStarted(jobId={})", job.getId());
+//    logger.debug("onJobStarted(jobId={})", job.getId());
     return job;
   }
   
   @Override
   public Job onJobStopped(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onJobStopped(jobId={})", job.getId());
+//    logger.debug("onJobStopped(jobId={})", job.getId());
     return job;
   }
 
   @Override
   public Job onJobCompleted(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onJobCompleted(jobId={})", job.getId());
+//    logger.debug("onJobCompleted(jobId={})", job.getId());
     return job;
   }
 
   @Override
   public void onContainerImagePullStarted(Job job, String image) throws WorkerStatusCallbackException {
-    logger.debug("onContainerImagePullStarted(jobId={}, image={})", job.getId(), image);
+//    logger.debug("onContainerImagePullStarted(jobId={}, image={})", job.getId(), image);
   }
 
   @Override
   public void onContainerImagePullCompleted(Job job, String image) throws WorkerStatusCallbackException {
-    logger.debug("onContainerImagePullCompleted(jobId={}, image={})", job.getId(), image);
+//    logger.debug("onContainerImagePullCompleted(jobId={}, image={})", job.getId(), image);
   }
 
   @Override
   public void onInputFilesDownloadStarted(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onInputFilesDownloadStarted(jobId={})", job.getId());
+//    logger.debug("onInputFilesDownloadStarted(jobId={})", job.getId());
   }
 
   @Override
   public void onInputFilesDownloadCompleted(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onInputFilesDownloadCompleted(jobId={})", job.getId());
+//    logger.debug("onInputFilesDownloadCompleted(jobId={})", job.getId());
   }
 
   @Override
   public void onOutputFilesUploadStarted(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onOutputFilesUploadStarted(jobId={})", job.getId());
+//    logger.debug("onOutputFilesUploadStarted(jobId={})", job.getId());
   }
 
   @Override
   public void onOutputFilesUploadCompleted(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onOutputFilesUploadComplted(jobId={})", job.getId());
+//    logger.debug("onOutputFilesUploadComplted(jobId={})", job.getId());
   }
 
   @Override
   public void onContainerImagePullFailed(Job job, String image) throws WorkerStatusCallbackException {
-    logger.debug("onContainerImagePullFailed(jobId={})", job.getId());
+//    logger.debug("onContainerImagePullFailed(jobId={})", job.getId());
   }
 
   @Override
   public void onInputFilesDownloadFailed(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onInputFilesDownloadFailed(jobId={})", job.getId());
+//    logger.debug("onInputFilesDownloadFailed(jobId={})", job.getId());
   }
 
   @Override
   public void onOutputFilesUploadFailed(Job job) throws WorkerStatusCallbackException {
-    logger.debug("onOutputFilesUploadFailed(jobId={})", job.getId());
+//    logger.debug("onOutputFilesUploadFailed(jobId={})", job.getId());
   }
 
 }

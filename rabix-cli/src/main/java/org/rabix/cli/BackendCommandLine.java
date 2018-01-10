@@ -87,17 +87,11 @@ public class BackendCommandLine {
       final String app = commandLine.getArgList().get(0);
 
       Path filePath = null;
-      URI appUri = URI.create(app);
+      URI appUri = URI.create(app.replace(" ", "%20"));
       if (appUri.getScheme() == null) {
-        appUri = new URI("file", appUri.getSchemeSpecificPart(), appUri.getFragment());
+        appUri = new URI("file", Paths.get("").toAbsolutePath().resolve(appUri.getSchemeSpecificPart()).toString(), appUri.getFragment());
       }
-
-      if (appUri.getScheme().equals("file")) {
-        filePath = Paths.get("").toAbsolutePath().resolve(appUri.getSchemeSpecificPart());
-      } else {
-        filePath = Paths.get(new URI(appUri.getScheme(), appUri.getSchemeSpecificPart(), null)).toAbsolutePath();
-      }
-
+      filePath = Paths.get(appUri.getPath());
       if (!Files.exists(filePath)) {
         VerboseLogger.log(String.format("Application file %s does not exist.", appUri.toString()));
         printUsageAndExit(posixOptions);
