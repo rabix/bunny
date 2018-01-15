@@ -1,7 +1,5 @@
 package org.rabix.bindings.cwl;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -14,7 +12,6 @@ import org.rabix.bindings.BindingException;
 import org.rabix.bindings.ProtocolRequirementProvider;
 import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
-import org.rabix.bindings.cwl.bean.CWLRuntime;
 import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLDockerResource;
 import org.rabix.bindings.cwl.bean.resource.requirement.CWLEnvVarRequirement;
@@ -102,21 +99,22 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         CWLDirent dirent = (CWLDirent) listingObj;
         
         Object entry = dirent.getEntry();
-        Object entryname = dirent.getEntryname(); // TODO explicit cast
+        String entryname = (String) dirent.getEntryname();
         if (CWLSchemaHelper.isFileFromValue(entry)) {
-          processFileValue(result, !dirent.isWritable(), (String) entryname, CWLFileValueHelper.createFileValue(((CWLDirent) listingObj).getEntry()));
+          FileValue fileValue = CWLFileValueHelper.createFileValue(((CWLDirent) listingObj).getEntry());
+          processFileValue(result, !dirent.isWritable(), entryname == null ? fileValue.getName() : entryname, fileValue);
           continue;
         }
         if (CWLSchemaHelper.isDirectoryFromValue(entry)) {
           DirectoryValue directoryValue = CWLDirectoryValueHelper.createDirectoryValue(((CWLDirent) listingObj).getEntry());
-          result.add(new FileRequirement.SingleInputDirectoryRequirement((String) entryname, directoryValue, !dirent.isWritable()));
+          result.add(new FileRequirement.SingleInputDirectoryRequirement(entryname == null ? directoryValue.getName() : entryname, directoryValue, !dirent.isWritable()));
           continue;
         }
         if (entry instanceof String) {
-          result.add(new FileRequirement.SingleTextFileRequirement((String) entryname, (String) entry));    // TODO discuss cast
+          result.add(new FileRequirement.SingleTextFileRequirement(entryname, (String) entry));
         }
         continue;
-      }      
+      }
       if (listingObj instanceof FileValue) {
         FileValue fileValue = (FileValue) listingObj;
         String runtime = cwlJob.getRuntime().getOutdir();
