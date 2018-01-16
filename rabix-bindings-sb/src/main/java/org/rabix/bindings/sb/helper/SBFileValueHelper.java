@@ -327,4 +327,12 @@ public class SBFileValueHelper extends SBBeanHelper {
   public static void setChecksum(File file, Map<String, Object> fileData, HashAlgorithm hashAlgorithm) {
     setChecksum(file.toPath(), fileData, hashAlgorithm);
   }
+  
+  public static Map<String, Object> pathToRawFile(Path file, HashAlgorithm hash, Path workDir) throws IOException, URISyntaxException {
+    Map<String, Object> fileValue = new HashMap<>();
+    setFileType(fileValue);
+    setLocation(file.toUri().toString(), fileValue);
+    buildMissingInfo(fileValue, hash, workDir);
+    return fileValue;
+  }
 }

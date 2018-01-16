@@ -2,6 +2,8 @@ package org.rabix.bindings.sb;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -380,18 +382,13 @@ public class SBProcessor implements ProtocolProcessor {
         }
         secondaryFilePath += suffix.startsWith(".") ? suffix : "." + suffix;
       }
-      File secondaryFile = new File(secondaryFilePath);
-      Map<String, Object> secondaryFileMap = new HashMap<>();
-      SBFileValueHelper.setFileType(secondaryFileMap);
-      SBFileValueHelper.setPath(secondaryFile.getAbsolutePath(), secondaryFileMap);
-      SBFileValueHelper.setSize(secondaryFile.length(), secondaryFileMap);
-      SBFileValueHelper.setName(secondaryFile.getName(), secondaryFileMap);
-      if (secondaryFile.exists()) {
-        if (hashAlgorithm != null) {
-          SBFileValueHelper.setChecksum(secondaryFile, secondaryFileMap, hashAlgorithm);
-        }
-        secondaryFileMaps.add(secondaryFileMap);
+      try {
+        Map<String, Object> file = SBFileValueHelper.pathToRawFile(Paths.get(secondaryFilePath), hashAlgorithm, Paths.get(SBFileValueHelper.getPath(fileValue)));
+        secondaryFileMaps.add(file);
+      } catch (IOException | URISyntaxException e) {
+        logger.error("Couldn't collect secondary file: " + secondaryFilePath);
       }
+
     }
     return secondaryFileMaps;
   }
