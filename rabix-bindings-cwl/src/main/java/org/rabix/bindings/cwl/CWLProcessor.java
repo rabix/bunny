@@ -83,7 +83,7 @@ public class CWLProcessor implements ProtocolProcessor {
     CWLRuntime runtime = cwlJob.getRuntime();
     String path = workingDir.toAbsolutePath().toString();
     try {
-      path = filesPathMapper == null ? path : filesPathMapper.map(path, Collections.EMPTY_MAP);
+      path = filesPathMapper == null ? path : filesPathMapper.map(path, Collections.emptyMap());
     } catch (FileMappingException e1) {
       logger.error(e1.getMessage());
     }

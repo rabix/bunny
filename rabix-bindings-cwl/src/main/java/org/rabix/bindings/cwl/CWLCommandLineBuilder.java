@@ -135,8 +135,8 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
     try {
       List<Object> baseCmds = commandLineTool.getBaseCmd(job);
+      baseCmds.removeIf(s->StringUtils.isEmpty(s.toString()));
       result.addAll(Lists.transform(baseCmds, (obj -> new CommandLine.Part(obj.toString(), true))));
-
       List<CWLCommandLinePart> commandLineParts = new ArrayList<>();
 
       if (commandLineTool.hasArguments()) {
