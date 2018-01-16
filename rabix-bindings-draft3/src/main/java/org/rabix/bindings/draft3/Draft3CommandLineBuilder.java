@@ -78,13 +78,10 @@ public class Draft3CommandLineBuilder implements ProtocolCommandLineBuilder {
   }
 
   private String toPath(String s, Path workDir) {
-    return s == null ? s :  sanitize(workDir.resolve(s).toString());
+    return StringUtils.isEmpty(s) ? s :  sanitize(workDir.resolve(s).toString());
   }
   
   private String sanitize(String s) {
-    if (s == null)
-      return s;
-    else
       return s.contains(" ") ? "'" + s + "'" : s;
   }
   
