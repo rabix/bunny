@@ -72,10 +72,6 @@ public class CWLPortProcessor {
       return portProcessorResult.getValue();
     }
     
-    if (CWLSchemaHelper.isAnyFromSchema(schema)) {
-      return value;
-    }
-    
     if (CWLSchemaHelper.isFileFromValue(value)) {
       return value;
     }
