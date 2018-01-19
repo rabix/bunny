@@ -449,6 +449,8 @@ public class CWLProcessor implements ProtocolProcessor {
     List<Object> secondaryFilesList = new ArrayList<>();
     if (secondaryFilesObj instanceof List<?>) {
       secondaryFilesList.addAll((Collection<? extends Object>) secondaryFilesObj);
+    } else if (secondaryFilesObj instanceof String) {
+      secondaryFilesList.add(secondaryFilesObj);
     }
 
     List<Map<String, Object>> secondaryFileMaps = new ArrayList<>();
