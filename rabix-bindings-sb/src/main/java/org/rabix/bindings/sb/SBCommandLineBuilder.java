@@ -46,7 +46,7 @@ public class SBCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
     
     SBCommandLineTool commandLineTool = (SBCommandLineTool) sbJob.getApp();
-    List<CommandLine.Part> commandLineParts = Lists.transform(buildCommandLineParts(sbJob, workingDir, filePathMapper), (obj -> new CommandLine.Part(obj.toString())));
+    List<CommandLine.Part> commandLineParts = Lists.transform(buildCommandLineParts(sbJob, workingDir, filePathMapper), (obj -> new CommandLine.Part(obj.toString(), false)));
 
     String stdin = null;
     try {

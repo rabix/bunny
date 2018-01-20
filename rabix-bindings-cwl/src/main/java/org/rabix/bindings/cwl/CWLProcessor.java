@@ -374,7 +374,7 @@ public class CWLProcessor implements ProtocolProcessor {
       return null;
     }
 
-    Set<Path> files = globService.glob(job, workingDir, glob);
+    List<Path> files = globService.glob(job, workingDir, glob);
     if (files == null) {
       logger.info("Glob service didn't find any files.");
       return null;

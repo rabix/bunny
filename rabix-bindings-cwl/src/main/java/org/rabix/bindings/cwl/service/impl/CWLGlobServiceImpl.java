@@ -29,12 +29,12 @@ public class CWLGlobServiceImpl implements CWLGlobService {
   /**
    * Find all files that match GLOB inside the working directory
    */
-  public Set<File> glob(CWLJob job, File workingDir, Object glob) throws CWLGlobException {
-    return this.glob(job, workingDir.toPath(), glob).stream().map(p->p.toFile()).collect(Collectors.toSet());
+  public List<File> glob(CWLJob job, File workingDir, Object glob) throws CWLGlobException {
+    return this.glob(job, workingDir.toPath(), glob).stream().map(p->p.toFile()).collect(Collectors.toList());
   }
   
   @SuppressWarnings("unchecked")
-  public Set<Path> glob(CWLJob job, Path workingDir, Object glob) throws CWLGlobException {
+  public List<Path> glob(CWLJob job, Path workingDir, Object glob) throws CWLGlobException {
     Preconditions.checkNotNull(job);
     Preconditions.checkNotNull(workingDir);
 
@@ -44,7 +44,7 @@ public class CWLGlobServiceImpl implements CWLGlobService {
       throw new CWLGlobException("Failed to evaluate glob " + glob, e);
     }
     if (glob == null) {
-      return Collections.<Path> emptySet();
+      return Collections.<Path> emptyList();
     }
     List<String> globs = new ArrayList<>();
     if (glob instanceof List<?>) {
@@ -52,9 +52,9 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     } else {
       globs.add((String) glob);
     }
-
-    final Set<Path> files = new TreeSet<>();
+    final List<Path> output = new ArrayList<>();
     for (String singleGlob : globs) {
+      Set<Path> files = new TreeSet<>();
       if (singleGlob.equals(".")) {
         files.add(workingDir);
         continue;
@@ -94,7 +94,8 @@ public class CWLGlobServiceImpl implements CWLGlobService {
       } catch (IOException e) {
         throw new CWLGlobException("Failed to traverse through working directory", e);
       }
+      output.addAll(files);
     }
-    return files.isEmpty() ? null : files;
+    return output.isEmpty() ? null : output;
   }
 }

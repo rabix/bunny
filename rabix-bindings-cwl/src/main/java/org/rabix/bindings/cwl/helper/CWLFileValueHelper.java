@@ -301,17 +301,18 @@ public class CWLFileValueHelper extends CWLBeanHelper {
 
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
     Map<String, Object> raw = new HashMap<>();
-
+    Path path = Paths.get(fileValue.getPath() == null ? fileValue.getLocation() : fileValue.getPath());
+    String name = fileValue.getName() == null ? path.getFileName().toString() : fileValue.getName();
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
-    setName(fileValue.getName(), raw);
+    setName(name, raw);
     setFormat(fileValue.getFormat(), raw);
     setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
     setDirname(fileValue.getDirname(), raw);
-    setNameroot(fileValue.getNameroot(), raw);
-    setNameext(fileValue.getNameext(), raw);
+    setNameroot(getBasename(name), raw);
+    setNameext(getNameext(name), raw);
     setContents(fileValue.getContents(), raw);
 
     Map<String, Object> properties = fileValue.getProperties();
