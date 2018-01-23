@@ -301,17 +301,23 @@ public class CWLFileValueHelper extends CWLBeanHelper {
 
   public static Map<String, Object> createFileRaw(FileValue fileValue) {
     Map<String, Object> raw = new HashMap<>();
+    String actual = fileValue.getPath() == null ? fileValue.getLocation() : fileValue.getPath();
 
+    String name = fileValue.getName();
+    if (actual != null) {
+      Path path = Paths.get(actual);
+      name = fileValue.getName() == null ? path.getFileName().toString() : fileValue.getName();
+    }
+    setName(name, raw);
+    setNameroot(getBasename(name), raw);
+    setNameext(getNameext(name), raw);
     setFileType(raw);
     setPath(fileValue.getPath(), raw);
-    setName(fileValue.getName(), raw);
     setFormat(fileValue.getFormat(), raw);
     setLocation(fileValue.getLocation(), raw);
     setChecksum(fileValue.getChecksum(), raw);
     setSize(fileValue.getSize(), raw);
     setDirname(fileValue.getDirname(), raw);
-    setNameroot(fileValue.getNameroot(), raw);
-    setNameext(fileValue.getNameext(), raw);
     setContents(fileValue.getContents(), raw);
 
     Map<String, Object> properties = fileValue.getProperties();
@@ -347,6 +353,8 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   private static String getBasename(String filename) {
+    if (filename == null)
+      return null;
     String[] parts = StringUtils.split(filename, ".");
     if (parts.length > 2) {
       return String.join(".", Arrays.copyOfRange(parts, 0, parts.length - 1));
@@ -355,6 +363,8 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   private static String getNameext(String filename) {
+    if (filename == null)
+      return null;
     int dotIndex = filename.lastIndexOf(".");
     if (dotIndex != -1) {
       return filename.substring(dotIndex);
@@ -413,7 +423,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
 
     setPath(path, value);
-    setLocation(location, value);
+    setLocation(actual.toUri().toString(), value);
     
     if (Files.exists(actual)) {
       if (getSize(value) == null)

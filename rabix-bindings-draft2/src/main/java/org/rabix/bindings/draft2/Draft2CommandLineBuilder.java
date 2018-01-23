@@ -45,7 +45,7 @@ public class Draft2CommandLineBuilder implements ProtocolCommandLineBuilder {
     
     Draft2CommandLineTool commandLineTool = (Draft2CommandLineTool) draft2Job.getApp();
     List<CommandLine.Part> commandLineParts = Lists.transform(buildCommandLineParts(draft2Job, workingDir, filePathMapper), (obj ->
-        new CommandLine.Part(obj.toString())));
+        new CommandLine.Part(obj.toString(), false)));
 
     String stdin = null;
     try {
