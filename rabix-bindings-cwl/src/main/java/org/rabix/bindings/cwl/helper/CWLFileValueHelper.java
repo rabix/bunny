@@ -353,6 +353,8 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   private static String getBasename(String filename) {
+    if (filename == null)
+      return null;
     String[] parts = StringUtils.split(filename, ".");
     if (parts.length > 2) {
       return String.join(".", Arrays.copyOfRange(parts, 0, parts.length - 1));
@@ -361,6 +363,8 @@ public class CWLFileValueHelper extends CWLBeanHelper {
   }
 
   private static String getNameext(String filename) {
+    if (filename == null)
+      return null;
     int dotIndex = filename.lastIndexOf(".");
     if (dotIndex != -1) {
       return filename.substring(dotIndex);
