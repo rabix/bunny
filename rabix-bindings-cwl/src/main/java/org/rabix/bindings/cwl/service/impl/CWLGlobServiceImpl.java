@@ -56,7 +56,7 @@ public class CWLGlobServiceImpl implements CWLGlobService {
     for (String singleGlob : globs) {
       Set<Path> files = new TreeSet<>();
       if (singleGlob.equals(".")) {
-        files.add(workingDir);
+        output.add(workingDir);
         continue;
       }
       final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + singleGlob);
