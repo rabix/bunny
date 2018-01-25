@@ -10,14 +10,16 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -38,6 +40,7 @@ import org.rabix.bindings.model.Resources;
 import org.rabix.bindings.model.requirement.DockerContainerRequirement;
 import org.rabix.bindings.model.requirement.EnvironmentVariableRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
+import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.common.retry.Retry;
 import org.rabix.executor.config.DockerConfigation;
@@ -109,6 +112,8 @@ public class DockerContainerHandler implements ContainerHandler {
 
   private FilePathMapper mapper;
 
+  private Path rootWorkingDir;
+
   public DockerContainerHandler(Job job, Configuration configuration, DockerContainerRequirement dockerResource, StorageConfiguration storageConfig,
       DockerConfigation dockerConfig, WorkerStatusCallback statusCallback, DockerClientLockDecorator dockerClient) throws ContainerException {
     this.job = job;
@@ -116,6 +121,7 @@ public class DockerContainerHandler implements ContainerHandler {
     this.dockerResource = dockerResource;
     this.statusCallback = statusCallback;
     this.workingDir = storageConfig.getWorkingDir(job);
+    this.rootWorkingDir = findRoot(workingDir.toPath());
     this.isConfigAuthEnabled = dockerConfig.isDockerConfigAuthEnabled();
     this.removeContainers = dockerConfig.removeContainers();
 
@@ -137,6 +143,14 @@ public class DockerContainerHandler implements ContainerHandler {
         return path;
       };
     }
+  }
+
+  private Path findRoot(Path start) {
+    if (start.getFileName().toString().equals(InternalSchemaHelper.ROOT_NAME))
+      return start;
+    if (start.getParent() == null || start.getParent().getFileName() == null)
+      return null;
+    return findRoot(start.getParent());
   }
 
   private void pull(String image) throws ContainerException {
@@ -202,29 +216,42 @@ public class DockerContainerHandler implements ContainerHandler {
     List<String> readLines = IOUtils.readLines(stream);
     return readLines.get(0);
   }
-
+  
   @Override
   public void start() throws ContainerException {
-
     try {
       HostConfig.Builder hostConfigBuilder = HostConfig.builder();
-
+      Set<FileValue> flat = new HashSet<>();
+      Set<String> binds = new HashSet<>();
       for (FileValue f : FileValueHelper.getInputFiles(job)) {
-        hostConfigBuilder.appendBinds(createBind(f));
+        flat.add(f);
         for (FileValue sec : f.getSecondaryFiles())
-          hostConfigBuilder.appendBinds(createBind(sec));
-
+          flat.add(sec);
       }
+      for (FileValue f : flat) {
+        Path location = Paths.get(URI.create(f.getLocation()));
+        if (location.startsWith(rootWorkingDir)) {
+          continue;
+        }
+        String path = f.getPath();
+        if (path.equals(location.toString())) {
+          binds.add(location.getParent().toString() + ":" + location.getParent().toString());
+        } else {
+          binds.add(location.toString() + ":" + path);
+        }
+      }
+      hostConfigBuilder.appendBinds(binds);
+
       if (dockerResource.getDockerOutputDirectory() != null) {
         hostConfigBuilder.binds(workingDir.getAbsolutePath() + ":" + dockerResource.getDockerOutputDirectory());
-      } else {
-        hostConfigBuilder.appendBinds(workingDir.getAbsolutePath() + ":" + workingDir.getAbsolutePath());
       }
 
       if (SystemUtils.IS_OS_WINDOWS) {
         hostConfigBuilder.binds(hostConfigBuilder.binds().stream().map(s -> s.replace("\\", "/")).collect(Collectors.toList()));
+      } else {
+        hostConfigBuilder.appendBinds(rootWorkingDir.toString() + ":" + rootWorkingDir.toString());
       }
-      
+
       String dockerPull = checkTagOrAddLatest(dockerResource.getDockerPull());
       pull(dockerPull);
 
@@ -255,7 +282,7 @@ public class DockerContainerHandler implements ContainerHandler {
       List<String> entrypoint = image.containerConfig().entrypoint();
 
       commandLine = addEntrypoint(entrypoint, commandLine);
-      
+
       if (StringUtils.isEmpty(commandLine.trim())) {
         overrideResultStatus = 0; // default is success
         return;
@@ -294,15 +321,6 @@ public class DockerContainerHandler implements ContainerHandler {
     } catch (Exception e) {
       throw new ContainerException("Failed to create a container: " + e.getClass() + " " + (e.getMessage() == null ? "" : ": " + e.getMessage()), e);
     }
-  }
-
-  private String createBind(FileValue f) throws IOException {
-    URI uri = URI.create(f.getLocation());
-    String path = uri.getPath();
-    if (!Files.exists(Paths.get(uri))) {
-      throw new IOException("File " + path + " doesn't exist");
-    }
-    return path + ":" + f.getPath();
   }
 
   private String normalizeCommandLine(String commandLine) {
@@ -537,7 +555,7 @@ public class DockerContainerHandler implements ContainerHandler {
         dockerClient.startContainer(containerId);
       } catch (DockerException e) {
         ContainerInfo inspect = dockerClient.inspectContainer(containerId);
-        if (inspect == null || inspect.state().startedAt() == null) {
+        if (inspect == null || inspect.state().status().equals("created")) {
           throw e;
         }
         logger.warn("Start container method timed-out but still started the container, recovering.");
@@ -677,10 +695,12 @@ public class DockerContainerHandler implements ContainerHandler {
   @Override
   public String getProcessExitMessage() throws ContainerException {
     try {
-      return this.dockerClient.logs(containerId, LogsParam.stderr()).readFully();
+      LogStream log = this.dockerClient.logs(containerId, LogsParam.stderr());
+      String message = log.readFully();
+      log.close();
+      return message;
     } catch (DockerException | InterruptedException e) {
       throw new ContainerException(e);
     }
   }
-
 }

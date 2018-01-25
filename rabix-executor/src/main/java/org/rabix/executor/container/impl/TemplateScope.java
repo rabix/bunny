@@ -1,5 +1,6 @@
 package org.rabix.executor.container.impl;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,7 +62,7 @@ class TemplateScope {
   }
 
   public Set<Entry<String, String>> getEnv() {
-    return env.entrySet();
+    return env == null ? Collections.emptySet() : env.entrySet();
   }
 
   public void setEnv(Map<String, String> env) {

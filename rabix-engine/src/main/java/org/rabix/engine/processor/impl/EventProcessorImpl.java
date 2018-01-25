@@ -126,6 +126,7 @@ public class EventProcessorImpl implements EventProcessor {
         invalidateContext(event.getContextId());
       } catch (Exception ex) {
         logger.error("Failed to call jobFailed handler for job after event {} failed.", e, ex);
+        jobService.handleJobRootFailed(event.getContextId(), ex.getMessage());
       }
     } finally {
       triggerGC(event);

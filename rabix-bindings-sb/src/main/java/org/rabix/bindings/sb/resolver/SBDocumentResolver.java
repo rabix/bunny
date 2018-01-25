@@ -31,28 +31,28 @@ import com.google.common.base.Preconditions;
 public class SBDocumentResolver {
 
   public static final String CWL_VERSION_KEY = "cwlVersion";
-  
+
   public static final String RESOLVER_JSON_POINTER_KEY = "$job";
-  
+
   public static final String DOCUMENT_FRAGMENT_SEPARATOR = "#";
-  
+
   private static final Map<String, Map<String, JsonNode>> fragmentsCache = new HashMap<>();
 
   private static final Map<String, Map<String, SBDocumentResolverReference>> referenceCache = new HashMap<>();
   private static final Map<String, LinkedHashSet<SBDocumentResolverReplacement>> replacements = new HashMap<>();
-  
+
   public static String resolve(String appUrl) throws BindingException {
     String appUrlBase = appUrl;
-    URI uri = URI.create(appUrl);
-    if (uri.getScheme().equals(URIHelper.DATA_URI_SCHEME)) {
+
+    if (appUrlBase.startsWith(URIHelper.DATA_URI_SCHEME)) {
       appUrlBase = URIHelper.extractBase(appUrl);
     }
-
     Path file = null;
     JsonNode root = null;
     try {
       boolean isFile = URIHelper.isFile(appUrlBase);
       if (isFile) {
+        URI uri = URI.create(appUrl);
         file = Paths.get(uri.getPath());
       } else {
         file = Paths.get(".");
@@ -63,13 +63,13 @@ public class SBDocumentResolver {
     }
 
     JsonNode cwlVersion = root.get(CWL_VERSION_KEY);
-    if (cwlVersion == null || !(cwlVersion.asText().equals(ProtocolType.SB.appVersion))){
+    if (cwlVersion == null || !(cwlVersion.asText().equals(ProtocolType.SB.appVersion))) {
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       clearFragmentCache(appUrl);
       throw new BindingWrongVersionException("Document version is not " + ProtocolType.SB.appVersion);
     }
-    
+
     if (root.isArray()) {
       Map<String, JsonNode> fragmentsCachePerUrl = getFragmentsCache(appUrl);
       for (JsonNode child : root) {
@@ -78,7 +78,7 @@ public class SBDocumentResolver {
       String fragment = URIHelper.extractFragment(appUrl);
       root = fragmentsCachePerUrl.get(fragment);
     }
-    
+
     traverse(appUrl, root, file, null, root);
 
     for (SBDocumentResolverReplacement replacement : getReplacements(appUrl)) {
@@ -88,8 +88,8 @@ public class SBDocumentResolver {
         replaceObjectItem(appUrl, root, replacement);
       }
     }
-    
-    if(!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion))) {
+
+    if (!(root.get(CWL_VERSION_KEY).asText().equals(ProtocolType.SB.appVersion))) {
       clearReplacements(appUrl);
       clearReferenceCache(appUrl);
       clearFragmentCache(appUrl);
@@ -101,12 +101,17 @@ public class SBDocumentResolver {
     clearFragmentCache(appUrl);
     return JSONHelper.writeObject(root);
   }
-  
+
   private static JsonNode traverse(String appUrl, JsonNode root, Path file, JsonNode parentNode, JsonNode currentNode) throws BindingException {
     Preconditions.checkNotNull(currentNode, "current node id is null");
 
 
-    boolean isJsonPointer = currentNode.has(RESOLVER_JSON_POINTER_KEY) && parentNode != null; // we skip the first level $job
+    boolean isJsonPointer = currentNode.has(RESOLVER_JSON_POINTER_KEY) && parentNode != null; // we
+                                                                                              // skip
+                                                                                              // the
+                                                                                              // first
+                                                                                              // level
+                                                                                              // $job
 
     if (isJsonPointer) {
       String referencePath = currentNode.get(RESOLVER_JSON_POINTER_KEY).textValue();
@@ -122,7 +127,7 @@ public class SBDocumentResolver {
         getReferenceCache(appUrl).put(referencePath, reference);
 
         Map<String, JsonNode> fragmentsCachePerUrl = getFragmentsCache(appUrl);
-        
+
         ParentChild parentChild = null;
         JsonNode referenceDocumentRoot = null;
         if (fragmentsCachePerUrl != null && fragmentsCachePerUrl.containsKey(referencePath)) {
@@ -214,7 +219,7 @@ public class SBDocumentResolver {
       }
     }
   }
-  
+
   private static String loadContents(Path file, String path) throws BindingException {
     if (path.startsWith("ftp")) {
       try {
@@ -274,7 +279,7 @@ public class SBDocumentResolver {
     }
     return new ParentChild(parent, child);
   }
-  
+
   private synchronized static Set<SBDocumentResolverReplacement> getReplacements(String url) {
     LinkedHashSet<SBDocumentResolverReplacement> replacementsPerUrl = replacements.get(url);
     if (replacementsPerUrl == null) {
@@ -283,11 +288,11 @@ public class SBDocumentResolver {
     }
     return replacementsPerUrl;
   }
-  
+
   private synchronized static void clearReplacements(String url) {
     replacements.remove(url);
   }
-  
+
   private synchronized static Map<String, SBDocumentResolverReference> getReferenceCache(String url) {
     Map<String, SBDocumentResolverReference> referenceCachePerUrl = referenceCache.get(url);
     if (referenceCachePerUrl == null) {
@@ -296,7 +301,7 @@ public class SBDocumentResolver {
     }
     return referenceCachePerUrl;
   }
-  
+
   private synchronized static Map<String, JsonNode> getFragmentsCache(String url) {
     Map<String, JsonNode> fragmentsCachePerUrl = fragmentsCache.get(url);
     if (fragmentsCachePerUrl == null) {
@@ -305,15 +310,15 @@ public class SBDocumentResolver {
     }
     return fragmentsCachePerUrl;
   }
-  
+
   private synchronized static void clearReferenceCache(String url) {
     referenceCache.remove(url);
   }
-  
+
   private synchronized static void clearFragmentCache(String url) {
     fragmentsCache.remove(url);
   }
-  
+
   private static class ParentChild {
     JsonNode parent;
     JsonNode child;

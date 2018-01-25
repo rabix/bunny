@@ -40,6 +40,8 @@ public interface JobService {
 
   void handleJobRootFailed(Job job);
 
+  void handleJobRootFailed(UUID job, String message);
+  
   void handleJobRootCompleted(Job job);
 
   void handleJobFailed(Job failedJob);

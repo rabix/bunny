@@ -322,12 +322,17 @@ public class JobServiceImpl implements JobService {
       jobRepository.update(job);
       stoppingRootIds.remove(job.getId());
     }
+    handleJobRootFailed(job.getRootId(), job.getMessage());
+  }
+
+  @Override
+  public void handleJobRootFailed(UUID job, String message){
     try {
-      engineStatusCallback.onJobRootFailed(job.getRootId(), job.getMessage());
+      engineStatusCallback.onJobRootFailed(job, message);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     } finally {
-      garbageCollectionService.forceGc(job.getRootId());
+      garbageCollectionService.forceGc(job);
     }
   }
 
