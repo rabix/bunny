@@ -87,6 +87,8 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
 
   @Override
   public void handle(JobStatusEvent event, EventHandlingMode mode) throws EventHandlerException {
+    logger.info(event.toString());
+
     JobRecord jobRecord = jobRecordService.find(event.getJobId(), event.getContextId());
     if (jobRecord == null) {
       logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
@@ -94,7 +96,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     }
 
     JobStatsRecord jobStatsRecord = null;
-    if (mode != EventHandlingMode.REPLAY && (jobRecord.getParentId() != null && jobRecord.getParentId().equals(jobRecord.getRootId())) || (jobRecord.isRoot())) {
+    if (mode != EventHandlingMode.REPLAY && jobRecord.isTopLevel()) {
       jobStatsRecord = jobStatsRecordService.findOrCreate(jobRecord.getRootId());
     }
 
@@ -149,6 +151,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
+      if (jobRecord.getState() == JobRecord.JobState.COMPLETED) {
+        logger.info("Job {} of {} is already completed.", jobRecord.getId(), jobRecord.getRootId());
+        break;
+      }
+
       if (!jobRecord.isRoot()) {
         jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
         if (jobRecord.isContainer() || jobRecord.isScatterWrapper()) {
