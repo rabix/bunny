@@ -269,8 +269,9 @@ public class CWLDocumentResolver {
       getReplacements(appUrl).add(new CWLDocumentResolverReplacement(parentNode, currentNode, path));
       return null;
     }
-
-    namespace(currentNode);
+    
+    if(!namespaces.isEmpty())
+      namespace(currentNode);
 
     boolean isReference = currentNode.has(RESOLVER_REFERENCE_KEY);
     boolean appReference = currentNode.has(APP_STEP_KEY) && currentNode.get(APP_STEP_KEY).isTextual();
