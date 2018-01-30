@@ -222,7 +222,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
 
-    if (inputBinding == null) {
+    if (inputBinding == null || (inputBinding instanceof Map && ((Map) inputBinding).isEmpty())) {
       if (hasInputBinding(inputPort)) {
         inputBinding = new HashMap<String, Object>();
       } else {
