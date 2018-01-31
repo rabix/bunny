@@ -222,7 +222,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
 
     CWLCommandLineTool commandLineTool = (CWLCommandLineTool) job.getApp();
 
-    if (inputBinding == null || (inputBinding instanceof Map && ((Map) inputBinding).isEmpty())) {
+    if (inputBinding == null) {
       if (hasInputBinding(inputPort)) {
         inputBinding = new HashMap<String, Object>();
       } else {
@@ -259,7 +259,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
 
     if (value instanceof Boolean) {
-      if (((Boolean) value)) {
+      if (((Boolean) value) && (inputBinding instanceof Map && !((Map) inputBinding).isEmpty())) {
         if (prefix == null) {
           throw new BindingException("Missing prefix for " + inputPort.getId() + " input.");
         }
