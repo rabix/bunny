@@ -116,10 +116,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, createJob(sourceJob, JobStatus.COMPLETED).getOutputs(),
           event.getEventGroupId(), sourceJob.getId()));
     }
-
-    if (sourceJob.isCompleted() || links.isEmpty()) {
-      filesService.handleDanglingOutput(event.getContextId(), value);
-    }
   }
 
 

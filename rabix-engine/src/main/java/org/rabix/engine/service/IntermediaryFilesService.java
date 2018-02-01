@@ -1,10 +1,10 @@
 package org.rabix.engine.service;
 
-import java.util.Set;
-import java.util.UUID;
-
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
+
+import java.util.Set;
+import java.util.UUID;
 
 public interface IntermediaryFilesService {
 
@@ -21,11 +21,9 @@ public interface IntermediaryFilesService {
   void handleJobFailed(Job job, Job rootJob);
 
   void extractPathsFromFileValue(Set<String> paths, FileValue file);
-  
+
   void handleInputSent(UUID rootId, Object input);
 
-  void handleDanglingOutput(UUID rootId, Object input);
-
-  void handleInputSent(UUID rootId, Object input, int count);   
+  void handleInputSent(UUID rootId, Object input, int count);
 }
 
