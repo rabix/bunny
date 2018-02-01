@@ -368,6 +368,7 @@ public class JobServiceImpl implements JobService {
   public void handleJobCompleted(Job job){
     logger.info("Job id: {}, name:{}, rootId: {} is completed.", job.getId(), job.getName(), job.getRootId());
     try{
+      intermediaryFilesService.handleJobCompleted(job);
       engineStatusCallback.onJobCompleted(job.getId(), job.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
