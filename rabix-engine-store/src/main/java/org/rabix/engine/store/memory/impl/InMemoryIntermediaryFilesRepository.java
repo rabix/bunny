@@ -66,7 +66,7 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
     if(intermediaryFilesRepository.containsKey(rootId)) {
       return intermediaryFilesRepository.get(rootId);
     }
-    return Collections.emptyList();
+    return new ArrayList<>();
   }
 
   @Override
@@ -78,10 +78,23 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
 
   @Override
   public void decrement(UUID rootId, String filename) {
-
+    List<IntermediaryFileEntity> intermediaryFileEntities = get(rootId);
+    intermediaryFileEntities.stream()
+            .filter(intermediaryFileEntity -> filename.equals(intermediaryFileEntity.getFilename()))
+            .forEach(IntermediaryFileEntity::decrement);
+    intermediaryFilesRepository.put(rootId, intermediaryFileEntities);
   }
+
   @Override
   public void increment(UUID rootId, String filename) {
+    List<IntermediaryFileEntity> intermediaryFileEntities = get(rootId);
+    if (intermediaryFileEntities.isEmpty()) {
+      intermediaryFileEntities.add(new IntermediaryFileEntity(rootId, filename, 0));
+    }
 
+    intermediaryFileEntities.stream()
+            .filter(intermediaryFileEntity -> filename.equals(intermediaryFileEntity.getFilename()))
+            .forEach(IntermediaryFileEntity::increment);
+    intermediaryFilesRepository.put(rootId, intermediaryFileEntities);
   }
 }
