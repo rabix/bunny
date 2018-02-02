@@ -18,7 +18,6 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.common.logging.VerboseLogger;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.ContextStatusEvent;
@@ -80,7 +79,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.appService = appService;
     this.jobService = jobService;
     this.jobHelper = jobHelper;
-
     this.jobRepository = jobRepository;
     this.setResources = configuration.getBoolean("engine.set_resources", false);
   }
@@ -149,13 +147,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
-      if (!jobRecord.isRoot()) {
-        jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
-        if (jobRecord.isContainer() || jobRecord.isScatterWrapper()) {
-          VerboseLogger.log(String.format("Job %s has completed", jobRecord.getId()));
-        }
-      }
-
       updateJobStats(jobRecord, jobStatsRecord);
 
       if ((!jobRecord.isScatterWrapper() || jobRecord.isRoot()) && !jobRecord.isContainer()) {

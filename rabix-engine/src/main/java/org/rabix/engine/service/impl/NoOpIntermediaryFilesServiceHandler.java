@@ -17,7 +17,7 @@ public class NoOpIntermediaryFilesServiceHandler implements IntermediaryFilesHan
 
   @Override
   public void handleUnusedFiles(Job job, Set<String> unusedFiles) {
-    logger.debug(String.format("handleUnusedFiles(%s)", job.getRootId()));
+    logger.debug(String.format("handleUnusedFilesIfAny(%s)", job.getRootId()));
   }
 
 }
