@@ -171,12 +171,17 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           e.printStackTrace();
         }
       } else {
+        try {
+          Job job = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
+          jobRepository.update(job);
+
+          jobService.handleJobCompleted(job);
+        } catch (BindingException e) {
+          logger.warn("Could not create completed job for {}", event.getJobId());
+        }
+
         if (!jobRecord.isScattered()) {
           checkJobRootPartiallyCompleted(jobRecord, mode);
-          try {
-            jobService.handleJobCompleted(jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult()));
-          } catch (BindingException e) {
-          }
         }
       }
       break;

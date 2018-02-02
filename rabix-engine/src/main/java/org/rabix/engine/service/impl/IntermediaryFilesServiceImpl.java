@@ -29,8 +29,11 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public void handleUnusedFilesIfAny(Job job){
-    fileHandler.handleUnusedFiles(job, getUnusedFiles(job.getRootId()));
+  public void handleUnusedFilesIfAny(Job job) {
+    Set<String> unusedFiles = getUnusedFiles(job.getRootId());
+
+    logger.debug("handleUnusedFiles of {}: {}", job.getRootId(), unusedFiles);
+    fileHandler.handleUnusedFiles(job, unusedFiles);
   }
 
   @Override
@@ -39,13 +42,27 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   }
 
   @Override
+  public void incrementInputFilesReferences(Job job) {
+    logger.debug("incrementInputFilesReferences(rootId={}, job={})", job.getRootId(), job.getName());
+
+    Set<FileValue> files = new HashSet<>(FileValueHelper.getFilesFromValue(job.getInputs()));
+    for(FileValue file: files){
+      addOrIncrement(job.getRootId(), file);
+    }
+  }
+
+  @Override
   public void decrementInputFilesReferences(Job job) {
+    logger.debug("decrementInputFilesReferences(rootId={}, job={})", job.getRootId(), job.getName());
+
     final UUID rootId = job.getRootId();
     decrement(rootId, job.getInputs());
   }
 
   @Override
   public void decrementOutputFilesReferences(Job job) {
+    logger.debug("decrementOutputFilesReferences(rootId={}, job={}, outputs={})", job.getRootId(), job.getName(), job.getOutputs());
+
     final UUID rootId = job.getRootId();
     decrement(rootId, job.getOutputs());
   }
@@ -63,6 +80,8 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
             .forEach(fileValue ->
                     extractPathsFromFileValue(fileValue)
                             .forEach(path -> intermediaryFilesRepository.decrement(rootId, path)));
+
+    logger.debug("State after decrement(rootId={}) : {}", rootId, intermediaryFilesRepository.get(rootId));
   }
 
 
@@ -91,6 +110,8 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     for(String path: paths) {
         intermediaryFilesRepository.increment(rootId, path);
     }
+
+    logger.debug("State after addOrIncrement(rootId={}) : {}", rootId, intermediaryFilesRepository.get(rootId));
   }
 
   private Set<String> getUnusedFiles(UUID rootId) {
@@ -107,13 +128,4 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     }
     return unusedFiles;
   }
-
-  @Override
-  public void incrementInputFilesReferences(Job job) {
-    Set<FileValue> files = new HashSet<>(FileValueHelper.getFilesFromValue(job.getInputs()));
-    for(FileValue file: files){
-      addOrIncrement(job.getRootId(), file);
-    }
-  }
-
 }

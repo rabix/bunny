@@ -162,10 +162,14 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private void flush(UUID rootId, List<JobRecord> garbage) {
     garbage.forEach(record -> {
+      logger.debug("flush(rootId={}, job={})", rootId, record.getId());
+
       Job job = jobRepository.get(record.getExternalId());
       if (job != null) {
         intermediaryFilesService.decrementOutputFilesReferences(job);
         intermediaryFilesService.handleUnusedFilesIfAny(job);
+      } else {
+        logger.debug("Cannot check intermediary files. Unknown job {} of {}", record.getId(), record.getRootId());
       }
 
       jobRecordRepository.delete(record.getExternalId(), record.getRootId());

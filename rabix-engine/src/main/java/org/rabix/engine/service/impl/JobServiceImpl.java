@@ -369,8 +369,6 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobCompleted(job.getId(), job.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
-    } finally {
-      jobRepository.update(job);
     }
   }
 

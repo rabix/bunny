@@ -66,7 +66,7 @@ public interface IntermediaryFilesRepository {
 
     @Override
     public String toString() {
-      return "IntermediaryFileEntity [filename=" + filename + ", count=" + count + "]";
+      return "IntermediaryFileEntity [rootId=" + rootId + ", filename=" + filename + ", count=" + count + "]";
     }
   }
 
