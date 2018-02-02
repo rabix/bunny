@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRepository {
 
-  private final Map<UUID, List<IntermediaryFileEntity>> intermediaryFilesRepository;
+  private final Map<UUID, Map<String, IntermediaryFileEntity>> intermediaryFilesRepository;
 
   public InMemoryIntermediaryFilesRepository() {
     intermediaryFilesRepository = new ConcurrentHashMap<>();
@@ -15,58 +15,40 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
 
   @Override
   public void insert(UUID rootId, String filename, Integer count) {
-
-    if(intermediaryFilesRepository.containsKey(rootId)) {
-      List<IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.get(rootId);
-      intermediaryPerRoot.add(new IntermediaryFileEntity(rootId, filename, count));
-    }
-    else {
-      List<IntermediaryFileEntity> intermediaryPerRoot = new ArrayList<>();
-      intermediaryPerRoot.add(new IntermediaryFileEntity(rootId, filename, count));
-      intermediaryFilesRepository.put(rootId, intermediaryPerRoot);
-    }
+    Map<String, IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.getOrDefault(rootId, new ConcurrentHashMap<>());
+    intermediaryPerRoot.put(filename, new IntermediaryFileEntity(rootId, filename, count));
+    intermediaryFilesRepository.put(rootId, intermediaryPerRoot);
   }
 
   @Override
   public void update(UUID rootId, String filename, Integer count) {
-    if(intermediaryFilesRepository.containsKey(rootId)) {
-      List<IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.get(rootId);
-      for(IntermediaryFileEntity file: intermediaryPerRoot) {
-        if(file.getFilename().equals(filename)) {
-          file.setCount(count);
-          break;
-        }
+    Map<String, IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.get(rootId);
+    if (intermediaryPerRoot == null) {
+      insert(rootId, filename, count);
+    } else {
+      IntermediaryFileEntity intermediaryFileEntity = intermediaryPerRoot.get(filename);
+      if (intermediaryFileEntity == null) {
+        intermediaryFileEntity = new IntermediaryFileEntity(rootId, filename, count);
+      } else {
+        intermediaryFileEntity.setCount(count);
       }
+      intermediaryPerRoot.put(filename, intermediaryFileEntity);
     }
   }
 
   @Override
   public void delete(UUID rootId, String filename) {
-    if(intermediaryFilesRepository.containsKey(rootId)) {
-      List<IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.get(rootId);
-      for (Iterator<IntermediaryFileEntity> iterator = intermediaryPerRoot.iterator(); iterator.hasNext();) {
-        IntermediaryFileEntity file = iterator.next();
-        if (file.getFilename().equals(filename)) {
-            iterator.remove();
-            break;
-        }
-      }
-    }
+    intermediaryFilesRepository.getOrDefault(rootId, new ConcurrentHashMap<>()).remove(filename);
   }
 
   @Override
   public void delete(UUID rootId) {
-    if(intermediaryFilesRepository.containsKey(rootId)) {
-      intermediaryFilesRepository.remove(rootId);
-    }
+    intermediaryFilesRepository.remove(rootId);
   }
 
   @Override
   public List<IntermediaryFileEntity> get(UUID rootId) {
-    if(intermediaryFilesRepository.containsKey(rootId)) {
-      return intermediaryFilesRepository.get(rootId);
-    }
-    return new ArrayList<>();
+    return new ArrayList<>(intermediaryFilesRepository.getOrDefault(rootId, new ConcurrentHashMap<>()).values());
   }
 
   @Override
@@ -78,23 +60,31 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
 
   @Override
   public void decrement(UUID rootId, String filename) {
-    List<IntermediaryFileEntity> intermediaryFileEntities = get(rootId);
-    intermediaryFileEntities.stream()
-            .filter(intermediaryFileEntity -> filename.equals(intermediaryFileEntity.getFilename()))
-            .forEach(IntermediaryFileEntity::decrement);
-    intermediaryFilesRepository.put(rootId, intermediaryFileEntities);
+    Map<String, IntermediaryFileEntity> intermediaryFiles = intermediaryFilesRepository.get(rootId);
+    if (intermediaryFiles == null) {
+      return;
+    }
+
+    IntermediaryFileEntity intermediaryFileEntity = intermediaryFiles.get(filename);
+    if (intermediaryFileEntity == null) {
+      return;
+    }
+
+    intermediaryFileEntity.decrement();
   }
 
   @Override
   public void increment(UUID rootId, String filename) {
-    List<IntermediaryFileEntity> intermediaryFileEntities = get(rootId);
-    if (intermediaryFileEntities.isEmpty()) {
-      intermediaryFileEntities.add(new IntermediaryFileEntity(rootId, filename, 0));
+    Map<String, IntermediaryFileEntity> intermediaryFiles = intermediaryFilesRepository.getOrDefault(rootId, new ConcurrentHashMap<>());
+
+    IntermediaryFileEntity intermediaryFileEntity = intermediaryFiles.get(filename);
+    if (intermediaryFileEntity == null) {
+      intermediaryFileEntity = new IntermediaryFileEntity(rootId, filename, 0);
     }
 
-    intermediaryFileEntities.stream()
-            .filter(intermediaryFileEntity -> filename.equals(intermediaryFileEntity.getFilename()))
-            .forEach(IntermediaryFileEntity::increment);
-    intermediaryFilesRepository.put(rootId, intermediaryFileEntities);
+    intermediaryFileEntity.increment();
+
+    intermediaryFiles.put(filename, intermediaryFileEntity);
+    intermediaryFilesRepository.put(rootId, intermediaryFiles);
   }
 }
