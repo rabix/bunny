@@ -80,8 +80,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
             .forEach(fileValue ->
                     extractPathsFromFileValue(fileValue)
                             .forEach(path -> intermediaryFilesRepository.decrement(rootId, path)));
-
-    logger.debug("State after decrement(rootId={}) : {}", rootId, intermediaryFilesRepository.get(rootId));
   }
 
 
@@ -110,8 +108,6 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     for(String path: paths) {
         intermediaryFilesRepository.increment(rootId, path);
     }
-
-    logger.debug("State after addOrIncrement(rootId={}) : {}", rootId, intermediaryFilesRepository.get(rootId));
   }
 
   private Set<String> getUnusedFiles(UUID rootId) {
