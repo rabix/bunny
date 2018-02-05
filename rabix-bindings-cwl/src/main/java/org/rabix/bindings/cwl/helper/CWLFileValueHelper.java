@@ -372,7 +372,8 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     return null;
   }
 
-  public static void buildMissingInfo(Object value, HashAlgorithm alg, Path workDir) throws IOException, URISyntaxException {
+  public static void buildMissingInfo(Object value, HashAlgorithm alg, Path dir) throws IOException, URISyntaxException {
+    Path workDir = dir == null ? Paths.get("/") : dir;
     String path = getPath(value);
     String location = getLocation(value);
     Path actual = null;
