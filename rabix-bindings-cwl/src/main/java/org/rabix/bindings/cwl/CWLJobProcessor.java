@@ -84,10 +84,11 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    * Process hints in workflow 
    */
   public void processHints(CWLStep step, CWLJobApp parentJob, CWLJobApp childJob) {
-    for(CWLResource resource: parentJob.getHints()) {
+    for(CWLResource resource: step.getHints()) {
       childJob.setHint(resource);
     }
-    for(CWLResource resource: step.getHints()) {
+    
+    for(CWLResource resource: parentJob.getHints()) {
       childJob.setHint(resource);
     }
   }
@@ -99,10 +100,11 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    * Process requirements in workflow
    */
   public void processRequirements(CWLStep step, CWLJobApp parentJob, CWLJobApp childJob) {
-    for(CWLResource resource: parentJob.getRequirements()) {
+    for(CWLResource resource: step.getRequirements()) {
       childJob.setRequirement(resource);
     }
-    for(CWLResource resource: step.getRequirements()) {
+    
+    for(CWLResource resource: parentJob.getRequirements()) {
       childJob.setRequirement(resource);
     }
   }
