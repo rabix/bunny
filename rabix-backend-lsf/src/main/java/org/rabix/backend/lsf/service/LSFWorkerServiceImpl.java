@@ -155,7 +155,9 @@ public class LSFWorkerServiceImpl implements WorkerService {
   @Override
   public void submit(Job job, UUID rootId) {
 
-    logger.debug("Received Job {}", job.getName());
+    if (System.getProperty("lsf.application.name") == null)
+      System.setProperty("lsf.application.name", "default");
+
     LSFBatch batch = LSFBatch.getInstance();
     SubmitRequest submitRequest = new SubmitRequest();
     Bindings bindings = null;
@@ -165,14 +167,19 @@ public class LSFWorkerServiceImpl implements WorkerService {
       combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
       if (getRequirement(combinedRequirements, DockerContainerRequirement.class) != null) {
-        throw new BindingException("Can't run docker tasks");
+        fail(job);
+        logger.error("Can't run docker tasks");
+        return;
       }
+
       job = bindings.preprocess(job, storageConfig.getWorkingDir(job), new FilePathMapper() {
         @Override public String map(String path, Map<String, Object> config) throws FileMappingException {
           return path;
         }
       });
-
+      if (bindings.isSelfExecutable(job)) {
+        success(job);
+      }
       // Environment variables
       StringBuilder envs = new StringBuilder();
       EnvironmentVariableRequirement env = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
@@ -192,7 +199,10 @@ public class LSFWorkerServiceImpl implements WorkerService {
       submitRequest.cwd = storageConfig.getWorkingDir(job).getAbsolutePath();
       submitRequest.options3 = LSBSubmitOptions3.SUB3_CWD;
 
-      submitRequest.errFile = "job.stderr.log";
+      submitRequest.errFile = bindings.getStandardErrorLog(job);
+      if (submitRequest.errFile == null)
+        submitRequest.errFile = "job.stderr.log";
+
       submitRequest.options = LSBSubmitOptions.SUB_ERR_FILE;
 
 
@@ -224,6 +234,8 @@ public class LSFWorkerServiceImpl implements WorkerService {
       }
     } catch (BindingException e) {
       e.printStackTrace();
+      fail(job);
+      return;
     }
 
 
@@ -234,6 +246,8 @@ public class LSFWorkerServiceImpl implements WorkerService {
       logger.debug("Submitted job: " + reply.jobID);
     } catch (LSFBatchException e) {
       e.printStackTrace();
+      System.out.println(submitRequest);
+      fail(job);
     }
 
   }
