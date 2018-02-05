@@ -52,6 +52,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
 
   public void handle(final OutputUpdateEvent event, EventHandlingMode mode) throws EventHandlerException {
+    logger.debug(event.toString());
     JobRecord sourceJob = jobRecordService.find(event.getJobId(), event.getContextId());
 
     if (sourceJob == null) {
