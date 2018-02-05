@@ -163,8 +163,10 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       jobRecord.setState(JobRecord.JobState.COMPLETED);
       jobRecordService.update(jobRecord);
 
-      Job job = jobRepository.get(event.getEventGroupId());
-      intermediaryFilesService.decrementInputFilesReferences(event.getContextId(), job.getInputs());
+      if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
+        Job job = jobRepository.get(event.getEventGroupId());
+        intermediaryFilesService.decrementInputFilesReferences(event.getContextId(), job.getInputs());
+      }
 
       if (jobRecord.isRoot()) {
         eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
@@ -179,7 +181,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       } else {
         try {
-          job = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
+          Job job = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
           jobRepository.update(job);
 
           jobService.handleJobCompleted(job);
