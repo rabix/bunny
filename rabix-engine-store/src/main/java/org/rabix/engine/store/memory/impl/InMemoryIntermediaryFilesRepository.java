@@ -21,6 +21,19 @@ public class InMemoryIntermediaryFilesRepository implements IntermediaryFilesRep
   }
 
   @Override
+  public void insertIfNotExists(UUID rootId, String filename, Integer count) {
+    Map<String, IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.getOrDefault(rootId, new ConcurrentHashMap<>());
+    IntermediaryFileEntity intermediaryFileEntity = intermediaryPerRoot.get(filename);
+
+    if (intermediaryFileEntity == null) {
+      intermediaryFileEntity = new IntermediaryFileEntity(rootId, filename, count);
+
+      intermediaryPerRoot.put(filename, intermediaryFileEntity);
+      intermediaryFilesRepository.put(rootId, intermediaryPerRoot);
+    }
+  }
+
+  @Override
   public void update(UUID rootId, String filename, Integer count) {
     Map<String, IntermediaryFileEntity> intermediaryPerRoot = intermediaryFilesRepository.get(rootId);
     if (intermediaryPerRoot == null) {

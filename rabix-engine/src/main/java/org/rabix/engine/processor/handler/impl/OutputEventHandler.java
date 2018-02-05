@@ -63,6 +63,8 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
       jobRecordService.resetOutputPortCounter(sourceJob, event.getNumberOfScattered(), event.getPortId());
     }
 
+    filesService.registerOutputFiles(event.getContextId(), event.getValue());
+
     Boolean isScatterWrapper = sourceJob.isScatterWrapper();
 
     VariableRecord sourceVariable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.OUTPUT, event.getContextId());

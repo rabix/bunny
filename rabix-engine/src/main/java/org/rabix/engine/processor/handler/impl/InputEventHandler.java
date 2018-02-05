@@ -38,7 +38,8 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
   private  ScatterHandler scatterHelper;
   @Inject
   private  EventProcessor eventProcessor;
-
+  @Inject
+  private IntermediaryFilesService intermediaryFilesService;
   private Logger logger = LoggerFactory.getLogger(getClass());
 
   @Override
@@ -48,6 +49,10 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
     if (job == null) {
       logger.info("Possible stale message. Job {} for root {} doesn't exist.", event.getJobId(), event.getContextId());
       return;
+    }
+
+    if (!job.isContainer() && !job.isScatterWrapper()) {
+      intermediaryFilesService.incrementInputFilesReferences(event.getContextId(), event.getValue());
     }
 
     VariableRecord variable = variableService.find(event.getJobId(), event.getPortId(), LinkPortType.INPUT, event.getContextId());

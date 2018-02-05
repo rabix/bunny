@@ -8,6 +8,8 @@ public interface IntermediaryFilesRepository {
 
   void insert(UUID rootId, String filename, Integer count);
 
+  void insertIfNotExists(UUID rootId, String filename, Integer count);
+
   void update(UUID rootId, String filename, Integer count);
 
   void delete(UUID rootId, String filename);

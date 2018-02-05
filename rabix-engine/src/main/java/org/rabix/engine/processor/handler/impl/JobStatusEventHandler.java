@@ -54,6 +54,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final VariableRecordService variableRecordService;
   private final ContextRecordService contextRecordService;
   private final JobStatsRecordService jobStatsRecordService;
+  private final IntermediaryFilesService intermediaryFilesService;
 
   private final JobRepository jobRepository;
   private final JobService jobService;
@@ -67,7 +68,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       final VariableRecordService variableRecordService, final ContextRecordService contextRecordService,
       final EventProcessor eventProcessor, final ScatterHandler scatterHelper, final JobRepository jobRepository,
       final JobService jobService, final JobStatsRecordService jobStatsRecordService,
-      final Configuration configuration, final JobHelper jobHelper) {
+      final Configuration configuration, final JobHelper jobHelper, final IntermediaryFilesService intermediaryFilesService) {
     this.dagNodeService = dagNodeService;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
@@ -81,6 +82,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.jobHelper = jobHelper;
     this.jobRepository = jobRepository;
     this.setResources = configuration.getBoolean("engine.set_resources", false);
+    this.intermediaryFilesService = intermediaryFilesService;
   }
 
   @Override
@@ -159,6 +161,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       jobRecord.setState(JobRecord.JobState.COMPLETED);
       jobRecordService.update(jobRecord);
 
+      Job job = jobRepository.get(event.getEventGroupId());
+      intermediaryFilesService.decrementInputFilesReferences(event.getContextId(), job.getInputs());
+
       if (jobRecord.isRoot()) {
         eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
         try {
@@ -172,7 +177,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
         }
       } else {
         try {
-          Job job = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
+          job = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
           jobRepository.update(job);
 
           jobService.handleJobCompleted(job);

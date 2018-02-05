@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
 
@@ -25,6 +26,16 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   protected IntermediaryFilesServiceImpl(IntermediaryFilesHandler handler, IntermediaryFilesRepository intermediaryFilesRepository) {
     this.fileHandler = handler;
     this.intermediaryFilesRepository = intermediaryFilesRepository;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void registerOutputFiles(UUID rootId, Object value) {
+    FileValueHelper
+            .getFilesFromValue(value)
+            .forEach(fileValue ->
+                    extractPathsFromFileValue(fileValue)
+                            .forEach(path -> intermediaryFilesRepository.insertIfNotExists(rootId, path, 0)));
   }
 
   @Override
@@ -42,29 +53,16 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   }
 
   @Override
-  public void incrementInputFilesReferences(Job job) {
-    logger.debug("incrementInputFilesReferences(rootId={}, job={})", job.getRootId(), job.getName());
-
-    Set<FileValue> files = new HashSet<>(FileValueHelper.getFilesFromValue(job.getInputs()));
-    for(FileValue file: files){
-      addOrIncrement(job.getRootId(), file);
-    }
+  public void incrementInputFilesReferences(UUID rootId, Object value) {
+    logger.debug("incrementInputFilesReferences(rootId={}, value={})", rootId, value);
+    FileValueHelper.getFilesFromValue(value).forEach(fileValue -> addOrIncrement(rootId, fileValue));
   }
 
   @Override
-  public void decrementInputFilesReferences(Job job) {
-    logger.debug("decrementInputFilesReferences(rootId={}, job={})", job.getRootId(), job.getName());
-
-    final UUID rootId = job.getRootId();
-    decrement(rootId, job.getInputs());
-  }
-
-  @Override
-  public void decrementOutputFilesReferences(Job job) {
-    logger.debug("decrementOutputFilesReferences(rootId={}, job={}, outputs={})", job.getRootId(), job.getName(), job.getOutputs());
-
-    final UUID rootId = job.getRootId();
-    decrement(rootId, job.getOutputs());
+  @SuppressWarnings("unchecked")
+  public void decrementInputFilesReferences(UUID rootId, Object value) {
+    logger.debug("decrementInputFilesReferences(rootId={}, value={})", rootId, value);
+    decrement(rootId, (Map<String, Object>) value);
   }
 
   private void decrement(UUID rootId, Map<String, Object> inputOutputMap) {
@@ -72,14 +70,7 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
       return;
     }
 
-    inputOutputMap
-            .values()
-            .stream()
-            .map(FileValueHelper::getFilesFromValue)
-            .flatMap(List::stream)
-            .forEach(fileValue ->
-                    extractPathsFromFileValue(fileValue)
-                            .forEach(path -> intermediaryFilesRepository.decrement(rootId, path)));
+    forEachPath(inputOutputMap, path -> intermediaryFilesRepository.decrement(rootId, path));
   }
 
 
@@ -123,5 +114,14 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
       }
     }
     return unusedFiles;
+  }
+
+  private void forEachPath(Map<String, Object> map, Consumer<String> consumer) {
+    map.values().stream()
+            .map(FileValueHelper::getFilesFromValue)
+            .flatMap(List::stream)
+            .forEach(fileValue ->
+                    extractPathsFromFileValue(fileValue)
+                            .forEach(consumer));
   }
 }

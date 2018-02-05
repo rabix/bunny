@@ -166,7 +166,6 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
       Job job = jobRepository.get(record.getExternalId());
       if (job != null) {
-        intermediaryFilesService.decrementOutputFilesReferences(job);
         intermediaryFilesService.handleUnusedFilesIfAny(job);
       } else {
         logger.debug("Cannot check intermediary files. Unknown job {} of {}", record.getId(), record.getRootId());

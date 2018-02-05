@@ -242,8 +242,6 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
-    } finally {
-      jobs.forEach(job -> intermediaryFilesService.incrementInputFilesReferences(job));
     }
   }
 

@@ -466,3 +466,7 @@ DROP INDEX IF EXISTS event_id_type_index;
 DROP INDEX IF EXISTS backend_id_index;
 DROP INDEX IF EXISTS context_record_id_index;
 DROP INDEX IF EXISTS context_record_status_index;
+
+--changeset bunny:1487849040814-77 dbms:postgresql
+CREATE UNIQUE INDEX intermediary_files_index ON intermediary_files USING btree (root_id, filename);
+--rollback DROP INDEX intermediary_files_index;
