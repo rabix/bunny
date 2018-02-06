@@ -1,0 +1,54 @@
+{
+  "id" : "ddf2ac82-7aa2-4f00-befc-6aa8000b94d6",
+  "rootId" : "ddf2ac82-7aa2-4f00-befc-6aa8000b94d6",
+  "name" : "root",
+  "app" : "data:text/plain;base64,ewogICJhcHBGaWxlTG9jYXRpb24iIDogInRlc3RiYWNrbG9nL2N3bC9pbXAudG9vbC55bWwiLAogICJjd2xWZXJzaW9uIiA6ICJ2MS4wIiwKICAiaW5wdXRzIiA6IFsgewogICAgImlkIiA6ICJleGFtcGxlX2ZsYWciLAogICAgInR5cGUiIDogImJvb2xlYW4iLAogICAgImlucHV0QmluZGluZyIgOiB7CiAgICAgICJwb3NpdGlvbiIgOiAxLAogICAgICAicHJlZml4IiA6ICItZiIKICAgIH0KICB9LCB7CiAgICAiaWQiIDogImV4YW1wbGVfc3RyaW5nIiwKICAgICJ0eXBlIiA6ICJzdHJpbmciLAogICAgImlucHV0QmluZGluZyIgOiB7CiAgICAgICJwb3NpdGlvbiIgOiAzLAogICAgICAicHJlZml4IiA6ICItLWV4YW1wbGUtc3RyaW5nIgogICAgfQogIH0sIHsKICAgICJpZCIgOiAiZXhhbXBsZV9pbnQiLAogICAgInR5cGUiIDogImludCIsCiAgICAiaW5wdXRCaW5kaW5nIiA6IHsKICAgICAgInBvc2l0aW9uIiA6IDIsCiAgICAgICJwcmVmaXgiIDogIi1pIiwKICAgICAgInNlcGFyYXRlIiA6IGZhbHNlCiAgICB9CiAgfSwgewogICAgImlkIiA6ICJleGFtcGxlX2ZpbGUiLAogICAgInR5cGUiIDogIkZpbGU/IiwKICAgICJpbnB1dEJpbmRpbmciIDogewogICAgICAicG9zaXRpb24iIDogNCwKICAgICAgInByZWZpeCIgOiAiLS1maWxlPSIsCiAgICAgICJzZXBhcmF0ZSIgOiBmYWxzZQogICAgfQogIH0gXSwKICAib3V0cHV0cyIgOiBbIHsKICAgICJpZCIgOiAib3V0cHV0IiwKICAgICJ0eXBlIiA6ICJGaWxlIiwKICAgICJvdXRwdXRCaW5kaW5nIiA6IHsKICAgICAgImdsb2IiIDogIm91dC50eHQiCiAgICB9CiAgfSBdLAogICJoaW50cyIgOiBbIF0sCiAgInJlcXVpcmVtZW50cyIgOiBbIF0sCiAgInN1Y2Nlc3NDb2RlcyIgOiBbIF0sCiAgInN0ZG91dCIgOiAib3V0LnR4dCIsCiAgImJhc2VDb21tYW5kIiA6ICJlY2hvIiwKICAiYXJndW1lbnRzIiA6IFsgXSwKICAiY2xhc3MiIDogIkNvbW1hbmRMaW5lVG9vbCIKfQ==",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "example_file" : [ {
+      "size" : 25,
+      "path" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/hello.txt",
+      "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/hello.txt",
+      "name" : "hello.txt",
+      "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl",
+      "nameroot" : "hello",
+      "nameext" : ".txt",
+      "checksum" : "sha1$4957fd917e837b6b87b3c634b8e04edef4854d59",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    } ],
+    "example_flag" : true,
+    "example_int" : 42,
+    "example_string" : "hello"
+  },
+  "outputs" : {
+    "output" : {
+      "size" : 124,
+      "path" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-06-125945.657/root/out.txt",
+      "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-06-125945.657/root/out.txt",
+      "name" : "out.txt",
+      "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-06-125945.657/root",
+      "nameroot" : "out",
+      "nameext" : ".txt",
+      "checksum" : "sha1$f2ed4eb1fd71ec6faf918eef605e75764cb92712",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 8,
+    "memMB" : 12743,
+    "diskSpaceMB" : null,
+    "networkAccess" : false,
+    "workingDir" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-06-125945.657/root",
+    "tmpDir" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-06-125945.657/root",
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  }
+}

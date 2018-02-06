@@ -1,0 +1,1 @@
+echo -f -i42 --example-string hello --file=/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/hello.txt > /Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-06-121748.672/root/out.txt

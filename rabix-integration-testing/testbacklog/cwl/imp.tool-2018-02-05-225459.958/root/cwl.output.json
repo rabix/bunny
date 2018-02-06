@@ -1,0 +1,13 @@
+{
+  "output" : {
+    "basename" : "out.txt",
+    "checksum" : "sha1$f2ed4eb1fd71ec6faf918eef605e75764cb92712",
+    "class" : "File",
+    "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-05-225459.958/root",
+    "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-05-225459.958/root/out.txt",
+    "nameext" : ".txt",
+    "nameroot" : "out",
+    "path" : "/Users/milosljubinkovic/git/bunny/rabix-integration-testing/testbacklog/cwl/imp.tool-2018-02-05-225459.958/root/out.txt",
+    "size" : 124
+  }
+}
