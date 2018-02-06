@@ -38,7 +38,6 @@ import org.rabix.bindings.sb.service.SBGlobService;
 import org.rabix.bindings.sb.service.SBMetadataService;
 import org.rabix.bindings.sb.service.impl.SBGlobServiceImpl;
 import org.rabix.bindings.sb.service.impl.SBMetadataServiceImpl;
-import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
 import org.rabix.common.helper.JSONHelper;
 import org.rabix.common.json.BeanSerializer;
