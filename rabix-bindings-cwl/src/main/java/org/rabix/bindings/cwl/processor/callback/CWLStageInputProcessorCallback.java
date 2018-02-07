@@ -105,7 +105,7 @@ public class CWLStageInputProcessorCallback implements CWLPortProcessorCallback 
       return destinationFile.toString();
     case LINK:
         try {
-          Files.createLink(destinationFile, file);
+          Files.createSymbolicLink(destinationFile, file);
         } catch (IOException e) {
           throw new BindingException(e);
         }
