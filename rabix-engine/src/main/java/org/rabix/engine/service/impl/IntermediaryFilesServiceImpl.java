@@ -84,7 +84,11 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
 
   private Set<String> extractPathsFromFileValue(FileValue file) {
     Set<String> paths = new HashSet<>();
-    paths.add(file.getPath());
+
+    String path = file.getPath();
+    if (path != null) {
+      paths.add(path);
+    }
 
     if (file.getSecondaryFiles() != null) {
       for (FileValue f : file.getSecondaryFiles()) {
