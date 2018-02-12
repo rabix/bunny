@@ -229,10 +229,12 @@ public class CWLFileValueHelper extends CWLBeanHelper {
    */
   private static String loadContents(Object fileData) throws IOException {
     String path = getPath(fileData);
+    URI uri = URI.create(getLocation(fileData));
     InputStream inputStream = null;
     try {
       File file = new File(path);
-      inputStream = new FileInputStream(file);
+      Path fPath = Paths.get(uri);
+      inputStream = Files.newInputStream(fPath);
       int bufferSize = file.length() > 0 && file.length() < CONTENTS_NUMBER_OF_BYTES ? (int) file.length() : CONTENTS_NUMBER_OF_BYTES;
       byte [] buffer = new byte[bufferSize];
       inputStream.read(buffer);
