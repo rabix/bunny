@@ -1,8 +1,5 @@
 package org.rabix.bindings.cwl;
 
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,12 +13,9 @@ import org.rabix.bindings.cwl.bean.CWLJob;
 import org.rabix.bindings.cwl.bean.CWLJobApp;
 import org.rabix.bindings.cwl.bean.CWLOutputPort;
 import org.rabix.bindings.cwl.bean.CWLStep;
-import org.rabix.bindings.cwl.bean.CWLStepInputs;
 import org.rabix.bindings.cwl.bean.CWLWorkflow;
 import org.rabix.bindings.cwl.bean.resource.CWLResource;
 import org.rabix.bindings.cwl.helper.CWLBindingHelper;
-import org.rabix.bindings.cwl.helper.CWLDirectoryValueHelper;
-import org.rabix.bindings.cwl.helper.CWLFileValueHelper;
 import org.rabix.bindings.cwl.helper.CWLSchemaHelper;
 import org.rabix.bindings.model.ApplicationPort;
 import org.rabix.bindings.model.LinkMerge;
@@ -84,10 +78,11 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    * Process hints in workflow 
    */
   public void processHints(CWLStep step, CWLJobApp parentJob, CWLJobApp childJob) {
-    for(CWLResource resource: parentJob.getHints()) {
+    for(CWLResource resource: step.getHints()) {
       childJob.setHint(resource);
     }
-    for(CWLResource resource: step.getHints()) {
+    
+    for(CWLResource resource: parentJob.getHints()) {
       childJob.setHint(resource);
     }
   }
@@ -99,10 +94,11 @@ public class CWLJobProcessor implements BeanProcessor<CWLJob> {
    * Process requirements in workflow
    */
   public void processRequirements(CWLStep step, CWLJobApp parentJob, CWLJobApp childJob) {
-    for(CWLResource resource: parentJob.getRequirements()) {
+    for(CWLResource resource: step.getRequirements()) {
       childJob.setRequirement(resource);
     }
-    for(CWLResource resource: step.getRequirements()) {
+    
+    for(CWLResource resource: parentJob.getRequirements()) {
       childJob.setRequirement(resource);
     }
   }

@@ -237,7 +237,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     String keyValue = inputPort != null ? inputPort.getId() : "";
 
     Object valueFrom = CWLBindingHelper.getValueFrom(inputBinding);
-    if (valueFrom != null) {
+    if (valueFrom != null && value != null) {
       try {
         value = CWLExpressionResolver.resolve(valueFrom, job, value);
       } catch (CWLExpressionException e) {
@@ -259,7 +259,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
 
     if (value instanceof Boolean) {
-      if (((Boolean) value)) {
+      if (((Boolean) value) && (inputBinding instanceof Map && !((Map) inputBinding).isEmpty())) {
         if (prefix == null) {
           throw new BindingException("Missing prefix for " + inputPort.getId() + " input.");
         }
