@@ -95,6 +95,10 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   }
 
   private void addOrIncrement(UUID rootId, FileValue file) {
+    if (file == null || file.getPath() == null) {
+      return;
+    }
+
     Set<String> paths = extractPathsFromFileValue(file);
     for(String path: paths) {
         intermediaryFilesRepository.increment(rootId, path);
