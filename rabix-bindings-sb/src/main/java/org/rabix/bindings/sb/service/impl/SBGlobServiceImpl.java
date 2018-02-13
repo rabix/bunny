@@ -81,7 +81,7 @@ public class SBGlobServiceImpl implements SBGlobService {
           @Override
           public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
             if(dir.getFileName() != null) {
-              if (matcher.matches(dir.getFileName()) && isDir) {
+              if (matcher.matches(dir.getFileName()) && isDir && !dir.equals(globDir.toPath())) {
                 files.add(dir.toFile());
               }
             }
