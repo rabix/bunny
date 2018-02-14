@@ -52,6 +52,7 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
 
 
   public void handle(final OutputUpdateEvent event, EventHandlingMode mode) throws EventHandlerException {
+    logger.debug(event.toString());
     JobRecord sourceJob = jobRecordService.find(event.getJobId(), event.getContextId());
 
     if (sourceJob == null) {
@@ -62,6 +63,8 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     if (sourceJob.isScatterWrapper()) {
       jobRecordService.resetOutputPortCounter(sourceJob, event.getNumberOfScattered(), event.getPortId());
     }
+
+    filesService.registerOutputFiles(event.getContextId(), event.getValue());
 
     Boolean isScatterWrapper = sourceJob.isScatterWrapper();
 
@@ -115,10 +118,6 @@ public class OutputEventHandler implements EventHandler<OutputUpdateEvent> {
     if (sourceJob.isCompleted() && (sourceJob.isScatterWrapper() || sourceJob.isContainer())) {
       eventProcessor.send(new JobStatusEvent(sourceJob.getId(), event.getContextId(), JobState.COMPLETED, createJob(sourceJob, JobStatus.COMPLETED).getOutputs(),
           event.getEventGroupId(), sourceJob.getId()));
-    }
-
-    if (sourceJob.isCompleted() || links.isEmpty()) {
-      filesService.handleDanglingOutput(event.getContextId(), value);
     }
   }
 

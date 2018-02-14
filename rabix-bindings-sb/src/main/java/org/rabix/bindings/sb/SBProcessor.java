@@ -380,6 +380,10 @@ public class SBProcessor implements ProtocolProcessor {
         Path pathToSec = Paths.get(secondaryFilePath);
         if (Files.exists(pathToSec) || !onlyExisting) {
           Map<String, Object> file = SBFileValueHelper.pathToRawFile(pathToSec, hashAlgorithm, Paths.get(SBFileValueHelper.getPath(fileValue)));
+          boolean loadContents = SBBindingHelper.loadContents(binding);
+          if (loadContents) {
+            SBFileValueHelper.setContents(file);
+          }
           secondaryFileMaps.add(file);
         }
       } catch (IOException | URISyntaxException e) {

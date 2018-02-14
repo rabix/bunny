@@ -3,8 +3,10 @@ package org.rabix.engine.service.impl;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.apache.commons.configuration.Configuration;
+import org.rabix.bindings.model.Job;
 import org.rabix.engine.metrics.MetricsHelper;
 import org.rabix.engine.service.GarbageCollectionService;
+import org.rabix.engine.service.IntermediaryFilesService;
 import org.rabix.engine.store.model.ContextRecord;
 import org.rabix.engine.store.model.ContextRecord.ContextStatus;
 import org.rabix.engine.store.model.JobRecord;
@@ -33,6 +35,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
   private final DAGRepository dagRepository;
   private final ContextRecordRepository contextRecordRepository;
   private final IntermediaryFilesRepository intermediaryFilesRepository;
+  private final IntermediaryFilesService intermediaryFilesService;
 
   private final TransactionHelper transactionHelper;
   private final MetricsHelper metricsHelper;
@@ -57,6 +60,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
                                       DAGRepository dagRepository,
                                       ContextRecordRepository contextRecordRepository,
                                       IntermediaryFilesRepository intermediaryFilesRepository,
+                                      IntermediaryFilesService intermediaryFilesService,
                                       TransactionHelper transactionHelper,
                                       MetricsHelper metricsHelper,
                                       Configuration configuration) {
@@ -69,6 +73,7 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
     this.dagRepository = dagRepository;
     this.contextRecordRepository = contextRecordRepository;
     this.intermediaryFilesRepository = intermediaryFilesRepository;
+    this.intermediaryFilesService = intermediaryFilesService;
 
     this.transactionHelper = transactionHelper;
     this.metricsHelper = metricsHelper;
@@ -157,6 +162,15 @@ public class GarbageCollectionServiceImpl implements GarbageCollectionService {
 
   private void flush(UUID rootId, List<JobRecord> garbage) {
     garbage.forEach(record -> {
+      logger.debug("flush(rootId={}, job={})", rootId, record.getId());
+
+      Job job = jobRepository.get(record.getExternalId());
+      if (job != null) {
+        intermediaryFilesService.handleUnusedFilesIfAny(job);
+      } else {
+        logger.debug("Cannot check intermediary files. Unknown job {} of {}", record.getId(), record.getRootId());
+      }
+
       jobRecordRepository.delete(record.getExternalId(), record.getRootId());
       jobRepository.delete(record.getRootId(), new HashSet<>(Collections.singletonList(record.getExternalId())));
       linkRecordRepository.delete(record.getId(), rootId);

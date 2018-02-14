@@ -45,6 +45,7 @@ public class CWLExpressionJavascriptResolver {
     }
     
     Context cx = Context.enter();
+    cx.setLanguageVersion(Context.VERSION_ES6);
     cx.setOptimizationLevel(OPTIMIZATION_LEVEL);
     cx.setMaximumInterpreterStackDepth(MAX_STACK_DEPTH);
     cx.setClassShutter(new CWLExpressionDenyAllClassShutter());

@@ -242,10 +242,6 @@ public class JobServiceImpl implements JobService {
       engineStatusCallback.onJobsReady(jobs, rootId, producedByNode);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
-    } finally {
-      if (!jobs.isEmpty()) {
-        jobRepository.delete(rootId, jobs.stream().filter(job -> !job.isRoot()).map(Job::getId).collect(Collectors.toSet()));
-      }
     }
   }
 
@@ -367,7 +363,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public void handleJobCompleted(Job job){
     logger.info("Job id: {}, name:{}, rootId: {} is completed.", job.getId(), job.getName(), job.getRootId());
-    try{
+    try {
       engineStatusCallback.onJobCompleted(job.getId(), job.getRootId());
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);

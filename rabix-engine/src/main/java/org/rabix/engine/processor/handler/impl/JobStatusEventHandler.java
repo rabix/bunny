@@ -18,7 +18,6 @@ import org.rabix.bindings.model.dag.DAGNode;
 import org.rabix.common.helper.CloneHelper;
 import org.rabix.common.helper.InternalSchemaHelper;
 import org.rabix.common.helper.JSONHelper;
-import org.rabix.common.logging.VerboseLogger;
 import org.rabix.engine.JobHelper;
 import org.rabix.engine.event.Event;
 import org.rabix.engine.event.impl.ContextStatusEvent;
@@ -55,6 +54,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
   private final VariableRecordService variableRecordService;
   private final ContextRecordService contextRecordService;
   private final JobStatsRecordService jobStatsRecordService;
+  private final IntermediaryFilesService intermediaryFilesService;
 
   private final JobRepository jobRepository;
   private final JobService jobService;
@@ -68,7 +68,7 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       final VariableRecordService variableRecordService, final ContextRecordService contextRecordService,
       final EventProcessor eventProcessor, final ScatterHandler scatterHelper, final JobRepository jobRepository,
       final JobService jobService, final JobStatsRecordService jobStatsRecordService,
-      final Configuration configuration, final JobHelper jobHelper) {
+      final Configuration configuration, final JobHelper jobHelper, final IntermediaryFilesService intermediaryFilesService) {
     this.dagNodeService = dagNodeService;
     this.scatterHelper = scatterHelper;
     this.eventProcessor = eventProcessor;
@@ -80,9 +80,9 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
     this.appService = appService;
     this.jobService = jobService;
     this.jobHelper = jobHelper;
-
     this.jobRepository = jobRepository;
     this.setResources = configuration.getBoolean("engine.set_resources", false);
+    this.intermediaryFilesService = intermediaryFilesService;
   }
 
   @Override
@@ -149,18 +149,6 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       break;
     case COMPLETED:
-      if (jobRecord.getState() == JobRecord.JobState.COMPLETED) {
-        logger.info("Job {} of {} is already completed.", jobRecord.getId(), jobRecord.getRootId());
-        break;
-      }
-
-      if (!jobRecord.isRoot()) {
-        jobService.delete(jobRecord.getRootId(), jobRecord.getExternalId());
-        if (jobRecord.isContainer() || jobRecord.isScatterWrapper()) {
-          VerboseLogger.log(String.format("Job %s has completed", jobRecord.getId()));
-        }
-      }
-
       updateJobStats(jobRecord, jobStatsRecord);
 
       if ((!jobRecord.isScatterWrapper() || jobRecord.isRoot()) && !jobRecord.isContainer()) {
@@ -172,6 +160,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
       }
       jobRecord.setState(JobRecord.JobState.COMPLETED);
       jobRecordService.update(jobRecord);
+
+      if (!jobRecord.isContainer() && !jobRecord.isScatterWrapper()) {
+        Job job = jobRepository.get(event.getEventGroupId());
+        intermediaryFilesService.decrementInputFilesReferences(event.getContextId(), job.getInputs());
+      }
 
       if (jobRecord.isRoot()) {
         eventProcessor.send(new ContextStatusEvent(event.getContextId(), ContextStatus.COMPLETED));
@@ -185,12 +178,17 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
           e.printStackTrace();
         }
       } else {
+        try {
+          Job job = jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult());
+          jobRepository.update(job);
+
+          jobService.handleJobCompleted(job);
+        } catch (BindingException e) {
+          logger.warn("Could not create completed job for {}", event.getJobId());
+        }
+
         if (!jobRecord.isScattered()) {
           checkJobRootPartiallyCompleted(jobRecord, mode);
-          try {
-            jobService.handleJobCompleted(jobHelper.createJob(jobRecord, JobStatus.COMPLETED, event.getResult()));
-          } catch (BindingException e) {
-          }
         }
       }
       break;

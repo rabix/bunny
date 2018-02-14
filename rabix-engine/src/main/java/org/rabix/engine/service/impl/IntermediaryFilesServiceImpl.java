@@ -1,92 +1,79 @@
 package org.rabix.engine.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.inject.Inject;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
-import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
-import org.rabix.common.helper.InternalSchemaHelper;
-import org.rabix.engine.store.model.LinkRecord;
-import org.rabix.engine.store.repository.IntermediaryFilesRepository;
-import org.rabix.engine.store.repository.IntermediaryFilesRepository.IntermediaryFileEntity;
 import org.rabix.engine.service.IntermediaryFilesHandler;
 import org.rabix.engine.service.IntermediaryFilesService;
-import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.store.repository.IntermediaryFilesRepository;
+import org.rabix.engine.store.repository.IntermediaryFilesRepository.IntermediaryFileEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
 
   private final static Logger logger = LoggerFactory.getLogger(IntermediaryFilesServiceImpl.class);
 
   private IntermediaryFilesRepository intermediaryFilesRepository;
-  private LinkRecordService linkRecordService;
   private IntermediaryFilesHandler fileHandler;
-  
+
   @Inject
-  protected IntermediaryFilesServiceImpl(LinkRecordService linkRecordService, IntermediaryFilesHandler handler, IntermediaryFilesRepository intermediaryFilesRepository) {
-    this.linkRecordService = linkRecordService;
+  protected IntermediaryFilesServiceImpl(IntermediaryFilesHandler handler, IntermediaryFilesRepository intermediaryFilesRepository) {
     this.fileHandler = handler;
     this.intermediaryFilesRepository = intermediaryFilesRepository;
   }
 
   @Override
-  public void decrementFiles(UUID rootId, Set<String> checkFiles) {
-    for (String path : checkFiles) {
-      intermediaryFilesRepository.decrement(rootId, path);
-    }
-  }
-  
-  @Override
-  public void handleUnusedFiles(Job job){
-    fileHandler.handleUnusedFiles(job, getUnusedFiles(job.getRootId()));
+  @SuppressWarnings("unchecked")
+  public void registerOutputFiles(UUID rootId, Object value) {
+    FileValueHelper
+            .getFilesFromValue(value)
+            .forEach(fileValue ->
+                    extractPathsFromFileValue(fileValue)
+                            .forEach(path -> intermediaryFilesRepository.insertIfNotExists(rootId, path, 0)));
   }
 
-
   @Override
-  public void handleJobCompleted(Job job) {
-    if (!job.isRoot()) {
-      Set<String> inputs = new HashSet<String>();
-      for (Map.Entry<String, Object> entry : job.getInputs().entrySet()) {
-        Set<FileValue> files = new HashSet(FileValueHelper.getFilesFromValue(entry.getValue()));
-        for (FileValue file : files) {
-          extractPathsFromFileValue(inputs, file);
-        }
-      }
-      decrementFiles(job.getRootId(), inputs);
-      handleUnusedFiles(job);
-    }
+  @SuppressWarnings("unchecked")
+  public void handleUnusedFilesIfAny(Job job) {
+    Set<String> unusedFiles = getUnusedFiles(job.getRootId());
+
+    logger.debug("handleUnusedFiles of {}: {}", job.getRootId(), unusedFiles);
+    fileHandler.handleUnusedFiles(job, unusedFiles);
   }
 
   @Override
   public void handleJobFailed(Job job, Job rootJob) {
-    handleUnusedFiles(job);
+    handleUnusedFilesIfAny(job);
   }
-  
+
   @Override
-  public void jobFailed(UUID rootId, Set<String> rootInputs) {
-    List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
-    Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
-    for(Iterator<Map.Entry<String, Integer>> it = filesForRootId.entrySet().iterator(); it.hasNext();) {
-      Entry<String, Integer> fileEntry = it.next();
-      if(!rootInputs.contains(fileEntry.getKey())) {
-        logger.debug("Removing onJobFailed: " + fileEntry.getKey());
-        filesForRootId.put(fileEntry.getKey(), 0);
-      }
-    }
+  public void incrementInputFilesReferences(UUID rootId, Object value) {
+    logger.debug("incrementInputFilesReferences(rootId={}, value={})", rootId, value);
+    FileValueHelper.getFilesFromValue(value).forEach(fileValue -> addOrIncrement(rootId, fileValue));
   }
-  
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void decrementInputFilesReferences(UUID rootId, Object value) {
+    logger.debug("decrementInputFilesReferences(rootId={}, value={})", rootId, value);
+    decrement(rootId, (Map<String, Object>) value);
+  }
+
+  private void decrement(UUID rootId, Map<String, Object> inputOutputMap) {
+    if (inputOutputMap == null) {
+      return;
+    }
+
+    forEachPath(inputOutputMap, path -> intermediaryFilesRepository.decrement(rootId, path));
+  }
+
+
   private Map<String, Integer> convertToMap(List<IntermediaryFileEntity> filesForRootId) {
     Map<String, Integer> result = new HashMap<>();
     for(IntermediaryFileEntity f: filesForRootId) {
@@ -94,26 +81,35 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     }
     return result;
   }
-  
-  @Override
-  public void extractPathsFromFileValue(Set<String> paths, FileValue file) {
-    paths.add(file.getPath());
-    if(file.getSecondaryFiles()!=null)
-      for(FileValue f: file.getSecondaryFiles()) {
-        extractPathsFromFileValue(paths, f);
+
+  private Set<String> extractPathsFromFileValue(FileValue file) {
+    Set<String> paths = new HashSet<>();
+
+    String path = file.getPath();
+    if (path != null) {
+      paths.add(path);
+    }
+
+    if (file.getSecondaryFiles() != null) {
+      for (FileValue f : file.getSecondaryFiles()) {
+        paths.addAll(extractPathsFromFileValue(f));
       }
+    }
+    return paths;
   }
-  
-  @Override
-  public void addOrIncrement(UUID rootId, FileValue file, Integer usage) {
-    Set<String> paths = new HashSet<String>();
-    extractPathsFromFileValue(paths, file);
+
+  private void addOrIncrement(UUID rootId, FileValue file) {
+    if (file == null || file.getPath() == null) {
+      return;
+    }
+
+    Set<String> paths = extractPathsFromFileValue(file);
     for(String path: paths) {
         intermediaryFilesRepository.increment(rootId, path);
     }
   }
-  
-  protected Set<String> getUnusedFiles(UUID rootId) {
+
+  private Set<String> getUnusedFiles(UUID rootId) {
     List<IntermediaryFileEntity> filesForRootIdList = intermediaryFilesRepository.get(rootId);
     Map<String, Integer> filesForRootId = convertToMap(filesForRootIdList);
     Set<String> unusedFiles = new HashSet<String>();
@@ -128,26 +124,12 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
     return unusedFiles;
   }
 
-  @Override
-  public void handleInputSent(UUID rootId, Object input) {
-    handleInputSent(rootId, input, 1);
-  }
-  
-  @Override
-  public void handleInputSent(UUID rootId, Object input, int count) {
-    Set<FileValue> files = new HashSet<FileValue>(FileValueHelper.getFilesFromValue(input));
-    for(FileValue file: files){
-      addOrIncrement(rootId, file, count);
-    }
-  }
-
-  @Override
-  public void handleDanglingOutput(UUID rootId, Object input) {
-    Set<String> inputs = new HashSet<String>();
-    Set<FileValue> files = new HashSet(FileValueHelper.getFilesFromValue(input));
-    for (FileValue file : files) {
-      extractPathsFromFileValue(inputs, file);
-    }
-    decrementFiles(rootId, inputs);
+  private void forEachPath(Map<String, Object> map, Consumer<String> consumer) {
+    map.values().stream()
+            .map(FileValueHelper::getFilesFromValue)
+            .flatMap(List::stream)
+            .forEach(fileValue ->
+                    extractPathsFromFileValue(fileValue)
+                            .forEach(consumer));
   }
 }
