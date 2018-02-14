@@ -286,7 +286,7 @@ public class CWLProcessor implements ProtocolProcessor {
       } else {
         return collectOutput(job, workingDir, hashAlgorithm, itemSchema, binding, outputPort);
       }
-    } else if (CWLSchemaHelper.isRecordFromSchema(schema)) {
+    } else if (CWLSchemaHelper.isRecordFromSchema(schema) && CWLBindingHelper.getOutputEval(binding) == null) {
       Map<String, Object> record = new HashMap<>();
       Object fields = CWLSchemaHelper.getFields(schema);
 
