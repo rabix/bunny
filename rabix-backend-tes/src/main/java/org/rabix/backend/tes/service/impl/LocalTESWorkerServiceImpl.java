@@ -281,7 +281,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
             localDir.toString(), commandLine.getStandardIn(), commandLineToolStdout, commandLineToolErrLog, getVariables(combinedRequirements)));
 
         TESResources resources = getResources(combinedRequirements);
-        TESTask task = new TESTask(job.getName(), null, new ArrayList<>(inputs), outputs, resources, command, null, null, null);
+        Map<String, String> tags = getTags(job);
+        TESTask task = new TESTask(job.getName(), null, new ArrayList<>(inputs), outputs, resources, command, null, tags, null);
 
         TESCreateTaskResponse tesJobId = tesHttpClient.runTask(task);
 
@@ -325,6 +326,14 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         mainCommand.add(0, "/bin/sh");
       }
       return mainCommand;
+    }
+
+    private Map<String, String> getTags(Job job) {
+      Map<String, String> tags = new HashMap<>();
+      tags.put("workflow_id", job.getRootId().toString());
+      tags.put("job_id", job.getId().toString());
+      tags.put("tool_name", job.getName());
+      return tags;
     }
 
     private Map<String, String> getVariables(List<Requirement> combinedRequirements) {

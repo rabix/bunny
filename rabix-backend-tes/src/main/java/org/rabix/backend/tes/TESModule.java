@@ -73,6 +73,8 @@ public class TESModule extends BackendModule {
       try {
         URI uri = URI.create(endpoint);
         FileSystems.newFileSystem(uri, env, Thread.currentThread().getContextClassLoader());
+      } catch (java.nio.file.FileSystemAlreadyExistsException e) {
+        // do nothing
       } catch (IOException e) {
         e.printStackTrace();
       }
