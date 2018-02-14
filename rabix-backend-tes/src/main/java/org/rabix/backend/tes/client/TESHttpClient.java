@@ -33,10 +33,11 @@ public class TESHttpClient {
     this.host = tesConfig.getHost();
     this.port = tesConfig.getPort();
     this.scheme = tesConfig.getScheme();
+    // Timeout value of 0 turns off timeouts
     this.httpClient = new OkHttpClient.Builder()
-      .connectTimeout(0, TimeUnit.SECONDS)
-      .writeTimeout(0, TimeUnit.SECONDS)
-      .readTimeout(0, TimeUnit.SECONDS)
+      .connectTimeout(60, TimeUnit.SECONDS)
+      .writeTimeout(60, TimeUnit.SECONDS)
+      .readTimeout(60, TimeUnit.SECONDS)
       .retryOnConnectionFailure(true)
       .build();
   }
