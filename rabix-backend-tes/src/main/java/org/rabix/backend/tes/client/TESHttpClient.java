@@ -34,9 +34,9 @@ public class TESHttpClient {
     this.port = tesConfig.getPort();
     this.scheme = tesConfig.getScheme();
     this.httpClient = new OkHttpClient.Builder()
-      .connectTimeout(30, TimeUnit.SECONDS)
-      .writeTimeout(30, TimeUnit.SECONDS)
-      .readTimeout(30, TimeUnit.SECONDS)
+      .connectTimeout(0, TimeUnit.SECONDS)
+      .writeTimeout(0, TimeUnit.SECONDS)
+      .readTimeout(0, TimeUnit.SECONDS)
       .retryOnConnectionFailure(true)
       .build();
   }

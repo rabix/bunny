@@ -287,12 +287,13 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         TESCreateTaskResponse tesJobId = tesHttpClient.runTask(task);
 
         do {
-          Thread.sleep(100L);
-          task = tesHttpClient.getTask(new TESGetTaskRequest(tesJobId.getId(), TESView.FULL));
+          Thread.sleep(10000L);
+          task = tesHttpClient.getTask(new TESGetTaskRequest(tesJobId.getId(), TESView.MINIMAL));
           if (task == null) {
             throw new TESServiceException("TESJob is not created. JobId = " + job.getId());
           }
         } while (!isFinished(task));
+        task = tesHttpClient.getTask(new TESGetTaskRequest(tesJobId.getId(), TESView.FULL));
         return new TESWorkPair(job, task);
       } catch (TESHTTPClientException e) {
         logger.error("Failed to submit Job to TES", e);
