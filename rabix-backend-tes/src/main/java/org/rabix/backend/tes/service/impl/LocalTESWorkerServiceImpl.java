@@ -234,7 +234,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       try {
         Bindings bindings = BindingsFactory.create(job);
         job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
-        DockerContainerRequirement dockerContainerRequirement = getRequirement(getRequirements(bindings), DockerContainerRequirement.class);
+        List<Requirement> combinedRequirements = getRequirements(bindings);
+        DockerContainerRequirement dockerContainerRequirement = getRequirement(combinedRequirements, DockerContainerRequirement.class);
         if (dockerContainerRequirement != null && dockerContainerRequirement.getDockerOutputDirectory() != null) {
           localDir = Paths.get(dockerContainerRequirement.getDockerOutputDirectory());
           job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
@@ -244,11 +245,9 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           return new TESWorkPair(job, new TESTask(null, TESState.COMPLETE, null, null, null, null, null, null, null, null, null, null));
         }
 
-        Set<TESInput> inputs = new HashSet<>(); 
-        
+        Set<TESInput> inputs = new HashSet<>();
         Map<String, Object> wfInputs = job.getInputs();
         Collection<FileValue> flat = flatten(wfInputs);
-        List<Requirement> combinedRequirements = getRequirements(bindings);
         stageFileRequirements(combinedRequirements, workDir, flat);
 
         flat.forEach(fileValue -> {
@@ -397,8 +396,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
 
     private List<Requirement> getRequirements(Bindings bindings) throws BindingException {
       List<Requirement> combinedRequirements = new ArrayList<>();
-      combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
+      combinedRequirements.addAll(bindings.getHints(job));
       return combinedRequirements;
     }
 
