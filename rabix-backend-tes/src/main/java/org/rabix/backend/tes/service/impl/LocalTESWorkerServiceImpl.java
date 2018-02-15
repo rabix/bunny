@@ -35,6 +35,7 @@ import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.backend.api.engine.EngineStubLocal;
 import org.rabix.backend.tes.client.TESHTTPClientException;
 import org.rabix.backend.tes.client.TESHttpClient;
+import org.rabix.backend.tes.config.TESConfig;
 import org.rabix.backend.tes.model.TESCreateTaskResponse;
 import org.rabix.backend.tes.model.TESExecutor;
 import org.rabix.backend.tes.model.TESFileType;
@@ -79,32 +80,28 @@ import com.google.inject.Inject;
 public class LocalTESWorkerServiceImpl implements WorkerService {
 
   private final static Logger logger = LoggerFactory.getLogger(LocalTESWorkerServiceImpl.class);
-
   private final static String TYPE = "TES";
   public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
 
   @BindingAnnotation
   @Target({java.lang.annotation.ElementType.FIELD, java.lang.annotation.ElementType.PARAMETER, java.lang.annotation.ElementType.METHOD})
   @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
-  public static @interface TESWorker {
-  }
-
+  public static @interface TESWorker {}
 
   @Inject
   private TESHttpClient tesHttpClient;
   @Inject
   private TESStorageService storage;
   @Inject
+  private TESConfig tesConfig;
+  @Inject
   private Configuration configuration;
   @Inject
   private WorkerStatusCallback statusCallback;
 
-  private Integer taskThreadPoolsize = configuration.getInt("rabix.tes.task-thread-pool-size", 1);
-  private Integer pollingThreadPoolSize = configuration.getInt("rabix.tes.polling-thread-pool-size", 10);
-
   private Set<Future<TESWorkPair>> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<Future<TESWorkPair>, Boolean>());
-  private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(pollingThreadPoolSize);
-  private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(taskThreadPoolsize);
+  private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(tesConfig.getPollingThreadPoolSize());
+  private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(tesConfig.getTaskThreadPoolSize());
   private EngineStub<?, ?, ?> engineStub;
 
   private void success(Job job, TESTask tesJob) {

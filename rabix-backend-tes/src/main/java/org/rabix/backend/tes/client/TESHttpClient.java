@@ -25,7 +25,6 @@ public class TESHttpClient {
   private final int port;
   private final String host;
   private final String scheme;
-  
   private final OkHttpClient httpClient;
   
   @Inject
@@ -35,9 +34,9 @@ public class TESHttpClient {
     this.scheme = tesConfig.getScheme();
     // Timeout value of 0 turns off timeouts
     this.httpClient = new OkHttpClient.Builder()
-      .connectTimeout(60, TimeUnit.SECONDS)
-      .writeTimeout(60, TimeUnit.SECONDS)
-      .readTimeout(60, TimeUnit.SECONDS)
+      .connectTimeout(tesConfig.getClientConnectTimeout(), TimeUnit.SECONDS)
+      .writeTimeout(tesConfig.getClientWriteTimeout(), TimeUnit.SECONDS)
+      .readTimeout(tesConfig.getClientReadTimeout(), TimeUnit.SECONDS)
       .retryOnConnectionFailure(true)
       .build();
   }
