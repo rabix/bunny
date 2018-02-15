@@ -94,18 +94,18 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
   private TESHttpClient tesHttpClient;
   @Inject
   private TESStorageService storage;
-
-  private Set<Future<TESWorkPair>> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<Future<TESWorkPair>, Boolean>());
-
-  private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(1);
-  private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(10);
-
-  private EngineStub<?, ?, ?> engineStub;
-
   @Inject
   private Configuration configuration;
   @Inject
   private WorkerStatusCallback statusCallback;
+
+  private Integer taskThreadPoolsize = configuration.getInt("rabix.tes.task-thread-pool-size", 1);
+  private Integer pollingThreadPoolSize = configuration.getInt("rabix.tes.polling-thread-pool-size", 10);
+
+  private Set<Future<TESWorkPair>> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<Future<TESWorkPair>, Boolean>());
+  private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(pollingThreadPoolSize);
+  private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(taskThreadPoolsize);
+  private EngineStub<?, ?, ?> engineStub;
 
   private void success(Job job, TESTask tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);

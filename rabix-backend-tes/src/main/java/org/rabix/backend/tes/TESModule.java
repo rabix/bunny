@@ -62,6 +62,9 @@ public class TESModule extends BackendModule {
     if (configuration.getString(AmazonS3Factory.PROTOCOL) != null) {
       env.put(AmazonS3Factory.PROTOCOL, configuration.getString(AmazonS3Factory.PROTOCOL));
     }
+    if (configuration.getString(AmazonS3Factory.SOCKET_TIMEOUT) != null) {
+    env.put(AmazonS3Factory.SOCKET_TIMEOUT, configuration.getString(AmazonS3Factory.SOCKET_TIMEOUT));
+    }
     if (configuration.getString(AmazonS3Factory.SIGNER_OVERRIDE) != null) {
       env.put(AmazonS3Factory.SIGNER_OVERRIDE, configuration.getString(AmazonS3Factory.SIGNER_OVERRIDE));
     }
