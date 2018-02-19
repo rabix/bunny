@@ -1,14 +1,12 @@
 package org.rabix.bindings.cwl.helper;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -228,22 +226,23 @@ public class CWLFileValueHelper extends CWLBeanHelper {
    * Load first CONTENTS_NUMBER_OF_BYTES bytes from file
    */
   private static String loadContents(Object fileData) throws IOException {
-    String path = getPath(fileData);
-    InputStream inputStream = null;
+    FileChannel inChannel = null;
     try {
-      File file = new File(path);
-      inputStream = new FileInputStream(file);
-      int bufferSize = file.length() > 0 && file.length() < CONTENTS_NUMBER_OF_BYTES ? (int) file.length() : CONTENTS_NUMBER_OF_BYTES;
-      byte [] buffer = new byte[bufferSize];
-      inputStream.read(buffer);
-      return new String(buffer, "UTF-8");
-    }
-    finally {
-      if (inputStream != null) {
+      URI uri = URI.create(getLocation(fileData));
+      Path file = Paths.get(uri);
+      inChannel = FileChannel.open(file, StandardOpenOption.READ);
+      int bufferSize = Files.size(file) > 0 && Files.size(file) < CONTENTS_NUMBER_OF_BYTES ? (int) Files.size(file) : CONTENTS_NUMBER_OF_BYTES;
+      ByteBuffer buf = ByteBuffer.allocate(bufferSize);
+      int bytesRead = inChannel.read(buf); // read into buffer.
+      return new String(buf.array(), "UTF-8");
+    } catch (IOException e) {
+      throw new IOException("Failed to load contents of file", e);
+    } finally {
+      if (inChannel != null) {
         try {
-          inputStream.close();
+          inChannel.close();
         } catch (IOException e) {
-           // do nothing
+          // do nothing
         }
       }
     }

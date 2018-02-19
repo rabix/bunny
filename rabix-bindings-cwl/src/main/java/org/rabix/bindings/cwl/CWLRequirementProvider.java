@@ -38,6 +38,17 @@ import org.rabix.bindings.model.requirement.ResourceRequirement;
 
 public class CWLRequirementProvider implements ProtocolRequirementProvider {
 
+  private ResourceRequirement getResourceRequirement(CWLJob cwlJob, CWLResourceRequirement cwlResourceRequirement) throws BindingException {
+    if (cwlResourceRequirement == null) {
+      return null;
+    }
+    try {
+      return new ResourceRequirement(cwlResourceRequirement.getCoresMin(cwlJob), null, cwlResourceRequirement.getRamMin(cwlJob), null, cwlResourceRequirement.getTmpdirMin(cwlJob), null, null);
+    } catch (CWLExpressionException e) {
+      throw new BindingException(e);
+    }
+  }
+
   private DockerContainerRequirement getDockerRequirement(CWLDockerResource cwlDockerResource) {
     if (cwlDockerResource == null) {
       return null;
@@ -165,26 +176,20 @@ public class CWLRequirementProvider implements ProtocolRequirementProvider {
         result.add(getFileRequirement(cwlJob, (CWLInitialWorkDirRequirement) cwlResource));
         continue;
       }
+      if (cwlResource instanceof CWLResourceRequirement) {
+        result.add(getResourceRequirement(cwlJob, (CWLResourceRequirement) cwlResource));
+        continue;
+      }
       result.add(new CustomRequirement(cwlResource.getType(), cwlResource.getRaw()));
     }
     return result;
   }
-  
 
   @Override
   public ResourceRequirement getResourceRequirement(Job job) throws BindingException {
     CWLJob cwlJob = CWLJobHelper.getCWLJob(job);
-    
     CWLResourceRequirement cwlResourceRequirement = cwlJob.getApp().getResourceRequirement();
-
-    if (cwlResourceRequirement == null) {
-      return null;
-    }
-    try {
-      return new ResourceRequirement(cwlResourceRequirement.getCoresMin(cwlJob), null, cwlResourceRequirement.getRamMin(cwlJob), null, null, null, null);
-    } catch (CWLExpressionException e) {
-      throw new BindingException(e);
-    }
+    return getResourceRequirement(cwlJob, cwlResourceRequirement);
   }
 
 }

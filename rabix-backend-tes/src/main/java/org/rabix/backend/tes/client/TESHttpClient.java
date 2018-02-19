@@ -1,6 +1,7 @@
 package org.rabix.backend.tes.client;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.rabix.backend.tes.config.TESConfig;
 import org.rabix.backend.tes.model.TESCancelTaskRequest;
@@ -24,7 +25,6 @@ public class TESHttpClient {
   private final int port;
   private final String host;
   private final String scheme;
-  
   private final OkHttpClient httpClient;
   
   @Inject
@@ -32,7 +32,13 @@ public class TESHttpClient {
     this.host = tesConfig.getHost();
     this.port = tesConfig.getPort();
     this.scheme = tesConfig.getScheme();
-    this.httpClient = new OkHttpClient();
+    // Timeout value of 0 turns off timeouts
+    this.httpClient = new OkHttpClient.Builder()
+      .connectTimeout(tesConfig.getClientConnectTimeout(), TimeUnit.SECONDS)
+      .writeTimeout(tesConfig.getClientWriteTimeout(), TimeUnit.SECONDS)
+      .readTimeout(tesConfig.getClientReadTimeout(), TimeUnit.SECONDS)
+      .retryOnConnectionFailure(true)
+      .build();
   }
 
   public TESCreateTaskResponse runTask(TESTask task) throws TESHTTPClientException {
@@ -92,6 +98,5 @@ public class TESHttpClient {
       throw new TESHTTPClientException("Failed to get CancelTaskResponse entity", e);
     }
   }
-  
-  
+
 }

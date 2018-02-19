@@ -35,6 +35,7 @@ import org.rabix.backend.api.engine.EngineStub;
 import org.rabix.backend.api.engine.EngineStubLocal;
 import org.rabix.backend.tes.client.TESHTTPClientException;
 import org.rabix.backend.tes.client.TESHttpClient;
+import org.rabix.backend.tes.config.TESConfig;
 import org.rabix.backend.tes.model.TESCreateTaskResponse;
 import org.rabix.backend.tes.model.TESExecutor;
 import org.rabix.backend.tes.model.TESFileType;
@@ -79,33 +80,29 @@ import com.google.inject.Inject;
 public class LocalTESWorkerServiceImpl implements WorkerService {
 
   private final static Logger logger = LoggerFactory.getLogger(LocalTESWorkerServiceImpl.class);
-
   private final static String TYPE = "TES";
   public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
 
   @BindingAnnotation
   @Target({java.lang.annotation.ElementType.FIELD, java.lang.annotation.ElementType.PARAMETER, java.lang.annotation.ElementType.METHOD})
   @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
-  public static @interface TESWorker {
-  }
-
+  public static @interface TESWorker {}
 
   @Inject
   private TESHttpClient tesHttpClient;
   @Inject
   private TESStorageService storage;
-
-  private Set<Future<TESWorkPair>> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<Future<TESWorkPair>, Boolean>());
-
-  private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(1);
-  private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(10);
-
-  private EngineStub<?, ?, ?> engineStub;
-
+  @Inject
+  private TESConfig tesConfig;
   @Inject
   private Configuration configuration;
   @Inject
   private WorkerStatusCallback statusCallback;
+
+  private Set<Future<TESWorkPair>> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<Future<TESWorkPair>, Boolean>());
+  private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(tesConfig.getPollingThreadPoolSize());
+  private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(tesConfig.getTaskThreadPoolSize());
+  private EngineStub<?, ?, ?> engineStub;
 
   private void success(Job job, TESTask tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
@@ -234,7 +231,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       try {
         Bindings bindings = BindingsFactory.create(job);
         job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
-        DockerContainerRequirement dockerContainerRequirement = getRequirement(getRequirements(bindings), DockerContainerRequirement.class);
+        List<Requirement> combinedRequirements = getRequirements(bindings);
+        DockerContainerRequirement dockerContainerRequirement = getRequirement(combinedRequirements, DockerContainerRequirement.class);
         if (dockerContainerRequirement != null && dockerContainerRequirement.getDockerOutputDirectory() != null) {
           localDir = Paths.get(dockerContainerRequirement.getDockerOutputDirectory());
           job = bindings.preprocess(job, localDir, (String path, Map<String, Object> config) -> path);
@@ -244,11 +242,9 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           return new TESWorkPair(job, new TESTask(null, TESState.COMPLETE, null, null, null, null, null, null, null, null, null, null));
         }
 
-        Set<TESInput> inputs = new HashSet<>(); 
-        
+        Set<TESInput> inputs = new HashSet<>();
         Map<String, Object> wfInputs = job.getInputs();
         Collection<FileValue> flat = flatten(wfInputs);
-        List<Requirement> combinedRequirements = getRequirements(bindings);
         stageFileRequirements(combinedRequirements, workDir, flat);
 
         flat.forEach(fileValue -> {
@@ -282,17 +278,19 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
             localDir.toString(), commandLine.getStandardIn(), commandLineToolStdout, commandLineToolErrLog, getVariables(combinedRequirements)));
 
         TESResources resources = getResources(combinedRequirements);
-        TESTask task = new TESTask(job.getName(), null, new ArrayList<>(inputs), outputs, resources, command, null, null, null);
+        Map<String, String> tags = getTags(job);
+        TESTask task = new TESTask(job.getName(), null, new ArrayList<>(inputs), outputs, resources, command, null, tags, null);
 
         TESCreateTaskResponse tesJobId = tesHttpClient.runTask(task);
 
         do {
-          Thread.sleep(100L);
-          task = tesHttpClient.getTask(new TESGetTaskRequest(tesJobId.getId(), TESView.FULL));
+          Thread.sleep(10000L);
+          task = tesHttpClient.getTask(new TESGetTaskRequest(tesJobId.getId(), TESView.MINIMAL));
           if (task == null) {
             throw new TESServiceException("TESJob is not created. JobId = " + job.getId());
           }
         } while (!isFinished(task));
+        task = tesHttpClient.getTask(new TESGetTaskRequest(tesJobId.getId(), TESView.FULL));
         return new TESWorkPair(job, task);
       } catch (TESHTTPClientException e) {
         logger.error("Failed to submit Job to TES", e);
@@ -325,6 +323,14 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         mainCommand.add(0, "/bin/sh");
       }
       return mainCommand;
+    }
+
+    private Map<String, String> getTags(Job job) {
+      Map<String, String> tags = new HashMap<>();
+      tags.put("workflow_id", job.getRootId().toString());
+      tags.put("job_id", job.getId().toString());
+      tags.put("tool_name", job.getName());
+      return tags;
     }
 
     private Map<String, String> getVariables(List<Requirement> combinedRequirements) {
@@ -396,8 +402,8 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
 
     private List<Requirement> getRequirements(Bindings bindings) throws BindingException {
       List<Requirement> combinedRequirements = new ArrayList<>();
-      combinedRequirements.addAll(bindings.getHints(job));
       combinedRequirements.addAll(bindings.getRequirements(job));
+      combinedRequirements.addAll(bindings.getHints(job));
       return combinedRequirements;
     }
 
