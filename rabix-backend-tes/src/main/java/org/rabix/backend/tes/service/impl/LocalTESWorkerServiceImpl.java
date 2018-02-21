@@ -66,7 +66,7 @@ import org.rabix.bindings.model.requirement.FileRequirement.SingleInputFileRequi
 import org.rabix.bindings.model.requirement.FileRequirement.SingleTextFileRequirement;
 import org.rabix.bindings.model.requirement.Requirement;
 import org.rabix.bindings.model.requirement.ResourceRequirement;
-import org.rabix.common.helper.ChecksumHelper.HashAlgorithm;
+import org.rabix.common.helper.ChecksumHelper;
 import org.rabix.common.logging.VerboseLogger;
 import org.rabix.transport.backend.Backend;
 import org.rabix.transport.backend.impl.BackendLocal;
@@ -77,32 +77,35 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Inject;
 
+
 public class LocalTESWorkerServiceImpl implements WorkerService {
 
   private final static Logger logger = LoggerFactory.getLogger(LocalTESWorkerServiceImpl.class);
   private final static String TYPE = "TES";
-  public final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
+  private final static String DEFAULT_COMMAND_LINE_TOOL_ERR_LOG = "job.err.log";
 
   @BindingAnnotation
   @Target({java.lang.annotation.ElementType.FIELD, java.lang.annotation.ElementType.PARAMETER, java.lang.annotation.ElementType.METHOD})
   @Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
-  public static @interface TESWorker {}
+  public @interface TESWorker {}
 
   @Inject
   private TESHttpClient tesHttpClient;
   @Inject
   private TESStorageService storage;
   @Inject
-  private TESConfig tesConfig;
-  @Inject
   private Configuration configuration;
   @Inject
   private WorkerStatusCallback statusCallback;
 
   private Set<Future<TESWorkPair>> pendingResults = Collections.newSetFromMap(new ConcurrentHashMap<Future<TESWorkPair>, Boolean>());
-  private ScheduledExecutorService scheduledTaskChecker = Executors.newScheduledThreadPool(tesConfig.getPollingThreadPoolSize());
-  private java.util.concurrent.ExecutorService taskPoolExecutor = Executors.newFixedThreadPool(tesConfig.getTaskThreadPoolSize());
   private EngineStub<?, ?, ?> engineStub;
+
+  private TESConfig tesConfig;
+  private ScheduledExecutorService scheduledTaskChecker;
+  private java.util.concurrent.ExecutorService taskPoolExecutor;
+  private Boolean enableHash;
+  private ChecksumHelper.HashAlgorithm hashAlgorithm;
 
   private void success(Job job, TESTask tesJob) {
     job = Job.cloneWithStatus(job, JobStatus.COMPLETED);
@@ -111,12 +114,10 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       Path dir = storage.localDir(job);
       if (!bindings.isSelfExecutable(job)) {
         TESOutput tesTaskParameter = tesJob.getOutputs().get(0);
-
         URI uri = URI.create(tesTaskParameter.getLocation() + "/");
-        Path outDir = Paths.get(uri);
-        dir = outDir;
+        dir = Paths.get(uri);
       }
-      job = bindings.postprocess(job, dir, HashAlgorithm.SHA1, (String path, Map<String, Object> config) -> path);
+      job = bindings.postprocess(job, dir, enableHash? hashAlgorithm : null, (String path, Map<String, Object> config) -> path);
     } catch (Exception e) {
       logger.error("Couldn't process job", e);
       job = Job.cloneWithStatus(job, JobStatus.FAILED);
@@ -142,6 +143,12 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
 
   @Override
   public void start(Backend backend) {
+    tesConfig = new TESConfig(configuration);
+    scheduledTaskChecker = Executors.newScheduledThreadPool(tesConfig.getPostProcessingThreadPoolSize());
+    taskPoolExecutor = Executors.newFixedThreadPool(tesConfig.getTaskThreadPoolSize());
+    enableHash = configuration.getBoolean("executor.calculate_file_checksum", true);
+    hashAlgorithm = ChecksumHelper.HashAlgorithm.valueOf(configuration.getString("executor.checksum_algorithm", "SHA1"));
+
     try {
       switch (backend.getType()) {
         case LOCAL:
@@ -156,11 +163,11 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       throw new RuntimeException("Failed to initialize Executor", e);
     }
 
-    this.scheduledTaskChecker.scheduleAtFixedRate(new Runnable() {
+    scheduledTaskChecker.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
         for (Iterator<Future<TESWorkPair>> iterator = pendingResults.iterator(); iterator.hasNext();) {
-          Future<TESWorkPair> pending = (Future<TESWorkPair>) iterator.next();
+          Future<TESWorkPair> pending = iterator.next();
           if (pending.isDone()) {
             try {
               TESWorkPair tesJob = pending.get();
@@ -190,11 +197,12 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
             if (subcause != null) {
               if (subcause.getClass().equals(TESHTTPClientException.class)) {
                 VerboseLogger.log("Failed to communicate with TES service");
-                System.exit(-10);
               }
             }
           }
         }
+        VerboseLogger.log(e.getMessage());
+        System.exit(-1);
       }
     }, 0, 300, TimeUnit.MILLISECONDS);
   }
@@ -203,7 +211,6 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     pendingResults.add(taskPoolExecutor.submit(new TaskRunCallable(job)));
   }
 
-  @SuppressWarnings("unchecked")
   private <T extends Requirement> T getRequirement(List<Requirement> requirements, Class<T> clazz) {
     for (Requirement requirement : requirements) {
       if (requirement.getClass().equals(clazz)) {
@@ -220,7 +227,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     private Path workDir;
     private Path localDir;
 
-    public TaskRunCallable(Job job) {
+    private TaskRunCallable(Job job) {
       this.job = job;
       workDir = storage.workDir(job);
       localDir = storage.localDir(job);
@@ -274,8 +281,10 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         }
         commandLineToolErrLog = localDir.resolve(commandLineToolErrLog).toString();
 
-        List<TESExecutor> command = Collections.singletonList(new TESExecutor(getImageId(dockerContainerRequirement), buildCommandLine(commandLine),
-            localDir.toString(), commandLine.getStandardIn(), commandLineToolStdout, commandLineToolErrLog, getVariables(combinedRequirements)));
+        List<TESExecutor> command = Collections.singletonList(new TESExecutor(
+                getImageId(dockerContainerRequirement), buildCommandLine(commandLine), localDir.toString(),
+                commandLine.getStandardIn(), commandLineToolStdout, commandLineToolErrLog, getEnvVariables(combinedRequirements)
+        ));
 
         TESResources resources = getResources(combinedRequirements);
         Map<String, String> tags = getTags(job);
@@ -333,7 +342,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       return tags;
     }
 
-    private Map<String, String> getVariables(List<Requirement> combinedRequirements) {
+    private Map<String, String> getEnvVariables(List<Requirement> combinedRequirements) {
       EnvironmentVariableRequirement envs = getRequirement(combinedRequirements, EnvironmentVariableRequirement.class);
       Map<String, String> variables = new HashMap<>();
       if (envs != null) {
@@ -377,7 +386,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
           } catch (IOException e) {
             throw new TESStorageException(e.getMessage());
           }
-          old.add(new FileValue(0l, localDir.resolve(filename).toString(), destinationFile.toUri().toString(), null, Collections.emptyList(), null, null));
+          old.add(new FileValue(0L, localDir.resolve(filename).toString(), destinationFile.toUri().toString(), null, Collections.emptyList(), null, null));
           continue;
         }
         if (fileRequirement instanceof SingleInputFileRequirement) {
@@ -421,7 +430,6 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
       return flat;
     }
 
-    @SuppressWarnings({"rawtypes"})
     private void flatten(Collection<FileValue> inputs, Object value) {
       if (value instanceof Map)
         flatten(inputs, (Map) value);
@@ -431,12 +439,10 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         flatten(inputs, (FileValue) value);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private void flatten(Collection<FileValue> inputs, Map value) {
       value.values().forEach(v -> flatten(inputs, v));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private void flatten(Collection<FileValue> inputs, List value) {
       value.forEach(v -> flatten(inputs, v));
     }
@@ -465,13 +471,12 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         disk = (jobResourceRequirement.getDiskSpaceMinMB() != null) ? jobResourceRequirement.getDiskSpaceMinMB().doubleValue() / 1000.0 : null;
         ram = (jobResourceRequirement.getMemMinMB() != null) ? jobResourceRequirement.getMemMinMB().doubleValue() / 1000.0 : null;
       }
-      TESResources resources = new TESResources(cpus, false, ram, disk, null);
-      return resources;
+      return new TESResources(cpus, false, ram, disk, null);
     }
 
     private boolean isFinished(TESTask tesJob) {
-      return tesJob.getState().equals(TESState.CANCELED) || tesJob.getState().equals(TESState.COMPLETE) || tesJob.getState().equals(TESState.EXECUTOR_ERROR)
-          || tesJob.getState().equals(TESState.SYSTEM_ERROR);
+      return tesJob.getState().equals(TESState.CANCELED) || tesJob.getState().equals(TESState.COMPLETE)
+              || tesJob.getState().equals(TESState.EXECUTOR_ERROR) || tesJob.getState().equals(TESState.SYSTEM_ERROR);
     }
   }
 
@@ -479,7 +484,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     Job job;
     TESTask tesTask;
 
-    public TESWorkPair(Job job, TESTask tesTask) {
+    private TESWorkPair(Job job, TESTask tesTask) {
       super();
       this.job = job;
       this.tesTask = tesTask;
