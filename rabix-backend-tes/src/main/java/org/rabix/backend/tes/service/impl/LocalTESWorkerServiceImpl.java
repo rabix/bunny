@@ -211,6 +211,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     pendingResults.add(taskPoolExecutor.submit(new TaskRunCallable(job)));
   }
 
+  @SuppressWarnings("unchecked")
   private <T extends Requirement> T getRequirement(List<Requirement> requirements, Class<T> clazz) {
     for (Requirement requirement : requirements) {
       if (requirement.getClass().equals(clazz)) {
@@ -419,9 +420,7 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
     private void recursiveSet(FileValue file, String a) {
       file.setName(a);
       file.setPath(storage.localDir(job).resolve(a).toString());
-      file.getSecondaryFiles().forEach(f -> {
-        recursiveSet(f, f.getName());
-      });
+      file.getSecondaryFiles().forEach(f -> recursiveSet(f, f.getName()));
     }
 
     private Collection<FileValue> flatten(Map<String, Object> inputs) {
@@ -439,10 +438,12 @@ public class LocalTESWorkerServiceImpl implements WorkerService {
         flatten(inputs, (FileValue) value);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void flatten(Collection<FileValue> inputs, Map value) {
       value.values().forEach(v -> flatten(inputs, v));
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void flatten(Collection<FileValue> inputs, List value) {
       value.forEach(v -> flatten(inputs, v));
     }
