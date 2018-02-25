@@ -237,7 +237,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     String keyValue = inputPort != null ? inputPort.getId() : "";
 
     Object valueFrom = CWLBindingHelper.getValueFrom(inputBinding);
-    if (valueFrom != null && value != null) {
+    if (valueFrom != null) {
       try {
         value = CWLExpressionResolver.resolve(valueFrom, job, value);
       } catch (CWLExpressionException e) {
@@ -298,6 +298,9 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
 
     if (value instanceof List<?>) {
+      if(((List) value).isEmpty()) {
+        return null;
+      }
       CWLCommandLinePart.Builder commandLinePartBuilder = new CWLCommandLinePart.Builder(position, isFile);
       commandLinePartBuilder.keyValue(keyValue);
 
