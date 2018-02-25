@@ -362,7 +362,7 @@ public class BackendCommandLine {
       for (ApplicationPort schemaInput : application.getInputs()) {
         String id = schemaInput.getId().replaceFirst("^#", "");
 
-        if (schemaInput.isRequired() && schemaInput.getDefaultValue() == null && !inputs.containsKey(id)) {
+        if (schemaInput.isRequired() && schemaInput.getDefaultValue() == null && (!inputs.containsKey(id) || inputs.get(id) == null)) {
           missingRequiredFields.add(id);
         }
       }
