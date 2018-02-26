@@ -241,6 +241,9 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       try {
         value = CWLExpressionResolver.resolve(valueFrom, job, value);
       } catch (CWLExpressionException e) {
+        if(CWLSchemaHelper.isRequired(schema)) {
+          throw new BindingException(e);
+        }
         logger.error(e.getMessage() + " -- Resolving input port " + job.getId() + "." + key + " to null");
         return null;
       }
