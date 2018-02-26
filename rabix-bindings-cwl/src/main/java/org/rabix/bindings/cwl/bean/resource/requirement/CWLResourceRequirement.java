@@ -115,7 +115,11 @@ public class CWLResourceRequirement extends CWLResource {
     if (outDir == null) {
       outDir = resources != null ? resources.getOutDirSize() : OUTDIR_MIN_DEFAULT;
     }
-    return new CWLRuntime(cores, ram, null, null, tmpDir, outDir);
+
+    String workDirPath = resources != null ? resources.getWorkingDir() : null;
+    String tmpDirPath = resources != null ? resources.getTmpDir() : null;
+
+    return new CWLRuntime(cores, ram, workDirPath, tmpDirPath, tmpDir, outDir);
   }
   
   @Override

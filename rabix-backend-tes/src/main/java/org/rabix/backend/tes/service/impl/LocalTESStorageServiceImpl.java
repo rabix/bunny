@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
+import org.rabix.backend.tes.config.TESConfig;
 import org.rabix.backend.tes.service.TESStorageException;
 import org.rabix.backend.tes.service.TESStorageService;
 import org.rabix.bindings.BindingException;
@@ -34,7 +35,7 @@ public class LocalTESStorageServiceImpl implements TESStorageService {
   @Inject
   public LocalTESStorageServiceImpl(Configuration configuration) {
     localFileStorage = Paths.get(configuration.getString("backend.execution.directory"));
-    String storageConfig = configuration.getString("rabix.tes.storage.base", localFileStorage.toString());
+    String storageConfig = configuration.getString(TESConfig.STORAGE_BASE, localFileStorage.toString());
     URI uri = URI.create(storageConfig);
     if (uri.getScheme() == null) {
       try {

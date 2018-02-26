@@ -12,6 +12,7 @@ import org.apache.commons.configuration.Configuration;
 import org.rabix.backend.api.BackendModule;
 import org.rabix.backend.api.WorkerService;
 import org.rabix.backend.tes.client.TESHttpClient;
+import org.rabix.backend.tes.config.TESConfig;
 import org.rabix.backend.tes.service.TESStorageService;
 import org.rabix.backend.tes.service.impl.LocalTESStorageServiceImpl;
 import org.rabix.backend.tes.service.impl.LocalTESWorkerServiceImpl;
@@ -34,7 +35,7 @@ public class TESModule extends BackendModule {
     bind(WorkerService.class).annotatedWith(TESWorker.class).to(LocalTESWorkerServiceImpl.class).in(Scopes.SINGLETON);
     Configuration configuration = this.configModule.provideConfig();
 
-    String storageConfig = configuration.getString("rabix.tes.storage.base");
+    String storageConfig = configuration.getString(TESConfig.STORAGE_BASE);
     String[] s3EndpointConfig = configuration.getStringArray("s3fs_endpoints");
     ArrayList<String> s3Endpoints = new ArrayList<>();
 
@@ -75,6 +76,9 @@ public class TESModule extends BackendModule {
     for (String endpoint : s3Endpoints) {
       try {
         URI uri = URI.create(endpoint);
+        if (uri.getScheme() == "") {
+          throw new java.nio.file.ProviderMismatchException("endpoint "+endpoint+" is missing s3:// scheme");
+        }
         FileSystems.newFileSystem(uri, env, Thread.currentThread().getContextClassLoader());
       } catch (java.nio.file.FileSystemAlreadyExistsException e) {
         // do nothing
