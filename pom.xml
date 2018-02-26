@@ -64,7 +64,8 @@
 		<module>rabix-engine-store-postgres</module>
 		<module>rabix-backend-api</module>
 		<module>rabix-backend-tes</module>
-    </modules>
+		<module>rabix-backend-lsf</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
