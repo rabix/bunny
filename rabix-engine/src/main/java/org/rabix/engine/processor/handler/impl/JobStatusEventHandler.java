@@ -316,7 +316,11 @@ public class JobStatusEventHandler implements EventHandler<JobStatusEvent> {
             destinationVariable = new VariableRecord(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, variableRecordService.getValue(sourceVariable), node.getLinkMerge(sourceVariable.getPortId(), sourceVariable.getType()));
             variableRecordService.create(destinationVariable);
           }
-          Event updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+          Event updateEvent;
+          if(link.getDestinationVarType().equals(LinkPortType.INPUT))
+           updateEvent = new InputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+          else
+           updateEvent = new OutputUpdateEvent(rootId, link.getDestinationJobId(), link.getDestinationJobPort(), variableRecordService.getValue(sourceVariable), link.getPosition(), event.getEventGroupId(), event.getProducedByNode());
           eventProcessor.send(updateEvent);
         }
       }
