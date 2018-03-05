@@ -237,11 +237,15 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     String keyValue = inputPort != null ? inputPort.getId() : "";
 
     Object valueFrom = CWLBindingHelper.getValueFrom(inputBinding);
-    if (valueFrom != null && value != null) {
+    if (valueFrom != null) {
       try {
         value = CWLExpressionResolver.resolve(valueFrom, job, value);
       } catch (CWLExpressionException e) {
-        throw new BindingException(e);
+        if(CWLSchemaHelper.isRequired(schema)) {
+          throw new BindingException(e);
+        }
+        logger.error(e.getMessage() + " -- Resolving input port " + job.getId() + "." + key + " to null");
+        return null;
       }
     }
 
@@ -263,7 +267,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         if (prefix == null) {
           throw new BindingException("Missing prefix for " + inputPort.getId() + " input.");
         }
-        return new CWLCommandLinePart.Builder(position, isFile).part(new CommandLine.Part(prefix)).keyValue(keyValue).build();
+        return new CWLCommandLinePart.Builder(position, isFile).part(new CommandLine.Part(prefix, false)).keyValue(keyValue).build();
       } else {
         return null;
       }
@@ -298,6 +302,9 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
     }
 
     if (value instanceof List<?>) {
+      if(((List) value).isEmpty()) {
+        return null;
+      }
       CWLCommandLinePart.Builder commandLinePartBuilder = new CWLCommandLinePart.Builder(position, isFile);
       commandLinePartBuilder.keyValue(keyValue);
 
@@ -346,7 +353,7 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(value.toString(), shellQuote)).build();
     }
     if (CWLBindingHelper.DEFAULT_SEPARATOR.equals(separator)) {
-      return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(prefix))
+      return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(prefix, false))
           .part(new CommandLine.Part(value.toString(), shellQuote)).build();
     }
     return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(new CommandLine.Part(prefix + separator + value, shellQuote)).build();

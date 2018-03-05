@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -230,6 +231,10 @@ public class DockerContainerHandler implements ContainerHandler {
       }
       for (FileValue f : flat) {
         Path location = Paths.get(URI.create(f.getLocation()));
+        if(Files.isSymbolicLink(location)) {
+          Path readLink = Files.readSymbolicLink(location);
+          binds.add(readLink.toString() + ":" + readLink.toString());
+        }
         if (location.startsWith(rootWorkingDir)) {
           continue;
         }
