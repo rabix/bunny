@@ -140,8 +140,14 @@ public class CWLExpressionResolver {
     return ex;
   }
 
-  private static boolean startsExpression(char c) {
-    return c == '{' || c == '(';
+  private static boolean isEscaped(char[] chars, int i) {
+    if (i == 0)
+      return false;
+    return chars[i - 1] == '\\' && !isEscaped(chars, i - 1);
+  }
+  
+  private static boolean startsExpression(char[] chars, int i) {
+    return chars[i] == '$' && !isEscaped(chars, i) && i != chars.length && (chars[i + 1] == '{' || chars[i + 1] == '(');
   }
 
   private static Object process(String value, Object inputs, Object self, CWLRuntime runtime, List<String> engineConfigs) throws CWLExpressionException {
@@ -149,7 +155,7 @@ public class CWLExpressionResolver {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < chars.length; i++) {
       char c = chars[i];
-      if (c == '$' && startsExpression(chars[i + 1])) {
+      if (startsExpression(chars, i)) {
         String expression = new Seeker(chars).extractExpression(i + 1);
         if (expression == null)
           throw new CWLExpressionException("Expression left open: " + value.substring(i));
@@ -191,9 +197,9 @@ public class CWLExpressionResolver {
       while (i < chars.length) {
         char c = chars[i];
         sb.append(c);
-        if (c == open && !isEscaped(i)) {
+        if (c == open && !isEscaped(chars, i)) {
           opened++;
-        } else if (c == close && !isEscaped(i)) {
+        } else if (c == close && !isEscaped(chars, i)) {
           opened--;
         }
         if (opened == 0) {
@@ -207,7 +213,7 @@ public class CWLExpressionResolver {
 
     private int skipStringycontent(int start) {
       char c = chars[start];
-      if (isEscaped(start))
+      if (isEscaped(chars, start))
         return start;
       if (c == '/') {
         if (chars[start + 1] == '/')
@@ -234,16 +240,12 @@ public class CWLExpressionResolver {
       while (i < chars.length) {
         char c = chars[i];
         sb.append(c);
-        if (goal == c && !isEscaped(i)) {
+        if (goal == c && !isEscaped(chars, i)) {
           return i;
         }
         i++;
       }
       return i;
-    }
-
-    private boolean isEscaped( int i) {
-      return chars[i - 1] == '\\' && !isEscaped(i - 1);
     }
   }
 }

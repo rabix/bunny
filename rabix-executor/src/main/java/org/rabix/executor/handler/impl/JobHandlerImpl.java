@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import javax.inject.Inject;
 
@@ -198,7 +199,7 @@ public class JobHandlerImpl implements JobHandler {
       for (SingleFileRequirement fileRequirement : fileRequirements) {
         File destinationFile = new File(workingDir, fileRequirement.getFilename());
         if (fileRequirement instanceof SingleTextFileRequirement) {
-          FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent());
+          FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent().replaceAll(Matcher.quoteReplacement("\\$"), "\\$"));
           continue;
         }
         if (fileRequirement instanceof SingleInputFileRequirement || fileRequirement instanceof SingleInputDirectoryRequirement) {
