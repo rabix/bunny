@@ -333,8 +333,8 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(flattenedValues).build();
       }
       List<Object> prefixedValues = new ArrayList<>();
-      prefixedValues.add(prefix);
       for (Object arrayItem : flattenedValues) {
+        prefixedValues.add(prefix);
         prefixedValues.add(arrayItem);
       }
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(prefixedValues).build();
