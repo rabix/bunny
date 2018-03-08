@@ -260,7 +260,7 @@ public class JobServiceImpl implements JobService {
     intermediaryFilesService.handleJobFailed(failedJob, jobRepository.get(failedJob.getRootId()));
 
     try {
-      engineStatusCallback.onJobFailed(failedJob.getId(), failedJob.getRootId());
+      engineStatusCallback.onJobFailed(failedJob);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed", e);
     } finally {
@@ -364,7 +364,7 @@ public class JobServiceImpl implements JobService {
   public void handleJobCompleted(Job job){
     logger.info("Job id: {}, name:{}, rootId: {} is completed.", job.getId(), job.getName(), job.getRootId());
     try {
-      engineStatusCallback.onJobCompleted(job.getId(), job.getRootId());
+      engineStatusCallback.onJobCompleted(job);
     } catch (EngineStatusCallbackException e) {
       logger.error("Engine status callback failed",e);
     }

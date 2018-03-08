@@ -37,13 +37,13 @@ public class DefaultEngineStatusCallback implements EngineStatusCallback {
   }
 
   @Override
-  public void onJobFailed(UUID jobId, UUID rootId) throws EngineStatusCallbackException {
-    logger.debug("onJobFailed(jobId={})", jobId);
+  public void onJobFailed(Job job) throws EngineStatusCallbackException {
+    logger.debug("onJobFailed(jobId={})", job.getId());
   }
 
   @Override
-  public void onJobCompleted(UUID jobId, UUID rootId) throws EngineStatusCallbackException {
-    logger.debug("onJobCompleted(jobId={})", jobId);
+  public void onJobCompleted(Job job) throws EngineStatusCallbackException {
+    logger.debug("onJobCompleted(jobId={})", job.getId());
   }
 
   @Override

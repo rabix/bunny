@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,5 +60,30 @@ public class LocalBackendEngineStatusCallback extends DefaultEngineStatusCallbac
     public void onJobRootFailed(UUID rootId, String message) throws EngineStatusCallbackException {
       System.out.println(message);
       System.exit(1);
+    }
+
+    @Override public void onJobReady(Job job) throws EngineStatusCallbackException {
+        super.onJobReady(job);
+        logComposerInfo(job.getName(), job.getStatus().toString(), null);
+    }
+
+    @Override public void onJobCompleted(Job job) throws EngineStatusCallbackException {
+        super.onJobCompleted(job);
+        logComposerInfo(job.getName(), job.getStatus().toString(), null);
+    }
+
+    @Override public void onJobFailed(Job job) throws EngineStatusCallbackException {
+        super.onJobFailed(job);
+        logComposerInfo(job.getName(), job.getStatus().toString(), job.getMessage());
+    }
+
+    private void logComposerInfo(String stepId, String status, String message) {
+        Map<String, String> info = new HashMap<>();
+        info.put("stepId", stepId);
+        info.put("status", status);
+        if (message != null)
+            info.put("message", message);
+
+        logger.info("Composer: " + JSONHelper.writeObject(info).replace(System.getProperty("line.separator"), ""));
     }
 }
