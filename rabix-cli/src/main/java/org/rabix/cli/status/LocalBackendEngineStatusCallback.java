@@ -1,6 +1,7 @@
 package org.rabix.cli.status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.BindingException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
@@ -24,11 +25,13 @@ public class LocalBackendEngineStatusCallback extends DefaultEngineStatusCallbac
     private final Logger logger = LoggerFactory.getLogger(LocalBackendEngineStatusCallback.class);
 
     private final JobService jobService;
+    private final Configuration configuration;
 
     @Inject
-    public LocalBackendEngineStatusCallback(BackendService backendService, JobService jobService) {
+    public LocalBackendEngineStatusCallback(BackendService backendService, JobService jobService, Configuration configuration) {
         super(backendService);
         this.jobService = jobService;
+        this.configuration = configuration;
     }
 
     @Override
@@ -78,6 +81,9 @@ public class LocalBackendEngineStatusCallback extends DefaultEngineStatusCallbac
     }
 
     private void logComposerInfo(String stepId, String status, String message) {
+        if (!configuration.getBoolean("composer.logs.enabled", false))
+            return;
+
         Map<String, String> info = new HashMap<>();
         info.put("stepId", stepId);
         info.put("status", status);

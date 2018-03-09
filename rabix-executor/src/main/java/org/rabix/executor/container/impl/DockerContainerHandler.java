@@ -515,10 +515,12 @@ public class DockerContainerHandler implements ContainerHandler {
     private static final String UNIX_SCHEME = "unix";
 
     private DockerClient dockerClient;
+    private final Configuration configuration;
 
     @Inject
     public DockerClientLockDecorator(Configuration configuration) throws ContainerException {
       this.dockerClient = createDockerClient(configuration);
+      this.configuration = configuration;
     }
 
     public synchronized void removeContainer(String containerId) throws DockerException, InterruptedException {
@@ -533,9 +535,10 @@ public class DockerContainerHandler implements ContainerHandler {
         }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
-        logger.info("Composer: {\"status\": \"DOCKER_PULL_FAILED\",  \"retry\": " +
-            TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME)  + ", \"image\": \"" + image + "\","
-            + "\"message\": \"" + e.getMessage() + "\"}");
+        if (configuration.getBoolean("composer.logs.enabled", false))
+          logger.info("Composer: {\"status\": \"DOCKER_PULL_FAILED\",  \"retry\": " +
+              TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME)  + ", \"image\": \"" + image + "\","
+              + "\"message\": \"" + e.getMessage() + "\"}");
 
         throw e;
       }
@@ -549,9 +552,10 @@ public class DockerContainerHandler implements ContainerHandler {
         }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
-        logger.info("Composer: {\"status\": \"DOCKER_PULL_FAILED\",  \"retry\": " +
-            TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME)  + ", \"image\": \"" + image + "\","
-            + "\"message\": \"" + e.getMessage() + "\"}");
+        if (configuration.getBoolean("composer.logs.enabled", false))
+          logger.info("Composer: {\"status\": \"DOCKER_PULL_FAILED\",  \"retry\": " +
+              TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME)  + ", \"image\": \"" + image + "\","
+              + "\"message\": \"" + e.getMessage() + "\"}");
 
         throw e;
       }
