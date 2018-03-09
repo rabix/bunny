@@ -367,7 +367,9 @@ public class BackendCommandLine {
         }
       }
       if (!missingRequiredFields.isEmpty()) {
-        VerboseLogger.log("Required inputs missing: " + StringUtils.join(missingRequiredFields, ", "));
+        String message = "Required inputs missing: " + StringUtils.join(missingRequiredFields, ", ");
+        VerboseLogger.log(message);
+        logger.info("Composer: {\"status\": \"FAILED\",  \"stepId\": \"root\", \"message\": \"" + message + "\"}");
         printAppUsageAndExit(appInputOptions);
       }
 

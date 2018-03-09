@@ -533,6 +533,10 @@ public class DockerContainerHandler implements ContainerHandler {
         }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
+        logger.info("Composer: {\"status\": \"DOCKER_PULL_FAILED\",  \"retry\": " +
+            TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME)  + ", \"image\": \"" + image + "\","
+            + "\"message\": \"" + e.getMessage() + "\"}");
+
         throw e;
       }
     }
@@ -545,6 +549,10 @@ public class DockerContainerHandler implements ContainerHandler {
         }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
+        logger.info("Composer: {\"status\": \"DOCKER_PULL_FAILED\",  \"retry\": " +
+            TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME)  + ", \"image\": \"" + image + "\","
+            + "\"message\": \"" + e.getMessage() + "\"}");
+
         throw e;
       }
     }
