@@ -219,15 +219,19 @@ public class DockerContainerHandler implements ContainerHandler {
     return readLines.get(0);
   }
 
-  private String getToTheBottomOfThis(Path p){
+  private void getToTheBottomOfThis(Path p, Set<String> binds){
     if(Files.isSymbolicLink(p)) {
       try {
-        return getToTheBottomOfThis(Files.readSymbolicLink(p));
+        Path linked = Files.readSymbolicLink(p);
+        if(!linked.isAbsolute()){
+          linked = p.resolveSibling(linked).normalize().toAbsolutePath();
+        }
+        binds.add(linked.toString() + ":" + linked.toString());
+        getToTheBottomOfThis(linked, binds);
       } catch (IOException e) {
         logger.error(e.getMessage(), e);
       }
     }
-    return p.toString();
   }
 
   @Override
@@ -244,8 +248,7 @@ public class DockerContainerHandler implements ContainerHandler {
       for (FileValue f : flat) {
         Path location = Paths.get(URI.create(f.getLocation()));
         if(Files.isSymbolicLink(location)) {
-          String readLink = getToTheBottomOfThis(location);
-          binds.add(readLink + ":" + readLink);
+          getToTheBottomOfThis(location, binds);
         }
         if (location.startsWith(rootWorkingDir)) {
           continue;
