@@ -328,7 +328,12 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
       if (itemSeparator != null) {
         String joinedItems = Joiner.on(itemSeparator).join(flattenedValues);
         if (prefix == null) {
-          return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(joinedItems).build();
+            List<Object> prefixedValues = new ArrayList<>();
+            for (Object arrayItem : flattenedValues) {
+              prefixedValues.add(itemSeparator);
+              prefixedValues.add(arrayItem);
+            }
+            return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(prefixedValues).build();
         }
         if (StringUtils.isWhitespace(separator) && separator.length() > 0) {
           return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).part(prefix).part(joinedItems).build();
@@ -340,8 +345,8 @@ public class CWLCommandLineBuilder implements ProtocolCommandLineBuilder {
         return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(flattenedValues).build();
       }
       List<Object> prefixedValues = new ArrayList<>();
-      prefixedValues.add(prefix);
       for (Object arrayItem : flattenedValues) {
+        prefixedValues.add(prefix);
         prefixedValues.add(arrayItem);
       }
       return new CWLCommandLinePart.Builder(position, isFile).keyValue(keyValue).parts(prefixedValues).build();
