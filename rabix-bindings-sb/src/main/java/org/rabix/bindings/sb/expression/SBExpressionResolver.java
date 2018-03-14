@@ -2,6 +2,7 @@ package org.rabix.bindings.sb.expression;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import org.rabix.bindings.sb.bean.SBJob;
 import org.rabix.bindings.sb.bean.resource.requirement.SBExpressionEngineRequirement;
@@ -49,11 +50,18 @@ public class SBExpressionResolver {
     SBExpressionLanguage expressionLanguage = SBExpressionLanguage.convert(language);
     switch (expressionLanguage) {
     case JSON_POINTER:
-      return (T) SBExpressionJSPointerResolver.evaluate(transformedContext, self, expression);
+      return (T) stripDollarSign(SBExpressionJSPointerResolver.evaluate(transformedContext, self, expression));
     default:
       List<String> engineConfigs = fetchEngineConfigs(context, language);
-      return (T) SBExpressionJavascriptResolver.evaluate(transformedContext, self, expression, engineConfigs, includeTemplates);
+      return (T) stripDollarSign(SBExpressionJavascriptResolver.evaluate(transformedContext, self, expression, engineConfigs, includeTemplates));
     }
+  }
+
+  private static Object stripDollarSign(Object value) {
+    if (value instanceof String) {
+      return ((String) value).replaceAll(Matcher.quoteReplacement("\\$"), "\\$");
+    }
+    return value;
   }
 
   /**

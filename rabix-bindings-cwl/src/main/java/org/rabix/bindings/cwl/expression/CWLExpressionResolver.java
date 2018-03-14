@@ -52,7 +52,7 @@ public class CWLExpressionResolver {
       if (inlineJavascriptRequirement != null) {
         expressionLibs = inlineJavascriptRequirement.getExpressionLib();
       }
-      return (T) CWLExpressionJavascriptResolver.evaluate(job.getInputs(), self, script, job.getRuntime(), expressionLibs);
+      return (T) stripDollarSign(CWLExpressionJavascriptResolver.evaluate(job.getInputs(), self, script, job.getRuntime(), expressionLibs));
     }
     if (expression instanceof String) {
       if (job.isInlineJavascriptEnabled()) {
@@ -61,7 +61,7 @@ public class CWLExpressionResolver {
         if (inlineJavascriptRequirement != null) {
           expressionLibs = inlineJavascriptRequirement.getExpressionLib();
         }
-        return (T) process((String) expression, job.getInputs(), self, job.getRuntime(), expressionLibs);
+        return (T) stripDollarSign(process((String) expression, job.getInputs(), self, job.getRuntime(), expressionLibs));
       } else {
         Map<String, Object> vars = new HashMap<>();
         vars.put("inputs", job.getInputs());
@@ -71,10 +71,17 @@ public class CWLExpressionResolver {
         if (runtime != null) {
           vars.put("runtime", runtime.toMap());
         }
-        return (T) paramInterpolate((String) expression, vars, true);
+        return (T) stripDollarSign(paramInterpolate((String) expression, vars, true));
       }
     }
     return (T) expression;
+  }
+
+  private static Object stripDollarSign(Object value) {
+    if (value instanceof String) {
+      return ((String) value).replaceAll(Matcher.quoteReplacement("\\$"), "\\$");
+    }
+    return value;
   }
 
   public static boolean isExpressionObject(Object expression) {
