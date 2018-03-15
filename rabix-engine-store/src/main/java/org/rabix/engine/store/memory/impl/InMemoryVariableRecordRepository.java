@@ -111,6 +111,7 @@ public class InMemoryVariableRecordRepository extends VariableRecordRepository {
   @Override
   public void delete(String id, UUID rootId) {
     getVariableRecords(rootId).removeIf(variableRecord -> variableRecord.getJobId().equals(id));
+    getVariableRecordsWithId(rootId, id).clear();
   }
 
   @Override
