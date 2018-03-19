@@ -51,9 +51,9 @@
 			<version>0.19.0-alpha</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.milos-ljubinkovic</groupId>
+			<groupId>com.github.adamstruck</groupId>
 			<artifactId>Amazon-S3-FileSystem-NIO2</artifactId>
-			<version>b5deda4235</version>
+			<version>4d2d172</version>
 		</dependency>
 	</dependencies>
 </project>

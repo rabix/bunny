@@ -375,8 +375,7 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     Path workDir = dir == null ? Paths.get("/") : dir;
     String path = getPath(value);
     String location = getLocation(value);
-    URI locationUri = null;
-    Path locationPath = null;
+    Path actual = null;
 
     if (path == null) {
       if (location != null) {
@@ -387,6 +386,11 @@ public class CWLFileValueHelper extends CWLBeanHelper {
         if (uri.isOpaque()) {
           uri = new URI("file", workDir.resolve(location).toAbsolutePath().toString(), null);
         }
+        location = uri.toString();
+        actual = Paths.get(uri);
+        if (!actual.isAbsolute()) {
+          actual = workDir.resolve(actual).toAbsolutePath();
+        }
         path = uri.getPath();
       } else {
         return;
@@ -394,22 +398,24 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
 
     if (location == null) {
-      locationUri = workDir.resolve(path).toUri();
+      actual = workDir.resolve(path);
+      location = actual.toUri().toString();
     } else {
-      locationUri = URI.create(location);
-      if (locationUri.getScheme() == null) {
-        locationUri = workDir.resolve(path).toUri();
+      URI temp = URI.create(location);
+      if (temp.getScheme() != null) {
+        actual = Paths.get(temp);
+      } else {
+        actual = workDir.resolve(path);
       }
     }
-    locationPath = Paths.get(locationUri);
-
+    
     if (!Paths.get(path).isAbsolute()) {
       path = workDir.resolve(path).toAbsolutePath().toString();
     }
 
     String name = getName(value);
     if (name == null) {
-      setNames(locationPath, value);
+      setNames(actual, value);
     } else {
       if (!path.endsWith(name)) {
         path = Paths.get(path).resolveSibling(name).toString();
@@ -417,17 +423,17 @@ public class CWLFileValueHelper extends CWLBeanHelper {
     }
 
     setPath(path, value);
-    setLocation(locationUri.toString(), value);
+    setLocation(actual.toUri().toString(), value);
     
-    if (Files.exists(locationPath)) {
+    if (Files.exists(actual)) {
       if (getSize(value) == null)
-        setSize(Files.size(locationPath), value);
+        setSize(Files.size(actual), value);
 
       if (CWLSchemaHelper.isDirectoryFromValue(value)) {
-        setListing(locationPath, value, alg, workDir);
+        setListing(actual, value, alg, workDir);
       } else {
         if (alg != null) {
-          setChecksum(locationPath, value, alg);
+          setChecksum(actual, value, alg);
         }
       }
     }
