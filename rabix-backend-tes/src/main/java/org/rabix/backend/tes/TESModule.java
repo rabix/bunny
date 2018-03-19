@@ -34,14 +34,31 @@ public class TESModule extends BackendModule {
     List<S3Config> s3Providers = parseS3Config(configuration);
     for (S3Config s3e : s3Providers) {
       Map<String, Object> env = new HashMap<>();
-      env.put(AmazonS3Factory.ACCESS_KEY, s3e.AccessKey);
-      env.put(AmazonS3Factory.SECRET_KEY, s3e.SecretKey);
-      env.put(AmazonS3Factory.PROTOCOL, s3e.Protocol);
-      env.put(AmazonS3Factory.MAX_ERROR_RETRY, s3e.MaxRetryError);
-      env.put(AmazonS3Factory.CONNECTION_TIMEOUT, s3e.ConnectionTimeout);
-      env.put(AmazonS3Factory.SOCKET_TIMEOUT, s3e.SocketTimeout);
-      env.put(AmazonS3Factory.MAX_CONNECTIONS, s3e.MaxConnections);
-      env.put(AmazonS3Factory.SIGNER_OVERRIDE, s3e.SignerOverride);
+
+      if (s3e.AccessKey != null) {
+        env.put(AmazonS3Factory.ACCESS_KEY, s3e.AccessKey);
+      }
+      if (s3e.SecretKey != null) {
+        env.put(AmazonS3Factory.SECRET_KEY, s3e.SecretKey);
+      }
+      if (s3e.Protocol != null) {
+        env.put(AmazonS3Factory.PROTOCOL, s3e.Protocol);
+      }
+      if (s3e.MaxRetryError != null) {
+        env.put(AmazonS3Factory.MAX_ERROR_RETRY, s3e.MaxRetryError);
+      }
+      if (s3e.ConnectionTimeout != null) {
+        env.put(AmazonS3Factory.CONNECTION_TIMEOUT, s3e.ConnectionTimeout);
+      }
+      if (s3e.SocketTimeout != null) {
+        env.put(AmazonS3Factory.SOCKET_TIMEOUT, s3e.SocketTimeout);
+      }
+      if (s3e.MaxConnections != null) {
+        env.put(AmazonS3Factory.MAX_CONNECTIONS, s3e.MaxConnections);
+      }
+      if (s3e.SignerOverride != null) {
+        env.put(AmazonS3Factory.SIGNER_OVERRIDE, s3e.SignerOverride);
+      }
       env.put(AmazonS3Factory.PATH_STYLE_ACCESS, s3e.PathStyleAccess);
 
       for (String endpoint : s3e.Endpoints) {
@@ -117,16 +134,15 @@ public class TESModule extends BackendModule {
 }
 
 class S3Config {
-
   public String   Name;
   public String[] Endpoints;
   public String   AccessKey;
   public String   SecretKey;
-  public String   Protocol = "HTTPS";
-  public Integer  MaxRetryError = 10;
-  public Integer  ConnectionTimeout = 50000;
-  public Integer  MaxConnections = 50;
-  public Integer  SocketTimeout = 50000;
-  public String   SignerOverride = "AWS4SignerType";
-  public boolean  PathStyleAccess = false;
+  public String   Protocol;
+  public Integer  MaxRetryError;
+  public Integer  ConnectionTimeout;
+  public Integer  MaxConnections;
+  public Integer  SocketTimeout;
+  public String   SignerOverride;
+  public boolean  PathStyleAccess;
 }
