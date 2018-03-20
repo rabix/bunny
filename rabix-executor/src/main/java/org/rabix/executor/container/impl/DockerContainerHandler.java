@@ -348,7 +348,7 @@ public class DockerContainerHandler implements ContainerHandler {
         commandLine = commandLine.substring(1, commandLine.lastIndexOf('\"')) + commandLine.substring(commandLine.lastIndexOf('\"') + 1, commandLine.length());
     }
     if (commandLine.startsWith("'")) {
-        commandLine = commandLine.substring(1, commandLine.lastIndexOf('\'')) + commandLine.substring(commandLine.lastIndexOf('\"') + 1, commandLine.length());
+        commandLine = commandLine.substring(1, commandLine.lastIndexOf('\'')) + commandLine.substring(commandLine.lastIndexOf('\'') + 1, commandLine.length());
     }
     return commandLine;
   }
