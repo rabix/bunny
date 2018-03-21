@@ -1,6 +1,8 @@
 package org.rabix.engine.processor.handler.impl;
 
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.rabix.bindings.model.LinkMerge;
 import org.rabix.bindings.model.dag.DAGLinkPort.LinkPortType;
 import org.rabix.bindings.model.dag.DAGNode;
@@ -11,15 +13,19 @@ import org.rabix.engine.event.impl.JobStatusEvent;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.EventHandler;
 import org.rabix.engine.processor.handler.EventHandlerException;
-import org.rabix.engine.service.*;
+import org.rabix.engine.service.DAGNodeService;
+import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
 import org.rabix.engine.store.model.JobRecord;
 import org.rabix.engine.store.model.LinkRecord;
 import org.rabix.engine.store.model.VariableRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 /**
  * Handles {@link InputUpdateEvent} events.
@@ -27,20 +33,24 @@ import java.util.List;
 public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
   @Inject
-  private  DAGNodeService dagNodeService;
+  private DAGNodeService dagNodeService;
   @Inject
-  private  JobRecordService jobService;
+  private JobRecordService jobService;
   @Inject
-  private  LinkRecordService linkService;
+  private LinkRecordService linkService;
   @Inject
-  private  VariableRecordService variableService;
+  private VariableRecordService variableService;
   @Inject
-  private  ScatterHandler scatterHelper;
+  private ScatterHandler scatterHelper;
   @Inject
-  private  EventProcessor eventProcessor;
+  private EventProcessor eventProcessor;
   @Inject
   private IntermediaryFilesService intermediaryFilesService;
   private Logger logger = LoggerFactory.getLogger(getClass());
+  public final static String TREAT_ROOT = "treatRootInputsAsIntermediary";
+  @Inject
+  @Named(TREAT_ROOT)
+  private Boolean treatRoot;
 
   @Override
   public void handle(InputUpdateEvent event, EventHandlingMode mode) throws EventHandlerException {
@@ -52,7 +62,9 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       return;
     }
 
-    if (!job.isContainer() && !job.isScatterWrapper()) {
+    if (job.isRoot() && !treatRoot) {
+      intermediaryFilesService.freeze(event.getContextId(), event.getValue());
+    } else if (!job.isContainer() && !job.isScatterWrapper()) {
       intermediaryFilesService.incrementInputFilesReferences(event.getContextId(), event.getValue());
     }
 
@@ -65,7 +77,8 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
       } else {
         jobService.resetInputPortCounter(job, event.getNumberOfScattered(), event.getPortId());
       }
-    } else if ((job.getInputPortIncoming(event.getPortId()) > 1) && job.isScatterPort(event.getPortId()) && !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
+    } else if ((job.getInputPortIncoming(event.getPortId()) > 1) && job.isScatterPort(event.getPortId())
+        && !LinkMerge.isBlocking(node.getLinkMerge(event.getPortId(), LinkPortType.INPUT))) {
       jobService.resetOutputPortCounters(job, job.getInputPortIncoming(event.getPortId()));
     }
 
@@ -78,13 +91,15 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
         if ((job.isInputPortBlocking(node, event.getPortId()))) {
           // it's blocking
           if (job.isInputPortReady(event.getPortId())) {
-            scatterHelper.scatterPort(job, event, event.getPortId(), variableService.getValue(variable), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), false);
+            scatterHelper.scatterPort(job, event, event.getPortId(), variableService.getValue(variable), event.getPosition(), event.getNumberOfScattered(),
+                event.isLookAhead(), false);
             update(job, variable);
             return;
           }
         } else {
           // it's not blocking
-          scatterHelper.scatterPort(job, event, event.getPortId(), event.getValue(), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(), true);
+          scatterHelper.scatterPort(job, event, event.getPortId(), event.getValue(), event.getPosition(), event.getNumberOfScattered(), event.isLookAhead(),
+              true);
           update(job, variable);
           return;
         }
@@ -97,7 +112,8 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
     update(job, variable);
     if (job.isReady()) {
-      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobRecord.JobState.READY, event.getEventGroupId(), event.getProducedByNode());
+      JobStatusEvent jobStatusEvent = new JobStatusEvent(job.getId(), event.getContextId(), JobRecord.JobState.READY, event.getEventGroupId(),
+          event.getProducedByNode());
       eventProcessor.send(jobStatusEvent);
     }
   }
@@ -115,9 +131,11 @@ public class InputEventHandler implements EventHandler<InputUpdateEvent> {
 
     List<Event> events = new ArrayList<>();
     for (LinkRecord link : links) {
-      VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT, event.getContextId());
+      VariableRecord destinationVariable = variableService.find(link.getDestinationJobId(), link.getDestinationJobPort(), LinkPortType.INPUT,
+          event.getContextId());
 
-      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(), variableService.getValue(variable), event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
+      Event updateInputEvent = new InputUpdateEvent(event.getContextId(), destinationVariable.getJobId(), destinationVariable.getPortId(),
+          variableService.getValue(variable), event.getPosition(), event.getEventGroupId(), event.getProducedByNode());
       events.add(updateInputEvent);
     }
     for (Event subevent : events) {

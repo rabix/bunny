@@ -15,5 +15,7 @@ public interface IntermediaryFilesService {
   void decrementInputFilesReferences(UUID rootId, Object value);
 
   void incrementInputFilesReferences(UUID rootId, Object inputs);
+
+  void freeze(UUID rootId, Object value);
 }
 
