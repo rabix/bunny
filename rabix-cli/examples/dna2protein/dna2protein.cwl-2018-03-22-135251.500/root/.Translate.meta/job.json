@@ -1,0 +1,53 @@
+{
+  "id" : "28554025-11c7-35a7-909c-de7bae2f70c0",
+  "parentId" : "3b13e065-ef67-4f49-9da6-5196c50412cb",
+  "rootId" : "3b13e065-ef67-4f49-9da6-5196c50412cb",
+  "name" : "root.Translate",
+  "app" : "data:text/plain;base64,ewogICJhcHBGaWxlTG9jYXRpb24iIDogIi9Vc2Vycy9taWxvc2xqdWJpbmtvdmljL2dpdC9idW5ueS9yYWJpeC1jbGkvZXhhbXBsZXMvZG5hMnByb3RlaW4vdHJhbnNsYXRlLmN3bC5qc29uIiwKICAiY3dsVmVyc2lvbiIgOiAidjEuMCIsCiAgImlucHV0cyIgOiBbIHsKICAgICJpZCIgOiAiaW5wdXRfZmlsZSIsCiAgICAidHlwZSIgOiAiRmlsZSIsCiAgICAiaW5wdXRCaW5kaW5nIiA6IHsKICAgICAgInBvc2l0aW9uIiA6IDMsCiAgICAgICJwcmVmaXgiIDogIi1yIgogICAgfSwKICAgICJkZXNjcmlwdGlvbiIgOiAiSW5wdXQgZmlsZSB3aXRoIG1STkEgc2VxdWVuY2UiCiAgfSwgewogICAgImlkIiA6ICJvdXRwdXRfZmlsZW5hbWUiLAogICAgInR5cGUiIDogWyAibnVsbCIsICJTdHJpbmciIF0sCiAgICAiZGVzY3JpcHRpb24iIDogIk9wdGlvbmFsIG91dHB1dF9maWxlbmFtZSBzdHJpbmciCiAgfSBdLAogICJvdXRwdXRzIiA6IFsgewogICAgImlkIiA6ICJvdXRwdXRfcHJvdGVpbiIsCiAgICAidHlwZSIgOiAiRmlsZSIsCiAgICAib3V0cHV0QmluZGluZyIgOiB7CiAgICAgICJnbG9iIiA6ICIqLnR4dCIKICAgIH0sCiAgICAiZGVzY3JpcHRpb24iIDogIk91dHB1dCBwcm90ZWluIHNlcXVlbmNlIgogIH0gXSwKICAiaGludHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkRvY2tlclJlcXVpcmVtZW50IiwKICAgICJkb2NrZXJQdWxsIiA6ICJweXRob246Mi1hbHBpbmUiCiAgfSBdLAogICJyZXF1aXJlbWVudHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkluaXRpYWxXb3JrRGlyUmVxdWlyZW1lbnQiLAogICAgImxpc3RpbmciIDogWyB7CiAgICAgICJlbnRyeSIgOiAiIyEvdXNyL2Jpbi9lbnYvcHl0aG9uXG5pbXBvcnQgYXJncGFyc2VcbmltcG9ydCBzeXNcblxuZGVmIHRyYW5zbGF0ZShhcmdzKTpcblx0bVJOQSA9IGFyZ3NbJ21STkEnXS5yZWFkKCkuc3RyaXAoKVxuXHRjb2Rvbl9tYXAgPSB7XCJVVVVcIjpcIkZcIiwgXCJVVUNcIjpcIkZcIiwgXCJVVUFcIjpcIkxcIiwgXCJVVUdcIjpcIkxcIixcbiAgICBcIlVDVVwiOlwiU1wiLCBcIlVDQ1wiOlwiU1wiLCBcIlVDQVwiOlwiU1wiLCBcIlVDR1wiOlwiU1wiLFxuICAgIFwiVUFVXCI6XCJZXCIsIFwiVUFDXCI6XCJZXCIsIFwiVUFBXCI6XCJTVE9QXCIsIFwiVUFHXCI6XCJTVE9QXCIsXG4gICAgXCJVR1VcIjpcIkNcIiwgXCJVR0NcIjpcIkNcIiwgXCJVR0FcIjpcIlNUT1BcIiwgXCJVR0dcIjpcIldcIixcbiAgICBcIkNVVVwiOlwiTFwiLCBcIkNVQ1wiOlwiTFwiLCBcIkNVQVwiOlwiTFwiLCBcIkNVR1wiOlwiTFwiLFxuICAgIFwiQ0NVXCI6XCJQXCIsIFwiQ0NDXCI6XCJQXCIsIFwiQ0NBXCI6XCJQXCIsIFwiQ0NHXCI6XCJQXCIsXG4gICAgXCJDQVVcIjpcIkhcIiwgXCJDQUNcIjpcIkhcIiwgXCJDQUFcIjpcIlFcIiwgXCJDQUdcIjpcIlFcIixcbiAgICBcIkNHVVwiOlwiUlwiLCBcIkNHQ1wiOlwiUlwiLCBcIkNHQVwiOlwiUlwiLCBcIkNHR1wiOlwiUlwiLFxuICAgIFwiQVVVXCI6XCJJXCIsIFwiQVVDXCI6XCJJXCIsIFwiQVVBXCI6XCJJXCIsIFwiQVVHXCI6XCJNXCIsXG4gICAgXCJBQ1VcIjpcIlRcIiwgXCJBQ0NcIjpcIlRcIiwgXCJBQ0FcIjpcIlRcIiwgXCJBQ0dcIjpcIlRcIixcbiAgICBcIkFBVVwiOlwiTlwiLCBcIkFBQ1wiOlwiTlwiLCBcIkFBQVwiOlwiS1wiLCBcIkFBR1wiOlwiS1wiLFxuICAgIFwiQUdVXCI6XCJTXCIsIFwiQUdDXCI6XCJTXCIsIFwiQUdBXCI6XCJSXCIsIFwiQUdHXCI6XCJSXCIsXG4gICAgXCJHVVVcIjpcIlZcIiwgXCJHVUNcIjpcIlZcIiwgXCJHVUFcIjpcIlZcIiwgXCJHVUdcIjpcIlZcIixcbiAgICBcIkdDVVwiOlwiQVwiLCBcIkdDQ1wiOlwiQVwiLCBcIkdDQVwiOlwiQVwiLCBcIkdDR1wiOlwiQVwiLFxuICAgIFwiR0FVXCI6XCJEXCIsIFwiR0FDXCI6XCJEXCIsIFwiR0FBXCI6XCJFXCIsIFwiR0FHXCI6XCJFXCIsXG4gICAgXCJHR1VcIjpcIkdcIiwgXCJHR0NcIjpcIkdcIiwgXCJHR0FcIjpcIkdcIiwgXCJHR0dcIjpcIkdcIix9XG5cblx0cHJvdGVpbiA9ICcnXG5cdCMgZmluZCB0aGUgc3RhcnQgY29kb24gYW5kIHByb2NlZWQgdW50aWwgYSAnU1RPUCdcblx0c3RhcnQgPSBtUk5BLmZpbmQoJ0FVRycpXG5cdGlmIHN0YXJ0ICE9IC0xOlxuXHRcdHdoaWxlIHN0YXJ0KzIgPCBsZW4obVJOQSk6XG5cdFx0XHRwcm90ZWluICs9IGNvZG9uX21hcFttUk5BW3N0YXJ0OnN0YXJ0KzNdXVxuXHRcdFx0c3RhcnQgKz0gM1xuXHRcdHByb3RlaW4gPSBwcm90ZWluWzpwcm90ZWluLmZpbmQoJ1NUT1AnKV1cblx0cHJpbnQgcHJvdGVpblxuXG5pZiBfX25hbWVfXyA9PSBcIl9fbWFpbl9fXCI6XG5cdFwiXCJcIiBQYXJzZSB0aGUgY29tbWFuZCBsaW5lIGFyZ3VtZW50cyBcIlwiXCJcblx0cGFyc2VyID0gYXJncGFyc2UuQXJndW1lbnRQYXJzZXIoKVxuXHRwYXJzZXIuYWRkX2FyZ3VtZW50KFwiLXJcIiwgXCItLW1STkFcIiwgdHlwZT1hcmdwYXJzZS5GaWxlVHlwZSgncicpLCBkZWZhdWx0PXN5cy5zdGRpbilcblx0YXJncyA9IHZhcnMocGFyc2VyLnBhcnNlX2FyZ3MoKSlcblxuXHRcIlwiXCIgUnVuIHRoZSBtYWluIG1ldGhvZCBcIlwiXCJcblx0dHJhbnNsYXRlKGFyZ3MpIiwKICAgICAgImVudHJ5bmFtZSIgOiAidHJhbnNsYXRlLnB5IgogICAgfSBdCiAgfSwgewogICAgImNsYXNzIiA6ICJJbmxpbmVKYXZhc2NyaXB0UmVxdWlyZW1lbnQiCiAgfSBdLAogICJzdWNjZXNzQ29kZXMiIDogWyBdLAogICJzdGRvdXQiIDogIiR7cmV0dXJuIGlucHV0cy5vdXRwdXRfZmlsZW5hbWUgfHwgJ3Byb3RlaW4nICsgJy50eHQnfSIsCiAgImJhc2VDb21tYW5kIiA6IFsgInB5dGhvbiIsICJ0cmFuc2xhdGUucHkiIF0sCiAgImFyZ3VtZW50cyIgOiBbIF0sCiAgImRlc2NyaXB0aW9uIiA6ICJUaGlzIHRvb2wgYWxsb3dzIHlvdSB0byB0YWtlIGFuIFJOQSBzZXF1ZW5jZSBhbmQgdHJhbnNsYXRlIHRvIGEgcHJvdGVpbiBwcm9kdWN0IGJhc2VkIG9uIHRoZSBmaXJzdCBkZXRlY3RlZCBPUkYuIiwKICAibGFiZWwiIDogIlRyYW5zbGF0ZSIsCiAgImNsYXNzIiA6ICJDb21tYW5kTGluZVRvb2wiCn0=",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "input_file" : [ {
+      "size" : 29,
+      "path" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe/rna.txt",
+      "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe/rna.txt",
+      "name" : "rna.txt",
+      "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe",
+      "nameroot" : "rna",
+      "nameext" : ".txt",
+      "checksum" : "sha1$3e31c660fdbd1b32b188368ee31d29f79ee42400",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    } ],
+    "output_filename" : null
+  },
+  "outputs" : {
+    "output_protein" : {
+      "size" : 9,
+      "path" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Translate/protein.txt",
+      "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Translate/protein.txt",
+      "name" : "protein.txt",
+      "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Translate",
+      "nameroot" : "protein",
+      "nameext" : ".txt",
+      "checksum" : "sha1$55adf0ec2ecc6aee57a774d48216ac5a97d6e5ba",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 8,
+    "memMB" : 12743,
+    "diskSpaceMB" : null,
+    "networkAccess" : false,
+    "workingDir" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Translate",
+    "tmpDir" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Translate",
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  }
+}

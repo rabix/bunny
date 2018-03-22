@@ -1,0 +1,13 @@
+{
+  "output_protein" : {
+    "basename" : "protein.txt",
+    "checksum" : "sha1$55adf0ec2ecc6aee57a774d48216ac5a97d6e5ba",
+    "class" : "File",
+    "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Translate",
+    "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Translate/protein.txt",
+    "nameext" : ".txt",
+    "nameroot" : "protein",
+    "path" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Translate/protein.txt",
+    "size" : 9
+  }
+}

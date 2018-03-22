@@ -1,0 +1,1 @@
+python transcribe_argparse.py -d /Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/data/input.txt --verbose > /Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe/rna.txt

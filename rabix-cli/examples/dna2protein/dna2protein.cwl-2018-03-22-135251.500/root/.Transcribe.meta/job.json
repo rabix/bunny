@@ -1,0 +1,54 @@
+{
+  "id" : "50539b1b-292f-3e24-9e85-0970389a5f8a",
+  "parentId" : "3b13e065-ef67-4f49-9da6-5196c50412cb",
+  "rootId" : "3b13e065-ef67-4f49-9da6-5196c50412cb",
+  "name" : "root.Transcribe",
+  "app" : "data:text/plain;base64,ewogICJhcHBGaWxlTG9jYXRpb24iIDogIi9Vc2Vycy9taWxvc2xqdWJpbmtvdmljL2dpdC9idW5ueS9yYWJpeC1jbGkvZXhhbXBsZXMvZG5hMnByb3RlaW4vdHJhbnNjcmliZS5jd2wuanNvbiIsCiAgImN3bFZlcnNpb24iIDogInYxLjAiLAogICJpbnB1dHMiIDogWyB7CiAgICAiaWQiIDogImlucHV0X2ZpbGUiLAogICAgInR5cGUiIDogIkZpbGUiLAogICAgImlucHV0QmluZGluZyIgOiB7CiAgICAgICJwb3NpdGlvbiIgOiAzLAogICAgICAicHJlZml4IiA6ICItZCIKICAgIH0sCiAgICAiZGVzY3JpcHRpb24iIDogIklucHV0IGZpbGUiCiAgfSwgewogICAgImlkIiA6ICJ2ZXJib3NlIiwKICAgICJ0eXBlIiA6IFsgIm51bGwiLCAiYm9vbGVhbiIgXSwKICAgICJpbnB1dEJpbmRpbmciIDogewogICAgICAicG9zaXRpb24iIDogNCwKICAgICAgInByZWZpeCIgOiAiLS12ZXJib3NlIiwKICAgICAgInNlcGFyYXRlIiA6IHRydWUKICAgIH0KICB9LCB7CiAgICAiaWQiIDogIm91dHB1dF9maWxlbmFtZSIsCiAgICAidHlwZSIgOiBbICJudWxsIiwgInN0cmluZyIgXSwKICAgICJkZXNjcmlwdGlvbiIgOiAiU3BlY2lmeSBvdXRwdXQgZmlsZW5hbWUiCiAgfSBdLAogICJvdXRwdXRzIiA6IFsgewogICAgImlkIiA6ICJvdXRwdXRfZmlsZV9nbG9iIiwKICAgICJ0eXBlIiA6ICJGaWxlIiwKICAgICJvdXRwdXRCaW5kaW5nIiA6IHsKICAgICAgImdsb2IiIDogIioudHh0IgogICAgfQogIH0gXSwKICAiaGludHMiIDogWyB7CiAgICAiY2xhc3MiIDogIkRvY2tlclJlcXVpcmVtZW50IiwKICAgICJkb2NrZXJQdWxsIiA6ICJweXRob246Mi1hbHBpbmUiCiAgfSBdLAogICJyZXF1aXJlbWVudHMiIDogWyB7CiAgICAiY2xhc3MiIDogIklubGluZUphdmFzY3JpcHRSZXF1aXJlbWVudCIKICB9LCB7CiAgICAiY2xhc3MiIDogIkluaXRpYWxXb3JrRGlyUmVxdWlyZW1lbnQiLAogICAgImxpc3RpbmciIDogWyB7CiAgICAgICJlbnRyeSIgOiAiIyEvdXNyL2Jpbi9lbnYvcHl0aG9uXG5pbXBvcnQgYXJncGFyc2VcbmltcG9ydCByZVxuaW1wb3J0IHN5c1xuXG5kZWYgdHJhbnNjcmliZShhcmdzKTpcblx0IyBjcmVhdGUgYSB0cmFuc2NyaXB0aW9uIG1hcCBhbmQgdXNlIHJlZ2V4IHRvIHRyYW5zbGF0ZVxuXHRtYXAgPSB7XCJBXCI6XCJVXCIsIFwiVFwiOlwiQVwiLCBcIkNcIjpcIkdcIiwgXCJHXCI6XCJDXCJ9XG5cdG1hcCA9IGRpY3QoKHJlLmVzY2FwZShrKSwgdikgZm9yIGssIHYgaW4gbWFwLml0ZXJpdGVtcygpKVxuXHRwYXR0ZXJuID0gcmUuY29tcGlsZShcInxcIi5qb2luKG1hcC5rZXlzKCkpKVxuXHRETkEgPSBhcmdzWydkbmEnXS5yZWFkKCkuc3RyaXAoKVxuXHRtUk5BID0gcGF0dGVybi5zdWIobGFtYmRhIG06IG1hcFtyZS5lc2NhcGUobS5ncm91cCgwKSldLCBETkEpXG5cblx0IyB3cml0ZSBhIHZlcmJvc2Ugb3V0cHV0IHRvIHN0ZGVyciBhbmQganVzdCBtUk5BIHRvIHNkdG91dCBcblx0aWYgYXJnc1sndmVyYm9zZSddOlxuXHRcdHN5cy5zdGRlcnIud3JpdGUoXCJZb3VyIG9yaWdpbmFsIEROQSBzZXF1ZW5jZTogXCIgKyBETkEgKyBcIlxcblwiKVxuXHRcdHN5cy5zdGRlcnIud3JpdGUoXCJZb3VyIHRyYW5zbGF0ZWQgbVJOQSBzZXF1ZW5jZTogXCIgKyBtUk5BICsgXCJcXG5cIilcblx0c3lzLnN0ZG91dC53cml0ZShtUk5BICsgJ1xcbicpXG5cdHN5cy5leGl0KDApXG5cdHJldHVybiBtUk5BXG5cbmlmIF9fbmFtZV9fID09IFwiX19tYWluX19cIjpcblx0XCJcIlwiIFBhcnNlIHRoZSBjb21tYW5kIGxpbmUgYXJndW1lbnRzIFwiXCJcIlxuXHRwYXJzZXIgPSBhcmdwYXJzZS5Bcmd1bWVudFBhcnNlcigpXG5cdHBhcnNlci5hZGRfYXJndW1lbnQoXCItZFwiLCBcIi0tZG5hXCIsIHR5cGU9YXJncGFyc2UuRmlsZVR5cGUoXCJyXCIpLCBkZWZhdWx0PXN5cy5zdGRpbilcblx0cGFyc2VyLmFkZF9hcmd1bWVudChcIi12XCIsIFwiLS12ZXJib3NlXCIsIGFjdGlvbj1cInN0b3JlX3RydWVcIiwgZGVmYXVsdD1GYWxzZSlcblx0IyBCeSBzZXR0aW5nIGFyZ3MgYXMgdmFyKC4uLiksIGl0IGJlY29tZXMgYSBkaWN0LCBzbyAnZG5hJyBpcyBhIGtleVxuXHQjIEFsdGVybmF0aXZlIHVzZTogYXJncyA9IHBhcnNlci5wYXJzZV9hcmdzKCksIGFuZCAnZG5hJyBpcyBhbiBhdHRyIG9mIGFyZ3MhXG5cdCMgWW91IG11c3QgY2hhbmdlIGhvdyB5b3UgY2FsbCB0aGUgYXJncyB5b3UgcGFyc2UgYmFzZWQgb24gdGhpcyB1c2FnZSEgXG5cdGFyZ3MgPSB2YXJzKHBhcnNlci5wYXJzZV9hcmdzKCkpXG5cblx0XCJcIlwiIFJ1biB0aGUgZGVzaXJlZCBtZXRob2RzIFwiXCJcIlxuXHR0cmFuc2NyaWJlKGFyZ3MpIiwKICAgICAgImVudHJ5bmFtZSIgOiAidHJhbnNjcmliZV9hcmdwYXJzZS5weSIKICAgIH0gXQogIH0gXSwKICAic3VjY2Vzc0NvZGVzIiA6IFsgXSwKICAic3Rkb3V0IiA6ICIke3JldHVybiBpbnB1dHMub3V0cHV0X2ZpbGVuYW1lIHx8ICdybmEnICsgJy50eHQnfSIsCiAgImJhc2VDb21tYW5kIiA6IFsgInB5dGhvbiIsICJ0cmFuc2NyaWJlX2FyZ3BhcnNlLnB5IiBdLAogICJhcmd1bWVudHMiIDogWyBdLAogICJkZXNjcmlwdGlvbiIgOiAiVGhpcyBwcm9qZWN0IHdhcyBjcmVhdGVkIHRvIGRlbW9uc3RyYXRlIHRoZSB1c2Ugb2YgYXJncGFyc2UgdG8gY3JlYXRlIENMSSB0b29scyBpbiBQeXRob24sIHdyYXAgdGhlbSB1c2luZyBDV0wgdjEuMCwgYW5kIHJ1bm5pbmcgdGhlbS5cblxuVGhpcyB0b29sIHRha2VzIGEgVFhUIGZpbGUgd2l0aCBhIEROQSBzZXF1ZW5jZSBhbmQgY29udmVydHMgdG8gYW4gUk5BIHNlcXVlbmNlLiIsCiAgImxhYmVsIiA6ICJUcmFuc2NyaWJlIiwKICAiY2xhc3MiIDogIkNvbW1hbmRMaW5lVG9vbCIKfQ==",
+  "status" : "COMPLETED",
+  "inputs" : {
+    "input_file" : [ {
+      "size" : 29,
+      "path" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/data/input.txt",
+      "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/data/input.txt",
+      "name" : "input.txt",
+      "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/data",
+      "nameroot" : "input",
+      "nameext" : ".txt",
+      "checksum" : "sha1$06fec0ada27fe482c082e01fad1dc0e1775ef1c3",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    } ],
+    "output_filename" : null,
+    "verbose" : true
+  },
+  "outputs" : {
+    "output_file_glob" : {
+      "size" : 29,
+      "path" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe/rna.txt",
+      "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe/rna.txt",
+      "name" : "rna.txt",
+      "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe",
+      "nameroot" : "rna",
+      "nameext" : ".txt",
+      "checksum" : "sha1$3e31c660fdbd1b32b188368ee31d29f79ee42400",
+      "secondaryFiles" : [ ],
+      "properties" : {
+        "sbg:metadata" : null
+      },
+      "$type" : "File"
+    }
+  },
+  "resources" : {
+    "cpu" : 8,
+    "memMB" : 12743,
+    "diskSpaceMB" : null,
+    "networkAccess" : false,
+    "workingDir" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe",
+    "tmpDir" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe",
+    "outDirSize" : null,
+    "tmpDirSize" : null
+  }
+}

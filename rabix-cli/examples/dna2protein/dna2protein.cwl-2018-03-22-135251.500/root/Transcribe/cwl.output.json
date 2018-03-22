@@ -1,0 +1,13 @@
+{
+  "output_file_glob" : {
+    "basename" : "rna.txt",
+    "checksum" : "sha1$3e31c660fdbd1b32b188368ee31d29f79ee42400",
+    "class" : "File",
+    "dirname" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe",
+    "location" : "file:///Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe/rna.txt",
+    "nameext" : ".txt",
+    "nameroot" : "rna",
+    "path" : "/Users/milosljubinkovic/git/bunny/rabix-cli/examples/dna2protein/dna2protein.cwl-2018-03-22-135251.500/root/Transcribe/rna.txt",
+    "size" : 29
+  }
+}
