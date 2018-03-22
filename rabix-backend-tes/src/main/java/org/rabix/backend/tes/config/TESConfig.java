@@ -6,17 +6,17 @@ import com.google.inject.Inject;
 
 public class TESConfig {
 
-  public static final String HOST = "rabix.tes.client_host";
-  public static final String PORT = "rabix.tes.client_port";
-  public static final String SCHEME = "rabix.tes.client_scheme";
-  public static final String CONNECT_TIMEOUT = "rabix.tes.client_connect_timeout";
-  public static final String READ_TIMEOUT = "rabix.tes.client_read_timeout";
-  public static final String WRITE_TIMEOUT = "rabix.tes.client_write_timeout";
+  public static final String HOST = "tes.client_host";
+  public static final String PORT = "tes.client_port";
+  public static final String SCHEME = "tes.client_scheme";
+  public static final String CONNECT_TIMEOUT = "tes.client_connect_timeout";
+  public static final String READ_TIMEOUT = "tes.client_read_timeout";
+  public static final String WRITE_TIMEOUT = "tes.client_write_timeout";
 
-  public static final String TASK_THREAD_POOL = "rabix.tes.task_thread_pool";
-  public static final String POSTPROCESSING_THREAD_POOL = "rabix.tes.postprocessing_thread_pool";
+  public static final String TASK_THREAD_POOL = "tes.task_thread_pool";
+  public static final String POSTPROCESSING_THREAD_POOL = "tes.postprocessing_thread_pool";
 
-  public static final String STORAGE_BASE = "rabix.tes.storage_base";
+  public static final String STORAGE_BASE = "tes.storage_base";
 
   private final Configuration configuration;
 

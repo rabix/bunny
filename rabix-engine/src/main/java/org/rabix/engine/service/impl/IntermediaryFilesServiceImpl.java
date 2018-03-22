@@ -1,6 +1,16 @@
 package org.rabix.engine.service.impl;
 
-import com.google.inject.Inject;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Consumer;
+
+import org.apache.commons.configuration.Configuration;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.model.FileValue;
 import org.rabix.bindings.model.Job;
@@ -11,9 +21,7 @@ import org.rabix.engine.store.repository.IntermediaryFilesRepository.Intermediar
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.function.Consumer;
+import com.google.inject.Inject;
 
 public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
 
@@ -23,7 +31,7 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   private IntermediaryFilesHandler fileHandler;
 
   @Inject
-  protected IntermediaryFilesServiceImpl(IntermediaryFilesHandler handler, IntermediaryFilesRepository intermediaryFilesRepository) {
+  protected IntermediaryFilesServiceImpl(IntermediaryFilesHandler handler, IntermediaryFilesRepository intermediaryFilesRepository, Configuration config) {
     this.fileHandler = handler;
     this.intermediaryFilesRepository = intermediaryFilesRepository;
   }
@@ -56,6 +64,18 @@ public class IntermediaryFilesServiceImpl implements IntermediaryFilesService {
   public void incrementInputFilesReferences(UUID rootId, Object value) {
     logger.debug("incrementInputFilesReferences(rootId={}, value={})", rootId, value);
     FileValueHelper.getFilesFromValue(value).forEach(fileValue -> addOrIncrement(rootId, fileValue));
+  }
+  
+  @Override
+  public void freeze(UUID rootId, Object value) {
+    logger.debug("incrementInputFilesReferences(rootId={}, value={})", rootId, value);
+    List<FileValue> files = FileValueHelper.getFilesFromValue(value);
+    for(FileValue file: files) {
+      Set<String> paths = extractPathsFromFileValue(file);
+      for(String path: paths) {
+        intermediaryFilesRepository.insertIfNotExists(rootId, path, Integer.MAX_VALUE/2);
+      }
+    }
   }
 
   @Override

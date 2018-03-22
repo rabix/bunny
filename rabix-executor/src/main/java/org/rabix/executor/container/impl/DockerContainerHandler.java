@@ -33,6 +33,7 @@ import org.rabix.backend.api.callback.WorkerStatusCallback;
 import org.rabix.backend.api.callback.WorkerStatusCallbackException;
 import org.rabix.bindings.Bindings;
 import org.rabix.bindings.BindingsFactory;
+import org.rabix.bindings.CommandLine;
 import org.rabix.bindings.helper.FileValueHelper;
 import org.rabix.bindings.mapper.FilePathMapper;
 import org.rabix.bindings.model.FileValue;
@@ -217,7 +218,22 @@ public class DockerContainerHandler implements ContainerHandler {
     List<String> readLines = IOUtils.readLines(stream);
     return readLines.get(0);
   }
-  
+
+  private void getToTheBottomOfThis(Path p, Set<String> binds){
+    if(Files.isSymbolicLink(p)) {
+      try {
+        Path linked = Files.readSymbolicLink(p);
+        if(!linked.isAbsolute()){
+          linked = p.resolveSibling(linked).normalize().toAbsolutePath();
+        }
+        binds.add(linked.toString() + ":" + linked.toString());
+        getToTheBottomOfThis(linked, binds);
+      } catch (IOException e) {
+        logger.error(e.getMessage(), e);
+      }
+    }
+  }
+
   @Override
   public void start() throws ContainerException {
     try {
@@ -232,8 +248,7 @@ public class DockerContainerHandler implements ContainerHandler {
       for (FileValue f : flat) {
         Path location = Paths.get(URI.create(f.getLocation()));
         if(Files.isSymbolicLink(location)) {
-          Path readLink = Files.readSymbolicLink(location);
-          binds.add(readLink.toString() + ":" + readLink.toString());
+          getToTheBottomOfThis(location, binds);
         }
         if (location.startsWith(rootWorkingDir)) {
           continue;
@@ -279,7 +294,6 @@ public class DockerContainerHandler implements ContainerHandler {
         commandLine = normalizeCommandLine(commandLine.replace("/bin/sh -c", ""));
         builder.entrypoint("/bin/sh");
       } else {
-        commandLine = normalizeCommandLine(commandLine);
         builder.entrypoint("/bin/sh");
       }
 
@@ -330,11 +344,11 @@ public class DockerContainerHandler implements ContainerHandler {
 
   private String normalizeCommandLine(String commandLine) {
     commandLine = commandLine.trim();
-    if (commandLine.startsWith("\"") && commandLine.endsWith("\"")) {
-      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    if (commandLine.startsWith("\"")) {
+        commandLine = commandLine.substring(1, commandLine.lastIndexOf('\"')) + commandLine.substring(commandLine.lastIndexOf('\"') + 1, commandLine.length());
     }
-    if (commandLine.startsWith("'") && commandLine.endsWith("'")) {
-      commandLine = commandLine.substring(1, commandLine.length() - 1);
+    if (commandLine.startsWith("'")) {
+        commandLine = commandLine.substring(1, commandLine.lastIndexOf('\'')) + commandLine.substring(commandLine.lastIndexOf('\'') + 1, commandLine.length());
     }
     return commandLine;
   }
@@ -515,10 +529,12 @@ public class DockerContainerHandler implements ContainerHandler {
     private static final String UNIX_SCHEME = "unix";
 
     private DockerClient dockerClient;
+    private final Configuration configuration;
 
     @Inject
     public DockerClientLockDecorator(Configuration configuration) throws ContainerException {
       this.dockerClient = createDockerClient(configuration);
+      this.configuration = configuration;
     }
 
     public synchronized void removeContainer(String containerId) throws DockerException, InterruptedException {
@@ -533,6 +549,11 @@ public class DockerContainerHandler implements ContainerHandler {
         }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
+        if (configuration.getBoolean("composer.logs.enabled", false))
+          logger.info("Composer: {\"status\": \"DOCKER_PULL_FAILED\",  \"retry\": " +
+              TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME)  + ", \"image\": \"" + image + "\","
+              + "\"message\": \"" + e.getMessage() + "\"}");
+
         throw e;
       }
     }
@@ -545,6 +566,11 @@ public class DockerContainerHandler implements ContainerHandler {
         }
       } catch (Throwable e) {
         VerboseLogger.log("Failed to pull docker image. Retrying in " + TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME) + " seconds");
+        if (configuration.getBoolean("composer.logs.enabled", false))
+          logger.info("Composer: {\"status\": \"DOCKER_PULL_FAILED\",  \"retry\": " +
+              TimeUnit.MILLISECONDS.toSeconds(SLEEP_TIME)  + ", \"image\": \"" + image + "\","
+              + "\"message\": \"" + e.getMessage() + "\"}");
+
         throw e;
       }
     }

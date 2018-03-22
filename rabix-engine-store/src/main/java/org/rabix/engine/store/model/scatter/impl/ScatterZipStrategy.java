@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,12 +25,12 @@ import com.google.common.base.Preconditions;
 public class ScatterZipStrategy implements ScatterStrategy {
 
   @JsonProperty("combinations")
-  private LinkedList<Combination> combinations;
+  private List<Combination> combinations;
   
   @JsonProperty("values")
-  private Map<String, LinkedList<Object>> values;
+  private Map<String, List<Object>> values;
   @JsonProperty("indexes")
-  private Map<String, LinkedList<Boolean>> indexes;
+  private Map<String, List<Boolean>> indexes;
 
   @JsonProperty("scatterMethod")
   private ScatterMethod scatterMethod;
@@ -43,9 +42,9 @@ public class ScatterZipStrategy implements ScatterStrategy {
   private Boolean skipScatter;
   
   @JsonCreator
-  public ScatterZipStrategy(@JsonProperty("combinations") LinkedList<Combination> combinations,
-      @JsonProperty("values") Map<String, LinkedList<Object>> values,
-      @JsonProperty("indexes") Map<String, LinkedList<Boolean>> indexes,
+  public ScatterZipStrategy(@JsonProperty("combinations") List<Combination> combinations,
+      @JsonProperty("values") Map<String, List<Object>> values,
+      @JsonProperty("indexes") Map<String, List<Boolean>> indexes,
       @JsonProperty("scatterMethod") ScatterMethod scatterMethod,
       @JsonProperty("emptyListDetected") Boolean emptyListDetected, @JsonProperty("skipScatter") Boolean skipScatter) {
     super();
@@ -60,7 +59,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
   public ScatterZipStrategy(DAGNode dagNode) {
     values = new HashMap<>();
     indexes = new HashMap<>();
-    combinations = new LinkedList<>();
+    combinations = new ArrayList<>();
     
     this.scatterMethod = dagNode.getScatterMethod();
     this.emptyListDetected = false;
@@ -71,8 +70,8 @@ public class ScatterZipStrategy implements ScatterStrategy {
   public void initialize(DAGNode dagNode) {
     for(DAGLinkPort port : dagNode.getInputPorts()) {
       if (port.isScatter()) {
-        values.put(port.getId(), new LinkedList<Object>());
-        indexes.put(port.getId(), new LinkedList<Boolean>());
+        values.put(port.getId(), new ArrayList<Object>());
+        indexes.put(port.getId(), new ArrayList<Boolean>());
       }
     }
   }
@@ -106,12 +105,12 @@ public class ScatterZipStrategy implements ScatterStrategy {
 
   @Override
   public List<RowMapping> enabled() {
-    List<RowMapping> result = new LinkedList<>();
+    List<RowMapping> result = new ArrayList<>();
 
-    List<String> ports = new LinkedList<>();
-    LinkedList<LinkedList<Boolean>> indexLists = new LinkedList<>();
+    List<String> ports = new ArrayList<>();
+    ArrayList<List<Boolean>> indexLists = new ArrayList<>();
 
-    for (Entry<String, LinkedList<Boolean>> entry : indexes.entrySet()) {
+    for (Entry<String, List<Boolean>> entry : indexes.entrySet()) {
       ports.add(entry.getKey());
       indexLists.add(entry.getValue());
     }
@@ -122,7 +121,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
         continue;
       }
       boolean exists = true;
-      for (LinkedList<Boolean> indexList : indexLists) {
+      for (List<Boolean> indexList : indexLists) {
         if (indexList.size() <= i || indexList.get(i) == null) {
           exists = false;
           break;
@@ -146,7 +145,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
         }
 
         if (!combination.enabled) {
-          List<PortMapping> portMappings = new LinkedList<>();
+          List<PortMapping> portMappings = new ArrayList<>();
 
           for (String portId : ports) {
             Object value = values.get(portId).get(i);
@@ -197,7 +196,7 @@ public class ScatterZipStrategy implements ScatterStrategy {
   @Override
   public List<Object> valueStructure(String jobId, String portId, UUID rootId) {
     if (combinations.isEmpty()) {
-      return new LinkedList<>();
+      return new ArrayList<>();
     }
     Collections.sort(combinations, new Comparator<Combination>() {
       @Override
@@ -205,11 +204,11 @@ public class ScatterZipStrategy implements ScatterStrategy {
         return o1.position - o2.position;
       }
     });
-    
-    LinkedList<Object> result = new LinkedList<>();
+
+    ArrayList<Object> result = new ArrayList<>();
     for (Combination combination : combinations) {
       String scatteredJobId = InternalSchemaHelper.scatterId(jobId, combination.position);
-      result.addLast(new JobPortPair(scatteredJobId, portId));
+      result.add(new JobPortPair(scatteredJobId, portId));
     }
     return result;
   }

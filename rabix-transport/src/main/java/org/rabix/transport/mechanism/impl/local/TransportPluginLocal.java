@@ -29,7 +29,7 @@ public class TransportPluginLocal implements TransportPlugin<TransportQueueLocal
   @Override
   public <T> ResultPair<T> send(TransportQueueLocal queue, T entity) {
     try {
-      VMQueues.getQueue(queue.getQueue()).put(BeanSerializer.serializeFull(entity));
+      VMQueues.getQueue(queue.getQueue()).put(entity);
       return ResultPair.<T> success();
     } catch (InterruptedException e) {
       logger.error("Failed to send a message to " + queue, e);
@@ -82,8 +82,8 @@ public class TransportPluginLocal implements TransportPlugin<TransportQueueLocal
     void start() {
       try {
         while (!isStopped) {
-          String payload = VMQueues.<String> getQueue(queue.getQueue()).take();
-          callback.handleReceive(BeanSerializer.deserialize(payload, clazz), () -> {});
+          T payload = VMQueues.<T> getQueue(queue.getQueue()).take();
+          callback.handleReceive(payload, () -> {});
         }
       } catch (InterruptedException e) {
         logger.error("Failed to receive a message from " + queue, e);

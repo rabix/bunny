@@ -199,7 +199,7 @@ public class JobHandlerImpl implements JobHandler {
       for (SingleFileRequirement fileRequirement : fileRequirements) {
         File destinationFile = new File(workingDir, fileRequirement.getFilename());
         if (fileRequirement instanceof SingleTextFileRequirement) {
-          FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent().replaceAll(Matcher.quoteReplacement("\\$"), "\\$"));
+          FileUtils.writeStringToFile(destinationFile, ((SingleTextFileRequirement) fileRequirement).getContent());
           continue;
         }
         if (fileRequirement instanceof SingleInputFileRequirement || fileRequirement instanceof SingleInputDirectoryRequirement) {

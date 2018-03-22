@@ -179,6 +179,9 @@ public class BackendCommandLine {
       if (commandLine.hasOption("no-container")) {
         configOverrides.put("docker.enabled", false);
       }
+      if (commandLine.hasOption("enable-composer-logs")) {
+        configOverrides.put("composer.logs.enabled", true);
+      }
       if (commandLine.hasOption("cache-dir")) {
         String cacheDir = commandLine.getOptionValue("cache-dir");
         File cacheDirFile = new File(cacheDir);
@@ -367,7 +370,10 @@ public class BackendCommandLine {
         }
       }
       if (!missingRequiredFields.isEmpty()) {
-        VerboseLogger.log("Required inputs missing: " + StringUtils.join(missingRequiredFields, ", "));
+        String message = "Required inputs missing: " + StringUtils.join(missingRequiredFields, ", ");
+        VerboseLogger.log(message);
+        if (configuration.getBoolean("composer.logs.enabled", false))
+          logger.info("Composer: {\"status\": \"FAILED\",  \"stepId\": \"root\", \"message\": \"" + message + "\"}");
         printAppUsageAndExit(appInputOptions);
       }
 
@@ -481,6 +487,7 @@ public class BackendCommandLine {
     options.addOption(null, "quiet", false, "don't print anything except final result on standard output");
     options.addOption(null, "tes-url", true, "url of the ga4gh task execution server instance (experimental)");
     options.addOption(null, "tes-storage", true, "path to the storage used by the ga4gh tes server (currently supports locall dirs and google storage cloud paths)");
+    options.addOption(null, "enable-composer-logs", false, "enable additional logging required by Composer");
     // TODO: implement useful cli overrides for config options
 //    options.addOption(null, "set-ownership", false, "");
 //    options.addOption(null, "ownership-uid", true, "");

@@ -1,16 +1,36 @@
 package org.rabix.engine;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Scopes;
 import org.apache.commons.configuration.Configuration;
 import org.rabix.common.config.ConfigModule;
 import org.rabix.engine.metrics.MetricsModule;
 import org.rabix.engine.processor.EventProcessor;
 import org.rabix.engine.processor.handler.HandlerFactory;
-import org.rabix.engine.processor.handler.impl.*;
+import org.rabix.engine.processor.handler.impl.ContextStatusEventHandler;
+import org.rabix.engine.processor.handler.impl.InitEventHandler;
+import org.rabix.engine.processor.handler.impl.InputEventHandler;
+import org.rabix.engine.processor.handler.impl.JobStatusEventHandler;
+import org.rabix.engine.processor.handler.impl.OutputEventHandler;
+import org.rabix.engine.processor.handler.impl.ScatterHandler;
+import org.rabix.engine.processor.handler.impl.ScatterJobEventHandler;
 import org.rabix.engine.processor.impl.MultiEventProcessorImpl;
-import org.rabix.engine.service.*;
-import org.rabix.engine.service.impl.*;
+import org.rabix.engine.service.AppService;
+import org.rabix.engine.service.ContextRecordService;
+import org.rabix.engine.service.DAGNodeService;
+import org.rabix.engine.service.GarbageCollectionService;
+import org.rabix.engine.service.IntermediaryFilesService;
+import org.rabix.engine.service.JobRecordService;
+import org.rabix.engine.service.JobStatsRecordService;
+import org.rabix.engine.service.LinkRecordService;
+import org.rabix.engine.service.VariableRecordService;
+import org.rabix.engine.service.impl.AppServiceImpl;
+import org.rabix.engine.service.impl.ContextRecordServiceImpl;
+import org.rabix.engine.service.impl.DAGNodeServiceImpl;
+import org.rabix.engine.service.impl.GarbageCollectionServiceImpl;
+import org.rabix.engine.service.impl.IntermediaryFilesServiceImpl;
+import org.rabix.engine.service.impl.JobRecordServiceImpl;
+import org.rabix.engine.service.impl.JobStatsRecordServiceImpl;
+import org.rabix.engine.service.impl.LinkRecordServiceImpl;
+import org.rabix.engine.service.impl.VariableRecordServiceImpl;
 import org.rabix.engine.storage.EventSourcingModule;
 import org.rabix.engine.store.lru.app.AppCache;
 import org.rabix.engine.store.lru.context.ContextRecordCache;
@@ -21,6 +41,10 @@ import org.rabix.engine.store.memory.InMemoryRepositoryRegistry;
 import org.rabix.engine.store.postgres.jdbi.JDBIRepositoryModule;
 import org.rabix.engine.store.postgres.jdbi.JDBIRepositoryRegistry;
 import org.rabix.engine.store.repository.TransactionHelper;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
+import com.google.inject.name.Names;
 
 public class EngineModule extends AbstractModule {
 
@@ -59,7 +83,7 @@ public class EngineModule extends AbstractModule {
     bind(ContextRecordService.class).to(ContextRecordServiceImpl.class).in(Scopes.SINGLETON);
     bind(JobStatsRecordService.class).to(JobStatsRecordServiceImpl.class).in(Scopes.SINGLETON);
     bind(GarbageCollectionService.class).to(GarbageCollectionServiceImpl.class).in(Scopes.SINGLETON);
-
+    bindConstant().annotatedWith(Names.named(InputEventHandler.TREAT_ROOT)).to(configuration.getBoolean("engine.treat_inputs_as_intermediary", false));
     bind(JobHelper.class).in(Scopes.SINGLETON);
     bind(ScatterHandler.class).in(Scopes.SINGLETON);
     bind(InitEventHandler.class).in(Scopes.SINGLETON);
