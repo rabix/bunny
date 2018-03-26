@@ -204,15 +204,15 @@ public class BackendCommandLine {
           URL url = new URL(tesURL);
           String host = url.getHost();
           if (host != null) {
-            configOverrides.put("rabix.tes.client-host", host);
+            configOverrides.put("tes.client_host", host);
           }
           Integer port = url.getPort();
           if (port != null) {
-            configOverrides.put("rabix.tes.client-port", port);
+            configOverrides.put("tes.client_port", port);
           }
           String scheme = url.getProtocol();
           if (scheme != null) {
-            configOverrides.put("rabix.tes.client-scheme", scheme);
+            configOverrides.put("tes.client_scheme", scheme);
           }
         } catch (Exception e) {
           VerboseLogger.log("TES URL is invalid");
@@ -221,7 +221,7 @@ public class BackendCommandLine {
       }
       String tesStorageURL = commandLine.getOptionValue("tes-storage");
       if (tesStorageURL != null) {
-        configOverrides.put("rabix.tes.storage.base", tesStorageURL);
+        configOverrides.put("tes.storage_base", tesStorageURL);
       }
 
       final ConfigModule configModule = new ConfigModule(configDir, configOverrides);
