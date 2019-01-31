@@ -404,13 +404,13 @@ public class BackendCommandLine {
         commonInputs = bindings.translateToCommon(inputs);
         if (inputsFile != null) {
           final Path finalInputs = inputsFile;
-          FileValueHelper.updateFileValues(commonInputs, (FileValue f) -> {
-            fixPaths(finalInputs, f);
-            if (f.getSecondaryFiles() != null)
-              for (FileValue sec : f.getSecondaryFiles()) {
+          FileValueHelper.updateFileValues(commonInputs, (FileValue file) -> {
+            fixPaths(finalInputs, file);
+            if (file.getSecondaryFiles() != null)
+              for (FileValue sec : file.getSecondaryFiles()) {
                 fixPaths(finalInputs, sec);
               }
-            return f;
+            return file;
           });
         }
       } catch (BindingException e1) {
