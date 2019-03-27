@@ -1,10 +1,37 @@
 # Support notice
-Please note that Seven Bridges is not actively maintaining Rabix Executor at the moment (Q2 2018). We may be slow to respond to bug reports and pull requests. Some alternative executors are [Toil](https://toil.readthedocs.io/en/3.15.0/), [CWLtool](https://github.com/common-workflow-language/cwltool), [Cromwell](https://github.com/broadinstitute/cromwell), [Yacle](https://github.com/otiai10/yacle). A longer list is available at https://www.commonwl.org/
+
+## Summary
+_Rabix Executor_ will remain available as a local, single node, `sbg:draft2` and `CWL 1.0` test executor. However, 
+please note that Seven Bridges is not actively maintaining or extending _Rabix Executor_ at the moment (Q2/Q3 2019). 
+
+If you are looking for an on premises CWL executor with a variety of backends ranging from HPC to Cloud, we would 
+suggest looking at [Toil](https://toil.readthedocs.io/en/latest/running/cwl.html#) (`pip install toil[cwl]`) 
+
+If you are looking for the CWL reference runner (suitable for testing and prototyping) we suggest looking at [CWLtool](https://github.com/common-workflow-language/cwltool) (`pip install cwltool`)
+
+You can also browse the complete list of CWL executors [here](https://www.commonwl.org/#Implementations).
+
+_Rabix Executor remains a stable local test runner for those people wishing to run `sbg:draft2` pipelines locally, 
+but no new features will be added to it._
+
+**_[Rabix Composer](https://github.com/rabix/composer)_ is and will be actively maintained and extended by 
+Seven Bridges and we continue to actively participate in CWL specification development.**
+
+## Background
+When the _Rabix_ project was in it's infancy and the CWL specification was just being developed (ca. 2014-2016) 
+_Rabix Executor_ was the only executor capable of running CWL. It proved invaluable as a test bed for ideas for 
+the specification that evolved into CWL and as a living implementation of the specification.
+
+Now, in 2019, there are a variety of CWL executors running on a variety of OSes and job platforms, meant for a variety
+of workloads, ranging from  your laptop to HPC environments to cloud infrastructure. The community maintained 
+program `CWLtool` now serves the purpose of CWL test bed and test executor and there is no longer a need for a 
+separately maintained CWL test executor. 
+
 
 # Overview
 
 Rabix is an open-source development kit for the [Common Workflow Language](http://www.commonwl.org/) from [Seven Bridges](https://sbgenomics.com). 
-One of its components is the Rabix executor Bunny, which can be used to execute apps locally from the command line.
+One of its components is the Rabix Executor (Bunny), which can be used to execute apps locally from the command line.
 
 You can read the full documentation on [wiki pages](https://github.com/rabix/bunny/wiki).
 
