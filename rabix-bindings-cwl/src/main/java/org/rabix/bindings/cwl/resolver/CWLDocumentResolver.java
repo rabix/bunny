@@ -541,12 +541,17 @@ public class CWLDocumentResolver {
 
     JsonNode parent = null;
     JsonNode child = rootNode;
+    JsonNode temp = null;
     for (String part : parts) {
       if (StringUtils.isEmpty(part)) {
         continue;
       }
       parent = child;
-      child = child.get(part);
+      temp = child.get(part);
+      if (temp == null) {
+        temp = child.get("name");
+      }
+      child = temp;
     }
     return new ParentChild(parent, child);
   }
